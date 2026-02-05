@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { RiCheckLine, RiExpandUpDownLine } from '@remixicon/react';
 
 import { cn, cnExt } from '@/shared/lib/cn';
@@ -46,7 +47,7 @@ function CompanyItem({ company, selected, onSelect }: CompanyItemProps) {
       className='group/item transition-default flex w-full cursor-pointer items-center gap-3 rounded-10 p-2 text-left outline-none hover:bg-bg-weak-50 focus:outline-none'
     >
       <div className='flex size-10 items-center justify-center rounded-full shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
-        <img src={company.logo} alt='' className='size-6' />
+        <Image src={company.logo} alt='' width={24} height={24} className='size-6' />
       </div>
       <div className='flex-1 space-y-1'>
         <div className='text-label-sm'>{company.name}</div>
@@ -61,6 +62,7 @@ function CompanyItem({ company, selected, onSelect }: CompanyItemProps) {
 
 export function CompanySwitch({ className }: { className?: string }) {
   const [selectedItem, setSelectedItem] = React.useState(companies[0].value);
+  const selectedCompany = companies.find((company) => company.value === selectedItem);
 
   return (
     <Dropdown.Root>
@@ -70,11 +72,11 @@ export function CompanySwitch({ className }: { className?: string }) {
           className,
         )}
       >
-        <img
-          src={
-            companies.find((company) => company.value === selectedItem)?.logo
-          }
+        <Image
+          src={selectedCompany?.logo || '/images/placeholder/apex.svg'}
           alt=''
+          width={40}
+          height={40}
           className='size-10'
         />
         <div
@@ -83,16 +85,10 @@ export function CompanySwitch({ className }: { className?: string }) {
         >
           <div className='flex-1 space-y-1'>
             <div className='text-label-sm'>
-              {
-                companies.find((company) => company.value === selectedItem)
-                  ?.name
-              }
+              {selectedCompany?.name}
             </div>
             <div className='text-paragraph-xs text-text-sub-600'>
-              {
-                companies.find((company) => company.value === selectedItem)
-                  ?.description
-              }
+              {selectedCompany?.description}
             </div>
           </div>
           <div className='flex size-6 items-center justify-center rounded-md border border-stroke-soft-200 bg-bg-white-0 shadow-regular-xs'>
@@ -116,6 +112,7 @@ export function CompanySwitch({ className }: { className?: string }) {
 
 export function CompanySwitchMobile({ className }: { className?: string }) {
   const [selectedItem, setSelectedItem] = React.useState(companies[0].value);
+  const selectedCompany = companies.find((company) => company.value === selectedItem);
 
   return (
     <Dropdown.Root modal={false}>
@@ -125,22 +122,19 @@ export function CompanySwitchMobile({ className }: { className?: string }) {
           className,
         )}
       >
-        <img
-          src={
-            companies.find((company) => company.value === selectedItem)?.logo
-          }
+        <Image
+          src={selectedCompany?.logo || '/images/placeholder/apex.svg'}
           alt=''
+          width={44}
+          height={44}
           className='size-11'
         />
         <div className='flex-1 space-y-1'>
           <div className='text-label-md'>
-            {companies.find((company) => company.value === selectedItem)?.name}
+            {selectedCompany?.name}
           </div>
           <div className='text-paragraph-sm text-text-sub-600'>
-            {
-              companies.find((company) => company.value === selectedItem)
-                ?.description
-            }
+            {selectedCompany?.description}
           </div>
         </div>
         <div

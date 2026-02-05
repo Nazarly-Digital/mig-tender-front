@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import {
   RiAttachment2,
   RiContractRightLine,
@@ -99,9 +100,11 @@ export default function NotificationButton({
                     <span>8 min ago</span>
                     <span className='px-0.5'>∙</span>
                     <div className='flex items-center gap-1'>
-                      <img
+                      <Image
                         src='/images/placeholder/horizon.svg'
                         alt=''
+                        width={16}
+                        height={16}
                         className='size-4 shrink-0'
                       />
                       <span>Horizon Shift</span>
@@ -130,9 +133,11 @@ export default function NotificationButton({
                       <span>2 hours ago</span>
                       <span className='px-0.5'>∙</span>
                       <div className='flex items-center gap-1'>
-                        <img
+                        <Image
                           src='/images/placeholder/synergy.svg'
                           alt=''
+                          width={16}
+                          height={16}
                           className='size-4 shrink-0'
                         />
                         <span>Synergy HR</span>
@@ -179,9 +184,11 @@ export default function NotificationButton({
                       <span>3 hours ago</span>
                       <span className='px-0.5'>∙</span>
                       <div className='flex items-center gap-1'>
-                        <img
+                        <Image
                           src='/images/placeholder/apex.svg'
                           alt=''
+                          width={16}
+                          height={16}
                           className='size-4 shrink-0'
                         />
                         <span>Apex Financial</span>
@@ -224,9 +231,11 @@ export default function NotificationButton({
                       <span>2 days ago</span>
                       <span className='px-0.5'>∙</span>
                       <div className='flex items-center gap-1'>
-                        <img
+                        <Image
                           src='/images/placeholder/solaris.svg'
                           alt=''
+                          width={16}
+                          height={16}
                           className='size-4 shrink-0'
                         />
                         <span>Solaris</span>
@@ -268,9 +277,11 @@ export default function NotificationButton({
                     <span>8 min ago</span>
                     <span className='px-0.5'>∙</span>
                     <div className='flex items-center gap-1'>
-                      <img
+                      <Image
                         src='/images/placeholder/horizon.svg'
                         alt=''
+                        width={16}
+                        height={16}
                         className='size-4 shrink-0'
                       />
                       <span>Horizon Shift</span>
@@ -299,9 +310,11 @@ export default function NotificationButton({
                       <span>2 hours ago</span>
                       <span className='px-0.5'>∙</span>
                       <div className='flex items-center gap-1'>
-                        <img
+                        <Image
                           src='/images/placeholder/synergy.svg'
                           alt=''
+                          width={16}
+                          height={16}
                           className='size-4 shrink-0'
                         />
                         <span>Synergy HR</span>
@@ -350,9 +363,11 @@ export default function NotificationButton({
                       <span>3 hours ago</span>
                       <span className='px-0.5'>∙</span>
                       <div className='flex items-center gap-1'>
-                        <img
+                        <Image
                           src='/images/placeholder/apex.svg'
                           alt=''
+                          width={16}
+                          height={16}
                           className='size-4 shrink-0'
                         />
                         <span>Apex Financial</span>
@@ -397,9 +412,11 @@ export default function NotificationButton({
                       <span>2 days ago</span>
                       <span className='px-0.5'>∙</span>
                       <div className='flex items-center gap-1'>
-                        <img
+                        <Image
                           src='/images/placeholder/solaris.svg'
                           alt=''
+                          width={16}
+                          height={16}
                           className='size-4 shrink-0'
                         />
                         <span>Solaris</span>

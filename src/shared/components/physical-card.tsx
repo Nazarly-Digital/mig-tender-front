@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { RiSimCard2Fill, RiWifiLine } from '@remixicon/react';
 
 import { cnExt } from '@/shared/lib/cn';
@@ -53,9 +54,11 @@ export function PhysicalCard({
             <RiWifiLine className='size-6 rotate-90 text-text-soft-400' />
           </div>
         </div>
-        <img
+        <Image
           src='/images/major-brands/mastercard.svg'
           alt=''
+          width={32}
+          height={32}
           className='size-8'
         />
       </div>

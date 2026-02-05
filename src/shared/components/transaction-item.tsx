@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { RiArrowRightSLine } from '@remixicon/react';
 
 import { type Transaction } from '@/shared/lib/data/cards-data';
@@ -20,7 +21,7 @@ export const TransactionItem = React.forwardRef<
   ) => {
     const renderIcon = () => {
       if (typeof icon === 'string') {
-        return <img src={icon} alt='' className='size-6' />;
+        return <Image src={icon} alt='' width={24} height={24} className='size-6' />;
       }
       const IconComponent = icon as React.ElementType;
       return <IconComponent className='size-5' />;

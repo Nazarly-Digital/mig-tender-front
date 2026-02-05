@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -45,10 +46,12 @@ export default function AuthHeader() {
 
   return (
     <div className='mx-auto flex w-full max-w-[1400px] items-center justify-between p-6'>
-      <img
+      <Image
         src='/images/logo.svg'
         alt='MIG Tender'
-        className='h-10 shrink-0'
+        width={120}
+        height={40}
+        className='h-10 w-auto shrink-0'
       />
 
       <div className='flex items-center gap-1.5'>

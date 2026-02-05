@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { RiFileListLine, RiMore2Line } from '@remixicon/react';
 
 import { cnExt } from '@/shared/lib/cn';
@@ -24,7 +25,7 @@ export default function WidgetMySubscriptions({
       </WidgetBox.Header>
 
       <div className='relative h-[124px] overflow-hidden rounded-xl bg-bg-weak-50 p-4'>
-        <img
+        <Image
           src='/images/apple-music.svg'
           alt=''
           width={164}
@@ -32,7 +33,7 @@ export default function WidgetMySubscriptions({
           className='pointer-events-none absolute right-0 top-0 -translate-y-[70px] translate-x-[76px]'
         />
         <div className='flex flex-col gap-4'>
-          <img src='/images/apple-music.svg' alt='' width={32} height={32} />
+          <Image src='/images/apple-music.svg' alt='' width={32} height={32} />
           <div>
             <div className='text-label-sm text-text-strong-950'>
               50% discount on Apple Music
@@ -55,9 +56,11 @@ export default function WidgetMySubscriptions({
       <div className='mt-4 flex flex-col gap-2'>
         <div className='flex w-full items-center gap-3'>
           <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
-            <img
+            <Image
               src='/images/major-brands/spotify.svg'
               alt=''
+              width={24}
+              height={24}
               className='size-6'
             />
           </div>
@@ -84,9 +87,11 @@ export default function WidgetMySubscriptions({
 
         <div className='flex w-full items-center gap-3'>
           <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
-            <img
+            <Image
               src='/images/major-brands/youtube-music.svg'
               alt=''
+              width={24}
+              height={24}
               className='size-6'
             />
           </div>
@@ -113,9 +118,11 @@ export default function WidgetMySubscriptions({
 
         <div className='flex w-full items-center gap-3'>
           <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
-            <img
+            <Image
               src='/images/major-brands/amazon-prime.svg'
               alt=''
+              width={24}
+              height={24}
               className='size-6'
             />
           </div>

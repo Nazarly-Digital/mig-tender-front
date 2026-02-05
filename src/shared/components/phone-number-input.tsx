@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import * as React from 'react';
 import * as PopoverPrimitives from '@radix-ui/react-popover';
 import { RiArrowDownSLine, RiGlobalLine } from '@remixicon/react';
@@ -53,8 +54,10 @@ export function PhoneNumberInput() {
             <PopoverPrimitives.Trigger className={triggerRoot()}>
               {selectedCountryCode ? (
                 <>
-                  <img
+                  <Image
                     src={`/flags/${selectedCountryCode}.svg`}
+                    width={20}
+                    height={20}
                     className={triggerIcon()}
                     alt=''
                   />
@@ -146,8 +149,10 @@ export function PhoneNumberInput() {
                       )}
                     >
                       <div className='flex items-center gap-1.5'>
-                        <img
+                        <Image
                           src={`/flags/${countryCode}.svg`}
+                          width={20}
+                          height={20}
                           className='size-5 shrink-0 rounded-full'
                           alt=''
                         />

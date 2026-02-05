@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { RiCheckboxCircleFill, RiWifiLine } from '@remixicon/react';
 
 import { cnExt } from '@/shared/lib/cn';
@@ -56,9 +57,11 @@ export function VirtualCard({
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-4'>
           <div className='flex items-center gap-2'>
-            <img
+            <Image
               src={`/images/placeholder/${logo}.svg`}
               alt=''
+              width={32}
+              height={32}
               className='size-8 shrink-0'
             />
             <RiWifiLine className='size-6 rotate-90 text-text-soft-400' />
@@ -75,9 +78,11 @@ export function VirtualCard({
             </StatusBadge.Root>
           )}
         </div>
-        <img
+        <Image
           src='/images/major-brands/mastercard.svg'
           alt=''
+          width={32}
+          height={32}
           className='size-8'
         />
       </div>

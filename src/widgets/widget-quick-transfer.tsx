@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import * as React from 'react';
 import {
   RiAddLine,
@@ -335,9 +336,11 @@ export default function WidgetQuickTransfer({
         <div className='relative overflow-hidden rounded-10 bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200 before:pointer-events-none before:absolute before:inset-0 before:rounded-10 before:ring-1 before:ring-inset before:ring-stroke-soft-200'>
           <div className='flex h-8 items-center justify-between gap-2 border-b border-stroke-soft-200 bg-bg-weak-50 pl-3 pr-2.5'>
             <div className='flex items-center gap-2'>
-              <img
+              <Image
                 src='/images/major-brands/mastercard.svg'
                 alt=''
+                width={20}
+                height={20}
                 className='size-5 shrink-0'
               />
               <div className='text-paragraph-sm text-text-sub-600'>
