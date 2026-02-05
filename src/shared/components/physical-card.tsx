@@ -1,11 +1,9 @@
 'use client';
 
-import { RiWifiLine } from '@remixicon/react';
+import { RiSimCard2Fill, RiWifiLine } from '@remixicon/react';
 
 import { cnExt } from '@/shared/lib/cn';
 import { currencyFormatter } from '@/shared/lib/number-formatter';
-
-import IconChip from '~/icons/icon-chip.svg';
 
 function SVGCardBg(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -51,7 +49,7 @@ export function PhysicalCard({
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-4'>
           <div className='flex items-center gap-2'>
-            <IconChip className='size-8 h-6 shrink-0 text-warning-light' />
+            <RiSimCard2Fill className='size-8 h-6 shrink-0 text-warning-light' />
             <RiWifiLine className='size-6 rotate-90 text-text-soft-400' />
           </div>
         </div>

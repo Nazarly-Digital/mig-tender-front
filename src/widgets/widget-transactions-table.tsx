@@ -17,8 +17,6 @@ import {
   type TransactionTableData,
 } from '@/shared/components/transactions-table';
 
-import IconCmd from '~/icons/icon-cmd.svg';
-
 const data: TransactionTableData[] = [
   {
     id: '326860a3',
@@ -144,7 +142,7 @@ export default function WidgetTransactionsTable({
               <Input.Icon as={RiSearch2Line} />
               <Input.Input placeholder='Search...' />
               <Kbd.Root>
-                <IconCmd className='size-2.5' />1
+                ⌘1
               </Kbd.Root>
             </Input.Wrapper>
           </Input.Root>

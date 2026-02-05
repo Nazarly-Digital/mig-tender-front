@@ -23,8 +23,6 @@ import * as LinkButton from '@/shared/ui/link-button';
 import * as Tag from '@/shared/ui/tag';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
 
-import IconCmd from '~/icons/icon-cmd.svg';
-
 const isCommandMenuOpen = atom(false);
 
 export function SearchMenuButton({
@@ -76,9 +74,7 @@ export function SearchMenu() {
           )}
         />
         <CommandMenu.Input placeholder='Search or jump to' />
-        <Kbd.Root>
-          <IconCmd className='size-2.5' />K
-        </Kbd.Root>
+        <Kbd.Root>⌘K</Kbd.Root>
         <CompactButton.Root
           size='medium'
           variant='ghost'

@@ -11,6 +11,7 @@ import {
   RiMoonLine,
   RiPulseLine,
   RiSettings2Line,
+  RiVerifiedBadgeFill,
 } from '@remixicon/react';
 import { useTheme } from 'next-themes';
 
@@ -19,8 +20,6 @@ import * as Avatar from '@/shared/ui/avatar';
 import * as Divider from '@/shared/ui/divider';
 import * as Dropdown from '@/shared/ui/dropdown';
 import * as Switch from '@/shared/ui/switch';
-
-import IconVerifiedFill from '~/icons/icon-verified-fill.svg';
 
 export function UserButton({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
@@ -43,7 +42,7 @@ export function UserButton({ className }: { className?: string }) {
           <div className='flex-1 space-y-1'>
             <div className='flex items-center gap-0.5 text-label-sm'>
               Arthur Taylor
-              <IconVerifiedFill className='size-5 text-verified-base' />
+              <RiVerifiedBadgeFill className='size-5 text-verified-base' />
             </div>
             <div className='text-paragraph-xs text-text-sub-600'>
               arthur@alignui.com
@@ -120,7 +119,7 @@ export function UserButtonMobile({ className }: { className?: string }) {
         <div className='flex-1 space-y-1'>
           <div className='flex items-center gap-0.5 text-label-md'>
             Arthur Taylor
-            <IconVerifiedFill className='size-5 text-verified-base' />
+            <RiVerifiedBadgeFill className='size-5 text-verified-base' />
           </div>
           <div className='text-paragraph-sm text-text-sub-600'>
             arthur@alignui.com

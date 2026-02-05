@@ -21,8 +21,6 @@ import * as Divider from '@/shared/ui/divider';
 import { CompanySwitch } from '@/shared/components/company-switch';
 import { UserButton } from '@/shared/components/user-button';
 
-import IconCmd from '~/icons/icon-cmd.svg';
-
 type NavigationLink = {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
@@ -31,44 +29,32 @@ type NavigationLink = {
 };
 
 export const navigationLinks: NavigationLink[] = [
-  { icon: RiLayoutGridLine, label: 'Dashboard', href: '/' },
-  { icon: RiBankCardLine, label: 'My Cards', href: '/my-cards' },
-  { icon: RiArrowLeftRightLine, label: 'Transfer', href: '/send-money' },
-  { icon: RiHistoryLine, label: 'Transactions', href: '/transactions' },
-  { icon: RiBillLine, label: 'Payments', href: '#', disabled: true },
-  { icon: RiExchangeLine, label: 'Exchange', href: '#', disabled: true },
+  { icon: RiLayoutGridLine, label: 'Главная', href: '/dashboard' },
+  { icon: RiBankCardLine, label: 'Мои карты', href: '/my-cards', disabled: true },
+  { icon: RiArrowLeftRightLine, label: 'Переводы', href: '/send-money', disabled: true },
+  { icon: RiHistoryLine, label: 'Транзакции', href: '/transactions', disabled: true },
+  { icon: RiBillLine, label: 'Платежи', href: '#', disabled: true },
+  { icon: RiExchangeLine, label: 'Обмен', href: '#', disabled: true },
 ];
 
 export const favoriteLinks = [
   {
     href: '#',
     color: 'purple',
-    projectName: 'Loom Mobile App',
-    shortcut: (
-      <>
-        <IconCmd className='size-2.5' />1
-      </>
-    ),
+    projectName: 'Тендеры',
+    shortcut: '⌘1',
   },
   {
     href: '#',
     color: 'red',
-    projectName: 'Monday Redesign',
-    shortcut: (
-      <>
-        <IconCmd className='size-2.5' />2
-      </>
-    ),
+    projectName: 'Закупки',
+    shortcut: '⌘2',
   },
   {
     href: '#',
     color: 'pink',
-    projectName: 'Udemy Courses',
-    shortcut: (
-      <>
-        <IconCmd className='size-2.5' />3
-      </>
-    ),
+    projectName: 'Аналитика',
+    shortcut: '⌘3',
   },
 ];
 
@@ -160,7 +146,7 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
           '-mx-2.5 w-14 px-0 text-center': collapsed,
         })}
       >
-        Main
+        Меню
       </div>
       <div className='space-y-1'>
         {navigationLinks.map(({ icon: Icon, label, href, disabled }, i) => (
@@ -221,12 +207,13 @@ function SettingsAndSupport({ collapsed }: { collapsed: boolean }) {
     {
       href: '/settings/profile-settings',
       icon: RiSettings2Line,
-      label: 'Settings',
+      label: 'Настройки',
+      disabled: true,
     },
     {
       href: '#',
       icon: RiHeadphoneLine,
-      label: 'Support',
+      label: 'Поддержка',
       disabled: true,
     },
   ];
@@ -238,7 +225,7 @@ function SettingsAndSupport({ collapsed }: { collapsed: boolean }) {
           '-mx-2.5 w-14 px-0 text-center': collapsed,
         })}
       >
-        Others
+        Прочее
       </div>
       <div className='space-y-1'>
         {links.map(({ icon: Icon, label, href, disabled }, i) => {

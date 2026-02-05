@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 
-import * as Divider from '@/shared/ui/divider';
 import NotificationButton from '@/shared/components/notification-button';
 import { SearchMenuButton } from '@/shared/components/search';
 import MobileMenu from '@/app/(main)/mobile-menu';
@@ -10,8 +9,8 @@ import MobileMenu from '@/app/(main)/mobile-menu';
 export default function HeaderMobile() {
   return (
     <div className='flex h-[60px] w-full items-center justify-between border-b border-stroke-soft-200 px-4 lg:hidden'>
-      <Link href='/' className='shrink-0'>
-        <img src='/images/placeholder/apex.svg' alt='' className='size-9' />
+      <Link href='/dashboard' className='shrink-0'>
+        <img src='/images/logo.svg' alt='MIG Tender' className='h-9' />
       </Link>
 
       <div className='flex gap-3'>

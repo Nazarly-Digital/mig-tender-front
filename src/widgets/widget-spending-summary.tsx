@@ -3,6 +3,7 @@
 import * as React from 'react';
 import {
   RiFileListLine,
+  RiInformationFill,
   RiMoneyDollarCircleLine,
   RiPieChartLine,
   RiShoppingBag3Line,
@@ -14,8 +15,6 @@ import * as Select from '@/shared/ui/select';
 import IllustrationEmptySpendingSummary from '@/shared/components/empty-state-illustrations/spending-summary';
 import SpendingSummaryPieChart from '@/shared/components/spending-summary-pie-chart';
 import * as WidgetBox from '@/shared/components/widget-box';
-
-import IconInfoCustomFill from '~/icons/icon-info-custom-fill.svg';
 
 const periods = [
   {
@@ -123,7 +122,7 @@ export default function WidgetSpendingSummary({
             Your weekly spending limit is{' '}
             <span className='text-label-xs'>$2000</span>.
           </div>
-          <IconInfoCustomFill className='size-4 text-text-disabled-300' />
+          <RiInformationFill className='size-4 text-text-disabled-300' />
         </div>
       </div>
     </WidgetBox.Root>
