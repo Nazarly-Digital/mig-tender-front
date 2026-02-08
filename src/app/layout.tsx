@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MIG Tender",
+  title: "MIG Tender Platform",
   description: "MIG Tender Platform",
 };
 
