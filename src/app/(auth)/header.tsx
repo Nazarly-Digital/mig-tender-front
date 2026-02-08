@@ -35,6 +35,20 @@ const actions = {
       href: '/login',
     },
   },
+  '/register/developer': {
+    text: 'Уже есть аккаунт?',
+    link: {
+      label: 'Войти',
+      href: '/login',
+    },
+  },
+  '/register/broker': {
+    text: 'Уже есть аккаунт?',
+    link: {
+      label: 'Войти',
+      href: '/login',
+    },
+  },
 };
 
 export default function AuthHeader() {

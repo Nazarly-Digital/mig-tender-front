@@ -1,5 +1,8 @@
 import Image from 'next/image';
 
+import AuthHeader from './header';
+import AuthFooter from './footer';
+
 export default function AuthLayout({
   children,
 }: Readonly<{
@@ -7,7 +10,7 @@ export default function AuthLayout({
 }>) {
   return (
     <div className='flex min-h-screen flex-col items-center'>
-      {/* <AuthHeader /> */}
+      <AuthHeader />
       <div className='relative isolate flex w-full flex-1 flex-col items-center justify-center'>
         <Image
           src='/images/auth-pattern.svg'
@@ -19,7 +22,7 @@ export default function AuthLayout({
         />
         {children}
       </div>
-      {/* <AuthFooter /> */}
+      <AuthFooter />
     </div>
   );
 }
