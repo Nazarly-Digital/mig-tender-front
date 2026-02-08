@@ -1,4 +1,4 @@
-name: Nazarly Landing Deployment
+name: MIG Tender Platform Deployment
 
 on:
   push:
