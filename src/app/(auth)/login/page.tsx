@@ -113,7 +113,7 @@ export default function PageLogin() {
             </div>
           </div>
 
-          <div className='flex items-center justify-between gap-4'>
+          {/* <div className='flex items-center justify-between gap-4'>
             <div className='flex items-start gap-2'>
               <Checkbox.Root id='agree' name='remember' />
               <LabelPrimitive.Root
@@ -126,7 +126,7 @@ export default function PageLogin() {
             <LinkButton.Root variant='gray' size='medium' underline asChild>
               <Link href='/reset-password'>Забыли пароль?</Link>
             </LinkButton.Root>
-          </div>
+          </div> */}
 
           <FancyButton.Root type='submit' variant='primary' size='medium'>
             Войти
