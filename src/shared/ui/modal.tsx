@@ -63,7 +63,7 @@ const ModalContent = React.forwardRef<
             {...rest}
           >
             {children}
-            {showClose && (
+            {/* {showClose && (
               <ModalClose asChild>
                 <CompactButton.Root
                   variant='ghost'
@@ -73,7 +73,7 @@ const ModalContent = React.forwardRef<
                   <CompactButton.Icon as={RiCloseLine} />
                 </CompactButton.Root>
               </ModalClose>
-            )}
+            )} */}
           </DialogPrimitive.Content>
         </ModalOverlay>
       </ModalPortal>

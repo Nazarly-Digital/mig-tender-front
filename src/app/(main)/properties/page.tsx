@@ -122,7 +122,7 @@ export default function PropertiesPage() {
       </div>
 
       {/* Filters */}
-      <div className='flex flex-col gap-3 lg:flex-row lg:items-center'>
+      <div className='flex flex-col gap-3 -translate-x-3 lg:flex-row lg:items-center max-w-[300px]'>
         <Input.Root size='small' className='max-w-lg lg:w-[280px]'>
           <Input.Wrapper>
             <Input.Icon as={RiSearch2Line} />
