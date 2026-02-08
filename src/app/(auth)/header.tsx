@@ -68,12 +68,12 @@ export default function AuthHeader() {
         className='h-10 w-auto shrink-0'
       />
 
-      <div className='flex items-center gap-1.5'>
+      {/* <div className='flex items-center gap-1.5'>
         <div className='text-paragraph-sm text-text-sub-600'>{action.text}</div>
         <LinkButton.Root variant='primary' size='medium' underline asChild>
           <Link href={action.link.href}>{action.link.label}</Link>
         </LinkButton.Root>
-      </div>
+      </div> */}
     </div>
   );
 }
