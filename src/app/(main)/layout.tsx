@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import HeaderMobile from '@/shared/components/header-mobile';
@@ -13,13 +13,21 @@ export default function MainLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
+  const [isInited, setIsInited] = useState(false);
   const isAuthenticated = useSessionStore((s) => s.isAuthenticated);
 
+
   useEffect(() => {
+    if (!isInited) return;
     if (!isAuthenticated) {
       router.replace('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, isInited]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsInited(true)
+  }, []);
 
   if (!isAuthenticated) return null;
 

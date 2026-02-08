@@ -11,14 +11,17 @@ import {
   RiMailLine,
   RiUserFill,
 } from '@remixicon/react';
+import { AxiosError } from 'axios';
 
 import { cn } from '@/shared/lib/cn';
+import * as Alert from '@/shared/ui/alert';
 import * as Checkbox from '@/shared/ui/checkbox';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as LinkButton from '@/shared/ui/link-button';
+import { useLogin } from '@/features/auth';
 
 function PasswordInput(
   props: React.ComponentPropsWithoutRef<typeof Input.Input>,
@@ -48,11 +51,32 @@ function PasswordInput(
 
 export default function PageLogin() {
   const router = useRouter();
+  const login = useLogin();
+
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [error, setError] = React.useState('');
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: добавить логику авторизации (API запрос)
-    router.push('/dashboard');
+    setError('');
+    login.mutate(
+      { email, password },
+      {
+        onSuccess: () => {
+          router.push('/dashboard');
+        },
+        onError: (err) => {
+          if (err instanceof AxiosError) {
+            if (err.response?.status === 401) {
+              setError('Неверный email или пароль');
+            } else {
+              setError('Произошла ошибка. Попробуйте позже');
+            }
+          }
+        },
+      },
+    );
   };
 
   return (
@@ -85,6 +109,12 @@ export default function PageLogin() {
 
         <Divider.Root />
 
+        {error && (
+          <Alert.Root variant='lighter' status='error' size='small'>
+            {error}
+          </Alert.Root>
+        )}
+
         <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
           <div className='flex flex-col gap-3'>
             <div className='flex flex-col gap-1'>
@@ -99,6 +129,8 @@ export default function PageLogin() {
                     name='email'
                     type='email'
                     placeholder='example@mail.com'
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </Input.Wrapper>
@@ -109,7 +141,13 @@ export default function PageLogin() {
               <Label.Root htmlFor='password'>
                 Пароль <Label.Asterisk />
               </Label.Root>
-              <PasswordInput id='password' name='password' required />
+              <PasswordInput
+                id='password'
+                name='password'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
           </div>
 
@@ -128,8 +166,13 @@ export default function PageLogin() {
             </LinkButton.Root>
           </div> */}
 
-          <FancyButton.Root type='submit' variant='primary' size='medium'>
-            Войти
+          <FancyButton.Root
+            type='submit'
+            variant='primary'
+            size='medium'
+            disabled={login.isPending}
+          >
+            {login.isPending ? 'Вход...' : 'Войти'}
           </FancyButton.Root>
         </form>
       </div>
