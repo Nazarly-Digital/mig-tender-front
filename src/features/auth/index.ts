@@ -8,3 +8,5 @@ export {
   useVerifyBroker,
   useLogout,
 } from "./model/queries";
+
+export { useDeveloperRegistration } from "./model/use-developer-registration";

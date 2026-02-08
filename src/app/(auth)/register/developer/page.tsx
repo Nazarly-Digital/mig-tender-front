@@ -1,8 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
-import { AxiosError } from 'axios';
 import {
   RiBuilding2Line,
   RiEyeLine,
@@ -21,13 +19,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as LinkButton from '@/shared/ui/link-button';
-import {
-  useGetCode,
-  useVerifyEmail,
-  useResendCode,
-  useRegisterDeveloper,
-} from '@/features/auth';
-import type { GetCodeError429 } from '@/shared/types/auth';
+import { useDeveloperRegistration } from '@/features/auth';
 
 function PasswordInput(
   props: React.ComponentPropsWithoutRef<typeof Input.Input>,
@@ -56,141 +48,33 @@ function PasswordInput(
 }
 
 export default function PageRegisterDeveloper() {
-  const router = useRouter();
-
-  const [step, setStep] = React.useState(1);
-  const [email, setEmail] = React.useState('');
-  const [code, setCode] = React.useState('');
-  const [firstName, setFirstName] = React.useState('');
-  const [lastName, setLastName] = React.useState('');
-  const [companyName, setCompanyName] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [passwordConfirm, setPasswordConfirm] = React.useState('');
-  const [error, setError] = React.useState('');
-  const [timer, setTimer] = React.useState(0);
-
-  const getCode = useGetCode();
-  const verifyEmail = useVerifyEmail();
-  const resendCode = useResendCode();
-  const registerDeveloper = useRegisterDeveloper();
-
-  // Countdown timer
-  React.useEffect(() => {
-    if (timer <= 0) return;
-    const interval = setInterval(() => {
-      setTimer((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  const handleGetCode = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    getCode.mutate(
-      { email },
-      {
-        onSuccess: () => {
-          setTimer(60);
-          setStep(2);
-        },
-        onError: (err) => {
-          if (err instanceof AxiosError) {
-            if (err.response?.status === 409) {
-              setError('Пользователь с таким email уже зарегистрирован');
-            } else if (err.response?.status === 429) {
-              const data = err.response.data as GetCodeError429;
-              setTimer(data.remaining_time ?? 60);
-              setError('Слишком много попыток. Подождите и попробуйте снова');
-            } else {
-              setError('Произошла ошибка. Попробуйте позже');
-            }
-          }
-        },
-      },
-    );
-  };
-
-  const handleVerifyEmail = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    verifyEmail.mutate(
-      { email, code },
-      {
-        onSuccess: () => {
-          setStep(3);
-        },
-        onError: (err) => {
-          if (err instanceof AxiosError) {
-            if (err.response?.status === 400) {
-              setError('Неверный код подтверждения');
-            } else {
-              setError('Произошла ошибка. Попробуйте позже');
-            }
-          }
-        },
-      },
-    );
-  };
-
-  const handleResendCode = () => {
-    setError('');
-    resendCode.mutate(
-      { email },
-      {
-        onSuccess: () => {
-          setTimer(60);
-        },
-        onError: (err) => {
-          if (err instanceof AxiosError) {
-            if (err.response?.status === 429) {
-              const data = err.response.data as GetCodeError429;
-              setTimer(data.remaining_time ?? 60);
-              setError('Слишком много попыток. Подождите и попробуйте снова');
-            } else {
-              setError('Произошла ошибка. Попробуйте позже');
-            }
-          }
-        },
-      },
-    );
-  };
-
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (password !== passwordConfirm) {
-      setError('Пароли не совпадают');
-      return;
-    }
-
-    registerDeveloper.mutate(
-      {
-        email,
-        password,
-        password_confirm: passwordConfirm,
-        first_name: firstName || undefined,
-        last_name: lastName || undefined,
-        company_name: companyName,
-      },
-      {
-        onSuccess: () => {
-          router.push('/dashboard');
-        },
-        onError: (err) => {
-          if (err instanceof AxiosError) {
-            const data = err.response?.data;
-            if (typeof data === 'object' && data !== null) {
-              const messages = Object.values(data).flat();
-              setError(messages.join('. ') || 'Произошла ошибка');
-            } else {
-              setError('Произошла ошибка. Попробуйте позже');
-            }
-          }
-        },
-      },
-    );
-  };
+  const {
+    step,
+    email,
+    setEmail,
+    code,
+    setCode,
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    companyName,
+    setCompanyName,
+    password,
+    setPassword,
+    passwordConfirm,
+    setPasswordConfirm,
+    error,
+    timer,
+    handleGetCode,
+    handleVerifyEmail,
+    handleResendCode,
+    handleRegister,
+    isGetCodePending,
+    isVerifyPending,
+    isResendPending,
+    isRegisterPending,
+  } = useDeveloperRegistration();
 
   return (
     <div className='w-full max-w-[472px] px-4'>
@@ -260,9 +144,9 @@ export default function PageRegisterDeveloper() {
               variant='primary'
               size='medium'
               className='w-full'
-              disabled={getCode.isPending || timer > 0}
+              disabled={isGetCodePending || timer > 0}
             >
-              {getCode.isPending ? 'Отправка...' : timer > 0 ? `Подождите ${timer} сек` : 'Продолжить'}
+              {isGetCodePending ? 'Отправка...' : timer > 0 ? `Подождите ${timer} сек` : 'Продолжить'}
             </FancyButton.Root>
           </form>
         )}
@@ -289,9 +173,9 @@ export default function PageRegisterDeveloper() {
                 variant='primary'
                 size='medium'
                 className='w-full'
-                disabled={code.length < 6 || verifyEmail.isPending}
+                disabled={code.length < 6 || isVerifyPending}
               >
-                {verifyEmail.isPending ? 'Проверка...' : 'Подтвердить'}
+                {isVerifyPending ? 'Проверка...' : 'Подтвердить'}
               </FancyButton.Root>
 
               <div className='flex items-center justify-center gap-1.5'>
@@ -309,7 +193,7 @@ export default function PageRegisterDeveloper() {
                     underline
                     type='button'
                     onClick={handleResendCode}
-                    disabled={resendCode.isPending}
+                    disabled={isResendPending}
                   >
                     Отправить повторно
                   </LinkButton.Root>
@@ -404,9 +288,9 @@ export default function PageRegisterDeveloper() {
               variant='primary'
               size='medium'
               className='w-full'
-              disabled={registerDeveloper.isPending}
+              disabled={isRegisterPending}
             >
-              {registerDeveloper.isPending ? 'Регистрация...' : 'Зарегистрироваться'}
+              {isRegisterPending ? 'Регистрация...' : 'Зарегистрироваться'}
             </FancyButton.Root>
           </form>
         )}
