@@ -8,6 +8,7 @@ import {
   RiArrowRightSLine,
   RiBankCardLine,
   RiBillLine,
+  RiBuilding2Line,
   RiExchangeLine,
   RiHeadphoneLine,
   RiHistoryLine,
@@ -30,6 +31,7 @@ type NavigationLink = {
 
 export const navigationLinks: NavigationLink[] = [
   { icon: RiLayoutGridLine, label: 'Главная', href: '/dashboard' },
+  { icon: RiBuilding2Line, label: 'Объекты', href: '/properties' },
   { icon: RiBankCardLine, label: 'Мои карты', href: '/my-cards', disabled: true },
   { icon: RiArrowLeftRightLine, label: 'Переводы', href: '/send-money', disabled: true },
   { icon: RiHistoryLine, label: 'Транзакции', href: '/transactions', disabled: true },
