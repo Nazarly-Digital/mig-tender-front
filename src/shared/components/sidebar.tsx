@@ -336,7 +336,7 @@ export default function Sidebar({
           ref={sidebarRef}
           className='flex h-full w-[272px] min-w-[272px] flex-col overflow-auto'
         >
-          <SidebarHeader collapsed={collapsed} />
+          {/* <SidebarHeader collapsed={collapsed} /> */}
 
           <SidebarDivider collapsed={collapsed} />
 
@@ -352,7 +352,7 @@ export default function Sidebar({
 
           <SidebarDivider collapsed={collapsed} />
 
-          <UserProfile collapsed={collapsed} />
+          {/* <UserProfile collapsed={collapsed} /> */}
         </div>
       </div>
 
