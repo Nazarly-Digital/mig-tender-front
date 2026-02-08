@@ -10,3 +10,4 @@ export {
 } from "./model/queries";
 
 export { useDeveloperRegistration } from "./model/use-developer-registration";
+export { useBrokerRegistration } from "./model/use-broker-registration";
