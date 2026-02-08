@@ -56,6 +56,8 @@ const DigitInputSlot = React.forwardRef<
         'selection:bg-none',
         // disabled
         'disabled:bg-bg-weak-50 disabled:text-text-disabled-300 disabled:shadow-none disabled:ring-transparent',
+        // hide number spinners
+        '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
         {
           'ring-error-base hover:ring-error-base focus:ring-error-base focus:shadow-button-error-focus':
             hasError,
