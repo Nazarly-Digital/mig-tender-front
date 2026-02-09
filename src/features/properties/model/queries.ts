@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { propertiesService } from "@/entities/properties";
 import type {
+  Property,
+  PaginatedResponse,
   PropertyListParams,
   PropertyCreateRequest,
   PropertyUpdateRequest,
@@ -75,9 +77,22 @@ export function useUpdateProperty() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: PropertyUpdateRequest }) =>
       propertiesService.update(id, data).then((res) => res.data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: propertyKeys.detail(id) });
-      queryClient.invalidateQueries({ queryKey: propertyKeys.lists() });
+    onSuccess: (updatedFields, { id }) => {
+      // Update the property in all cached lists with the response data
+      const updateCache = (old: PaginatedResponse<Property> | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          results: old.results.map((p) =>
+            p.id === id ? { ...p, ...updatedFields } : p,
+          ),
+        };
+      };
+
+      queryClient.setQueriesData<PaginatedResponse<Property>>(
+        { queryKey: propertyKeys.all },
+        updateCache,
+      );
     },
   });
 }

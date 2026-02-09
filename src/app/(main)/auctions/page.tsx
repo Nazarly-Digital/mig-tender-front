@@ -16,6 +16,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as ProgressBar from '@/shared/ui/progress-bar';
 import * as SegmentedControl from '@/shared/ui/segmented-control';
 import * as StatusBadge from '@/shared/ui/status-badge';
+import { PageHeader } from '@/shared/components/page-header';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
 import type {
@@ -195,30 +196,21 @@ export default function AuctionsPage() {
 
   return (
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
-      {/* Header */}
-      <div className='flex items-start justify-between gap-4'>
-        <div className='flex items-center gap-3'>
-          <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
-            <RiAuctionLine className='size-5 text-text-sub-600' />
-          </div>
-          <div>
-            <div className='text-label-xl font-semibold text-text-strong-950'>
-              {isDeveloper ? 'Мои аукционы' : 'Аукционы'}
-            </div>
-            <div className='mt-1 text-paragraph-sm text-text-sub-600'>
-              {isDeveloper ? 'Управление вашими аукционами' : 'Доступные аукционы на торгах'}
-            </div>
-          </div>
-        </div>
-        {isDeveloper && (
-          <Link href='/auctions/create'>
-            <FancyButton.Root variant='primary' size='xsmall'>
-              <FancyButton.Icon as={RiAddLine} />
-              Создать аукцион
-            </FancyButton.Root>
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title={isDeveloper ? 'Мои аукционы' : 'Аукционы'}
+        description={isDeveloper ? 'Управление вашими аукционами' : 'Доступные аукционы на торгах'}
+        icon={RiAuctionLine}
+        action={
+          isDeveloper ? (
+            <Link href='/auctions/create'>
+              <FancyButton.Root variant='primary' size='xsmall'>
+                <FancyButton.Icon as={RiAddLine} />
+                Создать аукцион
+              </FancyButton.Root>
+            </Link>
+          ) : undefined
+        }
+      />
 
       {/* Filter */}
       <SegmentedControl.Root

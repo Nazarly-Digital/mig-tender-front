@@ -77,7 +77,7 @@ export default function MobileMenu() {
             </DialogPrimitives.Description>
 
             <div className='flex h-[60px] w-full shrink-0 items-center border-b border-stroke-soft-200 px-4'>
-              <div className='relative flex-1'>
+              <div className='relative flex-1 opacity-0 pointer-events-none'>
                 <RiSearch2Line className='absolute left-0 top-1/2 size-6 -translate-y-1/2 text-text-soft-400' />
                 <input
                   type='text'
@@ -86,14 +86,14 @@ export default function MobileMenu() {
                 />
               </div>
               <div className='flex gap-3'>
-                <div className='flex gap-1'>
+                {/* <div className='flex gap-1'>
                   <TopbarItemButton.Root>
                     <TopbarItemButton.Icon as={RiHeadphoneLine} />
                   </TopbarItemButton.Root>
                   <TopbarItemButton.Root>
                     <TopbarItemButton.Icon as={RiSettings2Line} />
                   </TopbarItemButton.Root>
-                </div>
+                </div> */}
                 <div className='flex w-1 shrink-0 items-center before:h-full before:w-px before:bg-stroke-soft-200' />
                 <DialogPrimitives.Close asChild>
                   <TopbarItemButton.Root>
@@ -102,7 +102,7 @@ export default function MobileMenu() {
                 </DialogPrimitives.Close>
               </div>
             </div>
-            <CompanySwitchMobile />
+            {/* <CompanySwitchMobile /> */}
 
             <div className='flex flex-1 flex-col py-6'>
               <div className='flex flex-col gap-5'>
@@ -110,43 +110,43 @@ export default function MobileMenu() {
                   const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
                   const displayHref = isDeveloper && developerHref ? developerHref : href;
                   return (
-                  <Link
-                    key={i}
-                    href={displayHref}
-                    aria-current={pathname === displayHref ? 'page' : undefined}
-                    className={cn(
-                      'group relative flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-text-sub-600',
-                    )}
-                  >
-                    <Icon
+                    <Link
+                      key={i}
+                      href={displayHref}
+                      aria-current={pathname === displayHref ? 'page' : undefined}
                       className={cn(
-                        'transition-default size-[22px] shrink-0 text-text-sub-600',
-                        'group-aria-[current=page]:text-primary-base',
+                        'group relative flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-text-sub-600',
                       )}
-                    />
-                    <div className='flex-1 text-label-md'>{displayLabel}</div>
-                    <div
-                      className={cn(
-                        'transition-default absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-primary-base',
-                        {
-                          'scale-0': pathname !== displayHref,
-                        },
-                      )}
-                    />
-                    <RiArrowRightSLine className='size-6 text-text-sub-600' />
-                  </Link>
+                    >
+                      <Icon
+                        className={cn(
+                          'transition-default size-[22px] shrink-0 text-text-sub-600',
+                          'group-aria-[current=page]:text-primary-base',
+                        )}
+                      />
+                      <div className='flex-1 text-label-md'>{displayLabel}</div>
+                      <div
+                        className={cn(
+                          'transition-default absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-primary-base',
+                          {
+                            'scale-0': pathname !== displayHref,
+                          },
+                        )}
+                      />
+                      <RiArrowRightSLine className='size-6 text-text-sub-600' />
+                    </Link>
                   );
                 })}
               </div>
             </div>
 
-            <div className='grid border-y border-stroke-soft-200 p-4'>
+            {/* <div className='grid border-y border-stroke-soft-200 p-4'>
               <MoveMoneyButton />
-            </div>
+            </div> */}
 
-            <div className='p-2'>
+            {/* <div className='p-2'>
               <UserButtonMobile />
-            </div>
+            </div> */}
           </DialogPrimitives.Content>
         </DialogPrimitives.Overlay>
       </DialogPrimitives.Portal>

@@ -16,6 +16,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Select from '@/shared/ui/select';
 import * as StatusBadge from '@/shared/ui/status-badge';
+import { PageHeader } from '@/shared/components/page-header';
 import {
   PropertiesTablePagination,
   TYPE_LABELS,
@@ -187,28 +188,19 @@ export default function PropertiesPage() {
 
   return (
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
-      {/* Header */}
-      <div className='flex items-start justify-between gap-4'>
-        <div className='flex items-center gap-3'>
-          <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
-            <RiBuilding2Line className='size-5 text-text-sub-600' />
-          </div>
-          <div>
-            <div className='text-label-xl font-semibold text-text-strong-950'>
-              Мои объекты
-            </div>
-            <div className='mt-1 text-paragraph-sm text-text-sub-600'>
-              Управление объектами недвижимости
-            </div>
-          </div>
-        </div>
-        <Link href='/properties/create'>
-          <FancyButton.Root variant='primary' size='xsmall'>
-            <FancyButton.Icon as={RiAddLine} />
-            Создать объект
-          </FancyButton.Root>
-        </Link>
-      </div>
+      <PageHeader
+        title='Мои объекты'
+        description='Управление объектами недвижимости'
+        icon={RiBuilding2Line}
+        action={
+          <Link href='/properties/create'>
+            <FancyButton.Root variant='primary' size='xsmall'>
+              <FancyButton.Icon as={RiAddLine} />
+              Создать объект
+            </FancyButton.Root>
+          </Link>
+        }
+      />
 
       {/* Filters */}
       <div className='flex flex-col gap-3 lg:flex-row lg:items-center'>

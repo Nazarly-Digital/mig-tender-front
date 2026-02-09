@@ -4,16 +4,14 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { RiArrowLeftLine } from '@remixicon/react';
-
 import * as Button from '@/shared/ui/button';
-import * as CompactButton from '@/shared/ui/compact-button';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
 import * as WidgetBox from '@/shared/components/widget-box';
+import { PageHeader } from '@/shared/components/page-header';
 import { useCreateProperty } from '@/features/properties';
 import {
   TYPE_LABELS,
@@ -63,17 +61,11 @@ export default function CreatePropertyPage() {
 
   return (
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
-      {/* Back + Header */}
-      <div className='flex items-center gap-3'>
-        <div>
-          <div className='text-label-xl font-semibold text-text-strong-950'>
-            Новый объект
-          </div>
-          <div className='mt-1 text-paragraph-sm text-text-sub-600'>
-            Заполните информацию о новом объекте недвижимости
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title='Новый объект'
+        description='Заполните информацию о новом объекте недвижимости'
+        backHref='/properties'
+      />
 
       <form onSubmit={handleSubmit} className='flex w-full max-w-[640px] flex-col gap-5'>
         {/* Section: Basic info */}

@@ -15,6 +15,7 @@ import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as LinkButton from '@/shared/ui/link-button';
 import * as WidgetBox from '@/shared/components/widget-box';
+import { PageHeader } from '@/shared/components/page-header';
 import { useMyProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
@@ -24,12 +25,6 @@ import {
 } from '@/shared/components/properties-table';
 import type { Property } from '@/shared/types/properties';
 import type { Auction } from '@/shared/types/auctions';
-
-const ROLE_LABELS: Record<string, string> = {
-  developer: 'Застройщик',
-  broker: 'Брокер',
-  admin: 'Администратор',
-};
 
 function formatPrice(value: string) {
   const num = parseFloat(value);
@@ -167,27 +162,14 @@ export default function DashboardPage() {
   const recentAuctions = auctionsData?.results ?? [];
 
   const greeting = user?.first_name ? `Привет, ${user.first_name}!` : 'Добро пожаловать!';
-  const roleBadge = user?.role ? ROLE_LABELS[user.role] ?? user.role : '';
 
   return (
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
-      {/* Header */}
-      <div className='flex items-center gap-3'>
-        <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
-          <RiDashboardLine className='size-5 text-text-sub-600' />
-        </div>
-        <div>
-          <div className='text-label-xl font-semibold text-text-strong-950'>{greeting}</div>
-          <div className='mt-1 flex items-center gap-2 text-paragraph-sm text-text-sub-600'>
-            <span>Панель управления</span>
-            {roleBadge && (
-              <Badge.Root variant='lighter' color='blue' size='small'>
-                {roleBadge}
-              </Badge.Root>
-            )}
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={greeting}
+        description='Панель управления'
+        icon={RiDashboardLine}
+      />
 
       {/* Stat cards */}
       <div className='grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'>
