@@ -223,45 +223,47 @@ export default function PropertiesPage() {
           </Input.Wrapper>
         </Input.Root>
 
-        <Select.Root
-          size='small'
-          value={typeFilter}
-          onValueChange={setTypeFilter}
-        >
-          <Select.Trigger className='w-auto min-w-[140px]'>
-            <Select.Value placeholder='Тип' />
-          </Select.Trigger>
-          <Select.Content>
-            <Select.Item value='all'>Все типы</Select.Item>
-            {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
-              ([value, label]) => (
+        <div className='flex items-center gap-2'>
+          <Select.Root
+            size='small'
+            value={typeFilter}
+            onValueChange={setTypeFilter}
+          >
+            <Select.Trigger className='w-auto min-w-[140px]'>
+              <Select.Value placeholder='Тип' />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value='all'>Все типы</Select.Item>
+              {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
+                ([value, label]) => (
+                  <Select.Item key={value} value={value}>
+                    {label}
+                  </Select.Item>
+                ),
+              )}
+            </Select.Content>
+          </Select.Root>
+
+          <Select.Root
+            size='small'
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+          >
+            <Select.Trigger className='w-auto min-w-[160px]'>
+              <Select.Value placeholder='Статус' />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value='all'>Все статусы</Select.Item>
+              {(
+                Object.entries(STATUS_LABELS) as [PropertyStatus, string][]
+              ).map(([value, label]) => (
                 <Select.Item key={value} value={value}>
                   {label}
                 </Select.Item>
-              ),
-            )}
-          </Select.Content>
-        </Select.Root>
-
-        <Select.Root
-          size='small'
-          value={statusFilter}
-          onValueChange={setStatusFilter}
-        >
-          <Select.Trigger className='w-auto min-w-[160px]'>
-            <Select.Value placeholder='Статус' />
-          </Select.Trigger>
-          <Select.Content>
-            <Select.Item value='all'>Все статусы</Select.Item>
-            {(
-              Object.entries(STATUS_LABELS) as [PropertyStatus, string][]
-            ).map(([value, label]) => (
-              <Select.Item key={value} value={value}>
-                {label}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </div>
       </div>
 
       {/* Content */}
