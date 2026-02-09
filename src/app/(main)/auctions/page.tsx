@@ -10,9 +10,12 @@ import {
 } from '@remixicon/react';
 
 import * as Badge from '@/shared/ui/badge';
+import * as CompactButton from '@/shared/ui/compact-button';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
+import * as ProgressBar from '@/shared/ui/progress-bar';
 import * as SegmentedControl from '@/shared/ui/segmented-control';
+import * as StatusBadge from '@/shared/ui/status-badge';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
 import type {
@@ -21,11 +24,11 @@ import type {
   AuctionMode,
 } from '@/shared/types/auctions';
 
-const STATUS_CONFIG: Record<AuctionStatus, { label: string; color: 'blue' | 'green' | 'gray' | 'yellow' }> = {
-  active: { label: 'Активный', color: 'green' },
-  draft: { label: 'Черновик', color: 'gray' },
-  finished: { label: 'Завершён', color: 'blue' },
-  cancelled: { label: 'Отменён', color: 'gray' },
+const STATUS_CONFIG: Record<AuctionStatus, { label: string; status: 'completed' | 'pending' | 'failed' | 'disabled' }> = {
+  active: { label: 'Активный', status: 'completed' },
+  draft: { label: 'Черновик', status: 'disabled' },
+  finished: { label: 'Завершён', status: 'pending' },
+  cancelled: { label: 'Отменён', status: 'failed' },
 };
 
 const MODE_LABELS: Record<AuctionMode, string> = {
@@ -57,85 +60,111 @@ function formatShortDate(dateStr: string) {
   });
 }
 
+function getTimeProgress(startDate: string, endDate: string): number {
+  const now = Date.now();
+  const start = new Date(startDate).getTime();
+  const end = new Date(endDate).getTime();
+  if (now <= start) return 0;
+  if (now >= end) return 100;
+  return Math.round(((now - start) / (end - start)) * 100);
+}
+
+function getProgressColor(progress: number): 'blue' | 'orange' | 'red' {
+  if (progress >= 80) return 'red';
+  if (progress >= 50) return 'orange';
+  return 'blue';
+}
+
 function AuctionCard({ auction }: { auction: Auction }) {
   const statusCfg = STATUS_CONFIG[auction.status];
+  const isActive = auction.status === 'active';
+  const progress = getTimeProgress(auction.start_date, auction.end_date);
 
   return (
-    <div className='flex flex-col rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
+    <div
+      className={`flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 ${
+        isActive ? 'border-l-[3px] border-l-success-base' : ''
+      }`}
+    >
       {/* Header */}
-      <div className='p-5 pb-0'>
-        <div className='flex items-start justify-between gap-2'>
-          <div className='min-w-0 flex-1'>
-            <div className='text-label-md text-text-strong-950'>
-              Аукцион #{auction.id}
-            </div>
-            <div className='mt-1 text-paragraph-sm text-text-sub-600'>
-              {MODE_LABELS[auction.mode]} · Объект #{auction.property_id}
-            </div>
+      <div className='flex items-start justify-between gap-2'>
+        <div className='min-w-0 flex-1'>
+          <div className='text-label-md text-text-strong-950'>
+            Аукцион #{auction.id}
           </div>
-          <button
-            type='button'
-            className='flex size-7 shrink-0 items-center justify-center rounded-lg text-text-sub-600 transition-colors hover:bg-bg-weak-50'
-          >
-            <RiMore2Line className='size-5' />
-          </button>
+          <div className='mt-1 text-paragraph-sm text-text-sub-600'>
+            Объект #{auction.property_id}
+          </div>
         </div>
+        <CompactButton.Root variant='ghost' size='medium'>
+          <CompactButton.Icon as={RiMore2Line} />
+        </CompactButton.Root>
       </div>
 
-      <div className='px-5 pt-4'>
-        <Divider.Root />
-      </div>
+      {/* Progress bar for active auctions */}
+      {isActive && (
+        <div className='mt-3'>
+          <ProgressBar.Root
+            value={progress}
+            color={getProgressColor(progress)}
+          />
+          <div className='mt-1 text-right text-paragraph-xs text-text-soft-400'>
+            {progress}% времени прошло
+          </div>
+        </div>
+      )}
 
-      {/* Status badge */}
-      <div className='flex items-center gap-2 px-5 pt-4'>
-        <Badge.Root variant='lighter' color={statusCfg.color} size='medium'>
+      <Divider.Root variant='line-spacing' className='my-0 py-3' />
+
+      {/* Status & Mode badges */}
+      <div className='flex flex-wrap items-center gap-2'>
+        <StatusBadge.Root variant='light' status={statusCfg.status}>
+          <StatusBadge.Dot />
           {statusCfg.label}
+        </StatusBadge.Root>
+        <Badge.Root variant='lighter' color='gray' size='small'>
+          {MODE_LABELS[auction.mode]}
         </Badge.Root>
       </div>
 
       {/* Stats */}
-      <div className='grid grid-cols-2 gap-x-4 gap-y-3 px-5 pt-4'>
+      <div className='mt-4 grid grid-cols-2 gap-x-4 gap-y-3'>
         <div>
-          <div className='text-paragraph-sm text-text-sub-600'>Мин. цена</div>
-          <div className='text-label-md text-text-strong-950'>
+          <div className='text-subheading-2xs uppercase text-text-soft-400'>Мин. цена</div>
+          <div className='mt-0.5 text-label-sm text-text-strong-950'>
             {formatPrice(auction.min_price)}
           </div>
         </div>
         <div>
-          <div className='text-paragraph-sm text-text-sub-600'>Текущая макс.</div>
-          <div className='text-label-md text-text-strong-950'>
+          <div className='text-subheading-2xs uppercase text-text-soft-400'>Текущая макс.</div>
+          <div className='mt-0.5 text-label-sm text-text-strong-950'>
             {formatPrice(auction.current_price)}
           </div>
         </div>
-      </div>
-
-      {/* Dates */}
-      <div className='grid grid-cols-2 gap-x-4 px-5 pt-3 pb-5'>
         <div>
-          <div className='text-paragraph-sm text-text-sub-600'>Начало</div>
-          <div className='text-label-md text-text-strong-950'>
+          <div className='text-subheading-2xs uppercase text-text-soft-400'>Начало</div>
+          <div className='mt-0.5 text-label-sm text-text-strong-950'>
             {formatShortDate(auction.start_date)}
           </div>
         </div>
         <div>
-          <div className='text-paragraph-sm text-text-sub-600'>Конец</div>
-          <div className='text-label-md text-text-strong-950'>
+          <div className='text-subheading-2xs uppercase text-text-soft-400'>Конец</div>
+          <div className='mt-0.5 text-label-sm text-text-strong-950'>
             {formatShortDate(auction.end_date)}
           </div>
         </div>
       </div>
 
+      <Divider.Root variant='line-spacing' className='my-0 py-3' />
+
       {/* Footer */}
-      <div className='px-5'>
-        <Divider.Root />
-      </div>
-      <div className='flex items-center gap-4 px-5 py-3.5 text-paragraph-sm text-text-sub-600'>
+      <div className='flex items-center gap-4 text-paragraph-xs text-text-sub-600'>
         <div className='flex items-center gap-1.5'>
-          <RiAuctionLine className='size-4 text-text-soft-400' />
+          <RiAuctionLine className='size-3.5 text-text-soft-400' />
           <span>{auction.bids_count} ставок</span>
         </div>
         <div className='flex items-center gap-1.5'>
-          <RiTimeLine className='size-4 text-text-soft-400' />
+          <RiTimeLine className='size-3.5 text-text-soft-400' />
           <span>до {formatDate(auction.end_date)} г.</span>
         </div>
       </div>
@@ -168,18 +197,23 @@ export default function AuctionsPage() {
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
       {/* Header */}
       <div className='flex items-start justify-between gap-4'>
-        <div>
-          <div className='text-label-xl font-semibold text-text-strong-950'>
-            {isDeveloper ? 'Мои аукционы' : 'Аукционы'}
+        <div className='flex items-center gap-3'>
+          <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
+            <RiAuctionLine className='size-5 text-text-sub-600' />
           </div>
-          <div className='mt-1 text-paragraph-sm text-text-sub-600'>
-            {isDeveloper ? 'Управление вашими аукционами' : 'Доступные аукционы на торгах'}
+          <div>
+            <div className='text-label-xl font-semibold text-text-strong-950'>
+              {isDeveloper ? 'Мои аукционы' : 'Аукционы'}
+            </div>
+            <div className='mt-1 text-paragraph-sm text-text-sub-600'>
+              {isDeveloper ? 'Управление вашими аукционами' : 'Доступные аукционы на торгах'}
+            </div>
           </div>
         </div>
         {isDeveloper && (
           <Link href='/auctions/create'>
-            <FancyButton.Root variant='primary' size='small'>
-              <RiAddLine className='size-4' />
+            <FancyButton.Root variant='primary' size='xsmall'>
+              <FancyButton.Icon as={RiAddLine} />
               Создать аукцион
             </FancyButton.Root>
           </Link>
@@ -207,12 +241,34 @@ export default function AuctionsPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className='py-12 text-center text-paragraph-sm text-text-soft-400'>
-          Загрузка...
+        <div className='flex flex-1 items-center justify-center py-20'>
+          <div className='text-paragraph-sm text-text-soft-400'>
+            Загрузка...
+          </div>
         </div>
       ) : auctions.length === 0 ? (
-        <div className='py-12 text-center text-paragraph-sm text-text-soft-400'>
-          {tab === 'all' ? 'Нет аукционов' : tab === 'active' ? 'Нет активных аукционов' : 'Нет завершённых аукционов'}
+        <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
+          <div className='flex size-12 items-center justify-center rounded-full bg-bg-weak-50'>
+            <RiAuctionLine className='size-6 text-text-soft-400' />
+          </div>
+          <div className='text-center'>
+            <div className='text-label-sm text-text-sub-600'>
+              {tab === 'all' ? 'Нет аукционов' : tab === 'active' ? 'Нет активных аукционов' : 'Нет завершённых аукционов'}
+            </div>
+            {isDeveloper && tab === 'all' && (
+              <div className='mt-1 text-paragraph-xs text-text-soft-400'>
+                Создайте свой первый аукцион
+              </div>
+            )}
+          </div>
+          {isDeveloper && tab === 'all' && (
+            <Link href='/auctions/create' className='mt-2'>
+              <FancyButton.Root variant='primary' size='xsmall'>
+                <FancyButton.Icon as={RiAddLine} />
+                Создать аукцион
+              </FancyButton.Root>
+            </Link>
+          )}
         </div>
       ) : (
         <div className='grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3'>

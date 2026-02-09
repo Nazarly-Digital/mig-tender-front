@@ -2,11 +2,18 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { RiArrowLeftLine } from '@remixicon/react';
+
+import * as Button from '@/shared/ui/button';
+import * as CompactButton from '@/shared/ui/compact-button';
+import * as FancyButton from '@/shared/ui/fancy-button';
+import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
-import * as FancyButton from '@/shared/ui/fancy-button';
+import * as WidgetBox from '@/shared/components/widget-box';
 import { useCreateProperty } from '@/features/properties';
 import {
   TYPE_LABELS,
@@ -56,186 +63,205 @@ export default function CreatePropertyPage() {
 
   return (
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
-      {/* Header */}
-      <div>
-        <div className='text-label-xl font-semibold text-text-strong-950'>
-          Новый объект
-        </div>
-        <div className='mt-1 text-paragraph-s text-text-sub-600'>
-          Заполните информацию о новом объекте недвижимости
+      {/* Back + Header */}
+      <div className='flex items-center gap-3'>
+        <div>
+          <div className='text-label-xl font-semibold text-text-strong-950'>
+            Новый объект
+          </div>
+          <div className='mt-1 text-paragraph-sm text-text-sub-600'>
+            Заполните информацию о новом объекте недвижимости
+          </div>
         </div>
       </div>
 
-      {/* Form */}
-      <form
-        onSubmit={handleSubmit}
-        className='w-full max-w-[560px] space-y-6 rounded-20 bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'
-      >
-        {/* Type */}
-        <div className='space-y-1.5'>
-          <Label.Root htmlFor='property-type'>
-            Тип объекта <Label.Asterisk />
-          </Label.Root>
-          <Select.Root
-            value={type}
-            onValueChange={(v) => setType(v as PropertyType)}
-          >
-            <Select.Trigger id='property-type'>
-              <Select.Value />
-            </Select.Trigger>
-            <Select.Content>
-              {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
-                ([value, label]) => (
-                  <Select.Item key={value} value={value}>
-                    {label}
-                  </Select.Item>
-                ),
-              )}
-            </Select.Content>
-          </Select.Root>
-        </div>
+      <form onSubmit={handleSubmit} className='flex w-full max-w-[640px] flex-col gap-5'>
+        {/* Section: Basic info */}
+        <WidgetBox.Root className='space-y-5'>
+          <WidgetBox.Header>Основная информация</WidgetBox.Header>
 
-        {/* Address */}
-        <div className='space-y-1.5'>
-          <Label.Root htmlFor='property-address'>
-            Адрес <Label.Asterisk />
-          </Label.Root>
-          <Input.Root>
-            <Input.Wrapper>
-              <Input.Input
-                id='property-address'
-                placeholder='ул. Примерная, д. 1'
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required
-              />
-            </Input.Wrapper>
-          </Input.Root>
-        </div>
-
-        {/* Area + Class */}
-        <div className='grid grid-cols-2 gap-4'>
           <div className='space-y-1.5'>
-            <Label.Root htmlFor='property-area'>
-              Площадь (м²) <Label.Asterisk />
+            <Label.Root htmlFor='property-type'>
+              Тип объекта <Label.Asterisk />
+            </Label.Root>
+            <Select.Root
+              value={type}
+              onValueChange={(v) => setType(v as PropertyType)}
+            >
+              <Select.Trigger id='property-type'>
+                <Select.Value />
+              </Select.Trigger>
+              <Select.Content>
+                {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
+                  ([value, label]) => (
+                    <Select.Item key={value} value={value}>
+                      {label}
+                    </Select.Item>
+                  ),
+                )}
+              </Select.Content>
+            </Select.Root>
+          </div>
+
+          <div className='space-y-1.5'>
+            <Label.Root htmlFor='property-address'>
+              Адрес <Label.Asterisk />
             </Label.Root>
             <Input.Root>
               <Input.Wrapper>
                 <Input.Input
-                  id='property-area'
-                  type='number'
-                  step='0.01'
-                  placeholder='120.5'
-                  value={area}
-                  onChange={(e) => setArea(e.target.value)}
+                  id='property-address'
+                  placeholder='ул. Примерная, д. 1'
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   required
                 />
               </Input.Wrapper>
             </Input.Root>
+            <Hint.Root>Полный адрес объекта недвижимости</Hint.Root>
           </div>
-          <div className='space-y-1.5'>
-            <Label.Root htmlFor='property-class'>
-              Класс <Label.Asterisk />
-            </Label.Root>
-            <Select.Root
-              value={propertyClass}
-              onValueChange={(v) => setPropertyClass(v as PropertyClass)}
-            >
-              <Select.Trigger id='property-class'>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content>
-                {(
-                  Object.entries(CLASS_LABELS) as [PropertyClass, string][]
-                ).map(([value, label]) => (
-                  <Select.Item key={value} value={value}>
-                    {label}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
-          </div>
-        </div>
+        </WidgetBox.Root>
 
-        {/* Price + Currency */}
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label.Root htmlFor='property-price'>
-              Цена <Label.Asterisk />
-            </Label.Root>
-            <Input.Root>
-              <Input.Wrapper>
-                <Input.Input
-                  id='property-price'
-                  type='number'
-                  step='0.01'
-                  placeholder='150000'
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  required
-                />
-              </Input.Wrapper>
-            </Input.Root>
-          </div>
-          <div className='space-y-1.5'>
-            <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
-            <Select.Root value={currency} onValueChange={setCurrency}>
-              <Select.Trigger id='property-currency'>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content>
-                <Select.Item value='USD'>USD</Select.Item>
-                <Select.Item value='EUR'>EUR</Select.Item>
-                <Select.Item value='RUB'>RUB</Select.Item>
-                <Select.Item value='TRY'>TRY</Select.Item>
-              </Select.Content>
-            </Select.Root>
-          </div>
-        </div>
+        {/* Section: Characteristics */}
+        <WidgetBox.Root className='space-y-5'>
+          <WidgetBox.Header>Характеристики</WidgetBox.Header>
 
-        {/* Deadline + Status */}
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label.Root htmlFor='property-deadline'>Срок сдачи</Label.Root>
-            <Input.Root>
-              <Input.Wrapper>
-                <Input.Input
-                  id='property-deadline'
-                  type='date'
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                />
-              </Input.Wrapper>
-            </Input.Root>
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='property-area'>
+                Площадь (м²) <Label.Asterisk />
+              </Label.Root>
+              <Input.Root>
+                <Input.Wrapper>
+                  <Input.Input
+                    id='property-area'
+                    type='number'
+                    step='0.01'
+                    placeholder='120.5'
+                    value={area}
+                    onChange={(e) => setArea(e.target.value)}
+                    required
+                  />
+                </Input.Wrapper>
+              </Input.Root>
+            </div>
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='property-class'>
+                Класс <Label.Asterisk />
+              </Label.Root>
+              <Select.Root
+                value={propertyClass}
+                onValueChange={(v) => setPropertyClass(v as PropertyClass)}
+              >
+                <Select.Trigger id='property-class'>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  {(
+                    Object.entries(CLASS_LABELS) as [PropertyClass, string][]
+                  ).map(([value, label]) => (
+                    <Select.Item key={value} value={value}>
+                      {label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            </div>
           </div>
-          <div className='space-y-1.5'>
-            <Label.Root htmlFor='property-status'>Статус</Label.Root>
-            <Select.Root
-              value={status}
-              onValueChange={(v) => setStatus(v as PropertyStatus)}
-            >
-              <Select.Trigger id='property-status'>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content>
-                {(
-                  Object.entries(STATUS_LABELS) as [PropertyStatus, string][]
-                ).map(([value, label]) => (
-                  <Select.Item key={value} value={value}>
-                    {label}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Root>
+        </WidgetBox.Root>
+
+        {/* Section: Price */}
+        <WidgetBox.Root className='space-y-5'>
+          <WidgetBox.Header>Стоимость</WidgetBox.Header>
+
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='property-price'>
+                Цена <Label.Asterisk />
+              </Label.Root>
+              <Input.Root>
+                <Input.Wrapper>
+                  <Input.Input
+                    id='property-price'
+                    type='number'
+                    step='0.01'
+                    placeholder='150000'
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    required
+                  />
+                </Input.Wrapper>
+              </Input.Root>
+            </div>
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
+              <Select.Root value={currency} onValueChange={setCurrency}>
+                <Select.Trigger id='property-currency'>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  <Select.Item value='USD'>USD</Select.Item>
+                  <Select.Item value='EUR'>EUR</Select.Item>
+                  <Select.Item value='RUB'>RUB</Select.Item>
+                  <Select.Item value='TRY'>TRY</Select.Item>
+                </Select.Content>
+              </Select.Root>
+            </div>
           </div>
-        </div>
+        </WidgetBox.Root>
+
+        {/* Section: Deadlines & Status */}
+        <WidgetBox.Root className='space-y-5'>
+          <WidgetBox.Header>Сроки и статус</WidgetBox.Header>
+
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='property-deadline'>Срок сдачи</Label.Root>
+              <Input.Root>
+                <Input.Wrapper>
+                  <Input.Input
+                    id='property-deadline'
+                    type='date'
+                    value={deadline}
+                    onChange={(e) => setDeadline(e.target.value)}
+                  />
+                </Input.Wrapper>
+              </Input.Root>
+              <Hint.Root>Оставьте пустым, если срок неизвестен</Hint.Root>
+            </div>
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='property-status'>Статус</Label.Root>
+              <Select.Root
+                value={status}
+                onValueChange={(v) => setStatus(v as PropertyStatus)}
+              >
+                <Select.Trigger id='property-status'>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  {(
+                    Object.entries(STATUS_LABELS) as [PropertyStatus, string][]
+                  ).map(([value, label]) => (
+                    <Select.Item key={value} value={value}>
+                      {label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            </div>
+          </div>
+        </WidgetBox.Root>
 
         {/* Actions */}
-        <div className='pt-2'>
+        <div className='flex items-center gap-3 pt-2'>
+          <Link href='/properties'>
+            <Button.Root variant='neutral' mode='stroke'>
+              Отмена
+            </Button.Root>
+          </Link>
           <FancyButton.Root
             type='submit'
             variant='primary'
-            className='w-full'
             disabled={createMutation.isPending}
           >
             {createMutation.isPending ? 'Создание...' : 'Создать объект'}
