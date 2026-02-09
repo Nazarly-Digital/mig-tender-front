@@ -1,7 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import {
+  RiAddLine,
   RiAuctionLine,
   RiMore2Line,
   RiTimeLine,
@@ -9,6 +11,7 @@ import {
 
 import * as Badge from '@/shared/ui/badge';
 import * as Divider from '@/shared/ui/divider';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import * as SegmentedControl from '@/shared/ui/segmented-control';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
@@ -140,15 +143,17 @@ function AuctionCard({ auction }: { auction: Auction }) {
   );
 }
 
-type Tab = 'active' | 'finished';
+type Tab = 'all' | 'active' | 'finished';
 
 export default function AuctionsPage() {
-  const [tab, setTab] = React.useState<Tab>('active');
+  const [tab, setTab] = React.useState<Tab>('all');
   const user = useSessionStore((s) => s.user);
   const isDeveloper = user?.role === 'developer';
 
-  const statusFilter = tab === 'active' ? 'active' : 'finished';
-  const params = { status: statusFilter as 'active' | 'finished', ordering: '-created_at' };
+  const params = {
+    ...(tab !== 'all' && { status: tab as 'active' | 'finished' }),
+    ordering: '-created_at',
+  };
 
   const myAuctions = useMyAuctions(isDeveloper ? params : undefined);
   const allAuctions = useAuctions(!isDeveloper ? params : undefined);
@@ -162,13 +167,23 @@ export default function AuctionsPage() {
   return (
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
       {/* Header */}
-      <div>
-        <div className='text-label-xl font-semibold text-text-strong-950'>
-          {isDeveloper ? 'Мои аукционы' : 'Аукционы'}
+      <div className='flex items-start justify-between gap-4'>
+        <div>
+          <div className='text-label-xl font-semibold text-text-strong-950'>
+            {isDeveloper ? 'Мои аукционы' : 'Аукционы'}
+          </div>
+          <div className='mt-1 text-paragraph-sm text-text-sub-600'>
+            {isDeveloper ? 'Управление вашими аукционами' : 'Доступные аукционы на торгах'}
+          </div>
         </div>
-        <div className='mt-1 text-paragraph-sm text-text-sub-600'>
-          {isDeveloper ? 'Управление вашими аукционами' : 'Доступные аукционы на торгах'}
-        </div>
+        {isDeveloper && (
+          <Link href='/auctions/create'>
+            <FancyButton.Root variant='primary' size='small'>
+              <RiAddLine className='size-4' />
+              Создать аукцион
+            </FancyButton.Root>
+          </Link>
+        )}
       </div>
 
       {/* Filter */}
@@ -178,6 +193,9 @@ export default function AuctionsPage() {
         className='w-fit'
       >
         <SegmentedControl.List>
+          <SegmentedControl.Trigger value='all'>
+            Все
+          </SegmentedControl.Trigger>
           <SegmentedControl.Trigger value='active'>
             Активные
           </SegmentedControl.Trigger>
@@ -194,7 +212,7 @@ export default function AuctionsPage() {
         </div>
       ) : auctions.length === 0 ? (
         <div className='py-12 text-center text-paragraph-sm text-text-soft-400'>
-          {tab === 'active' ? 'Нет активных аукционов' : 'Нет завершённых аукционов'}
+          {tab === 'all' ? 'Нет аукционов' : tab === 'active' ? 'Нет активных аукционов' : 'Нет завершённых аукционов'}
         </div>
       ) : (
         <div className='grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3'>
