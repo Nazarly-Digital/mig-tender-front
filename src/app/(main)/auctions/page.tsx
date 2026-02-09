@@ -168,7 +168,8 @@ export default function AuctionsPage() {
       >
         <SegmentedControl.List>
           <SegmentedControl.Trigger value='active'>
-            Активные {count > 0 && tab === 'active' ? `(${count})` : ''}
+            Активные
+            {/* {count > 0 && tab === 'active' ? `(${count})` : ''} */}
           </SegmentedControl.Trigger>
           <SegmentedControl.Trigger value='completed'>
             Завершённые
