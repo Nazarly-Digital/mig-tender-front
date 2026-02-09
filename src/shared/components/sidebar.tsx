@@ -22,14 +22,16 @@ import { useSessionStore } from '@/entities/auth/model/store';
 type NavigationLink = {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+  developerLabel?: string;
   href: string;
+  developerHref?: string;
   disabled?: boolean;
   developerOnly?: boolean;
 };
 
 export const navigationLinks: NavigationLink[] = [
   { icon: RiLayoutGridLine, label: 'Главная', href: '/dashboard' },
-  { icon: RiBuilding2Line, label: 'Объекты', href: '/properties' },
+  { icon: RiBuilding2Line, label: 'Объекты', developerLabel: 'Мои аукционы', href: '/properties', developerHref: '/auctions' },
   { icon: RiAddLine, label: 'Создать объект', href: '/properties/create', developerOnly: true },
 ];
 
@@ -131,11 +133,14 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
         Меню
       </div>
       <div className='space-y-1'>
-        {visibleLinks.map(({ icon: Icon, label, href, disabled }, i) => (
+        {visibleLinks.map(({ icon: Icon, label, developerLabel, href, developerHref, disabled }, i) => {
+          const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
+          const displayHref = isDeveloper && developerHref ? developerHref : href;
+          return (
           <Link
             key={i}
-            href={href}
-            aria-current={pathname === href ? 'page' : undefined}
+            href={displayHref}
+            aria-current={pathname === displayHref ? 'page' : undefined}
             aria-disabled={disabled}
             className={cn(
               'group relative flex items-center gap-2 whitespace-nowrap rounded-lg py-2 text-text-sub-600 hover:bg-bg-weak-50',
@@ -154,8 +159,8 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
                 {
                   '-left-[22px]': collapsed,
                   '-left-5': !collapsed,
-                  'scale-100': pathname === href,
-                  'scale-0': pathname !== href,
+                  'scale-100': pathname === displayHref,
+                  'scale-0': pathname !== displayHref,
                 },
               )}
             />
@@ -170,13 +175,14 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
               className='flex w-[180px] shrink-0 items-center gap-2'
               data-hide-collapsed
             >
-              <div className='flex-1 text-label-sm'>{label}</div>
-              {pathname === href && (
+              <div className='flex-1 text-label-sm'>{displayLabel}</div>
+              {pathname === displayHref && (
                 <RiArrowRightSLine className='size-5 text-text-sub-600' />
               )}
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

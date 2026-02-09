@@ -106,11 +106,14 @@ export default function MobileMenu() {
 
             <div className='flex flex-1 flex-col py-6'>
               <div className='flex flex-col gap-5'>
-                {visibleLinks.map(({ icon: Icon, label, href }, i) => (
+                {visibleLinks.map(({ icon: Icon, label, developerLabel, href, developerHref }, i) => {
+                  const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
+                  const displayHref = isDeveloper && developerHref ? developerHref : href;
+                  return (
                   <Link
                     key={i}
-                    href={href}
-                    aria-current={pathname === href ? 'page' : undefined}
+                    href={displayHref}
+                    aria-current={pathname === displayHref ? 'page' : undefined}
                     className={cn(
                       'group relative flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-text-sub-600',
                     )}
@@ -121,18 +124,19 @@ export default function MobileMenu() {
                         'group-aria-[current=page]:text-primary-base',
                       )}
                     />
-                    <div className='flex-1 text-label-md'>{label}</div>
+                    <div className='flex-1 text-label-md'>{displayLabel}</div>
                     <div
                       className={cn(
                         'transition-default absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-primary-base',
                         {
-                          'scale-0': pathname !== href,
+                          'scale-0': pathname !== displayHref,
                         },
                       )}
                     />
                     <RiArrowRightSLine className='size-6 text-text-sub-600' />
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
