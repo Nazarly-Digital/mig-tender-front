@@ -8,6 +8,7 @@ import {
 
 import { cn } from '@/shared/lib/cn';
 import * as FancyButton from '@/shared/ui/fancy-button';
+import * as LinkButton from '@/shared/ui/link-button';
 import { useRouter } from 'next/navigation';
 
 export default function SelectRolePage() {
@@ -15,6 +16,11 @@ export default function SelectRolePage() {
 
   return (
     <div className='w-full max-w-[900px] px-4'>
+      <div className='mb-8 text-center'>
+        <h1 className='text-title-h4 lg:text-title-h3 font-semibold leading-tight'>Платформа закрытых аукционов недвижимости</h1>
+        <p className='mt-2 text-paragraph-sm text-text-sub-600'>Выберите роль для продолжения</p>
+      </div>
+
       <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
         {/* Broker Card */}
         <div className='flex flex-col items-center gap-6 rounded-20 bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
@@ -111,6 +117,13 @@ export default function SelectRolePage() {
             Войти как девелопер
           </FancyButton.Root>
         </div>
+      </div>
+
+      <div className='mt-6 flex items-center justify-center gap-1.5'>
+        <span className='text-paragraph-sm text-text-sub-600'>Уже есть аккаунт?</span>
+        <LinkButton.Root variant='primary' size='medium' underline asChild>
+          <Link href='/login'>Войти</Link>
+        </LinkButton.Root>
       </div>
     </div>
   );
