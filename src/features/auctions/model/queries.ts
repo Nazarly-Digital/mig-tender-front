@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { auctionsService } from "@/entities/auctions";
-import type { AuctionListParams } from "@/shared/types/auctions";
+import type { AuctionListParams, AuctionCreateRequest } from "@/shared/types/auctions";
 
 export const auctionKeys = {
   all: ["auctions"] as const,
@@ -23,5 +23,16 @@ export function useAuctions(params?: AuctionListParams) {
   return useQuery({
     queryKey: auctionKeys.list(params),
     queryFn: () => auctionsService.getAll(params).then((res) => res.data),
+  });
+}
+
+export function useCreateAuction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: AuctionCreateRequest) =>
+      auctionsService.create(data).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
   });
 }

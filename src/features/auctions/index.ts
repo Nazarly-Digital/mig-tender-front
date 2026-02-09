@@ -1,1 +1,1 @@
-export { auctionKeys, useMyAuctions, useAuctions } from "./model/queries";
+export { auctionKeys, useMyAuctions, useAuctions, useCreateAuction } from "./model/queries";

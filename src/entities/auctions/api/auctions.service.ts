@@ -1,6 +1,8 @@
 import { apiInstance } from "@/shared/api";
 import type {
   Auction,
+  AuctionDetail,
+  AuctionCreateRequest,
   AuctionListParams,
   PaginatedResponse,
 } from "@/shared/types/auctions";
@@ -13,5 +15,8 @@ export const auctionsService = {
     apiInstance.get<PaginatedResponse<Auction>>("/auctions/", { params }),
 
   getById: (id: number) =>
-    apiInstance.get<Auction>(`/auctions/${id}/`),
+    apiInstance.get<AuctionDetail>(`/auctions/${id}/`),
+
+  create: (data: AuctionCreateRequest) =>
+    apiInstance.post<AuctionDetail>("/auctions/", data),
 };

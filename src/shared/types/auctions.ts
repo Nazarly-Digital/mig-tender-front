@@ -1,29 +1,48 @@
-import type { PropertyType, PropertyClass, PaginatedResponse } from './properties';
+import type { PaginatedResponse } from './properties';
 
-export type AuctionStatus = 'active' | 'completed';
+export type AuctionMode = 'open' | 'closed';
+
+export type AuctionStatus = 'draft' | 'active' | 'finished' | 'cancelled';
 
 export type Auction = {
   id: number;
-  property: {
-    id: number;
-    address: string;
-    type: PropertyType;
-    property_class: PropertyClass;
-    area: string;
-    rooms: number | null;
-  };
-  status: AuctionStatus;
+  property_id: number;
+  owner_id: number;
+  mode: AuctionMode;
   min_price: string;
-  current_max_bid: string | null;
-  bids_count: number;
-  currency: string;
+  start_date: string;
   end_date: string;
+  status: AuctionStatus;
+  bids_count: number;
+  current_price: string;
+  highest_bid_id: number | null;
+  winner_bid_id: number | null;
   created_at: string;
   updated_at: string;
 };
 
+export type AuctionDetail = Auction & {
+  bids: unknown;
+};
+
+export type AuctionCreateRequest = {
+  property_id: number;
+  mode: AuctionMode;
+  min_price: string;
+  start_date: string;
+  end_date: string;
+};
+
 export type AuctionListParams = {
+  mode?: AuctionMode;
   status?: AuctionStatus;
+  property_id?: number;
+  owner_id?: number;
+  active?: boolean;
+  starts_before?: string;
+  starts_after?: string;
+  ends_before?: string;
+  ends_after?: string;
   ordering?: string;
   page?: number;
   page_size?: number;

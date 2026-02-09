@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   RiAddLine,
   RiArrowRightSLine,
+  RiAuctionLine,
   RiBuilding2Line,
   RiHeadphoneLine,
   RiLayoutGridLine,
@@ -31,7 +32,8 @@ type NavigationLink = {
 
 export const navigationLinks: NavigationLink[] = [
   { icon: RiLayoutGridLine, label: 'Главная', href: '/dashboard' },
-  { icon: RiBuilding2Line, label: 'Объекты', developerLabel: 'Мои аукционы', href: '/properties', developerHref: '/auctions' },
+  { icon: RiAuctionLine, label: 'Аукционы', developerLabel: 'Мои аукционы', href: '/auctions' },
+  { icon: RiBuilding2Line, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: RiAddLine, label: 'Создать объект', href: '/properties/create', developerOnly: true },
 ];
 
