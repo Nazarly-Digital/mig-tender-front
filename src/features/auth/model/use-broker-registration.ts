@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
+import toast from 'react-hot-toast';
 
 import {
   useGetCode,
@@ -52,8 +53,10 @@ export function useBrokerRegistration() {
         },
         onError: (err) => {
           if (err instanceof AxiosError) {
-            if (err.response?.status === 409) {
-              setError('Пользователь с таким email уже зарегистрирован');
+            if (err.response?.status === 409 || err.response?.data?.error === 'User already exists.') {
+              toast.error('Аккаунт с таким email уже существует');
+              router.push('/login');
+              return;
             } else if (err.response?.status === 429) {
               const data = err.response.data as GetCodeError429;
               setTimer(data.remaining_time ?? 60);
