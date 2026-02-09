@@ -18,6 +18,7 @@ import useBreakpoint from '@/shared/lib/use-breakpoint';
 import { CompanySwitchMobile } from '@/shared/components/company-switch';
 import { MoveMoneyButton } from '@/shared/components/move-money-button';
 import { navigationLinks } from '@/shared/components/sidebar';
+import { useSessionStore } from '@/entities/auth/model/store';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
 import { UserButtonMobile } from '@/shared/components/user-button';
 
@@ -25,6 +26,12 @@ export default function MobileMenu() {
   const { lg } = useBreakpoint();
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
+  const user = useSessionStore((s) => s.user);
+  const isDeveloper = user?.role === 'developer';
+
+  const visibleLinks = navigationLinks.filter(
+    (link) => !link.developerOnly || isDeveloper,
+  );
 
   React.useEffect(() => {
     setOpen(false);
@@ -99,7 +106,7 @@ export default function MobileMenu() {
 
             <div className='flex flex-1 flex-col py-6'>
               <div className='flex flex-col gap-5'>
-                {navigationLinks.map(({ icon: Icon, label, href }, i) => (
+                {visibleLinks.map(({ icon: Icon, label, href }, i) => (
                   <Link
                     key={i}
                     href={href}

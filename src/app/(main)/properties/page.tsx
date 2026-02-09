@@ -2,15 +2,12 @@
 
 import * as React from 'react';
 import {
-  RiAddLine,
   RiBuilding2Line,
   RiSearch2Line,
 } from '@remixicon/react';
 
-import * as Button from '@/shared/ui/button';
 import * as Input from '@/shared/ui/input';
 import * as Select from '@/shared/ui/select';
-import * as Kbd from '@/shared/ui/kbd';
 import {
   PropertiesTable,
   PropertiesTablePagination,
@@ -20,14 +17,12 @@ import {
 import { PropertyFormModal } from '@/shared/components/property-form-modal';
 import {
   useMyProperties,
-  useCreateProperty,
   useUpdateProperty,
 } from '@/features/properties';
 import type {
   Property,
   PropertyType,
   PropertyStatus,
-  PropertyCreateRequest,
   PropertyUpdateRequest,
   PropertyListParams,
 } from '@/shared/types/properties';
@@ -54,22 +49,16 @@ export default function PropertiesPage() {
   };
 
   const { data, isLoading } = useMyProperties(params);
-  const createMutation = useCreateProperty();
   const updateMutation = useUpdateProperty();
 
   const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
-
-  const handleCreate = () => {
-    setEditingProperty(null);
-    setModalOpen(true);
-  };
 
   const handleEdit = (property: Property) => {
     setEditingProperty(property);
     setModalOpen(true);
   };
 
-  const handleSubmit = (formData: PropertyCreateRequest | PropertyUpdateRequest) => {
+  const handleSubmit = (formData: PropertyUpdateRequest) => {
     if (editingProperty) {
       updateMutation.mutate(
         { id: editingProperty.id, data: formData },
@@ -77,10 +66,6 @@ export default function PropertiesPage() {
           onSuccess: () => setModalOpen(false),
         },
       );
-    } else {
-      createMutation.mutate(formData as PropertyCreateRequest, {
-        onSuccess: () => setModalOpen(false),
-      });
     }
   };
 
@@ -115,10 +100,6 @@ export default function PropertiesPage() {
             </div>
           </div>
         </div>
-        <Button.Root size='small' onClick={handleCreate}>
-          <Button.Icon as={RiAddLine} />
-          Добавить объект
-        </Button.Root>
       </div>
 
       {/* Filters */}
@@ -204,7 +185,7 @@ export default function PropertiesPage() {
         onOpenChange={setModalOpen}
         property={editingProperty}
         onSubmit={handleSubmit}
-        isPending={createMutation.isPending || updateMutation.isPending}
+        isPending={updateMutation.isPending}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  RiAddLine,
   RiArrowRightSLine,
   RiBuilding2Line,
   RiHeadphoneLine,
@@ -16,17 +17,20 @@ import { cn } from '@/shared/lib/cn';
 import * as Divider from '@/shared/ui/divider';
 import { CompanySwitch } from '@/shared/components/company-switch';
 import { UserButton } from '@/shared/components/user-button';
+import { useSessionStore } from '@/entities/auth/model/store';
 
 type NavigationLink = {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   href: string;
   disabled?: boolean;
+  developerOnly?: boolean;
 };
 
 export const navigationLinks: NavigationLink[] = [
   { icon: RiLayoutGridLine, label: 'Главная', href: '/dashboard' },
   { icon: RiBuilding2Line, label: 'Объекты', href: '/properties' },
+  { icon: RiAddLine, label: 'Создать объект', href: '/properties/create', developerOnly: true },
 ];
 
 
@@ -110,6 +114,12 @@ export function SidebarHeader({ collapsed }: { collapsed?: boolean }) {
 
 function NavigationMenu({ collapsed }: { collapsed: boolean }) {
   const pathname = usePathname();
+  const user = useSessionStore((s) => s.user);
+  const isDeveloper = user?.role === 'developer';
+
+  const visibleLinks = navigationLinks.filter(
+    (link) => !link.developerOnly || isDeveloper,
+  );
 
   return (
     <div className='space-y-2'>
@@ -121,7 +131,7 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
         Меню
       </div>
       <div className='space-y-1'>
-        {navigationLinks.map(({ icon: Icon, label, href, disabled }, i) => (
+        {visibleLinks.map(({ icon: Icon, label, href, disabled }, i) => (
           <Link
             key={i}
             href={href}
