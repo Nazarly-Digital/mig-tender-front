@@ -14,12 +14,10 @@ import {
 } from '@remixicon/react';
 
 import { cn } from '@/shared/lib/cn';
-import { LABEL_COLORS } from '@/shared/lib/consts';
 import useBreakpoint from '@/shared/lib/use-breakpoint';
-import * as TabMenuHorizontal from '@/shared/ui/tab-menu-horizontal';
 import { CompanySwitchMobile } from '@/shared/components/company-switch';
 import { MoveMoneyButton } from '@/shared/components/move-money-button';
-import { navigationLinks, favoriteLinks } from '@/shared/components/sidebar';
+import { navigationLinks } from '@/shared/components/sidebar';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
 import { UserButtonMobile } from '@/shared/components/user-button';
 
@@ -99,96 +97,37 @@ export default function MobileMenu() {
             </div>
             <CompanySwitchMobile />
 
-            <TabMenuHorizontal.Root
-              defaultValue='main'
-              className='flex flex-1 flex-col'
-            >
-              <TabMenuHorizontal.List className='gap-8 px-7'>
-                <TabMenuHorizontal.Trigger
-                  value='main'
-                  className='flex-1 text-label-md'
-                >
-                  Главная
-                </TabMenuHorizontal.Trigger>
-                <div className='flex h-6 w-1 shrink-0 items-center before:h-full before:w-px before:bg-stroke-soft-200' />
-                <TabMenuHorizontal.Trigger
-                  value='favorites'
-                  className='flex-1 text-label-md'
-                >
-                  Избранное
-                </TabMenuHorizontal.Trigger>
-              </TabMenuHorizontal.List>
-
-              <div className='flex-1 py-6'>
-                <TabMenuHorizontal.Content
-                  value='main'
-                  className='data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0'
-                >
-                  <div className='flex flex-col gap-5'>
-                    {navigationLinks.map(({ icon: Icon, label, href }, i) => (
-                      <Link
-                        key={i}
-                        href={href}
-                        aria-current={pathname === href ? 'page' : undefined}
-                        className={cn(
-                          'group relative flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-text-sub-600',
-                        )}
-                      >
-                        <Icon
-                          className={cn(
-                            'transition-default size-[22px] shrink-0 text-text-sub-600',
-                            'group-aria-[current=page]:text-primary-base',
-                          )}
-                        />
-                        <div className='flex-1 text-label-md'>{label}</div>
-                        <div
-                          className={cn(
-                            'transition-default absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-primary-base',
-                            {
-                              'scale-0': pathname !== href,
-                            },
-                          )}
-                        />
-                        <RiArrowRightSLine className='size-6 text-text-sub-600' />
-                      </Link>
-                    ))}
-                  </div>
-                </TabMenuHorizontal.Content>
-                <TabMenuHorizontal.Content
-                  value='favorites'
-                  className='data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0'
-                >
-                  <div className='flex flex-col gap-5'>
-                    {favoriteLinks.map((project, i) => (
-                      <Link
-                        key={i}
-                        href={project.href}
-                        className={cn(
-                          'group flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-text-sub-600',
-                        )}
-                      >
-                        <div className='flex size-[22px] shrink-0 items-center justify-center'>
-                          <div className='size-3 scale-110 rounded-full border-2 border-stroke-white-0 shadow-regular-sm'>
-                            <div
-                              className={cn(
-                                'size-2 rounded-full',
-                                LABEL_COLORS[
-                                  project.color as keyof typeof LABEL_COLORS
-                                ].bg,
-                              )}
-                            />
-                          </div>
-                        </div>
-                        <div className='flex-1 text-label-md'>
-                          {project.projectName}
-                        </div>
-                        <RiArrowRightSLine className='size-6 text-text-sub-600' />
-                      </Link>
-                    ))}
-                  </div>
-                </TabMenuHorizontal.Content>
+            <div className='flex flex-1 flex-col py-6'>
+              <div className='flex flex-col gap-5'>
+                {navigationLinks.map(({ icon: Icon, label, href }, i) => (
+                  <Link
+                    key={i}
+                    href={href}
+                    aria-current={pathname === href ? 'page' : undefined}
+                    className={cn(
+                      'group relative flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-text-sub-600',
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        'transition-default size-[22px] shrink-0 text-text-sub-600',
+                        'group-aria-[current=page]:text-primary-base',
+                      )}
+                    />
+                    <div className='flex-1 text-label-md'>{label}</div>
+                    <div
+                      className={cn(
+                        'transition-default absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-primary-base',
+                        {
+                          'scale-0': pathname !== href,
+                        },
+                      )}
+                    />
+                    <RiArrowRightSLine className='size-6 text-text-sub-600' />
+                  </Link>
+                ))}
               </div>
-            </TabMenuHorizontal.Root>
+            </div>
 
             <div className='grid border-y border-stroke-soft-200 p-4'>
               <MoveMoneyButton />

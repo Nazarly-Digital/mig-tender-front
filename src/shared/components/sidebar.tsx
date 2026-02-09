@@ -4,14 +4,9 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  RiArrowLeftRightLine,
   RiArrowRightSLine,
-  RiBankCardLine,
-  RiBillLine,
   RiBuilding2Line,
-  RiExchangeLine,
   RiHeadphoneLine,
-  RiHistoryLine,
   RiLayoutGridLine,
   RiSettings2Line,
 } from '@remixicon/react';
@@ -32,33 +27,8 @@ type NavigationLink = {
 export const navigationLinks: NavigationLink[] = [
   { icon: RiLayoutGridLine, label: 'Главная', href: '/dashboard' },
   { icon: RiBuilding2Line, label: 'Объекты', href: '/properties' },
-  { icon: RiBankCardLine, label: 'Мои карты', href: '/my-cards', disabled: true },
-  { icon: RiArrowLeftRightLine, label: 'Переводы', href: '/send-money', disabled: true },
-  { icon: RiHistoryLine, label: 'Транзакции', href: '/transactions', disabled: true },
-  { icon: RiBillLine, label: 'Платежи', href: '#', disabled: true },
-  { icon: RiExchangeLine, label: 'Обмен', href: '#', disabled: true },
 ];
 
-export const favoriteLinks = [
-  {
-    href: '#',
-    color: 'purple',
-    projectName: 'Тендеры',
-    shortcut: '⌘1',
-  },
-  {
-    href: '#',
-    color: 'red',
-    projectName: 'Закупки',
-    shortcut: '⌘2',
-  },
-  {
-    href: '#',
-    color: 'pink',
-    projectName: 'Аналитика',
-    shortcut: '⌘3',
-  },
-];
 
 function useCollapsedState({
   defaultCollapsed = false,
