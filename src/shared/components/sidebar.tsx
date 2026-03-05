@@ -8,6 +8,7 @@ import {
   RiArrowRightSLine,
   RiAuctionLine,
   RiBuilding2Line,
+  RiFileLine,
   RiHeadphoneLine,
   RiLayoutGridLine,
   RiSettings2Line,
@@ -35,6 +36,7 @@ export const navigationLinks: NavigationLink[] = [
   { icon: RiAuctionLine, label: 'Аукционы', developerLabel: 'Мои аукционы', href: '/auctions' },
   { icon: RiBuilding2Line, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: RiAddLine, label: 'Создать объект', href: '/properties/create', developerOnly: true },
+  { icon: RiFileLine, label: 'Документы', href: '/documents' },
 ];
 
 
