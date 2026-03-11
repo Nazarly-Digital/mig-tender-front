@@ -41,7 +41,7 @@ const FancyButtonRoot = React.forwardRef<HTMLButtonElement, FancyButtonProps>(
         ref={forwardedRef}
         className={cn(
           // base
-          'group relative inline-flex items-center justify-center whitespace-nowrap text-sm font-medium outline-none',
+          'group relative inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium outline-none',
           'transition duration-200 ease-out',
           // focus
           'focus:outline-none',

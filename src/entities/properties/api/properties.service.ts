@@ -34,6 +34,10 @@ export const propertiesService = {
   getImages: (propertyId: number) =>
     apiInstance.get<PropertyImage[]>(`/properties/${propertyId}/images/`),
 
+  // Delete image
+  deleteImage: (propertyId: number, imageId: number) =>
+    apiInstance.delete(`/properties/${propertyId}/images/${imageId}/`),
+
   // Upload image for a property
   addImage: (propertyId: number, data: PropertyImageCreateRequest) => {
     const formData = new FormData();

@@ -1,15 +1,27 @@
 'use client';
 
 import * as React from 'react';
-import { RiBuilding2Line } from '@remixicon/react';
+import {
+  RiBuilding2Line,
+  RiImageAddLine,
+  RiCloseLine,
+  RiCheckLine,
+} from '@remixicon/react';
 
 import * as Modal from '@/shared/ui/modal';
 import * as Button from '@/shared/ui/button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
+import { cn } from '@/shared/lib/cn';
+import {
+  usePropertyImages,
+  useAddPropertyImage,
+  useDeletePropertyImage,
+} from '@/features/properties';
 import type {
   Property,
+  PropertyImage,
   PropertyCreateRequest,
   PropertyUpdateRequest,
   PropertyType,
@@ -29,6 +41,87 @@ type PropertyFormModalProps = {
   onSubmit: (data: PropertyCreateRequest | PropertyUpdateRequest) => void;
   isPending?: boolean;
 };
+
+function ImageUploadSection({ propertyId }: { propertyId: number }) {
+  const { data: images = [] } = usePropertyImages(propertyId);
+  const addImage = useAddPropertyImage();
+  const deleteImage = useDeletePropertyImage();
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = React.useState(false);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || uploading) return;
+    setUploading(true);
+    const arr = Array.from(files);
+    for (let i = 0; i < arr.length; i++) {
+      try {
+        await addImage.mutateAsync({
+          propertyId,
+          data: { image: arr[i], is_primary: images.length === 0 && i === 0 },
+        });
+      } catch {
+        // continue uploading remaining files even if one fails
+      }
+    }
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div className='space-y-2'>
+      <Label.Root>Фотографии</Label.Root>
+
+      {images.length > 0 && (
+        <div className='flex gap-2 overflow-x-auto pb-1'>
+          {images.map((img: PropertyImage) => (
+            <div key={img.id} className='group relative shrink-0'>
+              <img
+                src={img.url || img.external_url || ''}
+                alt=''
+                className='h-20 w-20 rounded-lg object-cover ring-1 ring-inset ring-stroke-soft-200'
+              />
+              {img.is_primary && (
+                <span className='absolute bottom-1 left-1 flex size-4 items-center justify-center rounded-full bg-primary-base'>
+                  <RiCheckLine className='size-2.5 text-white' />
+                </span>
+              )}
+              <button
+                type='button'
+                className='absolute right-1 top-1 flex size-5 items-center justify-center rounded-md bg-bg-white-0/80 opacity-0 transition-opacity group-hover:opacity-100'
+                onClick={() => deleteImage.mutate({ propertyId, imageId: img.id })}
+              >
+                <RiCloseLine className='size-3 text-text-strong-950' />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button
+        type='button'
+        disabled={uploading}
+        onClick={() => inputRef.current?.click()}
+        className={cn(
+          'flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-3 text-paragraph-sm transition-colors',
+          uploading
+            ? 'cursor-not-allowed border-stroke-soft-200 text-text-soft-400 opacity-60'
+            : 'border-stroke-soft-200 text-text-soft-400 hover:border-primary-base hover:text-primary-base',
+        )}
+      >
+        <RiImageAddLine className='size-4' />
+        {uploading ? 'Загрузка...' : 'Добавить фото'}
+        <input
+          ref={inputRef}
+          type='file'
+          multiple
+          accept='image/*'
+          className='hidden'
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+      </button>
+    </div>
+  );
+}
 
 export function PropertyFormModal({
   open,
@@ -266,6 +359,11 @@ export function PropertyFormModal({
                 </Select.Root>
               </div>
             </div>
+
+            {/* Images — only for existing properties */}
+            {isEdit && property && (
+              <ImageUploadSection propertyId={property.id} />
+            )}
           </Modal.Body>
 
           <Modal.Footer>

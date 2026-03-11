@@ -78,21 +78,14 @@ export function useUpdateProperty() {
     mutationFn: ({ id, data }: { id: number; data: PropertyUpdateRequest }) =>
       propertiesService.update(id, data).then((res) => res.data),
     onSuccess: (updatedFields, { id }) => {
-      // Update the property in all cached lists with the response data
-      const updateCache = (old: PaginatedResponse<Property> | undefined) => {
-        if (!old) return old;
-        return {
-          ...old,
-          results: old.results.map((p) =>
-            p.id === id ? { ...p, ...updatedFields } : p,
-          ),
-        };
-      };
-
-      queryClient.setQueriesData<PaginatedResponse<Property>>(
-        { queryKey: propertyKeys.all },
-        updateCache,
+      // Update detail cache
+      queryClient.setQueryData<Property>(
+        propertyKeys.detail(id),
+        (old) => (old ? { ...old, ...updatedFields } : old),
       );
+
+      // Invalidate all list/my caches so filters (including status) re-fetch
+      queryClient.invalidateQueries({ queryKey: propertyKeys.all });
     },
   });
 }
@@ -108,6 +101,23 @@ export function useAddPropertyImage() {
       propertyId: number;
       data: PropertyImageCreateRequest;
     }) => propertiesService.addImage(propertyId, data).then((res) => res.data),
+    onSuccess: (_, { propertyId }) => {
+      queryClient.invalidateQueries({
+        queryKey: propertyKeys.images(propertyId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: propertyKeys.detail(propertyId),
+      });
+    },
+  });
+}
+
+export function useDeletePropertyImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ propertyId, imageId }: { propertyId: number; imageId: number }) =>
+      propertiesService.deleteImage(propertyId, imageId),
     onSuccess: (_, { propertyId }) => {
       queryClient.invalidateQueries({
         queryKey: propertyKeys.images(propertyId),

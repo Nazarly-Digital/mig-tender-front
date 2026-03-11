@@ -54,12 +54,25 @@ export default function PageLogin() {
   const login = useLogin();
 
   const [email, setEmail] = React.useState('');
+  const [emailError, setEmailError] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
+
+  const validateEmail = (value: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!value) return 'Введите email';
+    if (!re.test(value)) return 'Введите корректный email';
+    return '';
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+    const emailValidationError = validateEmail(email);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+      return;
+    }
     login.mutate(
       { email, password },
       {
@@ -121,20 +134,26 @@ export default function PageLogin() {
               <Label.Root htmlFor='email'>
                 Email <Label.Asterisk />
               </Label.Root>
-              <Input.Root>
+              <Input.Root hasError={!!emailError}>
                 <Input.Wrapper>
                   <Input.Icon as={RiMailLine} />
                   <Input.Input
                     id='email'
                     name='email'
-                    type='email'
+                    type='text'
                     placeholder='example@mail.com'
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError(validateEmail(e.target.value));
+                    }}
+                    onBlur={(e) => setEmailError(validateEmail(e.target.value))}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {emailError && (
+                <p className='text-paragraph-xs text-error-base'>{emailError}</p>
+              )}
             </div>
 
             <div className='flex flex-col gap-1'>

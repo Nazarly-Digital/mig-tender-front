@@ -7,4 +7,5 @@ export {
   useCreateProperty,
   useUpdateProperty,
   useAddPropertyImage,
+  useDeletePropertyImage,
 } from "./model/queries";

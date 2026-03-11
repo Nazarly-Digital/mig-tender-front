@@ -4,7 +4,13 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import {
+  RiCloseLine,
+  RiImageAddLine,
+} from '@remixicon/react';
+import { cn } from '@/shared/lib/cn';
 import * as Button from '@/shared/ui/button';
+import * as CompactButton from '@/shared/ui/compact-button';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
@@ -12,7 +18,7 @@ import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
 import * as WidgetBox from '@/shared/components/widget-box';
 import { PageHeader } from '@/shared/components/page-header';
-import { useCreateProperty } from '@/features/properties';
+import { useCreateProperty, useAddPropertyImage } from '@/features/properties';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
@@ -27,6 +33,7 @@ import type {
 export default function CreatePropertyPage() {
   const router = useRouter();
   const createMutation = useCreateProperty();
+  const addImage = useAddPropertyImage();
 
   const [type, setType] = React.useState<PropertyType>('apartment');
   const [address, setAddress] = React.useState('');
@@ -36,6 +43,25 @@ export default function CreatePropertyPage() {
   const [currency, setCurrency] = React.useState('USD');
   const [deadline, setDeadline] = React.useState('');
   const [status, setStatus] = React.useState<PropertyStatus>('draft');
+  const [photos, setPhotos] = React.useState<File[]>([]);
+  const [previews, setPreviews] = React.useState<string[]>([]);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAddPhotos = (files: FileList | null) => {
+    if (!files) return;
+    const arr = Array.from(files);
+    setPhotos((prev) => [...prev, ...arr]);
+    arr.forEach((file) => {
+      const url = URL.createObjectURL(file);
+      setPreviews((prev) => [...prev, url]);
+    });
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    URL.revokeObjectURL(previews[index]);
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +77,15 @@ export default function CreatePropertyPage() {
         status,
       },
       {
-        onSuccess: () => {
+        onSuccess: (property) => {
+          if (photos.length > 0) {
+            photos.forEach((file, i) => {
+              addImage.mutate({
+                propertyId: property.id,
+                data: { image: file, is_primary: i === 0 },
+              });
+            });
+          }
           toast.success('Объект успешно создан');
           router.push('/properties');
         },
@@ -242,6 +276,60 @@ export default function CreatePropertyPage() {
               </Select.Root>
             </div>
           </div>
+        </WidgetBox.Root>
+
+        {/* Section: Photos */}
+        <WidgetBox.Root className='space-y-4'>
+          <WidgetBox.Header>Фотографии</WidgetBox.Header>
+
+          {previews.length > 0 && (
+            <div className='flex flex-wrap gap-3'>
+              {previews.map((src, i) => (
+                <div key={i} className='group relative'>
+                  <img
+                    src={src}
+                    alt=''
+                    className='h-24 w-24 rounded-xl object-cover ring-1 ring-inset ring-stroke-soft-200'
+                  />
+                  {i === 0 && (
+                    <span className='absolute bottom-1.5 left-1.5 rounded-md bg-primary-base px-1.5 py-0.5 text-subheading-xs text-white'>
+                      Главная
+                    </span>
+                  )}
+                  <CompactButton.Root
+                    type='button'
+                    variant='ghost'
+                    size='medium'
+                    className='absolute right-1 top-1 size-5 rounded-md bg-bg-white-0/80 opacity-0 transition-opacity group-hover:opacity-100'
+                    onClick={() => handleRemovePhoto(i)}
+                  >
+                    <CompactButton.Icon as={RiCloseLine} />
+                  </CompactButton.Root>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            type='button'
+            onClick={() => inputRef.current?.click()}
+            className={cn(
+              'flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-4 text-paragraph-sm text-text-soft-400 transition-colors',
+              'border-stroke-soft-200 hover:border-primary-base hover:text-primary-base',
+            )}
+          >
+            <RiImageAddLine className='size-4' />
+            Добавить фотографии
+          </button>
+          <input
+            ref={inputRef}
+            type='file'
+            multiple
+            accept='image/*'
+            className='hidden'
+            onChange={(e) => handleAddPhotos(e.target.files)}
+          />
+          <Hint.Root>Первая фотография будет главной. Поддерживаются JPG, PNG, WebP.</Hint.Root>
         </WidgetBox.Root>
 
         {/* Actions */}

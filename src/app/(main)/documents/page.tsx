@@ -22,12 +22,31 @@ import * as WidgetBox from '@/shared/components/widget-box';
 
 type UploadedFile = {
   id: string;
-  file: File;
   name: string;
   size: number;
   type: string;
   uploadedAt: Date;
 };
+
+const STORAGE_KEY = 'documents_cache';
+
+function loadFromStorage(): UploadedFile[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Array<Omit<UploadedFile, 'uploadedAt'> & { uploadedAt: string }>;
+    return parsed.map((d) => ({ ...d, uploadedAt: new Date(d.uploadedAt) }));
+  } catch {
+    return [];
+  }
+}
+
+function saveToStorage(docs: UploadedFile[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
+  } catch {}
+}
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} Б`;
@@ -279,22 +298,29 @@ function DocumentCard({
 
 export default function DocumentsPage() {
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [documents, setDocuments] = React.useState<UploadedFile[]>([]);
+  const [documents, setDocuments] = React.useState<UploadedFile[]>(() => loadFromStorage());
+
+  const updateDocuments = (updater: (prev: UploadedFile[]) => UploadedFile[]) => {
+    setDocuments((prev) => {
+      const next = updater(prev);
+      saveToStorage(next);
+      return next;
+    });
+  };
 
   const handleUpload = (files: File[]) => {
     const newDocs: UploadedFile[] = files.map((file) => ({
       id: `${Date.now()}-${Math.random()}`,
-      file,
       name: file.name,
       size: file.size,
       type: file.type,
       uploadedAt: new Date(),
     }));
-    setDocuments((prev) => [...prev, ...newDocs]);
+    updateDocuments((prev) => [...prev, ...newDocs]);
   };
 
   const handleDelete = (id: string) => {
-    setDocuments((prev) => prev.filter((d) => d.id !== id));
+    updateDocuments((prev) => prev.filter((d) => d.id !== id));
   };
 
   return (

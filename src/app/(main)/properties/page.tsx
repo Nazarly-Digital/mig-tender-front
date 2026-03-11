@@ -4,7 +4,10 @@ import * as React from 'react';
 import Link from 'next/link';
 import {
   RiAddLine,
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
   RiBuilding2Line,
+  RiImageLine,
   RiPencilLine,
   RiSearch2Line,
 } from '@remixicon/react';
@@ -34,6 +37,7 @@ import {
 import type {
   Property,
   PropertyType,
+  PropertyClass,
   PropertyStatus,
   PropertyUpdateRequest,
   PropertyListParams,
@@ -54,6 +58,71 @@ function formatDate(dateStr: string | null) {
   });
 }
 
+function PropertyImageCarousel({ images }: { images: Property['images'] }) {
+  const [current, setCurrent] = React.useState(0);
+
+  if (images.length === 0) {
+    return (
+      <div className='flex h-44 items-center justify-center rounded-xl bg-bg-weak-50'>
+        <RiImageLine className='size-8 text-text-soft-400' />
+      </div>
+    );
+  }
+
+  const prev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrent((c) => (c - 1 + images.length) % images.length);
+  };
+
+  const next = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrent((c) => (c + 1) % images.length);
+  };
+
+  return (
+    <div className='group relative h-44 overflow-hidden rounded-xl bg-bg-weak-50'>
+      <img
+        src={images[current].url || images[current].external_url || ''}
+        alt=''
+        className='h-full w-full object-cover transition-opacity duration-200'
+      />
+
+      {images.length > 1 && (
+        <>
+          <button
+            type='button'
+            onClick={prev}
+            className='absolute left-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-bg-white-0/80 opacity-0 shadow-regular-xs transition-opacity group-hover:opacity-100'
+          >
+            <RiArrowLeftSLine className='size-4 text-text-strong-950' />
+          </button>
+          <button
+            type='button'
+            onClick={next}
+            className='absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-bg-white-0/80 opacity-0 shadow-regular-xs transition-opacity group-hover:opacity-100'
+          >
+            <RiArrowRightSLine className='size-4 text-text-strong-950' />
+          </button>
+
+          <div className='absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1'>
+            {images.map((_, i) => (
+              <button
+                key={i}
+                type='button'
+                onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                className={cn(
+                  'h-1.5 rounded-full transition-all',
+                  i === current ? 'w-4 bg-white' : 'w-1.5 bg-white/50',
+                )}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function PropertyCard({
   property,
   onEdit,
@@ -62,7 +131,13 @@ function PropertyCard({
   onEdit: (p: Property) => void;
 }) {
   return (
-    <div className='flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
+    <div className='flex flex-col rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
+      {/* Carousel */}
+      <div className='p-2 pb-0'>
+        <PropertyImageCarousel images={property.images} />
+      </div>
+
+      <div className='flex flex-col p-5 pt-4'>
       {/* Header */}
       <div className='flex items-start justify-between gap-2'>
         <div className='min-w-0 flex-1'>
@@ -124,6 +199,7 @@ function PropertyCard({
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -133,6 +209,7 @@ export default function PropertiesPage() {
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<string>('all');
+  const [classFilter, setClassFilter] = React.useState<string>('all');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
 
   const [modalOpen, setModalOpen] = React.useState(false);
@@ -145,6 +222,7 @@ export default function PropertiesPage() {
     page_size: pageSize,
     ...(search && { address: search }),
     ...(typeFilter !== 'all' && { type: typeFilter as PropertyType }),
+    ...(classFilter !== 'all' && { property_class: classFilter as PropertyClass }),
     ...(statusFilter !== 'all' && { status: statusFilter as PropertyStatus }),
     ordering: '-created_at',
   };
@@ -182,7 +260,7 @@ export default function PropertiesPage() {
   // Reset page when filters change
   React.useEffect(() => {
     setPage(1);
-  }, [search, typeFilter, statusFilter]);
+  }, [search, typeFilter, classFilter, statusFilter]);
 
   const properties = data?.results ?? [];
 
@@ -203,8 +281,8 @@ export default function PropertiesPage() {
       />
 
       {/* Filters */}
-      <div className='flex flex-col gap-3 lg:flex-row lg:items-center'>
-        <Input.Root size='small' className='max-w-lg lg:w-[280px]'>
+      <div className='flex flex-col gap-2'>
+        <Input.Root size='small'>
           <Input.Wrapper>
             <Input.Icon as={RiSearch2Line} />
             <Input.Input
@@ -215,13 +293,13 @@ export default function PropertiesPage() {
           </Input.Wrapper>
         </Input.Root>
 
-        <div className='flex items-center gap-2'>
+        <div className='flex flex-wrap gap-2'>
           <Select.Root
             size='small'
             value={typeFilter}
             onValueChange={setTypeFilter}
           >
-            <Select.Trigger className='w-auto min-w-[140px]'>
+            <Select.Trigger className='flex-1 sm:flex-none'>
               <Select.Value placeholder='Тип' />
             </Select.Trigger>
             <Select.Content>
@@ -238,10 +316,30 @@ export default function PropertiesPage() {
 
           <Select.Root
             size='small'
+            value={classFilter}
+            onValueChange={setClassFilter}
+          >
+            <Select.Trigger className='flex-1 sm:flex-none'>
+              <Select.Value placeholder='Класс' />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value='all'>Все классы</Select.Item>
+              {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(
+                ([value, label]) => (
+                  <Select.Item key={value} value={value}>
+                    {label}
+                  </Select.Item>
+                ),
+              )}
+            </Select.Content>
+          </Select.Root>
+
+          <Select.Root
+            size='small'
             value={statusFilter}
             onValueChange={setStatusFilter}
           >
-            <Select.Trigger className='w-auto min-w-[160px]'>
+            <Select.Trigger className='flex-1 sm:flex-none'>
               <Select.Value placeholder='Статус' />
             </Select.Trigger>
             <Select.Content>
