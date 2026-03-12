@@ -7,18 +7,22 @@ import {
   RiArrowLeftSLine,
   RiArrowRightSLine,
   RiBuilding2Line,
+  RiDeleteBinLine,
   RiImageLine,
   RiPencilLine,
   RiSearch2Line,
 } from '@remixicon/react';
 
 import * as Badge from '@/shared/ui/badge';
+import * as Button from '@/shared/ui/button';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
+import * as Modal from '@/shared/ui/modal';
 import * as Select from '@/shared/ui/select';
 import * as StatusBadge from '@/shared/ui/status-badge';
+import { cn } from '@/shared/lib/cn';
 import { PageHeader } from '@/shared/components/page-header';
 import {
   PropertiesTablePagination,
@@ -33,6 +37,7 @@ import { PropertyFormModal } from '@/shared/components/property-form-modal';
 import {
   useMyProperties,
   useUpdateProperty,
+  useDeleteProperty,
 } from '@/features/properties';
 import type {
   Property,
@@ -126,9 +131,11 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
 function PropertyCard({
   property,
   onEdit,
+  onDelete,
 }: {
   property: Property;
   onEdit: (p: Property) => void;
+  onDelete: (p: Property) => void;
 }) {
   return (
     <div className='flex flex-col rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
@@ -153,13 +160,22 @@ function PropertyCard({
             </Badge.Root>
           </div>
         </div>
-        <CompactButton.Root
-          variant='ghost'
-          size='medium'
-          onClick={() => onEdit(property)}
-        >
-          <CompactButton.Icon as={RiPencilLine} />
-        </CompactButton.Root>
+        <div className='flex items-center gap-1'>
+          <CompactButton.Root
+            variant='ghost'
+            size='medium'
+            onClick={() => onEdit(property)}
+          >
+            <CompactButton.Icon as={RiPencilLine} />
+          </CompactButton.Root>
+          <CompactButton.Root
+            variant='ghost'
+            size='medium'
+            onClick={() => onDelete(property)}
+          >
+            <CompactButton.Icon as={RiDeleteBinLine} />
+          </CompactButton.Root>
+        </div>
       </div>
 
       <Divider.Root variant='line-spacing' className='my-0 py-3' />
@@ -213,9 +229,10 @@ export default function PropertiesPage() {
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
 
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [editingProperty, setEditingProperty] = React.useState<Property | null>(
-    null,
-  );
+  const [editingProperty, setEditingProperty] = React.useState<Property | null>(null);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [deletingProperty, setDeletingProperty] = React.useState<Property | null>(null);
 
   const params: PropertyListParams = {
     page,
@@ -229,12 +246,28 @@ export default function PropertiesPage() {
 
   const { data, isLoading } = useMyProperties(params);
   const updateMutation = useUpdateProperty();
+  const deleteMutation = useDeleteProperty();
 
   const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
 
   const handleEdit = (property: Property) => {
     setEditingProperty(property);
     setModalOpen(true);
+  };
+
+  const handleDeleteClick = (property: Property) => {
+    setDeletingProperty(property);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deletingProperty) return;
+    deleteMutation.mutate(deletingProperty.id, {
+      onSuccess: () => {
+        setDeleteDialogOpen(false);
+        setDeletingProperty(null);
+      },
+    });
   };
 
   const handleSubmit = (formData: PropertyUpdateRequest) => {
@@ -385,6 +418,7 @@ export default function PropertiesPage() {
                 key={property.id}
                 property={property}
                 onEdit={handleEdit}
+                onDelete={handleDeleteClick}
               />
             ))}
           </div>
@@ -398,7 +432,7 @@ export default function PropertiesPage() {
         </>
       )}
 
-      {/* Modal */}
+      {/* Edit Modal */}
       <PropertyFormModal
         open={modalOpen}
         onOpenChange={setModalOpen}
@@ -406,6 +440,39 @@ export default function PropertiesPage() {
         onSubmit={handleSubmit}
         isPending={updateMutation.isPending}
       />
+
+      {/* Delete confirmation dialog */}
+      <Modal.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <Modal.Content>
+          <Modal.Header
+            icon={RiDeleteBinLine}
+            title='Удалить объект'
+            description={`Вы уверены, что хотите удалить «${deletingProperty?.address}»? Это действие нельзя отменить.`}
+          />
+          <Modal.Footer>
+            <Button.Root
+              variant='neutral'
+              mode='stroke'
+              size='small'
+              className='flex-1'
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleteMutation.isPending}
+            >
+              Отмена
+            </Button.Root>
+            <Button.Root
+              variant='error'
+              mode='filled'
+              size='small'
+              className='flex-1'
+              onClick={handleDeleteConfirm}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Удаление...' : 'Удалить'}
+            </Button.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
     </div>
   );
 }

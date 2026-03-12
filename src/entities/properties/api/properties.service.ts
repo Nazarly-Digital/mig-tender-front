@@ -30,6 +30,10 @@ export const propertiesService = {
   update: (id: number, data: PropertyUpdateRequest) =>
     apiInstance.patch<Property>(`/properties/${id}/`, data),
 
+  // Delete property
+  delete: (id: number) =>
+    apiInstance.delete(`/properties/${id}/delete`),
+
   // List images for a property
   getImages: (propertyId: number) =>
     apiInstance.get<PropertyImage[]>(`/properties/${propertyId}/images/`),

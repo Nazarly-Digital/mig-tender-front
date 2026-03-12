@@ -112,6 +112,18 @@ export function useAddPropertyImage() {
   });
 }
 
+export function useDeleteProperty() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => propertiesService.delete(id),
+    onSuccess: (_, id) => {
+      queryClient.removeQueries({ queryKey: propertyKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: propertyKeys.all });
+    },
+  });
+}
+
 export function useDeletePropertyImage() {
   const queryClient = useQueryClient();
 
