@@ -19,7 +19,8 @@ import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
 import * as WidgetBox from '@/shared/components/widget-box';
 import { PageHeader } from '@/shared/components/page-header';
-import { useCreateProperty, useAddPropertyImage } from '@/features/properties';
+import { useCreateProperty } from '@/features/properties';
+import { propertiesService } from '@/entities/properties';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
@@ -34,7 +35,6 @@ import type {
 export default function CreatePropertyPage() {
   const router = useRouter();
   const createMutation = useCreateProperty();
-  const addImage = useAddPropertyImage();
 
   const [type, setType] = React.useState<PropertyType>('apartment');
   const [address, setAddress] = React.useState('');
@@ -152,16 +152,15 @@ export default function CreatePropertyPage() {
       },
       {
         onSuccess: async (property) => {
-          if (photos.length > 0) {
-            for (let i = 0; i < photos.length; i++) {
-              try {
-                await addImage.mutateAsync({
-                  propertyId: property.id,
-                  data: { image: photos[i], is_primary: i === 0 },
-                });
-              } catch {
-                // продолжаем загрузку остальных фото
-              }
+          for (let i = 0; i < photos.length; i++) {
+            try {
+              await propertiesService.addImage(property.id, {
+                image: photos[i],
+                sort_order: i,
+                is_primary: i === 0,
+              });
+            } catch (err) {
+              console.error(`Ошибка загрузки фото ${i + 1}:`, err);
             }
           }
           toast.success('Объект успешно создан');
@@ -252,9 +251,13 @@ export default function CreatePropertyPage() {
                     value={area}
                     onKeyDown={(e) => {
                       if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
+                      if (e.key === '.' && area.includes('.')) e.preventDefault();
                     }}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9.]/g, '');
+                      const raw = e.target.value.replace(/[^0-9.]/g, '');
+                      const val = raw.split('.').length > 2
+                        ? raw.slice(0, raw.lastIndexOf('.'))
+                        : raw;
                       setArea(val);
                       if (areaError) setAreaError(validateArea(val));
                     }}
@@ -310,9 +313,13 @@ export default function CreatePropertyPage() {
                     value={price}
                     onKeyDown={(e) => {
                       if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
+                      if (e.key === '.' && price.includes('.')) e.preventDefault();
                     }}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9.]/g, '');
+                      const raw = e.target.value.replace(/[^0-9.]/g, '');
+                      const val = raw.split('.').length > 2
+                        ? raw.slice(0, raw.lastIndexOf('.'))
+                        : raw;
                       setPrice(val);
                       if (priceError) setPriceError(validatePrice(val));
                     }}
@@ -459,18 +466,19 @@ export default function CreatePropertyPage() {
         </WidgetBox.Root>
 
         {/* Actions */}
-        <div className='flex w-fit items-center gap-3 pt-2'>
-          <Button.Root variant='neutral' mode='stroke' size='small' asChild>
+        <div className='flex w-fit items-stretch gap-3 pt-2'>
+          <Button.Root variant='neutral' mode='stroke' size='medium' className='h-10' asChild>
             <Link href='/properties'>Отмена</Link>
           </Button.Root>
-          <Button.Root
+          <FancyButton.Root
             type='submit'
             variant='primary'
-            size='small'
+            size='medium'
+            className='h-10'
             disabled={createMutation.isPending}
           >
             {createMutation.isPending ? 'Создание...' : 'Создать объект'}
-          </Button.Root>
+          </FancyButton.Root>
         </div>
       </form>
     </div>

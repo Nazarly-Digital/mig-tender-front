@@ -44,8 +44,11 @@ apiInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Don't intercept refresh endpoint itself
-    if (originalRequest.url?.includes("/auth/refresh/")) {
+    // Don't intercept auth endpoints
+    if (
+      originalRequest.url?.includes("/auth/refresh/") ||
+      originalRequest.url?.includes("/auth/login/")
+    ) {
       return Promise.reject(error);
     }
 
