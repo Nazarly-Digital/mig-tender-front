@@ -18,7 +18,7 @@ export default function SelectRolePage() {
     <div className='w-full max-w-[900px] px-4'>
       <div className='mb-8 text-center'>
         <h1 className='text-title-h4 lg:text-title-h3 font-semibold leading-tight'>Платформа закрытых аукционов недвижимости</h1>
-        <p className='mt-2 text-paragraph-sm text-text-sub-600'>Выберите роль для продолжения</p>
+        <p className='mt-2 text-paragraph-sm text-text-sub-600'>Выберите роль для регистрации</p>
       </div>
 
       <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -35,7 +35,7 @@ export default function SelectRolePage() {
             </div>
 
             <div className='space-y-2 text-center'>
-              <h2 className='text-title-h5'>Войти как Брокер</h2>
+              <h2 className='text-title-h5'>Регистрация как Брокер</h2>
               <p className='text-paragraph-sm text-text-sub-600'>
                 Участвуйте в аукционах и делайте ставки на объекты недвижимости
               </p>
@@ -61,12 +61,9 @@ export default function SelectRolePage() {
             variant='primary'
             size='medium'
             className='w-full'
-            asChild
-            onClick={() => {
-              router.push('/register/broker');
-            }}
+            onClick={() => router.push('/register/broker')}
           >
-            Войти как брокер
+            Зарегистрироваться как брокер
           </FancyButton.Root>
         </div>
 
@@ -83,7 +80,7 @@ export default function SelectRolePage() {
             </div>
 
             <div className='space-y-2 text-center'>
-              <h2 className='text-title-h5'>Войти как Девелопер</h2>
+              <h2 className='text-title-h5'>Регистрация как Девелопер</h2>
               <p className='text-paragraph-sm text-text-sub-600'>
                 Создавайте аукционы и управляйте продажей своих объектов
               </p>
@@ -109,12 +106,9 @@ export default function SelectRolePage() {
             variant='basic'
             size='medium'
             className='w-full'
-            asChild
-            onClick={() => {
-              router.push('/register/developer');
-            }}
+            onClick={() => router.push('/register/developer')}
           >
-            Войти как девелопер
+            Зарегистрироваться как девелопер
           </FancyButton.Root>
         </div>
       </div>

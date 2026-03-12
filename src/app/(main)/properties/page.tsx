@@ -240,7 +240,6 @@ export default function PropertiesPage() {
     ...(search && { address: search }),
     ...(typeFilter !== 'all' && { type: typeFilter as PropertyType }),
     ...(classFilter !== 'all' && { property_class: classFilter as PropertyClass }),
-    ...(statusFilter !== 'all' && { status: statusFilter as PropertyStatus }),
     ordering: '-created_at',
   };
 
@@ -295,7 +294,11 @@ export default function PropertiesPage() {
     setPage(1);
   }, [search, typeFilter, classFilter, statusFilter]);
 
-  const properties = data?.results ?? [];
+  const allProperties = data?.results ?? [];
+  const properties =
+    statusFilter === 'all'
+      ? allProperties
+      : allProperties.filter((p) => p.status === statusFilter);
 
   return (
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>

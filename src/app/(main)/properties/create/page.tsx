@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import {
   RiCloseLine,
   RiImageAddLine,
+  RiDraggable,
 } from '@remixicon/react';
 import { cn } from '@/shared/lib/cn';
 import * as Button from '@/shared/ui/button';
@@ -37,19 +38,43 @@ export default function CreatePropertyPage() {
 
   const [type, setType] = React.useState<PropertyType>('apartment');
   const [address, setAddress] = React.useState('');
+  const [addressError, setAddressError] = React.useState('');
   const [area, setArea] = React.useState('');
+  const [areaError, setAreaError] = React.useState('');
   const [propertyClass, setPropertyClass] = React.useState<PropertyClass>('comfort');
   const [price, setPrice] = React.useState('');
+  const [priceError, setPriceError] = React.useState('');
   const [currency, setCurrency] = React.useState('USD');
   const [deadline, setDeadline] = React.useState('');
   const [status, setStatus] = React.useState<PropertyStatus>('draft');
   const [photos, setPhotos] = React.useState<File[]>([]);
   const [previews, setPreviews] = React.useState<string[]>([]);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const dragIndex = React.useRef<number | null>(null);
+
+  const validateAddress = (v: string) => (v.trim() ? '' : 'Введите адрес объекта');
+  const validateArea = (v: string) => {
+    if (!v) return 'Введите площадь';
+    if (parseFloat(v) <= 0) return 'Площадь должна быть больше 0';
+    return '';
+  };
+  const validatePrice = (v: string) => {
+    if (!v) return 'Введите цену';
+    if (parseFloat(v) <= 0) return 'Цена должна быть больше 0';
+    return '';
+  };
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   const handleAddPhotos = (files: FileList | null) => {
     if (!files) return;
-    const arr = Array.from(files);
+    const arr = Array.from(files).filter((f) => {
+      if (f.size > MAX_FILE_SIZE) {
+        toast.error(`Файл «${f.name}» превышает 5MB`);
+        return false;
+      }
+      return true;
+    });
     setPhotos((prev) => [...prev, ...arr]);
     arr.forEach((file) => {
       const url = URL.createObjectURL(file);
@@ -63,8 +88,57 @@ export default function CreatePropertyPage() {
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleMakePrimary = (index: number) => {
+    if (index === 0) return;
+    setPhotos((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.unshift(item);
+      return next;
+    });
+    setPreviews((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.unshift(item);
+      return next;
+    });
+  };
+
+  const handleDragStart = (index: number) => {
+    dragIndex.current = index;
+  };
+
+  const handleDrop = (dropIndex: number) => {
+    const from = dragIndex.current;
+    if (from === null || from === dropIndex) return;
+    dragIndex.current = null;
+    setPhotos((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(dropIndex, 0, item);
+      return next;
+    });
+    setPreviews((prev) => {
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(dropIndex, 0, item);
+      return next;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const addrErr = validateAddress(address);
+    const areaErr = validateArea(area);
+    const priceErr = validatePrice(price);
+
+    setAddressError(addrErr);
+    setAreaError(areaErr);
+    setPriceError(priceErr);
+
+    if (addrErr || areaErr || priceErr) return;
+
     createMutation.mutate(
       {
         type,
@@ -77,14 +151,18 @@ export default function CreatePropertyPage() {
         status,
       },
       {
-        onSuccess: (property) => {
+        onSuccess: async (property) => {
           if (photos.length > 0) {
-            photos.forEach((file, i) => {
-              addImage.mutate({
-                propertyId: property.id,
-                data: { image: file, is_primary: i === 0 },
-              });
-            });
+            for (let i = 0; i < photos.length; i++) {
+              try {
+                await addImage.mutateAsync({
+                  propertyId: property.id,
+                  data: { image: photos[i], is_primary: i === 0 },
+                });
+              } catch {
+                // продолжаем загрузку остальных фото
+              }
+            }
           }
           toast.success('Объект успешно создан');
           router.push('/properties');
@@ -133,18 +211,25 @@ export default function CreatePropertyPage() {
             <Label.Root htmlFor='property-address'>
               Адрес <Label.Asterisk />
             </Label.Root>
-            <Input.Root>
+            <Input.Root hasError={!!addressError}>
               <Input.Wrapper>
                 <Input.Input
                   id='property-address'
                   placeholder='ул. Примерная, д. 1'
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    if (addressError) setAddressError(validateAddress(e.target.value));
+                  }}
+                  onBlur={(e) => setAddressError(validateAddress(e.target.value))}
                 />
               </Input.Wrapper>
             </Input.Root>
-            <Hint.Root>Полный адрес объекта недвижимости</Hint.Root>
+            {addressError ? (
+              <p className='text-paragraph-xs text-error-base'>{addressError}</p>
+            ) : (
+              <Hint.Root>Полный адрес объекта недвижимости</Hint.Root>
+            )}
           </div>
         </WidgetBox.Root>
 
@@ -157,19 +242,29 @@ export default function CreatePropertyPage() {
               <Label.Root htmlFor='property-area'>
                 Площадь (м²) <Label.Asterisk />
               </Label.Root>
-              <Input.Root>
+              <Input.Root hasError={!!areaError}>
                 <Input.Wrapper>
                   <Input.Input
                     id='property-area'
-                    type='number'
-                    step='0.01'
+                    type='text'
+                    inputMode='decimal'
                     placeholder='120.5'
                     value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    required
+                    onKeyDown={(e) => {
+                      if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9.]/g, '');
+                      setArea(val);
+                      if (areaError) setAreaError(validateArea(val));
+                    }}
+                    onBlur={(e) => setAreaError(validateArea(e.target.value))}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {areaError && (
+                <p className='text-paragraph-xs text-error-base'>{areaError}</p>
+              )}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-class'>
@@ -205,19 +300,29 @@ export default function CreatePropertyPage() {
               <Label.Root htmlFor='property-price'>
                 Цена <Label.Asterisk />
               </Label.Root>
-              <Input.Root>
+              <Input.Root hasError={!!priceError}>
                 <Input.Wrapper>
                   <Input.Input
                     id='property-price'
-                    type='number'
-                    step='0.01'
+                    type='text'
+                    inputMode='decimal'
                     placeholder='150000'
                     value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    required
+                    onKeyDown={(e) => {
+                      if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9.]/g, '');
+                      setPrice(val);
+                      if (priceError) setPriceError(validatePrice(val));
+                    }}
+                    onBlur={(e) => setPriceError(validatePrice(e.target.value))}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {priceError && (
+                <p className='text-paragraph-xs text-error-base'>{priceError}</p>
+              )}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
@@ -285,16 +390,34 @@ export default function CreatePropertyPage() {
           {previews.length > 0 && (
             <div className='flex flex-wrap gap-3'>
               {previews.map((src, i) => (
-                <div key={i} className='group relative'>
+                <div
+                  key={src}
+                  className='group relative cursor-grab active:cursor-grabbing'
+                  draggable
+                  onDragStart={() => handleDragStart(i)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleDrop(i)}
+                >
                   <img
                     src={src}
                     alt=''
-                    className='h-24 w-24 rounded-xl object-cover ring-1 ring-inset ring-stroke-soft-200'
+                    className={cn(
+                      'h-24 w-24 rounded-xl object-cover ring-1 ring-inset transition-opacity',
+                      i === 0 ? 'ring-primary-base' : 'ring-stroke-soft-200',
+                    )}
                   />
-                  {i === 0 && (
+                  {i === 0 ? (
                     <span className='absolute bottom-1.5 left-1.5 rounded-md bg-primary-base px-1.5 py-0.5 text-subheading-xs text-white'>
                       Главная
                     </span>
+                  ) : (
+                    <button
+                      type='button'
+                      onClick={() => handleMakePrimary(i)}
+                      className='absolute bottom-1.5 left-1.5 rounded-md bg-bg-white-0/80 px-1.5 py-0.5 text-subheading-xs text-text-sub-600 opacity-0 transition-opacity group-hover:opacity-100'
+                    >
+                      Сделать главной
+                    </button>
                   )}
                   <CompactButton.Root
                     type='button'
@@ -305,6 +428,9 @@ export default function CreatePropertyPage() {
                   >
                     <CompactButton.Icon as={RiCloseLine} />
                   </CompactButton.Root>
+                  <div className='absolute left-1 top-1 opacity-0 transition-opacity group-hover:opacity-100'>
+                    <RiDraggable className='size-4 text-white drop-shadow' />
+                  </div>
                 </div>
               ))}
             </div>
@@ -329,23 +455,22 @@ export default function CreatePropertyPage() {
             className='hidden'
             onChange={(e) => handleAddPhotos(e.target.files)}
           />
-          <Hint.Root>Первая фотография будет главной. Поддерживаются JPG, PNG, WebP.</Hint.Root>
+          <Hint.Root>Перетащите фото для изменения порядка. Первое фото — главное. Поддерживаются JPG, PNG, WebP.</Hint.Root>
         </WidgetBox.Root>
 
         {/* Actions */}
-        <div className='flex items-center gap-3 pt-2'>
-          <Link href='/properties'>
-            <Button.Root variant='neutral' mode='stroke'>
-              Отмена
-            </Button.Root>
-          </Link>
-          <FancyButton.Root
+        <div className='flex w-fit items-center gap-3 pt-2'>
+          <Button.Root variant='neutral' mode='stroke' size='small' asChild>
+            <Link href='/properties'>Отмена</Link>
+          </Button.Root>
+          <Button.Root
             type='submit'
             variant='primary'
+            size='small'
             disabled={createMutation.isPending}
           >
             {createMutation.isPending ? 'Создание...' : 'Создать объект'}
-          </FancyButton.Root>
+          </Button.Root>
         </div>
       </form>
     </div>

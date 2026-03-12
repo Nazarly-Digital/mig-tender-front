@@ -1,28 +1,34 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
-import {
-  RiAddLine,
-  RiArrowDownSLine,
-  RiArrowRightSLine,
-  RiLayoutGridLine,
-  RiLogoutBoxRLine,
-  RiMoonLine,
-  RiPulseLine,
-  RiSettings2Line,
-  RiVerifiedBadgeFill,
-} from '@remixicon/react';
-import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
+import { RiLogoutBoxRLine } from '@remixicon/react';
 
-import { cn, cnExt } from '@/shared/lib/cn';
+import { cnExt } from '@/shared/lib/cn';
 import * as Avatar from '@/shared/ui/avatar';
 import * as Divider from '@/shared/ui/divider';
 import * as Dropdown from '@/shared/ui/dropdown';
-import * as Switch from '@/shared/ui/switch';
+import { useSessionStore } from '@/entities/auth/model/store';
+
+const ROLE_LABELS: Record<string, string> = {
+  developer: 'Девелопер',
+  broker: 'Брокер',
+};
 
 export function UserButton({ className }: { className?: string }) {
-  const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const user = useSessionStore((s) => s.user);
+  const logout = useSessionStore((s) => s.logout);
+
+  const fullName = user
+    ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
+    : '—';
+  const roleLabel = user?.role ? (ROLE_LABELS[user.role] ?? user.role) : '';
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
     <Dropdown.Root>
@@ -32,152 +38,32 @@ export function UserButton({ className }: { className?: string }) {
           className,
         )}
       >
-        <Avatar.Root size='40' color='blue'>
-          <Avatar.Image src='/images/avatar/illustration/arthur.png' alt='' />
-        </Avatar.Root>
+        <Avatar.Root size='40' color='blue' />
         <div
-          className='flex w-[172px] shrink-0 items-center gap-3'
+          className='flex w-[172px] shrink-0 flex-col gap-0.5'
           data-hide-collapsed
         >
-          <div className='flex-1 space-y-1'>
-            <div className='flex items-center gap-0.5 text-label-sm'>
-              Arthur Taylor
-              <RiVerifiedBadgeFill className='size-5 text-verified-base' />
-            </div>
-            <div className='text-paragraph-xs text-text-sub-600'>
-              arthur@alignui.com
-            </div>
-          </div>
-
-          <div className='flex size-6 items-center justify-center rounded-md'>
-            <RiArrowRightSLine className='size-5 text-text-sub-600' />
-          </div>
-        </div>
-      </Dropdown.Trigger>
-      <Dropdown.Content side='right' sideOffset={24} align='end'>
-        <Dropdown.Item
-          onSelect={(e) => {
-            e.preventDefault();
-            setTheme(() => (theme === 'dark' ? 'light' : 'dark'));
-          }}
-        >
-          <Dropdown.ItemIcon as={RiMoonLine} />
-          Dark Mode
-          <span className='flex-1' />
-          <Switch.Root checked={theme === 'dark'} />
-        </Dropdown.Item>
-        <Divider.Root variant='line-spacing' />
-        <Dropdown.Group>
-          <Dropdown.Item>
-            <Dropdown.ItemIcon as={RiPulseLine} />
-            Activity
-          </Dropdown.Item>
-          <Dropdown.Item>
-            <Dropdown.ItemIcon as={RiLayoutGridLine} />
-            Integrations
-          </Dropdown.Item>
-          <Dropdown.Item>
-            <Dropdown.ItemIcon as={RiSettings2Line} />
-            Settings
-          </Dropdown.Item>
-        </Dropdown.Group>
-        <Divider.Root variant='line-spacing' />
-        <Dropdown.Group>
-          <Dropdown.Item>
-            <Dropdown.ItemIcon as={RiAddLine} />
-            Add Account
-          </Dropdown.Item>
-          <Dropdown.Item asChild>
-            <Link href='/login'>
-              <Dropdown.ItemIcon as={RiLogoutBoxRLine} />
-              Logout
-            </Link>
-          </Dropdown.Item>
-        </Dropdown.Group>
-        <div className='p-2 text-paragraph-sm text-text-soft-400'>
-          v.1.5.69 · Terms & Conditions
-        </div>
-      </Dropdown.Content>
-    </Dropdown.Root>
-  );
-}
-
-export function UserButtonMobile({ className }: { className?: string }) {
-  const { theme, setTheme } = useTheme();
-
-  return (
-    <Dropdown.Root modal={false}>
-      <Dropdown.Trigger
-        className={cnExt(
-          'group flex w-full items-center gap-3 whitespace-nowrap rounded-10 p-3 text-left outline-none hover:bg-bg-weak-50 focus:outline-none',
-          className,
-        )}
-      >
-        <Avatar.Root size='48' color='blue'>
-          <Avatar.Image src='/images/avatar/illustration/arthur.png' alt='' />
-        </Avatar.Root>
-        <div className='flex-1 space-y-1'>
-          <div className='flex items-center gap-0.5 text-label-md'>
-            Arthur Taylor
-            <RiVerifiedBadgeFill className='size-5 text-verified-base' />
-          </div>
-          <div className='text-paragraph-sm text-text-sub-600'>
-            arthur@alignui.com
-          </div>
-        </div>
-        <div
-          className={cn(
-            'flex size-6 items-center justify-center rounded-md border border-stroke-soft-200 bg-bg-white-0 text-text-sub-600 shadow-regular-xs',
-            // open
-            'group-data-[state=open]:bg-bg-strong-950 group-data-[state=open]:text-text-white-0 group-data-[state=open]:shadow-none',
+          <div className='truncate text-label-sm text-text-strong-950'>{fullName}</div>
+          {roleLabel && (
+            <div className='text-paragraph-xs text-text-sub-600'>{roleLabel}</div>
           )}
-        >
-          <RiArrowDownSLine className='size-5 group-data-[state=open]:-rotate-180' />
         </div>
       </Dropdown.Trigger>
-      <Dropdown.Content side='top' align='end'>
-        <Dropdown.Item
-          onSelect={(e) => {
-            e.preventDefault();
-            setTheme(() => (theme === 'dark' ? 'light' : 'dark'));
-          }}
-        >
-          <Dropdown.ItemIcon as={RiMoonLine} />
-          Dark Mode
-          <span className='flex-1' />
-          <Switch.Root checked={theme === 'dark'} />
-        </Dropdown.Item>
-        <Divider.Root variant='line-spacing' />
-        <Dropdown.Group>
-          <Dropdown.Item>
-            <Dropdown.ItemIcon as={RiPulseLine} />
-            Activity
-          </Dropdown.Item>
-          <Dropdown.Item>
-            <Dropdown.ItemIcon as={RiLayoutGridLine} />
-            Integrations
-          </Dropdown.Item>
-          <Dropdown.Item>
-            <Dropdown.ItemIcon as={RiSettings2Line} />
-            Settings
-          </Dropdown.Item>
-        </Dropdown.Group>
-        <Divider.Root variant='line-spacing' />
-        <Dropdown.Group>
-          <Dropdown.Item>
-            <Dropdown.ItemIcon as={RiAddLine} />
-            Add Account
-          </Dropdown.Item>
-          <Dropdown.Item asChild>
-            <Link href='/login'>
-              <Dropdown.ItemIcon as={RiLogoutBoxRLine} />
-              Logout
-            </Link>
-          </Dropdown.Item>
-        </Dropdown.Group>
-        <div className='p-2 text-paragraph-sm text-text-soft-400'>
-          v.1.5.69 · Terms & Conditions
+
+      <Dropdown.Content side='right' sideOffset={24} align='end'>
+        <div className='px-3 py-2'>
+          <div className='text-label-sm text-text-strong-950'>{fullName}</div>
+          {user?.email && (
+            <div className='text-paragraph-xs text-text-soft-400'>{user.email}</div>
+          )}
         </div>
+        <Divider.Root variant='line-spacing' />
+        <Dropdown.Group>
+          <Dropdown.Item onSelect={handleLogout} className='text-error-base'>
+            <Dropdown.ItemIcon as={RiLogoutBoxRLine} />
+            Выйти
+          </Dropdown.Item>
+        </Dropdown.Group>
       </Dropdown.Content>
     </Dropdown.Root>
   );

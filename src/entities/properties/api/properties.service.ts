@@ -32,7 +32,7 @@ export const propertiesService = {
 
   // Delete property
   delete: (id: number) =>
-    apiInstance.delete(`/properties/${id}/delete`),
+    apiInstance.delete(`/properties/${id}/delete/`),
 
   // List images for a property
   getImages: (propertyId: number) =>
@@ -45,17 +45,13 @@ export const propertiesService = {
   // Upload image for a property
   addImage: (propertyId: number, data: PropertyImageCreateRequest) => {
     const formData = new FormData();
-    if (data.image) formData.append("image", data.image);
+    if (data.image) formData.append("image", data.image, data.image.name);
     if (data.external_url) formData.append("external_url", data.external_url);
-    if (data.sort_order !== undefined)
-      formData.append("sort_order", String(data.sort_order));
-    if (data.is_primary !== undefined)
-      formData.append("is_primary", String(data.is_primary));
 
     return apiInstance.post<PropertyImage>(
       `/properties/${propertyId}/images/`,
       formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
+      { headers: { 'Content-Type': undefined } },
     );
   },
 };

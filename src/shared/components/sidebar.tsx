@@ -344,7 +344,7 @@ export default function Sidebar({
 
           <SidebarDivider collapsed={collapsed} />
 
-          {/* <UserProfile collapsed={collapsed} /> */}
+          <UserProfile collapsed={collapsed} />
         </div>
       </div>
 

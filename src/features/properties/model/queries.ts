@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { propertiesService } from "@/entities/properties";
+import { useSessionStore } from "@/entities/auth/model/store";
 import type {
   Property,
   PaginatedResponse,
@@ -33,9 +34,12 @@ export function useProperties(params?: PropertyListParams) {
 }
 
 export function useMyProperties(params?: PropertyListParams) {
+  const isDeveloper = useSessionStore((s) => s.user?.role === "developer");
+
   return useQuery({
     queryKey: propertyKeys.my(params),
     queryFn: () => propertiesService.getMy(params).then((res) => res.data),
+    enabled: isDeveloper,
   });
 }
 

@@ -8,6 +8,8 @@ import {
   RiCheckLine,
 } from '@remixicon/react';
 
+import toast from 'react-hot-toast';
+
 import * as Modal from '@/shared/ui/modal';
 import * as Button from '@/shared/ui/button';
 import * as Input from '@/shared/ui/input';
@@ -49,15 +51,23 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = React.useState(false);
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
   const handleFiles = async (files: FileList | null) => {
     if (!files || uploading) return;
     setUploading(true);
-    const arr = Array.from(files);
+    const arr = Array.from(files).filter((f) => {
+      if (f.size > MAX_FILE_SIZE) {
+        toast.error(`Файл «${f.name}» превышает 5MB`);
+        return false;
+      }
+      return true;
+    });
     for (let i = 0; i < arr.length; i++) {
       try {
         await addImage.mutateAsync({
           propertyId,
-          data: { image: arr[i], is_primary: images.length === 0 && i === 0 },
+          data: { image: arr[i] },
         });
       } catch {
         // continue uploading remaining files even if one fails
@@ -179,7 +189,7 @@ export function PropertyFormModal({
 
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
-      <Modal.Content className='max-w-[480px]'>
+      <Modal.Content className='flex max-h-[90vh] max-w-[480px] flex-col'>
         <Modal.Header
           icon={RiBuilding2Line}
           title={isEdit ? 'Редактировать объект' : 'Новый объект'}
@@ -189,8 +199,8 @@ export function PropertyFormModal({
               : 'Заполните информацию о новом объекте'
           }
         />
-        <form onSubmit={handleSubmit}>
-          <Modal.Body className='space-y-4'>
+        <form onSubmit={handleSubmit} className='flex min-h-0 flex-1 flex-col'>
+          <Modal.Body className='flex-1 space-y-4 overflow-y-auto'>
             {/* Type */}
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-type'>

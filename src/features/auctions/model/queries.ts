@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { auctionsService } from "@/entities/auctions";
+import { useSessionStore } from "@/entities/auth/model/store";
 import type { AuctionListParams, AuctionCreateRequest } from "@/shared/types/auctions";
 
 export const auctionKeys = {
@@ -13,9 +14,12 @@ export const auctionKeys = {
 };
 
 export function useMyAuctions(params?: AuctionListParams) {
+  const isDeveloper = useSessionStore((s) => s.user?.role === "developer");
+
   return useQuery({
     queryKey: auctionKeys.my(params),
     queryFn: () => auctionsService.getMy(params).then((res) => res.data),
+    enabled: isDeveloper,
   });
 }
 

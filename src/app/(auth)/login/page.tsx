@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import * as LabelPrimitive from '@radix-ui/react-label';
 import {
   RiEyeLine,
   RiEyeOffLine,
@@ -15,27 +14,26 @@ import { AxiosError } from 'axios';
 
 import { cn } from '@/shared/lib/cn';
 import * as Alert from '@/shared/ui/alert';
-import * as Checkbox from '@/shared/ui/checkbox';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
-import * as LinkButton from '@/shared/ui/link-button';
 import { useLogin } from '@/features/auth';
 
 function PasswordInput(
-  props: React.ComponentPropsWithoutRef<typeof Input.Input>,
+  props: React.ComponentPropsWithoutRef<typeof Input.Input> & { hasError?: boolean },
 ) {
   const [showPassword, setShowPassword] = React.useState(false);
+  const { hasError, ...inputProps } = props;
 
   return (
-    <Input.Root>
+    <Input.Root hasError={hasError}>
       <Input.Wrapper>
         <Input.Icon as={RiLock2Line} />
         <Input.Input
           type={showPassword ? 'text' : 'password'}
           placeholder='••••••••••'
-          {...props}
+          {...inputProps}
         />
         <button type='button' onClick={() => setShowPassword((s) => !s)}>
           {showPassword ? (
@@ -56,6 +54,7 @@ export default function PageLogin() {
   const [email, setEmail] = React.useState('');
   const [emailError, setEmailError] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [passwordError, setPasswordError] = React.useState('');
   const [error, setError] = React.useState('');
 
   const validateEmail = (value: string) => {
@@ -65,14 +64,24 @@ export default function PageLogin() {
     return '';
   };
 
+  const validatePassword = (value: string) => {
+    if (!value) return 'Введите пароль';
+    if (value.length < 6) return 'Пароль должен содержать минимум 6 символов';
+    return '';
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-    const emailValidationError = validateEmail(email);
-    if (emailValidationError) {
-      setEmailError(emailValidationError);
-      return;
-    }
+
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
+
+    setEmailError(emailErr);
+    setPasswordError(passwordErr);
+
+    if (emailErr || passwordErr) return;
+
     login.mutate(
       { email, password },
       {
@@ -96,11 +105,9 @@ export default function PageLogin() {
     <div className='w-full max-w-[472px] px-4'>
       <div className='flex w-full flex-col gap-6 rounded-20 bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
         <div className='flex flex-col items-center gap-2'>
-          {/* icon */}
           <div
             className={cn(
               'relative flex size-[68px] shrink-0 items-center justify-center rounded-full backdrop-blur-xl lg:size-24',
-              // bg
               'before:absolute before:inset-0 before:rounded-full',
               'before:bg-gradient-to-b before:from-neutral-500 before:to-transparent before:opacity-10',
             )}
@@ -130,6 +137,7 @@ export default function PageLogin() {
 
         <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
           <div className='flex flex-col gap-3'>
+            {/* Email */}
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='email'>
                 Email <Label.Asterisk />
@@ -156,6 +164,7 @@ export default function PageLogin() {
               )}
             </div>
 
+            {/* Password */}
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='password'>
                 Пароль <Label.Asterisk />
@@ -164,26 +173,18 @@ export default function PageLogin() {
                 id='password'
                 name='password'
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                hasError={!!passwordError}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError(validatePassword(e.target.value));
+                }}
+                onBlur={(e) => setPasswordError(validatePassword(e.target.value))}
               />
+              {passwordError && (
+                <p className='text-paragraph-xs text-error-base'>{passwordError}</p>
+              )}
             </div>
           </div>
-
-          {/* <div className='flex items-center justify-between gap-4'>
-            <div className='flex items-start gap-2'>
-              <Checkbox.Root id='agree' name='remember' />
-              <LabelPrimitive.Root
-                htmlFor='agree'
-                className='block cursor-pointer text-paragraph-sm'
-              >
-                Запомнить меня
-              </LabelPrimitive.Root>
-            </div>
-            <LinkButton.Root variant='gray' size='medium' underline asChild>
-              <Link href='/reset-password'>Забыли пароль?</Link>
-            </LinkButton.Root>
-          </div> */}
 
           <FancyButton.Root
             type='submit'
