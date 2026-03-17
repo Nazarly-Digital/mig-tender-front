@@ -182,22 +182,33 @@ export default function DashboardPage() {
             action='Все объекты'
           />
         ) : (
+          <>
+            <StatCard
+              label='Каталог объектов'
+              value={propertiesCount}
+              icon={RiBuilding2Line}
+              href='/catalog'
+              action='Открыть каталог'
+            />
+            <StatCard
+              label='Доступные аукционы'
+              value={auctionsCount}
+              icon={RiAuctionLine}
+              href='/auctions'
+              action='Все аукционы'
+            />
+          </>
+        )}
+
+        {isDeveloper && (
           <StatCard
-            label='Доступные аукционы'
+            label='Мои аукционы'
             value={auctionsCount}
             icon={RiAuctionLine}
             href='/auctions'
-            action='Все аукционы'
+            action='Подробнее'
           />
         )}
-
-        <StatCard
-          label='Активные аукционы'
-          value={auctionsCount}
-          icon={RiAuctionLine}
-          href='/auctions'
-          action='Подробнее'
-        />
 
         <QuickActionCard isDeveloper={isDeveloper} />
       </div>

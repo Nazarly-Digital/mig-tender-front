@@ -29,11 +29,13 @@ type NavigationLink = {
   developerHref?: string;
   disabled?: boolean;
   developerOnly?: boolean;
+  brokerOnly?: boolean;
 };
 
 export const navigationLinks: NavigationLink[] = [
   { icon: RiLayoutGridLine, label: 'Главная', href: '/dashboard' },
   { icon: RiAuctionLine, label: 'Аукционы', developerLabel: 'Мои аукционы', href: '/auctions' },
+  { icon: RiBuilding2Line, label: 'Каталог объектов', href: '/catalog', brokerOnly: true },
   { icon: RiBuilding2Line, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: RiAddLine, label: 'Создать объект', href: '/properties/create', developerOnly: true },
   { icon: RiFileLine, label: 'Документы', href: '/documents' },
@@ -124,7 +126,11 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
   const isDeveloper = user?.role === 'developer';
 
   const visibleLinks = navigationLinks.filter(
-    (link) => !link.developerOnly || isDeveloper,
+    (link) => {
+      if (link.developerOnly && !isDeveloper) return false;
+      if (link.brokerOnly && isDeveloper) return false;
+      return true;
+    },
   );
 
   return (
