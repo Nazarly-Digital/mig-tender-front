@@ -1,10 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
   RiAuctionLine,
-  RiTimeLine,
   RiUserLine,
   RiArrowUpLine,
   RiTrophyLine,
@@ -13,7 +12,6 @@ import {
 import toast from 'react-hot-toast';
 
 import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';

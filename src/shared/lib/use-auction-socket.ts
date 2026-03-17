@@ -49,7 +49,8 @@ export function useAuctionSocket(auctionId: number | null) {
   useEffect(() => {
     if (!auctionId || !accessToken) return;
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '').replace('http', 'ws') || '';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const baseUrl = apiUrl.replace('/api/v1', '').replace('https://', 'wss://').replace('http://', 'ws://');
     const wsUrl = `${baseUrl}/ws/auctions/${auctionId}/?token=${accessToken}`;
 
     const ws = new WebSocket(wsUrl);
