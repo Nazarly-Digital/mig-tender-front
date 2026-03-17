@@ -21,9 +21,10 @@ import * as Label from '@/shared/ui/label';
 import * as LinkButton from '@/shared/ui/link-button';
 import { useDeveloperRegistration } from '@/features/auth';
 
-function PasswordInput(
-  props: React.ComponentPropsWithoutRef<typeof Input.Input>,
-) {
+const PasswordInput = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentPropsWithoutRef<typeof Input.Input>
+>(function PasswordInput(props, ref) {
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
@@ -31,6 +32,7 @@ function PasswordInput(
       <Input.Wrapper>
         <Input.Icon as={RiLock2Line} />
         <Input.Input
+          ref={ref}
           type={showPassword ? 'text' : 'password'}
           placeholder='••••••••••'
           {...props}
@@ -45,7 +47,7 @@ function PasswordInput(
       </Input.Wrapper>
     </Input.Root>
   );
-}
+});
 
 export default function PageRegisterDeveloper() {
   const {
