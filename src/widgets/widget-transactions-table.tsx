@@ -9,7 +9,7 @@ import {
 } from '@remixicon/react';
 
 import { cnExt } from '@/shared/lib/cn';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Input from '@/shared/ui/input';
 import * as Kbd from '@/shared/ui/kbd';
 import {
@@ -146,9 +146,9 @@ export default function WidgetTransactionsTable({
               </Kbd.Root>
             </Input.Wrapper>
           </Input.Root>
-          <Button.Root variant='neutral' mode='stroke' size='small'>
+          <ButtonV2 variant='outline' size='lg'>
             See All
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import {
   type TypeVirtualCard,
 } from '@/shared/lib/data/cards-data';
 import { cnExt } from '@/shared/lib/cn';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Divider from '@/shared/ui/divider';
 import * as SegmentedControl from '@/shared/ui/segmented-control';
 import { CardSwitchContainer } from '@/shared/components/card-switch-container';
@@ -64,10 +64,10 @@ export default function WidgetMyCards({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiBankCardLine} />
         My Cards
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-          <Button.Icon as={RiAddLine} />
+        <ButtonV2 variant='outline' size='sm'>
+          <RiAddLine className='size-4' />
           Add Card
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <SegmentedControl.Root defaultValue='virtual'>
@@ -142,30 +142,27 @@ export default function WidgetMyCards({
                 </div>
               </div>
               <div className='flex gap-3'>
-                <Button.Root
-                  size='xsmall'
-                  variant='neutral'
-                  mode='stroke'
+                <ButtonV2
+                  variant='outline'
+                  size='sm'
                   className='basis-full'
                 >
                   Unhide
-                </Button.Root>
-                <Button.Root
-                  size='xsmall'
-                  variant='neutral'
-                  mode='stroke'
+                </ButtonV2>
+                <ButtonV2
+                  variant='outline'
+                  size='sm'
                   className='basis-full'
                 >
                   Adjust Limit
-                </Button.Root>
-                <Button.Root
-                  size='xsmall'
-                  variant='neutral'
-                  mode='stroke'
+                </ButtonV2>
+                <ButtonV2
+                  variant='outline'
+                  size='sm'
                   className='basis-full'
                 >
                   More
-                </Button.Root>
+                </ButtonV2>
               </div>
 
               <Divider.Root />
@@ -201,15 +198,14 @@ export default function WidgetMyCards({
                       ),
                   )}
                 </div>
-                <Button.Root
-                  size='small'
-                  variant='neutral'
-                  mode='stroke'
+                <ButtonV2
+                  variant='outline'
+                  size='lg'
                   className='mt-3 w-full'
                 >
-                  <Button.Icon as={RiHistoryLine} />
+                  <RiHistoryLine className='size-4' />
                   See All Transactions
-                </Button.Root>
+                </ButtonV2>
               </div>
             </div>
           </SegmentedControl.Content>
@@ -268,30 +264,27 @@ export default function WidgetMyCards({
                 </div>
               </div>
               <div className='flex gap-3'>
-                <Button.Root
-                  size='xsmall'
-                  variant='neutral'
-                  mode='stroke'
+                <ButtonV2
+                  variant='outline'
+                  size='sm'
                   className='basis-full'
                 >
                   Unhide
-                </Button.Root>
-                <Button.Root
-                  size='xsmall'
-                  variant='neutral'
-                  mode='stroke'
+                </ButtonV2>
+                <ButtonV2
+                  variant='outline'
+                  size='sm'
                   className='basis-full'
                 >
                   Adjust Limit
-                </Button.Root>
-                <Button.Root
-                  size='xsmall'
-                  variant='neutral'
-                  mode='stroke'
+                </ButtonV2>
+                <ButtonV2
+                  variant='outline'
+                  size='sm'
                   className='basis-full'
                 >
                   More
-                </Button.Root>
+                </ButtonV2>
               </div>
 
               <Divider.Root />
@@ -321,15 +314,14 @@ export default function WidgetMyCards({
                     ))}
                   </motion.div>
                 </div>
-                <Button.Root
-                  size='small'
-                  variant='neutral'
-                  mode='stroke'
+                <ButtonV2
+                  variant='outline'
+                  size='lg'
                   className='mt-3 w-full'
                 >
-                  <Button.Icon as={RiHistoryLine} />
+                  <RiHistoryLine className='size-4' />
                   See All Transactions
-                </Button.Root>
+                </ButtonV2>
               </div>
             </div>
           </SegmentedControl.Content>
@@ -351,10 +343,10 @@ export function WidgetMyCardsEmpty({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiBankCardLine} />
         My Cards
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-          <Button.Icon as={RiAddLine} />
+        <ButtonV2 variant='outline' size='sm'>
+          <RiAddLine className='size-4' />
           Add Card
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <SegmentedControl.Root>
@@ -376,10 +368,10 @@ export function WidgetMyCardsEmpty({
             <br />
             Click the button to add one.
           </div>
-          <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-            <Button.Icon as={RiAddLine} />
+          <ButtonV2 variant='outline' size='sm'>
+            <RiAddLine className='size-4' />
             Add Card
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>

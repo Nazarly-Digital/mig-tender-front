@@ -33,7 +33,7 @@ import { cn } from '@/shared/lib/cn';
 import { formatDate } from '@/shared/lib/date-formatter';
 import { currencyFormatter } from '@/shared/lib/number-formatter';
 import * as Avatar from '@/shared/ui/avatar';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Checkbox from '@/shared/ui/checkbox';
 import * as Pagination from '@/shared/ui/pagination';
 import * as Select from '@/shared/ui/select';
@@ -98,14 +98,13 @@ const getSortingIcon = (state: 'asc' | 'desc' | false) => {
 function ActionCell({ row }: { row: any }) {
   const setDetailModalOpen = useSetAtom(transactionDetailModalOpenAtom);
   return (
-    <Button.Root
-      variant='neutral'
-      mode='ghost'
-      size='xsmall'
+    <ButtonV2
+      variant='ghost'
+      size='sm'
       onClick={() => setDetailModalOpen(true)}
     >
-      <Button.Icon as={RiMore2Line} />
-    </Button.Root>
+      <RiMore2Line className='size-4' />
+    </ButtonV2>
   );
 }
 
@@ -362,25 +361,23 @@ export function TransactionTablePagination() {
   return (
     <div className='mt-auto'>
       <div className='mt-4 flex items-center justify-between py-4 lg:hidden'>
-        <Button.Root
-          variant='neutral'
-          mode='stroke'
-          size='xsmall'
+        <ButtonV2
+          variant='outline'
+          size='sm'
           className='w-28'
         >
           Previous
-        </Button.Root>
+        </ButtonV2>
         <span className='whitespace-nowrap text-center text-paragraph-sm text-text-sub-600'>
           Page 2 of 16
         </span>
-        <Button.Root
-          variant='neutral'
-          mode='stroke'
-          size='xsmall'
+        <ButtonV2
+          variant='outline'
+          size='sm'
           className='w-28'
         >
           Next
-        </Button.Root>
+        </ButtonV2>
       </div>
       <div className='mt-10 hidden items-center gap-3 lg:flex'>
         <span className='flex-1 whitespace-nowrap text-paragraph-sm text-text-sub-600'>

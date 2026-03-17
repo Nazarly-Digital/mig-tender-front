@@ -11,7 +11,7 @@ import {
 
 import { cnExt } from '@/shared/lib/cn';
 import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Divider from '@/shared/ui/divider';
 import * as Select from '@/shared/ui/select';
 import {
@@ -190,10 +190,10 @@ export function WidgetBudgetOverviewEmpty({
             <br />
             Click the button to add one.
           </div>
-          <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-            <Button.Icon as={RiAddLine} />
+          <ButtonV2 variant='outline' size='sm'>
+            <RiAddLine className='size-4' />
             Add Card
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>

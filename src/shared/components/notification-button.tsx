@@ -11,7 +11,7 @@ import {
 
 import * as Avatar from '@/shared/ui/avatar';
 import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as Divider from '@/shared/ui/divider';
 import * as LinkButton from '@/shared/ui/link-button';
@@ -146,23 +146,20 @@ export default function NotificationButton({
                   </div>
 
                   <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='xsmall'
+                    <ButtonV2
+                      variant='outline'
+                      size='sm'
                       className='px-3.5'
                     >
                       Deny
-                    </Button.Root>
-                    <Button.Root
-                      variant='primary'
-                      mode='filled'
-                      size='xsmall'
+                    </ButtonV2>
+                    <ButtonV2
+                      size='sm'
                       className='px-3.5'
                       onClick={() => alert('approve')}
                     >
                       Approve
-                    </Button.Root>
+                    </ButtonV2>
                   </div>
                 </div>
               </div>
@@ -197,20 +194,19 @@ export default function NotificationButton({
                   </div>
 
                   <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
+                    <ButtonV2
+                      variant='outline'
+                      size='lg'
                       className='text-paragraph-sm'
                     >
-                      <Button.Icon as={RiAttachment2} />
+                      <RiAttachment2 className='size-4' />
                       <div className='flex gap-0.5'>
                         arthur.csv
                         <span className='text-paragraph-sm text-text-soft-400'>
                           (4mb)
                         </span>
                       </div>
-                    </Button.Root>
+                    </ButtonV2>
                   </div>
                 </div>
               </div>
@@ -244,14 +240,13 @@ export default function NotificationButton({
                   </div>
 
                   <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
+                    <ButtonV2
+                      variant='outline'
+                      size='lg'
                       className='text-paragraph-sm'
                     >
                       Fantastic! Let&apos;s dive right in 🚀
-                    </Button.Root>
+                    </ButtonV2>
                   </div>
                 </div>
               </div>
@@ -323,23 +318,20 @@ export default function NotificationButton({
                   </div>
 
                   <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='xsmall'
+                    <ButtonV2
+                      variant='outline'
+                      size='sm'
                       className='px-3.5'
                     >
                       Deny
-                    </Button.Root>
-                    <Button.Root
-                      variant='primary'
-                      mode='filled'
-                      size='xsmall'
+                    </ButtonV2>
+                    <ButtonV2
+                      size='sm'
                       className='px-3.5'
                       onClick={() => alert('approve')}
                     >
                       Approve
-                    </Button.Root>
+                    </ButtonV2>
                   </div>
                 </div>
               </div>
@@ -376,20 +368,19 @@ export default function NotificationButton({
                   </div>
 
                   <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
+                    <ButtonV2
+                      variant='outline'
+                      size='lg'
                       className='text-paragraph-sm'
                     >
-                      <Button.Icon as={RiAttachment2} />
+                      <RiAttachment2 className='size-4' />
                       <div className='flex gap-0.5'>
                         arthur.csv
                         <span className='text-paragraph-sm text-text-soft-400'>
                           (4mb)
                         </span>
                       </div>
-                    </Button.Root>
+                    </ButtonV2>
                   </div>
                 </div>
               </div>
@@ -425,14 +416,13 @@ export default function NotificationButton({
                   </div>
 
                   <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
+                    <ButtonV2
+                      variant='outline'
+                      size='lg'
                       className='text-paragraph-sm'
                     >
                       Fantastic! Let&apos;s dive right in 🚀
-                    </Button.Root>
+                    </ButtonV2>
                   </div>
                 </div>
               </div>

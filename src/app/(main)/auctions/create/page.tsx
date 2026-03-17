@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { HintLabel } from '@/shared/ui/hint-label';
 import { InputField } from '@/shared/ui/input-field';
@@ -182,9 +182,9 @@ export default function CreateAuctionPage() {
         {/* Actions */}
         <div className='flex items-center gap-3 pt-2'>
           <Link href='/auctions'>
-            <Button.Root variant='neutral' mode='stroke'>
+            <ButtonV2 variant='outline'>
               Отмена
-            </Button.Root>
+            </ButtonV2>
           </Link>
           <FancyButton.Root
             type='submit'

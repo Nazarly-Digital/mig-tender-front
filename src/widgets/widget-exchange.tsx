@@ -4,7 +4,7 @@ import * as React from 'react';
 import { RiArrowLeftRightLine, RiRefreshLine } from '@remixicon/react';
 
 import { cnExt } from '@/shared/lib/cn';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as Divider from '@/shared/ui/divider';
 import * as CurrencySelect from '@/shared/components/currency-select';
@@ -81,9 +81,9 @@ export default function WidgetExchange({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiRefreshLine} />
         Exchange
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
+        <ButtonV2 variant='outline' size='sm'>
           Currencies
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <div className='flex flex-col gap-4'>
@@ -222,15 +222,10 @@ export default function WidgetExchange({
           </div>
         </div>
 
-        <Button.Root
-          variant='neutral'
-          mode='stroke'
-          size='small'
-          className='w-full'
-        >
-          <Button.Icon as={RiRefreshLine} />
+        <ButtonV2 variant='outline' size='lg' className='w-full'>
+          <RiRefreshLine className='size-4' />
           Exchange
-        </Button.Root>
+        </ButtonV2>
       </div>
     </WidgetBox.Root>
   );
@@ -248,9 +243,9 @@ export function WidgetExchangeEmpty({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiRefreshLine} />
         Exchange
-        <Button.Root variant='neutral' mode='stroke' size='xsmall' disabled>
+        <ButtonV2 variant='outline' size='sm' disabled>
           Currencies
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <div className='flex flex-1 flex-col gap-4'>
@@ -260,9 +255,9 @@ export function WidgetExchangeEmpty({
           <div className='text-center text-paragraph-sm text-text-soft-400'>
             Exchange feature is unavailable now. Please check back later.
           </div>
-          <Button.Root variant='neutral' mode='stroke' size='xsmall'>
+          <ButtonV2 variant='outline' size='sm'>
             Refresh
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>

@@ -14,7 +14,7 @@ import {
 
 import { cn } from '@/shared/lib/cn';
 import * as FancyButton from '@/shared/ui/fancy-button';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Modal from '@/shared/ui/modal';
 import * as CompactButton from '@/shared/ui/compact-button';
 import { PageHeader } from '@/shared/components/page-header';
@@ -237,9 +237,9 @@ function UploadModal({
         </Modal.Body>
 
         <Modal.Footer>
-          <Button.Root variant='neutral' mode='stroke' onClick={handleClose}>
+          <ButtonV2 variant='outline' onClick={handleClose}>
             Отмена
-          </Button.Root>
+          </ButtonV2>
           <FancyButton.Root
             variant='primary'
             disabled={selectedFiles.length === 0}

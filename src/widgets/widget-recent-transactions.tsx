@@ -9,7 +9,7 @@ import {
 
 import { type Transaction } from '@/shared/lib/data/cards-data';
 import { cnExt } from '@/shared/lib/cn';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as SegmentedControl from '@/shared/ui/segmented-control';
 import IllustrationEmptyRecentTransactions from '@/shared/components/empty-state-illustrations/recent-transactions';
 import { TransactionItem } from '@/shared/components/transaction-item';
@@ -63,9 +63,9 @@ export default function WidgetRecentTransactions({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiRefund2Line} />
         Recent Transactions
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
+        <ButtonV2 variant='outline' size='sm'>
           See All
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <SegmentedControl.Root defaultValue='incoming'>

@@ -6,7 +6,7 @@ import { RiAddLine, RiArrowRightSLine, RiBankCardLine } from '@remixicon/react';
 
 import { virtualCardsData } from '@/shared/lib/data/cards-data';
 import { cnExt } from '@/shared/lib/cn';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as ButtonGroup from '@/shared/ui/button-group';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as ProgressCircle from '@/shared/ui/progress-circle';
@@ -24,10 +24,10 @@ export default function WidgetMyCardsCompact({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiBankCardLine} />
         My Cards
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-          <Button.Icon as={RiAddLine} />
+        <ButtonV2 variant='outline' size='sm'>
+          <RiAddLine className='size-4' />
           Add Card
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <CardSwitchContainer>
@@ -95,10 +95,10 @@ export function WidgetMyCardsCompactEmpty({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiBankCardLine} />
         My Cards
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-          <Button.Icon as={RiAddLine} />
+        <ButtonV2 variant='outline' size='sm'>
+          <RiAddLine className='size-4' />
           Add Card
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <div className='flex flex-1 flex-col justify-center pt-4'>
@@ -109,10 +109,10 @@ export function WidgetMyCardsCompactEmpty({
             <br />
             Click the button to add one.
           </div>
-          <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-            <Button.Icon as={RiAddLine} />
+          <ButtonV2 variant='outline' size='sm'>
+            <RiAddLine className='size-4' />
             Add Card
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>

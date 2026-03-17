@@ -5,7 +5,7 @@ import { RiFileListLine, RiMore2Line } from '@remixicon/react';
 
 import { cnExt } from '@/shared/lib/cn';
 import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Divider from '@/shared/ui/divider';
 import * as LinkButton from '@/shared/ui/link-button';
 import IllustrationEmptyMySubscriptions from '@/shared/components/empty-state-illustrations/my-subscriptions';
@@ -19,9 +19,9 @@ export default function WidgetMySubscriptions({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiFileListLine} />
         My Subscriptions
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
+        <ButtonV2 variant='outline' size='sm'>
           See All
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <div className='relative h-[124px] overflow-hidden rounded-xl bg-bg-weak-50 p-4'>
@@ -78,9 +78,9 @@ export default function WidgetMySubscriptions({
           <Badge.Root color='green' variant='lighter' size='medium'>
             Paid
           </Badge.Root>
-          <Button.Root variant='neutral' mode='ghost' size='xsmall'>
-            <Button.Icon as={RiMore2Line} />
-          </Button.Root>
+          <ButtonV2 variant='ghost' size='sm'>
+            <RiMore2Line className='size-4' />
+          </ButtonV2>
         </div>
 
         <Divider.Root variant='line-spacing' />
@@ -109,9 +109,9 @@ export default function WidgetMySubscriptions({
           <Badge.Root color='gray' variant='lighter' size='medium'>
             Expiring
           </Badge.Root>
-          <Button.Root variant='neutral' mode='ghost' size='xsmall'>
-            <Button.Icon as={RiMore2Line} />
-          </Button.Root>
+          <ButtonV2 variant='ghost' size='sm'>
+            <RiMore2Line className='size-4' />
+          </ButtonV2>
         </div>
 
         <Divider.Root variant='line-spacing' />
@@ -140,9 +140,9 @@ export default function WidgetMySubscriptions({
           <Badge.Root color='orange' variant='lighter' size='medium'>
             Paused
           </Badge.Root>
-          <Button.Root variant='neutral' mode='ghost' size='xsmall'>
-            <Button.Icon as={RiMore2Line} />
-          </Button.Root>
+          <ButtonV2 variant='ghost' size='sm'>
+            <RiMore2Line className='size-4' />
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>
@@ -171,9 +171,9 @@ export function WidgetMySubscriptionsEmpty({
             You do not have any subscriptions yet. <br />
             Feel free to explore.
           </div>
-          <Button.Root variant='neutral' mode='stroke' size='xsmall'>
+          <ButtonV2 variant='outline' size='sm'>
             Explore
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>

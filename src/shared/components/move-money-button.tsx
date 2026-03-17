@@ -2,13 +2,13 @@
 
 import { RiArrowRightUpLine } from '@remixicon/react';
 
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 
 export function MoveMoneyButton({ className }: { className?: string }) {
   return (
-    <Button.Root className={className}>
+    <ButtonV2 className={className}>
       Move Money
-      <Button.Icon as={RiArrowRightUpLine} />
-    </Button.Root>
+      <RiArrowRightUpLine className='size-4' />
+    </ButtonV2>
   );
 }

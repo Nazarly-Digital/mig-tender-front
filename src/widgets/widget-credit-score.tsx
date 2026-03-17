@@ -2,7 +2,7 @@
 
 import { RiAddLine, RiSpeedUpLine } from '@remixicon/react';
 
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Divider from '@/shared/ui/divider';
 import { ScoreTrackChart } from '@/shared/components/score-track-chart';
 import * as WidgetBox from '@/shared/components/widget-box';
@@ -15,9 +15,9 @@ export default function WidgetCreditScore({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiSpeedUpLine} />
         Credit Score
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
+        <ButtonV2 variant='outline' size='sm'>
           Details
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <div className='flex flex-col gap-4'>
@@ -55,10 +55,10 @@ export function WidgetCreditScoreEmpty({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiSpeedUpLine} />
         Credit Score
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-          <Button.Icon as={RiAddLine} />
+        <ButtonV2 variant='outline' size='sm'>
+          <RiAddLine className='size-4' />
           Apply
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <div className='flex flex-col gap-4'>

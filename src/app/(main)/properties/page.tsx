@@ -14,7 +14,7 @@ import {
 } from '@remixicon/react';
 
 import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -450,26 +450,24 @@ export default function PropertiesPage() {
             description={`Вы уверены, что хотите удалить «${deletingProperty?.address}»? Это действие нельзя отменить.`}
           />
           <Modal.Footer>
-            <Button.Root
-              variant='neutral'
-              mode='stroke'
-              size='small'
+            <ButtonV2
+              variant='outline'
+              size='lg'
               className='flex-1'
               onClick={() => setDeleteDialogOpen(false)}
               disabled={deleteMutation.isPending}
             >
               Отмена
-            </Button.Root>
-            <Button.Root
-              variant='error'
-              mode='filled'
-              size='small'
+            </ButtonV2>
+            <ButtonV2
+              variant='destructive'
+              size='lg'
               className='flex-1'
               onClick={handleDeleteConfirm}
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? 'Удаление...' : 'Удалить'}
-            </Button.Root>
+            </ButtonV2>
           </Modal.Footer>
         </Modal.Content>
       </Modal.Root>

@@ -9,7 +9,6 @@ import {
   RiArrowRightSLine,
   RiArrowUpSFill,
   RiExpandUpDownFill,
-  RiMore2Line,
   RiPencilLine,
 } from '@remixicon/react';
 import {
@@ -32,7 +31,7 @@ declare module '@tanstack/react-table' {
 
 import { cn } from '@/shared/lib/cn';
 import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Checkbox from '@/shared/ui/checkbox';
 import * as Pagination from '@/shared/ui/pagination';
 import * as Select from '@/shared/ui/select';
@@ -260,14 +259,13 @@ const columns: ColumnDef<Property>[] = [
     cell: ({ row, table }) => {
       const onEdit = (table.options.meta as any)?.onEdit;
       return (
-        <Button.Root
-          variant='neutral'
-          mode='ghost'
-          size='xsmall'
+        <ButtonV2
+          variant='ghost'
+          size='sm'
           onClick={() => onEdit?.(row.original)}
         >
-          <Button.Icon as={RiPencilLine} />
-        </Button.Root>
+          <RiPencilLine className='size-4' />
+        </ButtonV2>
       );
     },
     meta: { className: 'px-5 w-0' },
@@ -390,29 +388,27 @@ export function PropertiesTablePagination({
     <div className='mt-auto'>
       {/* Mobile */}
       <div className='mt-4 flex items-center justify-between py-4 lg:hidden'>
-        <Button.Root
-          variant='neutral'
-          mode='stroke'
-          size='xsmall'
+        <ButtonV2
+          variant='outline'
+          size='sm'
           className='w-28'
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
           Назад
-        </Button.Root>
+        </ButtonV2>
         <span className='whitespace-nowrap text-center text-paragraph-sm text-text-sub-600'>
           {page} из {totalPages}
         </span>
-        <Button.Root
-          variant='neutral'
-          mode='stroke'
-          size='xsmall'
+        <ButtonV2
+          variant='outline'
+          size='sm'
           className='w-28'
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
           Далее
-        </Button.Root>
+        </ButtonV2>
       </div>
 
       {/* Desktop */}

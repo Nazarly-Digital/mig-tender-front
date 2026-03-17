@@ -21,7 +21,7 @@ import {
 import { cn, cnExt } from '@/shared/lib/cn';
 import * as Avatar from '@/shared/ui/avatar';
 import { type AvatarRootProps } from '@/shared/ui/avatar';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as Divider from '@/shared/ui/divider';
 import IllustrationEmptyQuickTransfer from '@/shared/components/empty-state-illustrations/quick-transfer';
@@ -285,10 +285,10 @@ export default function WidgetQuickTransfer({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiArrowLeftRightLine} />
         Quick Transfer
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-          <Button.Icon as={RiSettings2Line} />
+        <ButtonV2 variant='outline' size='sm'>
+          <RiSettings2Line className='size-4' />
           Advanced
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <div className='flex flex-col gap-4'>
@@ -372,15 +372,14 @@ export default function WidgetQuickTransfer({
           </div>
         </div>
 
-        <Button.Root
-          variant='neutral'
-          mode='stroke'
-          size='small'
+        <ButtonV2
+          variant='outline'
+          size='lg'
           disabled={currencyInputVal === 0}
         >
-          <Button.Icon as={RiAddLine} />
+          <RiAddLine className='size-4' />
           Save a New Action
-        </Button.Root>
+        </ButtonV2>
       </div>
     </WidgetBox.Root>
   );
@@ -409,10 +408,10 @@ export function WidgetQuickTransferEmpty({
             <br />
             Please check back later.
           </div>
-          <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-            <Button.Icon as={RiAddLine} />
+          <ButtonV2 variant='outline' size='sm'>
+            <RiAddLine className='size-4' />
             Add Funds
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>

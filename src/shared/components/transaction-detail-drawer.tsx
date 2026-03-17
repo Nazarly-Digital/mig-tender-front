@@ -5,7 +5,7 @@ import { RiRefreshLine, RiShareLine } from '@remixicon/react';
 import { useAtom } from 'jotai';
 
 import * as Avatar from '@/shared/ui/avatar';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Divider from '@/shared/ui/divider';
 import * as Drawer from '@/shared/ui/drawer';
 import { transactionDetailModalOpenAtom } from '@/shared/components/transactions-table';
@@ -106,24 +106,20 @@ export function TransactionDetailDrawer() {
         </Drawer.Body>
 
         <Drawer.Footer className='border-t'>
-          <Button.Root
-            variant='neutral'
-            mode='stroke'
-            size='medium'
+          <ButtonV2
+            variant='outline'
             className='w-full'
           >
-            <Button.Icon as={RiRefreshLine} />
+            <RiRefreshLine className='size-4' />
             Repeat
-          </Button.Root>
-          <Button.Root
-            variant='neutral'
-            mode='stroke'
-            size='medium'
+          </ButtonV2>
+          <ButtonV2
+            variant='outline'
             className='w-full'
           >
-            <Button.Icon as={RiShareLine} />
+            <RiShareLine className='size-4' />
             Share
-          </Button.Root>
+          </ButtonV2>
         </Drawer.Footer>
       </Drawer.Content>
     </Drawer.Root>

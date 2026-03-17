@@ -9,7 +9,7 @@ import {
 } from '@remixicon/react';
 
 import { cnExt } from '@/shared/lib/cn';
-import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import * as Divider from '@/shared/ui/divider';
 import IllustrationEmptySavedActions from '@/shared/components/empty-state-illustrations/saved-actions';
 import { SavedAction, SavedActionItem } from '@/shared/components/saved-action-item';
@@ -57,9 +57,9 @@ export default function WidgetSavedActions({
       <WidgetBox.Header>
         <WidgetBox.HeaderIcon as={RiFlashlightLine} />
         Saved Actions
-        <Button.Root variant='neutral' mode='stroke' size='xsmall'>
+        <ButtonV2 variant='outline' size='sm'>
           See All
-        </Button.Root>
+        </ButtonV2>
       </WidgetBox.Header>
 
       <div className='flex flex-col gap-4'>
@@ -72,15 +72,10 @@ export default function WidgetSavedActions({
             ))}
           </div>
 
-          <Button.Root
-            variant='neutral'
-            mode='stroke'
-            size='small'
-            className='mt-3.5 w-full'
-          >
-            <Button.Icon as={RiAddLine} />
+          <ButtonV2 variant='outline' size='lg' className='mt-3.5 w-full'>
+            <RiAddLine className='size-4' />
             Save a New Action
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>
@@ -110,10 +105,10 @@ export function WidgetSavedActionsEmpty({
             <br />
             Feel free to save one.
           </div>
-          <Button.Root variant='neutral' mode='stroke' size='xsmall'>
-            <Button.Icon as={RiAddLine} />
+          <ButtonV2 variant='outline' size='sm'>
+            <RiAddLine className='size-4' />
             Save a New Action
-          </Button.Root>
+          </ButtonV2>
         </div>
       </div>
     </WidgetBox.Root>

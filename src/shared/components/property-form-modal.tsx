@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 
 import * as Modal from '@/shared/ui/modal';
 import * as Button from '@/shared/ui/button';
+import { ButtonV2 } from '@/shared/ui/button-v2';
 import { InputField } from '@/shared/ui/input-field';
 import { InputLabel } from '@/shared/ui/input-label';
 import * as Select from '@/shared/ui/select';
@@ -360,13 +361,13 @@ export function PropertyFormModal({
                 Отмена
               </Button.Root>
             </Modal.Close>
-            <Button.Root type='submit' size='small' disabled={isPending}>
+            <ButtonV2 type='submit' size='lg' disabled={isPending}>
               {isPending
                 ? 'Сохранение...'
                 : isEdit
                   ? 'Сохранить'
                   : 'Создать'}
-            </Button.Root>
+            </ButtonV2>
           </Modal.Footer>
         </form>
       </Modal.Content>
