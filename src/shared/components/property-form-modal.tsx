@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 
 import * as Modal from '@/shared/ui/modal';
 import * as Button from '@/shared/ui/button';
-import * as Input from '@/shared/ui/input';
+import { InputField } from '@/shared/ui/input-field';
 import { InputLabel } from '@/shared/ui/input-label';
 import * as Select from '@/shared/ui/select';
 import { cn } from '@/shared/lib/cn';
@@ -227,36 +227,30 @@ export function PropertyFormModal({
             {/* Address */}
             <div className='space-y-1.5'>
               <InputLabel htmlFor='property-address' label='Адрес' required />
-              <Input.Root size='small'>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='property-address'
-                    placeholder='ул. Примерная, д. 1'
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    required
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <InputField
+                id='property-address'
+                placeholder='ул. Примерная, д. 1'
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                required
+                size='md'
+              />
             </div>
 
             {/* Area + Class */}
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
                 <InputLabel htmlFor='property-area' label='Площадь (м²)' required />
-                <Input.Root size='small'>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='property-area'
-                      type='number'
-                      step='0.01'
-                      placeholder='120.5'
-                      value={area}
-                      onChange={(e) => setArea(e.target.value)}
-                      required
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
+                <InputField
+                  id='property-area'
+                  type='number'
+                  step='0.01'
+                  placeholder='120.5'
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  required
+                  size='md'
+                />
               </div>
               <div className='space-y-1.5'>
                 <InputLabel htmlFor='property-class' label='Класс' required />
@@ -285,19 +279,16 @@ export function PropertyFormModal({
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
                 <InputLabel htmlFor='property-price' label='Цена' required />
-                <Input.Root size='small'>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='property-price'
-                      type='number'
-                      step='0.01'
-                      placeholder='150000'
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      required
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
+                <InputField
+                  id='property-price'
+                  type='number'
+                  step='0.01'
+                  placeholder='150000'
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
+                  size='md'
+                />
               </div>
               <div className='space-y-1.5'>
                 <InputLabel htmlFor='property-currency' label='Валюта' />
@@ -323,16 +314,13 @@ export function PropertyFormModal({
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
                 <InputLabel htmlFor='property-deadline' label='Срок сдачи' />
-                <Input.Root size='small'>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='property-deadline'
-                      type='date'
-                      value={deadline}
-                      onChange={(e) => setDeadline(e.target.value)}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
+                <InputField
+                  id='property-deadline'
+                  type='date'
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  size='md'
+                />
               </div>
               <div className='space-y-1.5'>
                 <InputLabel htmlFor='property-status' label='Статус' />

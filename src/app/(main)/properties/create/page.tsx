@@ -14,7 +14,7 @@ import * as Button from '@/shared/ui/button';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { HintLabel } from '@/shared/ui/hint-label';
-import * as Input from '@/shared/ui/input';
+import { InputField } from '@/shared/ui/input-field';
 import { InputLabel } from '@/shared/ui/input-label';
 import * as Select from '@/shared/ui/select';
 import * as WidgetBox from '@/shared/components/widget-box';
@@ -206,20 +206,18 @@ export default function CreatePropertyPage() {
 
           <div className='space-y-1.5'>
             <InputLabel htmlFor='property-address' label='Адрес' required />
-            <Input.Root hasError={!!addressError}>
-              <Input.Wrapper>
-                <Input.Input
-                  id='property-address'
-                  placeholder='ул. Примерная, д. 1'
-                  value={address}
-                  onChange={(e) => {
-                    setAddress(e.target.value);
-                    if (addressError) setAddressError(validateAddress(e.target.value));
-                  }}
-                  onBlur={(e) => setAddressError(validateAddress(e.target.value))}
-                />
-              </Input.Wrapper>
-            </Input.Root>
+            <InputField
+              id='property-address'
+              placeholder='ул. Примерная, д. 1'
+              value={address}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                if (addressError) setAddressError(validateAddress(e.target.value));
+              }}
+              onBlur={(e) => setAddressError(validateAddress(e.target.value))}
+              state={addressError ? 'danger' : 'default'}
+              size='lg'
+            />
             {addressError ? (
               <p className='text-paragraph-xs text-error-base'>{addressError}</p>
             ) : (
@@ -235,30 +233,28 @@ export default function CreatePropertyPage() {
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
               <InputLabel htmlFor='property-area' label='Площадь (м²)' required />
-              <Input.Root hasError={!!areaError}>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='property-area'
-                    type='text'
-                    inputMode='decimal'
-                    placeholder='120.5'
-                    value={area}
-                    onKeyDown={(e) => {
-                      if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
-                      if (e.key === '.' && area.includes('.')) e.preventDefault();
-                    }}
-                    onChange={(e) => {
-                      const raw = e.target.value.replace(/[^0-9.]/g, '');
-                      const val = raw.split('.').length > 2
-                        ? raw.slice(0, raw.lastIndexOf('.'))
-                        : raw;
-                      setArea(val);
-                      if (areaError) setAreaError(validateArea(val));
-                    }}
-                    onBlur={(e) => setAreaError(validateArea(e.target.value))}
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <InputField
+                id='property-area'
+                type='text'
+                inputMode='decimal'
+                placeholder='120.5'
+                value={area}
+                onKeyDown={(e) => {
+                  if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
+                  if (e.key === '.' && area.includes('.')) e.preventDefault();
+                }}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, '');
+                  const val = raw.split('.').length > 2
+                    ? raw.slice(0, raw.lastIndexOf('.'))
+                    : raw;
+                  setArea(val);
+                  if (areaError) setAreaError(validateArea(val));
+                }}
+                onBlur={(e) => setAreaError(validateArea(e.target.value))}
+                state={areaError ? 'danger' : 'default'}
+                size='lg'
+              />
               {areaError && (
                 <p className='text-paragraph-xs text-error-base'>{areaError}</p>
               )}
@@ -293,30 +289,28 @@ export default function CreatePropertyPage() {
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
               <InputLabel htmlFor='property-price' label='Цена' required />
-              <Input.Root hasError={!!priceError}>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='property-price'
-                    type='text'
-                    inputMode='decimal'
-                    placeholder='150000'
-                    value={price}
-                    onKeyDown={(e) => {
-                      if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
-                      if (e.key === '.' && price.includes('.')) e.preventDefault();
-                    }}
-                    onChange={(e) => {
-                      const raw = e.target.value.replace(/[^0-9.]/g, '');
-                      const val = raw.split('.').length > 2
-                        ? raw.slice(0, raw.lastIndexOf('.'))
-                        : raw;
-                      setPrice(val);
-                      if (priceError) setPriceError(validatePrice(val));
-                    }}
-                    onBlur={(e) => setPriceError(validatePrice(e.target.value))}
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <InputField
+                id='property-price'
+                type='text'
+                inputMode='decimal'
+                placeholder='150000'
+                value={price}
+                onKeyDown={(e) => {
+                  if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
+                  if (e.key === '.' && price.includes('.')) e.preventDefault();
+                }}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9.]/g, '');
+                  const val = raw.split('.').length > 2
+                    ? raw.slice(0, raw.lastIndexOf('.'))
+                    : raw;
+                  setPrice(val);
+                  if (priceError) setPriceError(validatePrice(val));
+                }}
+                onBlur={(e) => setPriceError(validatePrice(e.target.value))}
+                state={priceError ? 'danger' : 'default'}
+                size='lg'
+              />
               {priceError && (
                 <p className='text-paragraph-xs text-error-base'>{priceError}</p>
               )}
@@ -345,16 +339,13 @@ export default function CreatePropertyPage() {
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
               <InputLabel htmlFor='property-deadline' label='Срок сдачи' />
-              <Input.Root>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='property-deadline'
-                    type='date'
-                    value={deadline}
-                    onChange={(e) => setDeadline(e.target.value)}
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <InputField
+                id='property-deadline'
+                type='date'
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                size='lg'
+              />
               <HintLabel hint='Оставьте пустым, если срок неизвестен' />
             </div>
             <div className='space-y-1.5'>

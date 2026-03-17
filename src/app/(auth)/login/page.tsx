@@ -17,6 +17,7 @@ import * as Alert from '@/shared/ui/alert';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
+import { InputField } from '@/shared/ui/input-field';
 import { InputLabel } from '@/shared/ui/input-label';
 import { useLogin } from '@/features/auth';
 
@@ -140,23 +141,21 @@ export default function PageLogin() {
             {/* Email */}
             <div className='flex flex-col gap-1'>
               <InputLabel htmlFor='email' label='Email' required />
-              <Input.Root hasError={!!emailError}>
-                <Input.Wrapper>
-                  <Input.Icon as={RiMailLine} />
-                  <Input.Input
-                    id='email'
-                    name='email'
-                    type='text'
-                    placeholder='example@mail.com'
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (emailError) setEmailError(validateEmail(e.target.value));
-                    }}
-                    onBlur={(e) => setEmailError(validateEmail(e.target.value))}
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <InputField
+                id='email'
+                name='email'
+                type='email'
+                placeholder='example@mail.com'
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) setEmailError(validateEmail(e.target.value));
+                }}
+                onBlur={(e) => setEmailError(validateEmail(e.target.value))}
+                leftIcon={<RiMailLine className='size-5' />}
+                state={emailError ? 'danger' : 'default'}
+                size='lg'
+              />
               {emailError && (
                 <p className='text-paragraph-xs text-error-base'>{emailError}</p>
               )}

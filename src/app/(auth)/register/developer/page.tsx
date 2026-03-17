@@ -17,6 +17,7 @@ import * as DigitInput from '@/shared/ui/digit-input';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
+import { InputField } from '@/shared/ui/input-field';
 import { InputLabel } from '@/shared/ui/input-label';
 import * as LinkButton from '@/shared/ui/link-button';
 import { useDeveloperRegistration } from '@/features/auth';
@@ -122,19 +123,16 @@ export default function PageRegisterDeveloper() {
           <form onSubmit={handleGetCode} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
               <InputLabel htmlFor='email' label='Email' required />
-              <Input.Root>
-                <Input.Wrapper>
-                  <Input.Icon as={RiMailLine} />
-                  <Input.Input
-                    id='email'
-                    type='email'
-                    placeholder='example@mail.com'
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <InputField
+                id='email'
+                type='email'
+                placeholder='example@mail.com'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                leftIcon={<RiMailLine className='size-5' />}
+                size='lg'
+              />
             </div>
 
             <FancyButton.Root
@@ -205,51 +203,42 @@ export default function PageRegisterDeveloper() {
             <div className='flex flex-col gap-3'>
               <div className='flex flex-col gap-1'>
                 <InputLabel htmlFor='firstName' label='Имя' />
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Icon as={RiUserLine} />
-                    <Input.Input
-                      id='firstName'
-                      type='text'
-                      placeholder='Введите имя'
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
+                <InputField
+                  id='firstName'
+                  type='text'
+                  placeholder='Введите имя'
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  leftIcon={<RiUserLine className='size-5' />}
+                  size='lg'
+                />
               </div>
 
               <div className='flex flex-col gap-1'>
                 <InputLabel htmlFor='lastName' label='Фамилия' />
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Icon as={RiUserLine} />
-                    <Input.Input
-                      id='lastName'
-                      type='text'
-                      placeholder='Введите фамилию'
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
+                <InputField
+                  id='lastName'
+                  type='text'
+                  placeholder='Введите фамилию'
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  leftIcon={<RiUserLine className='size-5' />}
+                  size='lg'
+                />
               </div>
 
               <div className='flex flex-col gap-1'>
                 <InputLabel htmlFor='companyName' label='Название компании' required />
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Icon as={RiBuilding2Line} />
-                    <Input.Input
-                      id='companyName'
-                      type='text'
-                      placeholder='Введите название компании'
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      required
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
+                <InputField
+                  id='companyName'
+                  type='text'
+                  placeholder='Введите название компании'
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  required
+                  leftIcon={<RiBuilding2Line className='size-5' />}
+                  size='lg'
+                />
               </div>
 
               <div className='flex flex-col gap-1'>

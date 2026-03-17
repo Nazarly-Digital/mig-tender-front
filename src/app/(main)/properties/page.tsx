@@ -18,7 +18,7 @@ import * as Button from '@/shared/ui/button';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
-import * as Input from '@/shared/ui/input';
+import { InputField } from '@/shared/ui/input-field';
 import * as Modal from '@/shared/ui/modal';
 import * as Select from '@/shared/ui/select';
 import * as StatusBadge from '@/shared/ui/status-badge';
@@ -318,16 +318,13 @@ export default function PropertiesPage() {
 
       {/* Filters */}
       <div className='flex flex-col gap-2'>
-        <Input.Root size='small'>
-          <Input.Wrapper>
-            <Input.Icon as={RiSearch2Line} />
-            <Input.Input
-              placeholder='Поиск по адресу...'
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </Input.Wrapper>
-        </Input.Root>
+        <InputField
+          placeholder='Поиск по адресу...'
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          leftIcon={<RiSearch2Line className='size-5' />}
+          size='md'
+        />
 
         <div className='flex flex-wrap gap-2'>
           <Select.Root

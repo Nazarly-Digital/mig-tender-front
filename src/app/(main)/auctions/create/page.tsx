@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import * as Button from '@/shared/ui/button';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { HintLabel } from '@/shared/ui/hint-label';
-import * as Input from '@/shared/ui/input';
+import { InputField } from '@/shared/ui/input-field';
 import { InputLabel } from '@/shared/ui/input-label';
 import * as Select from '@/shared/ui/select';
 import * as WidgetBox from '@/shared/components/widget-box';
@@ -135,19 +135,16 @@ export default function CreateAuctionPage() {
 
           <div className='space-y-1.5'>
             <InputLabel htmlFor='auction-min-price' label='Минимальная цена' required />
-            <Input.Root>
-              <Input.Wrapper>
-                <Input.Input
-                  id='auction-min-price'
-                  type='number'
-                  step='0.01'
-                  placeholder='10000000'
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  required
-                />
-              </Input.Wrapper>
-            </Input.Root>
+            <InputField
+              id='auction-min-price'
+              type='number'
+              step='0.01'
+              placeholder='10000000'
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              required
+              size='lg'
+            />
             <HintLabel hint='Минимальная стартовая цена для ставок' />
           </div>
         </WidgetBox.Root>
@@ -159,31 +156,25 @@ export default function CreateAuctionPage() {
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
               <InputLabel htmlFor='auction-start' label='Дата начала' required />
-              <Input.Root>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='auction-start'
-                    type='datetime-local'
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <InputField
+                id='auction-start'
+                type='datetime-local'
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                required
+                size='lg'
+              />
             </div>
             <div className='space-y-1.5'>
               <InputLabel htmlFor='auction-end' label='Дата окончания' required />
-              <Input.Root>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='auction-end'
-                    type='datetime-local'
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <InputField
+                id='auction-end'
+                type='datetime-local'
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                required
+                size='lg'
+              />
             </div>
           </div>
         </WidgetBox.Root>
