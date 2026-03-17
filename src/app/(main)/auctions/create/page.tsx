@@ -4,6 +4,9 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { auctionSchema, type AuctionFormData } from '@/shared/lib/validations';
 import * as Button from '@/shared/ui/button';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
@@ -31,27 +34,30 @@ export default function CreateAuctionPage() {
   });
   const properties = propertiesData?.results ?? [];
 
-  const [propertyId, setPropertyId] = React.useState('');
-  const [mode, setMode] = React.useState<AuctionMode>('closed');
-  const [minPrice, setMinPrice] = React.useState('');
-  const [startDate, setStartDate] = React.useState('');
-  const [endDate, setEndDate] = React.useState('');
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<AuctionFormData>({
+    resolver: zodResolver(auctionSchema),
+    defaultValues: {
+      property_id: '',
+      mode: 'closed',
+      min_price: '',
+      start_date: '',
+      end_date: '',
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!propertyId) {
-      toast.error('Выберите объект');
-      return;
-    }
-
+  const onSubmit = (data: AuctionFormData) => {
     createMutation.mutate(
       {
-        property_id: Number(propertyId),
-        mode,
-        min_price: minPrice,
-        start_date: new Date(startDate).toISOString(),
-        end_date: new Date(endDate).toISOString(),
+        property_id: Number(data.property_id),
+        mode: data.mode as AuctionMode,
+        min_price: data.min_price,
+        start_date: new Date(data.start_date).toISOString(),
+        end_date: new Date(data.end_date).toISOString(),
       },
       {
         onSuccess: () => {
@@ -74,7 +80,7 @@ export default function CreateAuctionPage() {
         backHref='/auctions'
       />
 
-      <form onSubmit={handleSubmit} className='flex w-full max-w-[640px] flex-col gap-5'>
+      <form onSubmit={handleSubmit(onSubmit)} className='flex w-full max-w-[640px] flex-col gap-5'>
         {/* Section: Property select */}
         <WidgetBox.Root className='space-y-5'>
           <WidgetBox.Header>Выбор объекта</WidgetBox.Header>
@@ -90,22 +96,29 @@ export default function CreateAuctionPage() {
                 Нет доступных объектов. Сначала создайте объект.
               </div>
             ) : (
-              <Select.Root
-                value={propertyId}
-                onValueChange={setPropertyId}
-              >
-                <Select.Trigger id='auction-property'>
-                  <Select.Value placeholder='Выберите объект' />
-                </Select.Trigger>
-                <Select.Content>
-                  {properties.map((p) => (
-                    <Select.Item key={p.id} value={String(p.id)}>
-                      {p.address} ({p.area} м²)
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
+              <Controller
+                control={control}
+                name='property_id'
+                render={({ field }) => (
+                  <Select.Root
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <Select.Trigger id='auction-property'>
+                      <Select.Value placeholder='Выберите объект' />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {properties.map((p) => (
+                        <Select.Item key={p.id} value={String(p.id)}>
+                          {p.address} ({p.area} м²)
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
             )}
+            {errors.property_id && <p className='text-paragraph-xs text-error-base'>{errors.property_id.message}</p>}
             <Hint.Root>Выберите объект, который будет выставлен на аукцион</Hint.Root>
           </div>
         </WidgetBox.Root>
@@ -118,23 +131,30 @@ export default function CreateAuctionPage() {
             <Label.Root htmlFor='auction-mode'>
               Тип аукциона <Label.Asterisk />
             </Label.Root>
-            <Select.Root
-              value={mode}
-              onValueChange={(v) => setMode(v as AuctionMode)}
-            >
-              <Select.Trigger id='auction-mode'>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content>
-                {(Object.entries(MODE_LABELS) as [AuctionMode, string][]).map(
-                  ([value, label]) => (
-                    <Select.Item key={value} value={value}>
-                      {label}
-                    </Select.Item>
-                  ),
-                )}
-              </Select.Content>
-            </Select.Root>
+            <Controller
+              control={control}
+              name='mode'
+              render={({ field }) => (
+                <Select.Root
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <Select.Trigger id='auction-mode'>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {(Object.entries(MODE_LABELS) as [AuctionMode, string][]).map(
+                      ([value, label]) => (
+                        <Select.Item key={value} value={value}>
+                          {label}
+                        </Select.Item>
+                      ),
+                    )}
+                  </Select.Content>
+                </Select.Root>
+              )}
+            />
+            {errors.mode && <p className='text-paragraph-xs text-error-base'>{errors.mode.message}</p>}
           </div>
 
           <div className='space-y-1.5'>
@@ -148,12 +168,11 @@ export default function CreateAuctionPage() {
                   type='number'
                   step='0.01'
                   placeholder='10000000'
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  required
+                  {...register('min_price')}
                 />
               </Input.Wrapper>
             </Input.Root>
+            {errors.min_price && <p className='text-paragraph-xs text-error-base'>{errors.min_price.message}</p>}
             <Hint.Root>Минимальная стартовая цена для ставок</Hint.Root>
           </div>
         </WidgetBox.Root>
@@ -172,12 +191,11 @@ export default function CreateAuctionPage() {
                   <Input.Input
                     id='auction-start'
                     type='datetime-local'
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
+                    {...register('start_date')}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {errors.start_date && <p className='text-paragraph-xs text-error-base'>{errors.start_date.message}</p>}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-end'>
@@ -188,12 +206,11 @@ export default function CreateAuctionPage() {
                   <Input.Input
                     id='auction-end'
                     type='datetime-local'
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
+                    {...register('end_date')}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {errors.end_date && <p className='text-paragraph-xs text-error-base'>{errors.end_date.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>

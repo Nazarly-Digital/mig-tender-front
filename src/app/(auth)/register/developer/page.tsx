@@ -50,22 +50,12 @@ function PasswordInput(
 export default function PageRegisterDeveloper() {
   const {
     step,
-    email,
-    setEmail,
     code,
     setCode,
-    firstName,
-    setFirstName,
-    lastName,
-    setLastName,
-    companyName,
-    setCompanyName,
-    password,
-    setPassword,
-    passwordConfirm,
-    setPasswordConfirm,
     error,
     timer,
+    emailForm,
+    registerForm,
     handleGetCode,
     handleVerifyEmail,
     handleResendCode,
@@ -102,7 +92,7 @@ export default function PageRegisterDeveloper() {
             <div className='text-paragraph-sm text-text-sub-600 lg:text-paragraph-md'>
               {step === 1 && 'Введите ваш email для начала регистрации'}
               {step === 2 && (
-                <>Введите код, отправленный на <span className='font-medium text-text-strong-950'>{email}</span></>
+                <>Введите код, отправленный на <span className='font-medium text-text-strong-950'>{emailForm.getValues('email')}</span></>
               )}
               {step === 3 && 'Заполните данные для завершения регистрации'}
             </div>
@@ -131,12 +121,15 @@ export default function PageRegisterDeveloper() {
                     id='email'
                     type='email'
                     placeholder='example@mail.com'
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                    {...emailForm.register('email')}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {emailForm.formState.errors.email && (
+                <span className='text-paragraph-xs text-error-base'>
+                  {emailForm.formState.errors.email.message}
+                </span>
+              )}
             </div>
 
             <FancyButton.Root
@@ -216,8 +209,7 @@ export default function PageRegisterDeveloper() {
                       id='firstName'
                       type='text'
                       placeholder='Введите имя'
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      {...registerForm.register('firstName')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -232,8 +224,7 @@ export default function PageRegisterDeveloper() {
                       id='lastName'
                       type='text'
                       placeholder='Введите фамилию'
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
+                      {...registerForm.register('lastName')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -250,12 +241,15 @@ export default function PageRegisterDeveloper() {
                       id='companyName'
                       type='text'
                       placeholder='Введите название компании'
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      required
+                      {...registerForm.register('companyName')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
+                {registerForm.formState.errors.companyName && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {registerForm.formState.errors.companyName.message}
+                  </span>
+                )}
               </div>
 
               <div className='flex flex-col gap-1'>
@@ -264,10 +258,13 @@ export default function PageRegisterDeveloper() {
                 </Label.Root>
                 <PasswordInput
                   id='password'
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...registerForm.register('password')}
                 />
+                {registerForm.formState.errors.password && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {registerForm.formState.errors.password.message}
+                  </span>
+                )}
               </div>
 
               <div className='flex flex-col gap-1'>
@@ -276,10 +273,13 @@ export default function PageRegisterDeveloper() {
                 </Label.Root>
                 <PasswordInput
                   id='passwordConfirm'
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  required
+                  {...registerForm.register('passwordConfirm')}
                 />
+                {registerForm.formState.errors.passwordConfirm && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {registerForm.formState.errors.passwordConfirm.message}
+                  </span>
+                )}
               </div>
             </div>
 

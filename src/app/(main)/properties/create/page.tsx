@@ -9,6 +9,8 @@ import {
   RiImageAddLine,
   RiDraggable,
 } from '@remixicon/react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/shared/lib/cn';
 import * as Button from '@/shared/ui/button';
 import * as CompactButton from '@/shared/ui/compact-button';
@@ -31,38 +33,36 @@ import type {
   PropertyClass,
   PropertyStatus,
 } from '@/shared/types/properties';
+import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
 
 export default function CreatePropertyPage() {
   const router = useRouter();
   const createMutation = useCreateProperty();
 
-  const [type, setType] = React.useState<PropertyType>('apartment');
-  const [address, setAddress] = React.useState('');
-  const [addressError, setAddressError] = React.useState('');
-  const [area, setArea] = React.useState('');
-  const [areaError, setAreaError] = React.useState('');
-  const [propertyClass, setPropertyClass] = React.useState<PropertyClass>('comfort');
-  const [price, setPrice] = React.useState('');
-  const [priceError, setPriceError] = React.useState('');
-  const [currency, setCurrency] = React.useState('USD');
-  const [deadline, setDeadline] = React.useState('');
-  const [status, setStatus] = React.useState<PropertyStatus>('draft');
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PropertyFormData>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: {
+      type: 'apartment',
+      property_class: 'comfort',
+      currency: 'USD',
+      status: 'draft',
+      address: '',
+      area: '',
+      price: '',
+      deadline: '',
+    },
+  });
+
+  // Photo-related state
   const [photos, setPhotos] = React.useState<File[]>([]);
   const [previews, setPreviews] = React.useState<string[]>([]);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const dragIndex = React.useRef<number | null>(null);
-
-  const validateAddress = (v: string) => (v.trim() ? '' : 'Введите адрес объекта');
-  const validateArea = (v: string) => {
-    if (!v) return 'Введите площадь';
-    if (parseFloat(v) <= 0) return 'Площадь должна быть больше 0';
-    return '';
-  };
-  const validatePrice = (v: string) => {
-    if (!v) return 'Введите цену';
-    if (parseFloat(v) <= 0) return 'Цена должна быть больше 0';
-    return '';
-  };
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -126,30 +126,9 @@ export default function CreatePropertyPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const addrErr = validateAddress(address);
-    const areaErr = validateArea(area);
-    const priceErr = validatePrice(price);
-
-    setAddressError(addrErr);
-    setAreaError(areaErr);
-    setPriceError(priceErr);
-
-    if (addrErr || areaErr || priceErr) return;
-
+  const onSubmit = (data: PropertyFormData) => {
     createMutation.mutate(
-      {
-        type,
-        address,
-        area,
-        property_class: propertyClass,
-        price,
-        currency,
-        deadline: deadline || null,
-        status,
-      },
+      { ...data, deadline: data.deadline || null },
       {
         onSuccess: async (property) => {
           for (let i = 0; i < photos.length; i++) {
@@ -178,7 +157,7 @@ export default function CreatePropertyPage() {
         backHref='/properties'
       />
 
-      <form onSubmit={handleSubmit} className='flex w-full max-w-[640px] flex-col gap-5'>
+      <form onSubmit={handleSubmit(onSubmit)} className='flex w-full max-w-[640px] flex-col gap-5'>
         {/* Section: Basic info */}
         <WidgetBox.Root className='space-y-5'>
           <WidgetBox.Header>Основная информация</WidgetBox.Header>
@@ -187,45 +166,47 @@ export default function CreatePropertyPage() {
             <Label.Root htmlFor='property-type'>
               Тип объекта <Label.Asterisk />
             </Label.Root>
-            <Select.Root
-              value={type}
-              onValueChange={(v) => setType(v as PropertyType)}
-            >
-              <Select.Trigger id='property-type'>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content>
-                {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
-                  ([value, label]) => (
-                    <Select.Item key={value} value={value}>
-                      {label}
-                    </Select.Item>
-                  ),
-                )}
-              </Select.Content>
-            </Select.Root>
+            <Controller
+              name='type'
+              control={control}
+              render={({ field }) => (
+                <Select.Root
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <Select.Trigger id='property-type'>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
+                      ([value, label]) => (
+                        <Select.Item key={value} value={value}>
+                          {label}
+                        </Select.Item>
+                      ),
+                    )}
+                  </Select.Content>
+                </Select.Root>
+              )}
+            />
+            {errors.type && <p className='text-paragraph-xs text-error-base'>{errors.type.message}</p>}
           </div>
 
           <div className='space-y-1.5'>
             <Label.Root htmlFor='property-address'>
               Адрес <Label.Asterisk />
             </Label.Root>
-            <Input.Root hasError={!!addressError}>
+            <Input.Root hasError={!!errors.address}>
               <Input.Wrapper>
                 <Input.Input
                   id='property-address'
                   placeholder='ул. Примерная, д. 1'
-                  value={address}
-                  onChange={(e) => {
-                    setAddress(e.target.value);
-                    if (addressError) setAddressError(validateAddress(e.target.value));
-                  }}
-                  onBlur={(e) => setAddressError(validateAddress(e.target.value))}
+                  {...register('address')}
                 />
               </Input.Wrapper>
             </Input.Root>
-            {addressError ? (
-              <p className='text-paragraph-xs text-error-base'>{addressError}</p>
+            {errors.address ? (
+              <p className='text-paragraph-xs text-error-base'>{errors.address.message}</p>
             ) : (
               <Hint.Root>Полный адрес объекта недвижимости</Hint.Root>
             )}
@@ -241,55 +222,67 @@ export default function CreatePropertyPage() {
               <Label.Root htmlFor='property-area'>
                 Площадь (м²) <Label.Asterisk />
               </Label.Root>
-              <Input.Root hasError={!!areaError}>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='property-area'
-                    type='text'
-                    inputMode='decimal'
-                    placeholder='120.5'
-                    value={area}
-                    onKeyDown={(e) => {
-                      if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
-                      if (e.key === '.' && area.includes('.')) e.preventDefault();
-                    }}
-                    onChange={(e) => {
-                      const raw = e.target.value.replace(/[^0-9.]/g, '');
-                      const val = raw.split('.').length > 2
-                        ? raw.slice(0, raw.lastIndexOf('.'))
-                        : raw;
-                      setArea(val);
-                      if (areaError) setAreaError(validateArea(val));
-                    }}
-                    onBlur={(e) => setAreaError(validateArea(e.target.value))}
-                  />
-                </Input.Wrapper>
-              </Input.Root>
-              {areaError && (
-                <p className='text-paragraph-xs text-error-base'>{areaError}</p>
+              <Controller
+                name='area'
+                control={control}
+                render={({ field }) => (
+                  <Input.Root hasError={!!errors.area}>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='property-area'
+                        type='text'
+                        inputMode='decimal'
+                        placeholder='120.5'
+                        value={field.value}
+                        onKeyDown={(e) => {
+                          if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
+                          if (e.key === '.' && field.value.includes('.')) e.preventDefault();
+                        }}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/[^0-9.]/g, '');
+                          const val = raw.split('.').length > 2
+                            ? raw.slice(0, raw.lastIndexOf('.'))
+                            : raw;
+                          field.onChange(val);
+                        }}
+                        onBlur={field.onBlur}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                )}
+              />
+              {errors.area && (
+                <p className='text-paragraph-xs text-error-base'>{errors.area.message}</p>
               )}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-class'>
                 Класс <Label.Asterisk />
               </Label.Root>
-              <Select.Root
-                value={propertyClass}
-                onValueChange={(v) => setPropertyClass(v as PropertyClass)}
-              >
-                <Select.Trigger id='property-class'>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  {(
-                    Object.entries(CLASS_LABELS) as [PropertyClass, string][]
-                  ).map(([value, label]) => (
-                    <Select.Item key={value} value={value}>
-                      {label}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
+              <Controller
+                name='property_class'
+                control={control}
+                render={({ field }) => (
+                  <Select.Root
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <Select.Trigger id='property-class'>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {(
+                        Object.entries(CLASS_LABELS) as [PropertyClass, string][]
+                      ).map(([value, label]) => (
+                        <Select.Item key={value} value={value}>
+                          {label}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
+              {errors.property_class && <p className='text-paragraph-xs text-error-base'>{errors.property_class.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>
@@ -303,47 +296,59 @@ export default function CreatePropertyPage() {
               <Label.Root htmlFor='property-price'>
                 Цена <Label.Asterisk />
               </Label.Root>
-              <Input.Root hasError={!!priceError}>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='property-price'
-                    type='text'
-                    inputMode='decimal'
-                    placeholder='150000'
-                    value={price}
-                    onKeyDown={(e) => {
-                      if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
-                      if (e.key === '.' && price.includes('.')) e.preventDefault();
-                    }}
-                    onChange={(e) => {
-                      const raw = e.target.value.replace(/[^0-9.]/g, '');
-                      const val = raw.split('.').length > 2
-                        ? raw.slice(0, raw.lastIndexOf('.'))
-                        : raw;
-                      setPrice(val);
-                      if (priceError) setPriceError(validatePrice(val));
-                    }}
-                    onBlur={(e) => setPriceError(validatePrice(e.target.value))}
-                  />
-                </Input.Wrapper>
-              </Input.Root>
-              {priceError && (
-                <p className='text-paragraph-xs text-error-base'>{priceError}</p>
+              <Controller
+                name='price'
+                control={control}
+                render={({ field }) => (
+                  <Input.Root hasError={!!errors.price}>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='property-price'
+                        type='text'
+                        inputMode='decimal'
+                        placeholder='150000'
+                        value={field.value}
+                        onKeyDown={(e) => {
+                          if (['+', '-', 'e', 'E'].includes(e.key)) e.preventDefault();
+                          if (e.key === '.' && field.value.includes('.')) e.preventDefault();
+                        }}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/[^0-9.]/g, '');
+                          const val = raw.split('.').length > 2
+                            ? raw.slice(0, raw.lastIndexOf('.'))
+                            : raw;
+                          field.onChange(val);
+                        }}
+                        onBlur={field.onBlur}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                )}
+              />
+              {errors.price && (
+                <p className='text-paragraph-xs text-error-base'>{errors.price.message}</p>
               )}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
-              <Select.Root value={currency} onValueChange={setCurrency}>
-                <Select.Trigger id='property-currency'>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  <Select.Item value='USD'>USD</Select.Item>
-                  <Select.Item value='EUR'>EUR</Select.Item>
-                  <Select.Item value='RUB'>RUB</Select.Item>
-                  <Select.Item value='TRY'>TRY</Select.Item>
-                </Select.Content>
-              </Select.Root>
+              <Controller
+                name='currency'
+                control={control}
+                render={({ field }) => (
+                  <Select.Root value={field.value} onValueChange={field.onChange}>
+                    <Select.Trigger id='property-currency'>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      <Select.Item value='USD'>USD</Select.Item>
+                      <Select.Item value='EUR'>EUR</Select.Item>
+                      <Select.Item value='RUB'>RUB</Select.Item>
+                      <Select.Item value='TRY'>TRY</Select.Item>
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
+              {errors.currency && <p className='text-paragraph-xs text-error-base'>{errors.currency.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>
@@ -360,8 +365,7 @@ export default function CreatePropertyPage() {
                   <Input.Input
                     id='property-deadline'
                     type='date'
-                    value={deadline}
-                    onChange={(e) => setDeadline(e.target.value)}
+                    {...register('deadline')}
                   />
                 </Input.Wrapper>
               </Input.Root>
@@ -369,23 +373,30 @@ export default function CreatePropertyPage() {
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-status'>Статус</Label.Root>
-              <Select.Root
-                value={status}
-                onValueChange={(v) => setStatus(v as PropertyStatus)}
-              >
-                <Select.Trigger id='property-status'>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  {(
-                    Object.entries(STATUS_LABELS) as [PropertyStatus, string][]
-                  ).map(([value, label]) => (
-                    <Select.Item key={value} value={value}>
-                      {label}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
+              <Controller
+                name='status'
+                control={control}
+                render={({ field }) => (
+                  <Select.Root
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <Select.Trigger id='property-status'>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {(
+                        Object.entries(STATUS_LABELS) as [PropertyStatus, string][]
+                      ).map(([value, label]) => (
+                        <Select.Item key={value} value={value}>
+                          {label}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
+              {errors.status && <p className='text-paragraph-xs text-error-base'>{errors.status.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>

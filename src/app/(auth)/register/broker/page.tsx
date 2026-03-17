@@ -22,9 +22,10 @@ import * as Label from '@/shared/ui/label';
 import * as LinkButton from '@/shared/ui/link-button';
 import { useBrokerRegistration } from '@/features/auth';
 
-function PasswordInput(
-  props: React.ComponentPropsWithoutRef<typeof Input.Input>,
-) {
+const PasswordInput = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentPropsWithoutRef<typeof Input.Input>
+>((props, ref) => {
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
@@ -32,6 +33,7 @@ function PasswordInput(
       <Input.Wrapper>
         <Input.Icon as={RiLock2Line} />
         <Input.Input
+          ref={ref}
           type={showPassword ? 'text' : 'password'}
           placeholder='••••••••••'
           {...props}
@@ -46,29 +48,20 @@ function PasswordInput(
       </Input.Wrapper>
     </Input.Root>
   );
-}
+});
+PasswordInput.displayName = 'PasswordInput';
 
 export default function PageRegisterBroker() {
   const {
+    emailForm,
+    registerForm,
     step,
-    email,
-    setEmail,
     code,
     setCode,
-    firstName,
-    setFirstName,
-    lastName,
-    setLastName,
-    innNumber,
-    setInnNumber,
     inn,
     setInn,
     passport,
     setPassport,
-    password,
-    setPassword,
-    passwordConfirm,
-    setPasswordConfirm,
     error,
     timer,
     handleGetCode,
@@ -80,6 +73,9 @@ export default function PageRegisterBroker() {
     isResendPending,
     isRegisterPending,
   } = useBrokerRegistration();
+
+  const emailErrors = emailForm.formState.errors;
+  const regErrors = registerForm.formState.errors;
 
   return (
     <div className='w-full max-w-[472px] px-4'>
@@ -107,7 +103,7 @@ export default function PageRegisterBroker() {
             <div className='text-paragraph-sm text-text-sub-600 lg:text-paragraph-md'>
               {step === 1 && 'Введите ваш email для начала регистрации'}
               {step === 2 && (
-                <>Введите код, отправленный на <span className='font-medium text-text-strong-950'>{email}</span></>
+                <>Введите код, отправленный на <span className='font-medium text-text-strong-950'>{emailForm.getValues('email')}</span></>
               )}
               {step === 3 && 'Заполните данные для завершения регистрации'}
             </div>
@@ -136,12 +132,13 @@ export default function PageRegisterBroker() {
                     id='email'
                     type='email'
                     placeholder='example@mail.com'
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                    {...emailForm.register('email')}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {emailErrors.email && (
+                <p className='text-paragraph-xs text-error-base'>{emailErrors.email.message}</p>
+              )}
             </div>
 
             <FancyButton.Root
@@ -221,8 +218,7 @@ export default function PageRegisterBroker() {
                       id='firstName'
                       type='text'
                       placeholder='Введите имя'
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      {...registerForm.register('firstName')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -237,8 +233,7 @@ export default function PageRegisterBroker() {
                       id='lastName'
                       type='text'
                       placeholder='Введите фамилию'
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
+                      {...registerForm.register('lastName')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -255,12 +250,13 @@ export default function PageRegisterBroker() {
                       id='innNumber'
                       type='text'
                       placeholder='Введите ИНН номер'
-                      value={innNumber}
-                      onChange={(e) => setInnNumber(e.target.value)}
-                      required
+                      {...registerForm.register('innNumber')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
+                {regErrors.innNumber && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.innNumber.message}</p>
+                )}
               </div>
 
               <div className='flex flex-col gap-1'>
@@ -305,10 +301,11 @@ export default function PageRegisterBroker() {
                 </Label.Root>
                 <PasswordInput
                   id='password'
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...registerForm.register('password')}
                 />
+                {regErrors.password && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.password.message}</p>
+                )}
               </div>
 
               <div className='flex flex-col gap-1'>
@@ -317,10 +314,11 @@ export default function PageRegisterBroker() {
                 </Label.Root>
                 <PasswordInput
                   id='passwordConfirm'
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  required
+                  {...registerForm.register('passwordConfirm')}
                 />
+                {regErrors.passwordConfirm && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.passwordConfirm.message}</p>
+                )}
               </div>
             </div>
 
