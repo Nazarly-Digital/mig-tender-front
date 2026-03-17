@@ -13,17 +13,18 @@ import type {
 } from "@/shared/types/auth";
 
 export function useMe() {
-  const { isAuthenticated, setMeUser } = useSessionStore();
+  const isAuthenticated = useSessionStore((s) => s.isAuthenticated);
+  const setMeUser = useSessionStore((s) => s.setMeUser);
 
   return useQuery({
     queryKey: ["auth", "me"],
-    queryFn: () => authService.me().then((res) => res.data),
-    enabled: isAuthenticated,
-    staleTime: 30_000,
-    select: (data) => {
-      setMeUser(data);
-      return data;
+    queryFn: async () => {
+      const res = await authService.me();
+      setMeUser(res.data);
+      return res.data;
     },
+    enabled: isAuthenticated,
+    staleTime: 60_000,
   });
 }
 
