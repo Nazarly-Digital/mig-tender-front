@@ -12,8 +12,11 @@ import {
   RiUserFill,
 } from '@remixicon/react';
 import { AxiosError } from 'axios';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import { cn } from '@/shared/lib/cn';
+import { loginSchema, type LoginFormData } from '@/shared/lib/validations';
 import * as Alert from '@/shared/ui/alert';
 import * as Checkbox from '@/shared/ui/checkbox';
 import * as Divider from '@/shared/ui/divider';
@@ -23,9 +26,10 @@ import * as Label from '@/shared/ui/label';
 import * as LinkButton from '@/shared/ui/link-button';
 import { useLogin } from '@/features/auth';
 
-function PasswordInput(
-  props: React.ComponentPropsWithoutRef<typeof Input.Input>,
-) {
+const PasswordInput = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentPropsWithoutRef<typeof Input.Input>
+>(function PasswordInput(props, ref) {
   const [showPassword, setShowPassword] = React.useState(false);
 
   return (
@@ -35,6 +39,7 @@ function PasswordInput(
         <Input.Input
           type={showPassword ? 'text' : 'password'}
           placeholder='••••••••••'
+          ref={ref}
           {...props}
         />
         <button type='button' onClick={() => setShowPassword((s) => !s)}>
@@ -47,36 +52,38 @@ function PasswordInput(
       </Input.Wrapper>
     </Input.Root>
   );
-}
+});
 
 export default function PageLogin() {
   const router = useRouter();
   const login = useLogin();
 
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
   const [error, setError] = React.useState('');
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = (data: LoginFormData) => {
     setError('');
-    login.mutate(
-      { email, password },
-      {
-        onSuccess: () => {
-          router.push('/dashboard');
-        },
-        onError: (err) => {
-          if (err instanceof AxiosError) {
-            if (err.response?.status === 401) {
-              setError('Неверный email или пароль');
-            } else {
-              setError('Произошла ошибка. Попробуйте позже');
-            }
-          }
-        },
+    login.mutate(data, {
+      onSuccess: () => {
+        router.push('/dashboard');
       },
-    );
+      onError: (err) => {
+        if (err instanceof AxiosError) {
+          if (err.response?.status === 401) {
+            setError('Неверный email или пароль');
+          } else {
+            setError('Произошла ошибка. Попробуйте позже');
+          }
+        }
+      },
+    });
   };
 
   return (
@@ -115,7 +122,7 @@ export default function PageLogin() {
           </Alert.Root>
         )}
 
-        <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
+        <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6'>
           <div className='flex flex-col gap-3'>
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='email'>
@@ -126,15 +133,15 @@ export default function PageLogin() {
                   <Input.Icon as={RiMailLine} />
                   <Input.Input
                     id='email'
-                    name='email'
                     type='email'
                     placeholder='example@mail.com'
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                    {...register('email')}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {errors.email?.message && (
+                <p className='text-paragraph-xs text-error-base'>{errors.email.message}</p>
+              )}
             </div>
 
             <div className='flex flex-col gap-1'>
@@ -143,11 +150,11 @@ export default function PageLogin() {
               </Label.Root>
               <PasswordInput
                 id='password'
-                name='password'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                {...register('password')}
               />
+              {errors.password?.message && (
+                <p className='text-paragraph-xs text-error-base'>{errors.password.message}</p>
+              )}
             </div>
           </div>
 

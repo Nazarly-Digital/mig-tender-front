@@ -4,6 +4,8 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as Button from '@/shared/ui/button';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
@@ -23,33 +25,34 @@ import type {
   PropertyClass,
   PropertyStatus,
 } from '@/shared/types/properties';
+import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
 
 export default function CreatePropertyPage() {
   const router = useRouter();
   const createMutation = useCreateProperty();
 
-  const [type, setType] = React.useState<PropertyType>('apartment');
-  const [address, setAddress] = React.useState('');
-  const [area, setArea] = React.useState('');
-  const [propertyClass, setPropertyClass] = React.useState<PropertyClass>('comfort');
-  const [price, setPrice] = React.useState('');
-  const [currency, setCurrency] = React.useState('USD');
-  const [deadline, setDeadline] = React.useState('');
-  const [status, setStatus] = React.useState<PropertyStatus>('draft');
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<PropertyFormData>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: {
+      type: 'apartment',
+      property_class: 'comfort',
+      currency: 'USD',
+      status: 'draft',
+      address: '',
+      area: '',
+      price: '',
+      deadline: '',
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: PropertyFormData) => {
     createMutation.mutate(
-      {
-        type,
-        address,
-        area,
-        property_class: propertyClass,
-        price,
-        currency,
-        deadline: deadline || null,
-        status,
-      },
+      { ...data, deadline: data.deadline || null },
       {
         onSuccess: () => {
           toast.success('Объект успешно создан');
@@ -67,7 +70,7 @@ export default function CreatePropertyPage() {
         backHref='/properties'
       />
 
-      <form onSubmit={handleSubmit} className='flex w-full max-w-[640px] flex-col gap-5'>
+      <form onSubmit={handleSubmit(onSubmit)} className='flex w-full max-w-[640px] flex-col gap-5'>
         {/* Section: Basic info */}
         <WidgetBox.Root className='space-y-5'>
           <WidgetBox.Header>Основная информация</WidgetBox.Header>
@@ -76,23 +79,30 @@ export default function CreatePropertyPage() {
             <Label.Root htmlFor='property-type'>
               Тип объекта <Label.Asterisk />
             </Label.Root>
-            <Select.Root
-              value={type}
-              onValueChange={(v) => setType(v as PropertyType)}
-            >
-              <Select.Trigger id='property-type'>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content>
-                {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
-                  ([value, label]) => (
-                    <Select.Item key={value} value={value}>
-                      {label}
-                    </Select.Item>
-                  ),
-                )}
-              </Select.Content>
-            </Select.Root>
+            <Controller
+              name='type'
+              control={control}
+              render={({ field }) => (
+                <Select.Root
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <Select.Trigger id='property-type'>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
+                      ([value, label]) => (
+                        <Select.Item key={value} value={value}>
+                          {label}
+                        </Select.Item>
+                      ),
+                    )}
+                  </Select.Content>
+                </Select.Root>
+              )}
+            />
+            {errors.type && <p className='text-paragraph-xs text-error-base'>{errors.type.message}</p>}
           </div>
 
           <div className='space-y-1.5'>
@@ -104,12 +114,11 @@ export default function CreatePropertyPage() {
                 <Input.Input
                   id='property-address'
                   placeholder='ул. Примерная, д. 1'
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  required
+                  {...register('address')}
                 />
               </Input.Wrapper>
             </Input.Root>
+            {errors.address && <p className='text-paragraph-xs text-error-base'>{errors.address.message}</p>}
             <Hint.Root>Полный адрес объекта недвижимости</Hint.Root>
           </div>
         </WidgetBox.Root>
@@ -130,34 +139,40 @@ export default function CreatePropertyPage() {
                     type='number'
                     step='0.01'
                     placeholder='120.5'
-                    value={area}
-                    onChange={(e) => setArea(e.target.value)}
-                    required
+                    {...register('area')}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {errors.area && <p className='text-paragraph-xs text-error-base'>{errors.area.message}</p>}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-class'>
                 Класс <Label.Asterisk />
               </Label.Root>
-              <Select.Root
-                value={propertyClass}
-                onValueChange={(v) => setPropertyClass(v as PropertyClass)}
-              >
-                <Select.Trigger id='property-class'>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  {(
-                    Object.entries(CLASS_LABELS) as [PropertyClass, string][]
-                  ).map(([value, label]) => (
-                    <Select.Item key={value} value={value}>
-                      {label}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
+              <Controller
+                name='property_class'
+                control={control}
+                render={({ field }) => (
+                  <Select.Root
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <Select.Trigger id='property-class'>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {(
+                        Object.entries(CLASS_LABELS) as [PropertyClass, string][]
+                      ).map(([value, label]) => (
+                        <Select.Item key={value} value={value}>
+                          {label}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
+              {errors.property_class && <p className='text-paragraph-xs text-error-base'>{errors.property_class.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>
@@ -178,26 +193,32 @@ export default function CreatePropertyPage() {
                     type='number'
                     step='0.01'
                     placeholder='150000'
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    required
+                    {...register('price')}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {errors.price && <p className='text-paragraph-xs text-error-base'>{errors.price.message}</p>}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
-              <Select.Root value={currency} onValueChange={setCurrency}>
-                <Select.Trigger id='property-currency'>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  <Select.Item value='USD'>USD</Select.Item>
-                  <Select.Item value='EUR'>EUR</Select.Item>
-                  <Select.Item value='RUB'>RUB</Select.Item>
-                  <Select.Item value='TRY'>TRY</Select.Item>
-                </Select.Content>
-              </Select.Root>
+              <Controller
+                name='currency'
+                control={control}
+                render={({ field }) => (
+                  <Select.Root value={field.value} onValueChange={field.onChange}>
+                    <Select.Trigger id='property-currency'>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      <Select.Item value='USD'>USD</Select.Item>
+                      <Select.Item value='EUR'>EUR</Select.Item>
+                      <Select.Item value='RUB'>RUB</Select.Item>
+                      <Select.Item value='TRY'>TRY</Select.Item>
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
+              {errors.currency && <p className='text-paragraph-xs text-error-base'>{errors.currency.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>
@@ -214,8 +235,7 @@ export default function CreatePropertyPage() {
                   <Input.Input
                     id='property-deadline'
                     type='date'
-                    value={deadline}
-                    onChange={(e) => setDeadline(e.target.value)}
+                    {...register('deadline')}
                   />
                 </Input.Wrapper>
               </Input.Root>
@@ -223,23 +243,30 @@ export default function CreatePropertyPage() {
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-status'>Статус</Label.Root>
-              <Select.Root
-                value={status}
-                onValueChange={(v) => setStatus(v as PropertyStatus)}
-              >
-                <Select.Trigger id='property-status'>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  {(
-                    Object.entries(STATUS_LABELS) as [PropertyStatus, string][]
-                  ).map(([value, label]) => (
-                    <Select.Item key={value} value={value}>
-                      {label}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
+              <Controller
+                name='status'
+                control={control}
+                render={({ field }) => (
+                  <Select.Root
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <Select.Trigger id='property-status'>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {(
+                        Object.entries(STATUS_LABELS) as [PropertyStatus, string][]
+                      ).map(([value, label]) => (
+                        <Select.Item key={value} value={value}>
+                          {label}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
+              {errors.status && <p className='text-paragraph-xs text-error-base'>{errors.status.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>

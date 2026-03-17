@@ -2,6 +2,8 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
   useGetCode,
@@ -10,20 +12,28 @@ import {
   useRegisterDeveloper,
 } from './queries';
 import type { GetCodeError429 } from '@/shared/types/auth';
+import {
+  emailStepSchema,
+  type EmailStepFormData,
+  developerRegisterSchema,
+  type DeveloperRegisterFormData,
+} from '@/shared/lib/validations';
 
 export function useDeveloperRegistration() {
   const router = useRouter();
 
   const [step, setStep] = React.useState(1);
-  const [email, setEmail] = React.useState('');
   const [code, setCode] = React.useState('');
-  const [firstName, setFirstName] = React.useState('');
-  const [lastName, setLastName] = React.useState('');
-  const [companyName, setCompanyName] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [passwordConfirm, setPasswordConfirm] = React.useState('');
   const [error, setError] = React.useState('');
   const [timer, setTimer] = React.useState(0);
+
+  const emailForm = useForm<EmailStepFormData>({
+    resolver: zodResolver(emailStepSchema),
+  });
+
+  const registerForm = useForm<DeveloperRegisterFormData>({
+    resolver: zodResolver(developerRegisterSchema),
+  });
 
   const getCode = useGetCode();
   const verifyEmail = useVerifyEmail();
@@ -39,11 +49,10 @@ export function useDeveloperRegistration() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleGetCode = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGetCode = emailForm.handleSubmit((data) => {
     setError('');
     getCode.mutate(
-      { email },
+      { email: data.email },
       {
         onSuccess: () => {
           setTimer(60);
@@ -66,13 +75,13 @@ export function useDeveloperRegistration() {
         },
       },
     );
-  };
+  });
 
   const handleVerifyEmail = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     verifyEmail.mutate(
-      { email, code },
+      { email: emailForm.getValues('email'), code },
       {
         onSuccess: () => {
           setStep(3);
@@ -93,7 +102,7 @@ export function useDeveloperRegistration() {
   const handleResendCode = () => {
     setError('');
     resendCode.mutate(
-      { email },
+      { email: emailForm.getValues('email') },
       {
         onSuccess: () => {
           setTimer(60);
@@ -113,23 +122,17 @@ export function useDeveloperRegistration() {
     );
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRegister = registerForm.handleSubmit((data) => {
     setError('');
-
-    if (password !== passwordConfirm) {
-      setError('Пароли не совпадают');
-      return;
-    }
 
     registerDeveloper.mutate(
       {
-        email,
-        password,
-        password_confirm: passwordConfirm,
-        first_name: firstName || undefined,
-        last_name: lastName || undefined,
-        company_name: companyName,
+        email: emailForm.getValues('email'),
+        password: data.password,
+        password_confirm: data.passwordConfirm,
+        first_name: data.firstName || undefined,
+        last_name: data.lastName || undefined,
+        company_name: data.companyName,
       },
       {
         onSuccess: () => {
@@ -148,27 +151,19 @@ export function useDeveloperRegistration() {
         },
       },
     );
-  };
+  });
 
   return {
     // state
     step,
-    email,
-    setEmail,
     code,
     setCode,
-    firstName,
-    setFirstName,
-    lastName,
-    setLastName,
-    companyName,
-    setCompanyName,
-    password,
-    setPassword,
-    passwordConfirm,
-    setPasswordConfirm,
     error,
     timer,
+
+    // forms
+    emailForm,
+    registerForm,
 
     // handlers
     handleGetCode,

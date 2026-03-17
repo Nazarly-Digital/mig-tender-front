@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { RiBuilding2Line } from '@remixicon/react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import * as Modal from '@/shared/ui/modal';
 import * as Button from '@/shared/ui/button';
@@ -21,6 +23,7 @@ import {
   CLASS_LABELS,
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
+import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
 
 type PropertyFormModalProps = {
   open: boolean;
@@ -39,49 +42,54 @@ export function PropertyFormModal({
 }: PropertyFormModalProps) {
   const isEdit = !!property;
 
-  const [type, setType] = React.useState<PropertyType>('apartment');
-  const [address, setAddress] = React.useState('');
-  const [area, setArea] = React.useState('');
-  const [propertyClass, setPropertyClass] = React.useState<PropertyClass>('comfort');
-  const [price, setPrice] = React.useState('');
-  const [currency, setCurrency] = React.useState('USD');
-  const [deadline, setDeadline] = React.useState('');
-  const [status, setStatus] = React.useState<PropertyStatus>('draft');
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PropertyFormData>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: {
+      type: 'apartment',
+      address: '',
+      area: '',
+      property_class: 'comfort',
+      price: '',
+      currency: 'USD',
+      deadline: '',
+      status: 'draft',
+    },
+  });
 
   React.useEffect(() => {
     if (property) {
-      setType(property.type);
-      setAddress(property.address);
-      setArea(property.area);
-      setPropertyClass(property.property_class);
-      setPrice(property.price);
-      setCurrency(property.currency);
-      setDeadline(property.deadline || '');
-      setStatus(property.status);
+      reset({
+        type: property.type,
+        address: property.address,
+        area: property.area,
+        property_class: property.property_class,
+        price: property.price,
+        currency: property.currency,
+        deadline: property.deadline || '',
+        status: property.status,
+      });
     } else {
-      setType('apartment');
-      setAddress('');
-      setArea('');
-      setPropertyClass('comfort');
-      setPrice('');
-      setCurrency('USD');
-      setDeadline('');
-      setStatus('draft');
+      reset({
+        type: 'apartment',
+        address: '',
+        area: '',
+        property_class: 'comfort',
+        price: '',
+        currency: 'USD',
+        deadline: '',
+        status: 'draft',
+      });
     }
-  }, [property, open]);
+  }, [property, open, reset]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      type,
-      address,
-      area,
-      property_class: propertyClass,
-      price,
-      currency,
-      deadline: deadline || null,
-      status,
-    });
+  const onFormSubmit = (data: PropertyFormData) => {
+    onSubmit({ ...data, deadline: data.deadline || null });
   };
 
   return (
@@ -96,31 +104,38 @@ export function PropertyFormModal({
               : 'Заполните информацию о новом объекте'
           }
         />
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onFormSubmit)}>
           <Modal.Body className='space-y-4'>
             {/* Type */}
             <div className='space-y-1.5'>
               <Label.Root htmlFor='property-type'>
                 Тип <Label.Asterisk />
               </Label.Root>
-              <Select.Root
-                size='small'
-                value={type}
-                onValueChange={(v) => setType(v as PropertyType)}
-              >
-                <Select.Trigger id='property-type'>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  {(
-                    Object.entries(TYPE_LABELS) as [PropertyType, string][]
-                  ).map(([value, label]) => (
-                    <Select.Item key={value} value={value}>
-                      {label}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
+              <Controller
+                name='type'
+                control={control}
+                render={({ field }) => (
+                  <Select.Root
+                    size='small'
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <Select.Trigger id='property-type'>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      {(
+                        Object.entries(TYPE_LABELS) as [PropertyType, string][]
+                      ).map(([value, label]) => (
+                        <Select.Item key={value} value={value}>
+                          {label}
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )}
+              />
+              {errors.type && <p className='text-paragraph-xs text-error-base'>{errors.type.message}</p>}
             </div>
 
             {/* Address */}
@@ -133,12 +148,11 @@ export function PropertyFormModal({
                   <Input.Input
                     id='property-address'
                     placeholder='ул. Примерная, д. 1'
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    required
+                    {...register('address')}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {errors.address && <p className='text-paragraph-xs text-error-base'>{errors.address.message}</p>}
             </div>
 
             {/* Area + Class */}
@@ -154,35 +168,41 @@ export function PropertyFormModal({
                       type='number'
                       step='0.01'
                       placeholder='120.5'
-                      value={area}
-                      onChange={(e) => setArea(e.target.value)}
-                      required
+                      {...register('area')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
+                {errors.area && <p className='text-paragraph-xs text-error-base'>{errors.area.message}</p>}
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-class'>
                   Класс <Label.Asterisk />
                 </Label.Root>
-                <Select.Root
-                  size='small'
-                  value={propertyClass}
-                  onValueChange={(v) => setPropertyClass(v as PropertyClass)}
-                >
-                  <Select.Trigger id='property-class'>
-                    <Select.Value />
-                  </Select.Trigger>
-                  <Select.Content>
-                    {(
-                      Object.entries(CLASS_LABELS) as [PropertyClass, string][]
-                    ).map(([value, label]) => (
-                      <Select.Item key={value} value={value}>
-                        {label}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Root>
+                <Controller
+                  name='property_class'
+                  control={control}
+                  render={({ field }) => (
+                    <Select.Root
+                      size='small'
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <Select.Trigger id='property-class'>
+                        <Select.Value />
+                      </Select.Trigger>
+                      <Select.Content>
+                        {(
+                          Object.entries(CLASS_LABELS) as [PropertyClass, string][]
+                        ).map(([value, label]) => (
+                          <Select.Item key={value} value={value}>
+                            {label}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Root>
+                  )}
+                />
+                {errors.property_class && <p className='text-paragraph-xs text-error-base'>{errors.property_class.message}</p>}
               </div>
             </div>
 
@@ -199,30 +219,36 @@ export function PropertyFormModal({
                       type='number'
                       step='0.01'
                       placeholder='150000'
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      required
+                      {...register('price')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
+                {errors.price && <p className='text-paragraph-xs text-error-base'>{errors.price.message}</p>}
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
-                <Select.Root
-                  size='small'
-                  value={currency}
-                  onValueChange={setCurrency}
-                >
-                  <Select.Trigger id='property-currency'>
-                    <Select.Value />
-                  </Select.Trigger>
-                  <Select.Content>
-                    <Select.Item value='USD'>USD</Select.Item>
-                    <Select.Item value='EUR'>EUR</Select.Item>
-                    <Select.Item value='RUB'>RUB</Select.Item>
-                    <Select.Item value='TRY'>TRY</Select.Item>
-                  </Select.Content>
-                </Select.Root>
+                <Controller
+                  name='currency'
+                  control={control}
+                  render={({ field }) => (
+                    <Select.Root
+                      size='small'
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <Select.Trigger id='property-currency'>
+                        <Select.Value />
+                      </Select.Trigger>
+                      <Select.Content>
+                        <Select.Item value='USD'>USD</Select.Item>
+                        <Select.Item value='EUR'>EUR</Select.Item>
+                        <Select.Item value='RUB'>RUB</Select.Item>
+                        <Select.Item value='TRY'>TRY</Select.Item>
+                      </Select.Content>
+                    </Select.Root>
+                  )}
+                />
+                {errors.currency && <p className='text-paragraph-xs text-error-base'>{errors.currency.message}</p>}
               </div>
             </div>
 
@@ -235,35 +261,41 @@ export function PropertyFormModal({
                     <Input.Input
                       id='property-deadline'
                       type='date'
-                      value={deadline}
-                      onChange={(e) => setDeadline(e.target.value)}
+                      {...register('deadline')}
                     />
                   </Input.Wrapper>
                 </Input.Root>
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-status'>Статус</Label.Root>
-                <Select.Root
-                  size='small'
-                  value={status}
-                  onValueChange={(v) => setStatus(v as PropertyStatus)}
-                >
-                  <Select.Trigger id='property-status'>
-                    <Select.Value />
-                  </Select.Trigger>
-                  <Select.Content>
-                    {(
-                      Object.entries(STATUS_LABELS) as [
-                        PropertyStatus,
-                        string,
-                      ][]
-                    ).map(([value, label]) => (
-                      <Select.Item key={value} value={value}>
-                        {label}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select.Root>
+                <Controller
+                  name='status'
+                  control={control}
+                  render={({ field }) => (
+                    <Select.Root
+                      size='small'
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <Select.Trigger id='property-status'>
+                        <Select.Value />
+                      </Select.Trigger>
+                      <Select.Content>
+                        {(
+                          Object.entries(STATUS_LABELS) as [
+                            PropertyStatus,
+                            string,
+                          ][]
+                        ).map(([value, label]) => (
+                          <Select.Item key={value} value={value}>
+                            {label}
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Root>
+                  )}
+                />
+                {errors.status && <p className='text-paragraph-xs text-error-base'>{errors.status.message}</p>}
               </div>
             </div>
           </Modal.Body>

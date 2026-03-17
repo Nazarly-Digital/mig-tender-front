@@ -2,6 +2,8 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
   useGetCode,
@@ -10,20 +12,28 @@ import {
   useRegisterBroker,
 } from './queries';
 import type { GetCodeError429 } from '@/shared/types/auth';
+import {
+  emailStepSchema,
+  type EmailStepFormData,
+  brokerRegisterSchema,
+  type BrokerRegisterFormData,
+} from '@/shared/lib/validations';
 
 export function useBrokerRegistration() {
   const router = useRouter();
 
+  const emailForm = useForm<EmailStepFormData>({
+    resolver: zodResolver(emailStepSchema),
+  });
+
+  const registerForm = useForm<BrokerRegisterFormData>({
+    resolver: zodResolver(brokerRegisterSchema),
+  });
+
   const [step, setStep] = React.useState(1);
-  const [email, setEmail] = React.useState('');
   const [code, setCode] = React.useState('');
-  const [firstName, setFirstName] = React.useState('');
-  const [lastName, setLastName] = React.useState('');
-  const [innNumber, setInnNumber] = React.useState('');
   const [inn, setInn] = React.useState<File | null>(null);
   const [passport, setPassport] = React.useState<File | null>(null);
-  const [password, setPassword] = React.useState('');
-  const [passwordConfirm, setPasswordConfirm] = React.useState('');
   const [error, setError] = React.useState('');
   const [timer, setTimer] = React.useState(0);
 
@@ -41,11 +51,10 @@ export function useBrokerRegistration() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleGetCode = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGetCode = emailForm.handleSubmit((data) => {
     setError('');
     getCode.mutate(
-      { email },
+      { email: data.email },
       {
         onSuccess: () => {
           setTimer(60);
@@ -68,13 +77,13 @@ export function useBrokerRegistration() {
         },
       },
     );
-  };
+  });
 
   const handleVerifyEmail = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     verifyEmail.mutate(
-      { email, code },
+      { email: emailForm.getValues('email'), code },
       {
         onSuccess: () => {
           setStep(3);
@@ -95,7 +104,7 @@ export function useBrokerRegistration() {
   const handleResendCode = () => {
     setError('');
     resendCode.mutate(
-      { email },
+      { email: emailForm.getValues('email') },
       {
         onSuccess: () => {
           setTimer(60);
@@ -115,14 +124,8 @@ export function useBrokerRegistration() {
     );
   };
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRegister = registerForm.handleSubmit((data) => {
     setError('');
-
-    if (password !== passwordConfirm) {
-      setError('Пароли не совпадают');
-      return;
-    }
 
     if (!inn || !passport) {
       setError('Необходимо загрузить документ ИНН и паспорт');
@@ -131,12 +134,12 @@ export function useBrokerRegistration() {
 
     registerBroker.mutate(
       {
-        email,
-        password,
-        password_confirm: passwordConfirm,
-        first_name: firstName || undefined,
-        last_name: lastName || undefined,
-        inn_number: innNumber,
+        email: emailForm.getValues('email'),
+        password: data.password,
+        password_confirm: data.passwordConfirm,
+        first_name: data.firstName || undefined,
+        last_name: data.lastName || undefined,
+        inn_number: data.innNumber,
         inn,
         passport,
       },
@@ -157,29 +160,21 @@ export function useBrokerRegistration() {
         },
       },
     );
-  };
+  });
 
   return {
+    // forms
+    emailForm,
+    registerForm,
+
     // state
     step,
-    email,
-    setEmail,
     code,
     setCode,
-    firstName,
-    setFirstName,
-    lastName,
-    setLastName,
-    innNumber,
-    setInnNumber,
     inn,
     setInn,
     passport,
     setPassport,
-    password,
-    setPassword,
-    passwordConfirm,
-    setPasswordConfirm,
     error,
     timer,
 
