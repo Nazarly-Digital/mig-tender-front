@@ -6,9 +6,9 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import * as Button from '@/shared/ui/button';
 import * as FancyButton from '@/shared/ui/fancy-button';
-import * as Hint from '@/shared/ui/hint';
+import { HintLabel } from '@/shared/ui/hint-label';
 import * as Input from '@/shared/ui/input';
-import * as Label from '@/shared/ui/label';
+import { InputLabel } from '@/shared/ui/input-label';
 import * as Select from '@/shared/ui/select';
 import * as WidgetBox from '@/shared/components/widget-box';
 import { PageHeader } from '@/shared/components/page-header';
@@ -80,9 +80,7 @@ export default function CreateAuctionPage() {
           <WidgetBox.Header>Выбор объекта</WidgetBox.Header>
 
           <div className='space-y-1.5'>
-            <Label.Root htmlFor='auction-property'>
-              Объект <Label.Asterisk />
-            </Label.Root>
+            <InputLabel htmlFor='auction-property' label='Объект' required />
             {propertiesLoading ? (
               <div className='text-paragraph-sm text-text-soft-400'>Загрузка объектов...</div>
             ) : properties.length === 0 ? (
@@ -106,7 +104,7 @@ export default function CreateAuctionPage() {
                 </Select.Content>
               </Select.Root>
             )}
-            <Hint.Root>Выберите объект, который будет выставлен на аукцион</Hint.Root>
+            <HintLabel hint='Выберите объект, который будет выставлен на аукцион' />
           </div>
         </WidgetBox.Root>
 
@@ -115,9 +113,7 @@ export default function CreateAuctionPage() {
           <WidgetBox.Header>Параметры аукциона</WidgetBox.Header>
 
           <div className='space-y-1.5'>
-            <Label.Root htmlFor='auction-mode'>
-              Тип аукциона <Label.Asterisk />
-            </Label.Root>
+            <InputLabel htmlFor='auction-mode' label='Тип аукциона' required />
             <Select.Root
               value={mode}
               onValueChange={(v) => setMode(v as AuctionMode)}
@@ -138,9 +134,7 @@ export default function CreateAuctionPage() {
           </div>
 
           <div className='space-y-1.5'>
-            <Label.Root htmlFor='auction-min-price'>
-              Минимальная цена <Label.Asterisk />
-            </Label.Root>
+            <InputLabel htmlFor='auction-min-price' label='Минимальная цена' required />
             <Input.Root>
               <Input.Wrapper>
                 <Input.Input
@@ -154,7 +148,7 @@ export default function CreateAuctionPage() {
                 />
               </Input.Wrapper>
             </Input.Root>
-            <Hint.Root>Минимальная стартовая цена для ставок</Hint.Root>
+            <HintLabel hint='Минимальная стартовая цена для ставок' />
           </div>
         </WidgetBox.Root>
 
@@ -164,9 +158,7 @@ export default function CreateAuctionPage() {
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='auction-start'>
-                Дата начала <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='auction-start' label='Дата начала' required />
               <Input.Root>
                 <Input.Wrapper>
                   <Input.Input
@@ -180,9 +172,7 @@ export default function CreateAuctionPage() {
               </Input.Root>
             </div>
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='auction-end'>
-                Дата окончания <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='auction-end' label='Дата окончания' required />
               <Input.Root>
                 <Input.Wrapper>
                   <Input.Input

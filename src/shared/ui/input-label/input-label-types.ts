@@ -7,5 +7,7 @@ export type InputLabelProps = {
   supportText?: string;
   icon?: React.ReactNode;
   size?: InputLabelSize;
+  required?: boolean;
+  htmlFor?: string;
   className?: string;
 };

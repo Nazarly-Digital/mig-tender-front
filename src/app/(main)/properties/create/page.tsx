@@ -13,9 +13,9 @@ import { cn } from '@/shared/lib/cn';
 import * as Button from '@/shared/ui/button';
 import * as CompactButton from '@/shared/ui/compact-button';
 import * as FancyButton from '@/shared/ui/fancy-button';
-import * as Hint from '@/shared/ui/hint';
+import { HintLabel } from '@/shared/ui/hint-label';
 import * as Input from '@/shared/ui/input';
-import * as Label from '@/shared/ui/label';
+import { InputLabel } from '@/shared/ui/input-label';
 import * as Select from '@/shared/ui/select';
 import * as WidgetBox from '@/shared/components/widget-box';
 import { PageHeader } from '@/shared/components/page-header';
@@ -184,9 +184,7 @@ export default function CreatePropertyPage() {
           <WidgetBox.Header>Основная информация</WidgetBox.Header>
 
           <div className='space-y-1.5'>
-            <Label.Root htmlFor='property-type'>
-              Тип объекта <Label.Asterisk />
-            </Label.Root>
+            <InputLabel htmlFor='property-type' label='Тип объекта' required />
             <Select.Root
               value={type}
               onValueChange={(v) => setType(v as PropertyType)}
@@ -207,9 +205,7 @@ export default function CreatePropertyPage() {
           </div>
 
           <div className='space-y-1.5'>
-            <Label.Root htmlFor='property-address'>
-              Адрес <Label.Asterisk />
-            </Label.Root>
+            <InputLabel htmlFor='property-address' label='Адрес' required />
             <Input.Root hasError={!!addressError}>
               <Input.Wrapper>
                 <Input.Input
@@ -227,7 +223,7 @@ export default function CreatePropertyPage() {
             {addressError ? (
               <p className='text-paragraph-xs text-error-base'>{addressError}</p>
             ) : (
-              <Hint.Root>Полный адрес объекта недвижимости</Hint.Root>
+              <HintLabel hint='Полный адрес объекта недвижимости' />
             )}
           </div>
         </WidgetBox.Root>
@@ -238,9 +234,7 @@ export default function CreatePropertyPage() {
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='property-area'>
-                Площадь (м²) <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='property-area' label='Площадь (м²)' required />
               <Input.Root hasError={!!areaError}>
                 <Input.Wrapper>
                   <Input.Input
@@ -270,9 +264,7 @@ export default function CreatePropertyPage() {
               )}
             </div>
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='property-class'>
-                Класс <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='property-class' label='Класс' required />
               <Select.Root
                 value={propertyClass}
                 onValueChange={(v) => setPropertyClass(v as PropertyClass)}
@@ -300,9 +292,7 @@ export default function CreatePropertyPage() {
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='property-price'>
-                Цена <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='property-price' label='Цена' required />
               <Input.Root hasError={!!priceError}>
                 <Input.Wrapper>
                   <Input.Input
@@ -332,7 +322,7 @@ export default function CreatePropertyPage() {
               )}
             </div>
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
+              <InputLabel htmlFor='property-currency' label='Валюта' />
               <Select.Root value={currency} onValueChange={setCurrency}>
                 <Select.Trigger id='property-currency'>
                   <Select.Value />
@@ -354,7 +344,7 @@ export default function CreatePropertyPage() {
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='property-deadline'>Срок сдачи</Label.Root>
+              <InputLabel htmlFor='property-deadline' label='Срок сдачи' />
               <Input.Root>
                 <Input.Wrapper>
                   <Input.Input
@@ -365,10 +355,10 @@ export default function CreatePropertyPage() {
                   />
                 </Input.Wrapper>
               </Input.Root>
-              <Hint.Root>Оставьте пустым, если срок неизвестен</Hint.Root>
+              <HintLabel hint='Оставьте пустым, если срок неизвестен' />
             </div>
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='property-status'>Статус</Label.Root>
+              <InputLabel htmlFor='property-status' label='Статус' />
               <Select.Root
                 value={status}
                 onValueChange={(v) => setStatus(v as PropertyStatus)}
@@ -462,7 +452,7 @@ export default function CreatePropertyPage() {
             className='hidden'
             onChange={(e) => handleAddPhotos(e.target.files)}
           />
-          <Hint.Root>Перетащите фото для изменения порядка. Первое фото — главное. Поддерживаются JPG, PNG, WebP.</Hint.Root>
+          <HintLabel hint='Перетащите фото для изменения порядка. Первое фото — главное. Поддерживаются JPG, PNG, WebP.' />
         </WidgetBox.Root>
 
         {/* Actions */}

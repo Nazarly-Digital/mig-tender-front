@@ -8,12 +8,13 @@ const sizeMap: Record<string, string> = {
   lg: 'text-[length:var(--size-body-2,15px)] leading-[var(--lh-body-2,24px)]',
 };
 
-export function InputLabel({ label, supportText, icon, size = 'md', className }: InputLabelProps) {
+export function InputLabel({ label, supportText, icon, size = 'md', required, htmlFor, className }: InputLabelProps) {
   const textClasses = sizeMap[size];
   return (
-    <div className={`flex gap-[var(--space-xs,4px)] items-center px-[var(--space-xxs,2px)] ${className ?? ''}`}>
+    <label htmlFor={htmlFor} className={`flex gap-[var(--space-xs,4px)] items-center px-[var(--space-xxs,2px)] ${className ?? ''}`}>
       <span className={`font-body font-semibold not-italic text-[color:var(--text-med,#5b616d)] tracking-[var(--ls-none,0px)] whitespace-nowrap shrink-0 ${textClasses}`}>
         {label}
+        {required && <span className="text-[color:var(--text-danger,#ef4444)] ml-0.5">*</span>}
       </span>
       {supportText && (
         <span className={`font-body font-medium not-italic text-[color:var(--text-low,#8c929c)] tracking-[var(--ls-none,0px)] whitespace-nowrap shrink-0 ${textClasses}`}>
@@ -21,6 +22,6 @@ export function InputLabel({ label, supportText, icon, size = 'md', className }:
         </span>
       )}
       {icon && <span className="shrink-0 size-6 flex items-center justify-center">{icon}</span>}
-    </div>
+    </label>
   );
 }

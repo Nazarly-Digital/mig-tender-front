@@ -17,7 +17,7 @@ import * as Alert from '@/shared/ui/alert';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
-import * as Label from '@/shared/ui/label';
+import { InputLabel } from '@/shared/ui/input-label';
 import { useLogin } from '@/features/auth';
 
 function PasswordInput(
@@ -139,9 +139,7 @@ export default function PageLogin() {
           <div className='flex flex-col gap-3'>
             {/* Email */}
             <div className='flex flex-col gap-1'>
-              <Label.Root htmlFor='email'>
-                Email <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='email' label='Email' required />
               <Input.Root hasError={!!emailError}>
                 <Input.Wrapper>
                   <Input.Icon as={RiMailLine} />
@@ -166,9 +164,7 @@ export default function PageLogin() {
 
             {/* Password */}
             <div className='flex flex-col gap-1'>
-              <Label.Root htmlFor='password'>
-                Пароль <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='password' label='Пароль' required />
               <PasswordInput
                 id='password'
                 name='password'

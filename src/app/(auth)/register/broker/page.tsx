@@ -18,7 +18,7 @@ import * as DigitInput from '@/shared/ui/digit-input';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
-import * as Label from '@/shared/ui/label';
+import { InputLabel } from '@/shared/ui/input-label';
 import * as LinkButton from '@/shared/ui/link-button';
 import { useBrokerRegistration } from '@/features/auth';
 
@@ -126,9 +126,7 @@ export default function PageRegisterBroker() {
         {step === 1 && (
           <form onSubmit={handleGetCode} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
-              <Label.Root htmlFor='email'>
-                Email <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='email' label='Email' required />
               <Input.Root>
                 <Input.Wrapper>
                   <Input.Icon as={RiMailLine} />
@@ -160,9 +158,7 @@ export default function PageRegisterBroker() {
         {step === 2 && (
           <form onSubmit={handleVerifyEmail} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
-              <Label.Root>
-                Код подтверждения <Label.Asterisk />
-              </Label.Root>
+              <InputLabel label='Код подтверждения' required />
               <DigitInput.Root
                 value={code}
                 onChange={setCode}
@@ -213,7 +209,7 @@ export default function PageRegisterBroker() {
           <form onSubmit={handleRegister} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-3'>
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='firstName'>Имя</Label.Root>
+                <InputLabel htmlFor='firstName' label='Имя' />
                 <Input.Root>
                   <Input.Wrapper>
                     <Input.Icon as={RiUserLine} />
@@ -229,7 +225,7 @@ export default function PageRegisterBroker() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='lastName'>Фамилия</Label.Root>
+                <InputLabel htmlFor='lastName' label='Фамилия' />
                 <Input.Root>
                   <Input.Wrapper>
                     <Input.Icon as={RiUserLine} />
@@ -245,9 +241,7 @@ export default function PageRegisterBroker() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='innNumber'>
-                  ИНН номер <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='innNumber' label='ИНН номер' required />
                 <Input.Root>
                   <Input.Wrapper>
                     <Input.Icon as={RiFileTextLine} />
@@ -264,9 +258,7 @@ export default function PageRegisterBroker() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root>
-                  Документ ИНН <Label.Asterisk />
-                </Label.Root>
+                <InputLabel label='Документ ИНН' required />
                 <label className='flex cursor-pointer items-center gap-2 rounded-10 border border-stroke-soft-200 px-3 py-2.5 transition-colors hover:bg-bg-weak-50'>
                   <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
                   <span className='truncate text-paragraph-sm text-text-soft-400'>
@@ -282,9 +274,7 @@ export default function PageRegisterBroker() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root>
-                  Паспорт <Label.Asterisk />
-                </Label.Root>
+                <InputLabel label='Паспорт' required />
                 <label className='flex cursor-pointer items-center gap-2 rounded-10 border border-stroke-soft-200 px-3 py-2.5 transition-colors hover:bg-bg-weak-50'>
                   <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
                   <span className='truncate text-paragraph-sm text-text-soft-400'>
@@ -300,9 +290,7 @@ export default function PageRegisterBroker() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='password'>
-                  Пароль <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='password' label='Пароль' required />
                 <PasswordInput
                   id='password'
                   value={password}
@@ -312,9 +300,7 @@ export default function PageRegisterBroker() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='passwordConfirm'>
-                  Подтверждение пароля <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='passwordConfirm' label='Подтверждение пароля' required />
                 <PasswordInput
                   id='passwordConfirm'
                   value={passwordConfirm}

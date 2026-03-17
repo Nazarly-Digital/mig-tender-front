@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 import * as Modal from '@/shared/ui/modal';
 import * as Button from '@/shared/ui/button';
 import * as Input from '@/shared/ui/input';
-import * as Label from '@/shared/ui/label';
+import { InputLabel } from '@/shared/ui/input-label';
 import * as Select from '@/shared/ui/select';
 import { cn } from '@/shared/lib/cn';
 import {
@@ -79,7 +79,7 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
 
   return (
     <div className='space-y-2'>
-      <Label.Root>Фотографии</Label.Root>
+      <InputLabel label='Фотографии' />
 
       {images.length > 0 && (
         <div className='flex gap-2 overflow-x-auto pb-1'>
@@ -203,9 +203,7 @@ export function PropertyFormModal({
           <Modal.Body className='flex-1 space-y-4 overflow-y-auto'>
             {/* Type */}
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='property-type'>
-                Тип <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='property-type' label='Тип' required />
               <Select.Root
                 size='small'
                 value={type}
@@ -228,9 +226,7 @@ export function PropertyFormModal({
 
             {/* Address */}
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='property-address'>
-                Адрес <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='property-address' label='Адрес' required />
               <Input.Root size='small'>
                 <Input.Wrapper>
                   <Input.Input
@@ -247,9 +243,7 @@ export function PropertyFormModal({
             {/* Area + Class */}
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-area'>
-                  Площадь (м²) <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='property-area' label='Площадь (м²)' required />
                 <Input.Root size='small'>
                   <Input.Wrapper>
                     <Input.Input
@@ -265,9 +259,7 @@ export function PropertyFormModal({
                 </Input.Root>
               </div>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-class'>
-                  Класс <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='property-class' label='Класс' required />
                 <Select.Root
                   size='small'
                   value={propertyClass}
@@ -292,9 +284,7 @@ export function PropertyFormModal({
             {/* Price + Currency */}
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-price'>
-                  Цена <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='property-price' label='Цена' required />
                 <Input.Root size='small'>
                   <Input.Wrapper>
                     <Input.Input
@@ -310,7 +300,7 @@ export function PropertyFormModal({
                 </Input.Root>
               </div>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
+                <InputLabel htmlFor='property-currency' label='Валюта' />
                 <Select.Root
                   size='small'
                   value={currency}
@@ -332,7 +322,7 @@ export function PropertyFormModal({
             {/* Deadline + Status */}
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-deadline'>Срок сдачи</Label.Root>
+                <InputLabel htmlFor='property-deadline' label='Срок сдачи' />
                 <Input.Root size='small'>
                   <Input.Wrapper>
                     <Input.Input
@@ -345,7 +335,7 @@ export function PropertyFormModal({
                 </Input.Root>
               </div>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-status'>Статус</Label.Root>
+                <InputLabel htmlFor='property-status' label='Статус' />
                 <Select.Root
                   size='small'
                   value={status}

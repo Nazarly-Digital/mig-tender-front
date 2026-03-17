@@ -17,7 +17,7 @@ import * as DigitInput from '@/shared/ui/digit-input';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
-import * as Label from '@/shared/ui/label';
+import { InputLabel } from '@/shared/ui/input-label';
 import * as LinkButton from '@/shared/ui/link-button';
 import { useDeveloperRegistration } from '@/features/auth';
 
@@ -121,9 +121,7 @@ export default function PageRegisterDeveloper() {
         {step === 1 && (
           <form onSubmit={handleGetCode} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
-              <Label.Root htmlFor='email'>
-                Email <Label.Asterisk />
-              </Label.Root>
+              <InputLabel htmlFor='email' label='Email' required />
               <Input.Root>
                 <Input.Wrapper>
                   <Input.Icon as={RiMailLine} />
@@ -155,9 +153,7 @@ export default function PageRegisterDeveloper() {
         {step === 2 && (
           <form onSubmit={handleVerifyEmail} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
-              <Label.Root>
-                Код подтверждения <Label.Asterisk />
-              </Label.Root>
+              <InputLabel label='Код подтверждения' required />
               <DigitInput.Root
                 value={code}
                 onChange={setCode}
@@ -208,7 +204,7 @@ export default function PageRegisterDeveloper() {
           <form onSubmit={handleRegister} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-3'>
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='firstName'>Имя</Label.Root>
+                <InputLabel htmlFor='firstName' label='Имя' />
                 <Input.Root>
                   <Input.Wrapper>
                     <Input.Icon as={RiUserLine} />
@@ -224,7 +220,7 @@ export default function PageRegisterDeveloper() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='lastName'>Фамилия</Label.Root>
+                <InputLabel htmlFor='lastName' label='Фамилия' />
                 <Input.Root>
                   <Input.Wrapper>
                     <Input.Icon as={RiUserLine} />
@@ -240,9 +236,7 @@ export default function PageRegisterDeveloper() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='companyName'>
-                  Название компании <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='companyName' label='Название компании' required />
                 <Input.Root>
                   <Input.Wrapper>
                     <Input.Icon as={RiBuilding2Line} />
@@ -259,9 +253,7 @@ export default function PageRegisterDeveloper() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='password'>
-                  Пароль <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='password' label='Пароль' required />
                 <PasswordInput
                   id='password'
                   value={password}
@@ -271,9 +263,7 @@ export default function PageRegisterDeveloper() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='passwordConfirm'>
-                  Подтверждение пароля <Label.Asterisk />
-                </Label.Root>
+                <InputLabel htmlFor='passwordConfirm' label='Подтверждение пароля' required />
                 <PasswordInput
                   id='passwordConfirm'
                   value={passwordConfirm}
