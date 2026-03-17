@@ -7,11 +7,15 @@ import {
   RiAddLine,
   RiArrowRightSLine,
   RiAuctionLine,
+  RiBarChartBoxLine,
   RiBuilding2Line,
   RiFileLine,
+  RiHandCoinLine,
   RiHeadphoneLine,
   RiLayoutGridLine,
   RiSettings2Line,
+  RiUserLine,
+  RiWalletLine,
 } from '@remixicon/react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -38,6 +42,10 @@ export const navigationLinks: NavigationLink[] = [
   { icon: RiBuilding2Line, label: 'Каталог объектов', href: '/catalog', brokerOnly: true },
   { icon: RiBuilding2Line, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: RiAddLine, label: 'Создать объект', href: '/properties/create', developerOnly: true },
+  { icon: RiUserLine, label: 'Личный кабинет', href: '/cabinet', brokerOnly: true },
+  { icon: RiHandCoinLine, label: 'Сделки', developerLabel: 'Фиксация сделки', href: '/deals' },
+  { icon: RiWalletLine, label: 'Выплаты / история', href: '/payments', brokerOnly: true },
+  { icon: RiBarChartBoxLine, label: 'Аналитика', href: '/analytics', developerOnly: true },
   { icon: RiFileLine, label: 'Документы', href: '/documents' },
 ];
 
