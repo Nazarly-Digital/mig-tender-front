@@ -1,4 +1,5 @@
 export {
+  useMe,
   useLogin,
   useGetCode,
   useVerifyEmail,

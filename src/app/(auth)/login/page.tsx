@@ -20,6 +20,8 @@ import * as Input from '@/shared/ui/input';
 import { InputField } from '@/shared/ui/input-field';
 import { InputLabel } from '@/shared/ui/input-label';
 import { useLogin } from '@/features/auth';
+import { authService } from '@/entities/auth/api/auth.service';
+import { useSessionStore } from '@/entities/auth/model/store';
 
 function PasswordInput(
   props: React.ComponentPropsWithoutRef<typeof Input.Input> & { hasError?: boolean },
@@ -51,6 +53,8 @@ function PasswordInput(
 export default function PageLogin() {
   const router = useRouter();
   const login = useLogin();
+  const setMeUser = useSessionStore((s) => s.setMeUser);
+  const [isFetchingMe, setIsFetchingMe] = React.useState(false);
 
   const [email, setEmail] = React.useState('');
   const [emailError, setEmailError] = React.useState('');
@@ -86,7 +90,15 @@ export default function PageLogin() {
     login.mutate(
       { email, password },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          setIsFetchingMe(true);
+          try {
+            const res = await authService.me();
+            setMeUser(res.data);
+          } catch {
+            // продолжаем даже если /me не сработал
+          }
+          setIsFetchingMe(false);
           router.push('/dashboard');
         },
         onError: (err) => {
@@ -185,9 +197,9 @@ export default function PageLogin() {
             type='submit'
             variant='primary'
             size='medium'
-            disabled={login.isPending}
+            disabled={login.isPending || isFetchingMe}
           >
-            {login.isPending ? 'Вход...' : 'Войти'}
+            {login.isPending || isFetchingMe ? 'Вход...' : 'Войти'}
           </FancyButton.Root>
         </form>
       </div>

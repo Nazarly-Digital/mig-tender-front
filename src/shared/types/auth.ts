@@ -96,3 +96,35 @@ export type BrokerVerificationRequest = {
   id: number;
   action: "accept" | "reject";
 };
+
+// Broker Info (from /auth/me/)
+export type BrokerVerificationStatus = "pending" | "accepted" | "rejected";
+
+export type BrokerInfo = {
+  is_verified: boolean;
+  verification_status: BrokerVerificationStatus;
+  verified_at: string | null;
+  rejected_at: string | null;
+  inn_number: string;
+  inn_url: string;
+  passport_url: string;
+};
+
+export type DeveloperInfo = {
+  company_name: string;
+};
+
+// /auth/me/ response
+export type MeUser = {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
+  date_joined: string;
+  is_broker: boolean;
+  is_developer: boolean;
+  is_admin: boolean;
+  broker: BrokerInfo | null;
+  developer: DeveloperInfo | null;
+};
