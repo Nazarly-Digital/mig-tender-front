@@ -82,6 +82,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
   const progress = getTimeProgress(auction.start_date, auction.end_date);
 
   return (
+    <Link href={`/auctions/${auction.id}`} className='block'>
     <div
       className={`flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 ${
         isActive ? 'border-l-[3px] border-l-success-base' : ''
@@ -170,6 +171,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
         </div>
       </div>
     </div>
+    </Link>
   );
 }
 

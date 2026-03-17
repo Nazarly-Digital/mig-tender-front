@@ -21,9 +21,80 @@ export type Auction = {
   updated_at: string;
 };
 
-export type AuctionDetail = Auction & {
-  bids: unknown;
+export type Bid = {
+  id: number;
+  auction: number;
+  broker: number;
+  amount: string;
+  created_at: string;
 };
+
+export type AuctionDetail = Auction & {
+  bids: Bid[];
+};
+
+// WebSocket message types
+export type WsAuctionSnapshot = {
+  type: 'auction_snapshot';
+  auction: {
+    id: number;
+    mode: AuctionMode;
+    status: AuctionStatus;
+    min_price: string;
+    start_date: string;
+    end_date: string;
+    bids_count: number;
+    current_price: string;
+    highest_bid_id: number | null;
+    owner_id: number;
+    updated_at: string;
+  };
+  bids: Bid[];
+};
+
+export type WsParticipantsSnapshot = {
+  type: 'participants_snapshot';
+  participants: number[];
+};
+
+export type WsBidCreated = {
+  type: 'bid_created';
+  auction: {
+    id: number;
+    bids_count: number;
+    current_price: string;
+    highest_bid_id: number;
+    updated_at: string;
+  };
+  bid: Bid;
+};
+
+export type WsParticipantJoined = {
+  type: 'participant_joined';
+  auction_id: number;
+  user_id: number;
+  participants_count: number;
+};
+
+export type WsAuctionUpdated = {
+  type: 'auction_updated';
+  status?: AuctionStatus;
+  winner_bid_id?: number;
+  [key: string]: unknown;
+};
+
+export type WsError = {
+  type: 'error';
+  detail: string | { detail: string };
+};
+
+export type WsMessage =
+  | WsAuctionSnapshot
+  | WsParticipantsSnapshot
+  | WsBidCreated
+  | WsParticipantJoined
+  | WsAuctionUpdated
+  | WsError;
 
 export type AuctionCreateRequest = {
   property_id: number;

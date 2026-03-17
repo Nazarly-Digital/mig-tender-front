@@ -30,6 +30,56 @@ export function useAuctions(params?: AuctionListParams) {
   });
 }
 
+export function useAuctionDetail(id: number) {
+  return useQuery({
+    queryKey: auctionKeys.detail(id),
+    queryFn: () => auctionsService.getById(id).then((res) => res.data),
+    enabled: id > 0,
+  });
+}
+
+export function useJoinAuction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => auctionsService.join(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
+  });
+}
+
+export function usePlaceSealedBid() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount }: { id: number; amount: string }) =>
+      auctionsService.placeBid(id, amount).then((res) => res.data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.detail(id) });
+    },
+  });
+}
+
+export function useUpdateSealedBid() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount }: { id: number; amount: string }) =>
+      auctionsService.updateBid(id, amount).then((res) => res.data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.detail(id) });
+    },
+  });
+}
+
+export function useCancelAuction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => auctionsService.cancel(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
+  });
+}
+
 export function useCreateAuction() {
   const queryClient = useQueryClient();
   return useMutation({
