@@ -1,27 +1,31 @@
 'use client';
 
 import type { InputLabelProps } from './input-label-types';
+import { cnExt } from '@/shared/lib/cn';
 
 const sizeMap: Record<string, string> = {
-  sm: 'text-[length:var(--size-body-1,13px)] leading-[var(--lh-para,20px)]',
-  md: 'text-[length:var(--size-body-1,13px)] leading-[var(--lh-para,20px)]',
-  lg: 'text-[length:var(--size-body-2,15px)] leading-[var(--lh-body-2,24px)]',
+  sm: 'text-paragraph-xs',
+  md: 'text-paragraph-sm',
+  lg: 'text-paragraph-md',
 };
 
 export function InputLabel({ label, supportText, icon, size = 'md', required, htmlFor, className }: InputLabelProps) {
   const textClasses = sizeMap[size];
   return (
-    <label htmlFor={htmlFor} className={`flex gap-[var(--space-xs,4px)] items-center px-[var(--space-xxs,2px)] ${className ?? ''}`}>
-      <span className={`font-body font-semibold not-italic text-[color:var(--text-med,#5b616d)] tracking-[var(--ls-none,0px)] whitespace-nowrap shrink-0 ${textClasses}`}>
+    <label
+      htmlFor={htmlFor}
+      className={cnExt('flex items-center gap-1', className)}
+    >
+      <span className={cnExt('font-medium text-text-sub-600', textClasses)}>
         {label}
-        {required && <span className="text-[color:var(--text-danger,#ef4444)] ml-0.5">*</span>}
+        {required && <span className="text-error-base ml-0.5">*</span>}
       </span>
       {supportText && (
-        <span className={`font-body font-medium not-italic text-[color:var(--text-low,#8c929c)] tracking-[var(--ls-none,0px)] whitespace-nowrap shrink-0 ${textClasses}`}>
+        <span className={cnExt('text-text-soft-400', textClasses)}>
           {supportText}
         </span>
       )}
-      {icon && <span className="shrink-0 size-6 flex items-center justify-center">{icon}</span>}
+      {icon && <span className="shrink-0 size-5 flex items-center justify-center text-text-soft-400">{icon}</span>}
     </label>
   );
 }
