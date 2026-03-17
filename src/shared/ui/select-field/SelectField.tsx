@@ -1,47 +1,27 @@
 'use client';
 
 import { useId } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { useSquircle } from '@/shared/lib/use-squircle';
+import { RiArrowDownSLine } from '@remixicon/react';
+import { cnExt } from '@/shared/lib/cn';
 import { InputLabel } from '@/shared/ui/input-label';
 import { HintLabel } from '@/shared/ui/hint-label';
 import type { SelectFieldProps, SelectFieldState } from './select-field-types';
 
-const stateRing: Record<SelectFieldState, string> = {
-  default:       '',
-  hover:         '',
-  focus:         'shadow-[0px_0px_0px_3px_var(--outline-secondary,rgba(0,0,0,0.12))]',
-  primary_light: '',
-  active:        'shadow-[0px_0px_0px_3px_var(--outline-primary,rgba(99,102,241,0.22))]',
-  danger:        'shadow-[0px_0px_0px_3px_var(--outline-danger,rgba(239,68,68,0.22))]',
-  disabled:      '',
-};
-
-const stateBg: Record<SelectFieldState, string> = {
-  default:       'bg-[var(--surface-s2,#f2f2f4)]',
-  hover:         'bg-[var(--surface-s2,#f2f2f4)] brightness-[0.97]',
-  focus:         'bg-[var(--surface-s2,#f2f2f4)]',
-  primary_light: 'bg-[var(--surface-primary-light,rgba(99,102,241,0.1))]',
-  active:        'bg-[var(--surface-primary-light,rgba(99,102,241,0.1))]',
-  danger:        'bg-[var(--surface-s2,#f2f2f4)]',
-  disabled:      'bg-[var(--surface-s2,#f2f2f4)]',
-};
-
-const stateTextPrimary: Record<SelectFieldState, string> = {
-  default:       'text-[color:var(--text-med,#5b616d)]',
-  hover:         'text-[color:var(--text-med,#5b616d)]',
-  focus:         'text-[color:var(--text-med,#5b616d)]',
-  primary_light: 'text-[color:var(--text-primary,#6366f1)]',
-  active:        'text-[color:var(--text-primary,#6366f1)]',
-  danger:        'text-[color:var(--text-med,#5b616d)]',
-  disabled:      'text-[color:var(--text-med,#5b616d)]',
+const stateStyles: Record<SelectFieldState, string> = {
+  default: '',
+  hover: 'bg-bg-weak-50 shadow-none before:ring-transparent',
+  focus: 'shadow-[0_0_0_2px_var(--color-bg-white-0),0_0_0_4px_var(--color-neutral-alpha-16)] before:ring-stroke-strong-950',
+  primary_light: 'bg-primary-alpha-10 before:ring-primary-base',
+  active: 'shadow-[0_0_0_2px_var(--color-bg-white-0),0_0_0_4px_var(--color-primary-alpha-24)] before:ring-primary-base',
+  danger: 'before:ring-error-base',
+  disabled: '',
 };
 
 export function SelectField({
   label, labelSupportText,
   hint, hintSupportText, hintIcon,
   leftImage, leftIcon, rightIcon,
-  primaryText = 'Select option',
+  primaryText = 'Выберите...',
   secondaryText,
   state = 'default',
   disabled,
@@ -52,59 +32,65 @@ export function SelectField({
   const autoId = useId();
   const id = externalId ?? autoId;
   const effectiveState: SelectFieldState = disabled ? 'disabled' : state;
-  const { ref: bgRef, style: squircleStyle } = useSquircle<HTMLDivElement>(10, 0.8);
 
   return (
-    <div className={`flex flex-col gap-[var(--space-xs,4px)] items-start w-full ${className ?? ''}`}>
+    <div className={cnExt('flex flex-col gap-1 w-full', className)}>
       {label && <InputLabel label={label} supportText={labelSupportText} size="sm" />}
 
       <div
-        className={[
-          'relative shrink-0 w-full h-[32px] min-h-[32px] rounded-[8px]',
-          stateRing[effectiveState],
-          effectiveState === 'disabled' ? 'opacity-40 cursor-not-allowed pointer-events-none' : '',
-          'transition-shadow duration-150',
-        ].join(' ')}
+        className={cnExt(
+          'group relative flex w-full overflow-hidden bg-bg-white-0 shadow-regular-xs rounded-[0.625rem]',
+          'transition duration-200 ease-out',
+          'before:absolute before:inset-0 before:ring-1 before:ring-inset before:ring-stroke-soft-200',
+          'before:pointer-events-none before:rounded-[inherit]',
+          'before:transition before:duration-200 before:ease-out',
+          'hover:shadow-none',
+          effectiveState === 'disabled' && 'opacity-40 cursor-not-allowed pointer-events-none shadow-none before:ring-transparent bg-bg-weak-50',
+          effectiveState === 'danger' && 'before:ring-error-base hover:before:ring-error-base',
+          stateStyles[effectiveState],
+        )}
       >
-        <div ref={bgRef} style={squircleStyle} className={`absolute inset-0 ${stateBg[effectiveState]}`} />
-
         <button
           id={id}
           type="button"
           disabled={disabled || effectiveState === 'disabled'}
           onClick={onClick}
-          className="relative z-10 flex items-center w-full h-full gap-[4px] px-[8px] py-[4px] bg-transparent border-none outline-none cursor-pointer text-[length:var(--size-body-1,13px)] leading-[var(--lh-body-1,24px)]"
+          className="flex w-full cursor-pointer items-center gap-2 bg-bg-white-0 px-3 h-10 transition duration-200 ease-out hover:bg-bg-weak-50 outline-none border-none text-sm"
         >
           {(leftImage || leftIcon) && (
-            <div className="flex gap-[var(--space-sm,6px)] items-center justify-center shrink-0">
+            <span className="flex shrink-0 items-center justify-center">
               {leftImage && (
-                <div className="relative rounded-full shadow-[0px_1px_1px_-0.5px_var(--elevation-shadow,rgba(0,0,0,0.03))] shrink-0 size-6 overflow-hidden">
-                  <img src={leftImage} alt="" className="absolute inset-0 size-full object-cover pointer-events-none" />
+                <div className="relative rounded-full shrink-0 size-6 overflow-hidden">
+                  <img src={leftImage} alt="" className="absolute inset-0 size-full object-cover" />
                 </div>
               )}
-              {leftIcon && <span className="overflow-clip relative shrink-0 size-6 flex items-center justify-center">{leftIcon}</span>}
-            </div>
+              {leftIcon && (
+                <span className="size-5 flex items-center justify-center text-text-soft-400">{leftIcon}</span>
+              )}
+            </span>
           )}
 
-          <div className="flex flex-1 min-w-0 items-center gap-[var(--space-xs,4px)] px-[var(--space-xs,4px)] whitespace-nowrap overflow-hidden">
-            <span className={`font-body font-semibold shrink-0 ${stateTextPrimary[effectiveState]}`}>{primaryText}</span>
+          <span className="flex flex-1 min-w-0 items-center gap-1 overflow-hidden">
+            <span className={cnExt(
+              'truncate',
+              effectiveState === 'primary_light' || effectiveState === 'active'
+                ? 'text-primary-base'
+                : 'text-text-strong-950',
+            )}>
+              {primaryText}
+            </span>
             {secondaryText && (
-              <span className="font-body font-medium shrink-0 text-[color:var(--text-low,#8c929c)]">{secondaryText}</span>
+              <span className="truncate text-text-soft-400">{secondaryText}</span>
             )}
-          </div>
+          </span>
 
-          <div className="flex items-center justify-center shrink-0">
+          <span className="flex shrink-0 items-center justify-center">
             {rightIcon ? (
-              <span className="overflow-clip relative shrink-0 size-6 flex items-center justify-center">{rightIcon}</span>
+              <span className="size-5 flex items-center justify-center text-text-soft-400">{rightIcon}</span>
             ) : (
-              <ChevronDown
-                size={24}
-                strokeWidth={1.5}
-                className="shrink-0"
-                color={effectiveState === 'primary_light' || effectiveState === 'active' ? 'var(--text-primary,#6366f1)' : 'var(--text-med,#5b616d)'}
-              />
+              <RiArrowDownSLine className="size-5 text-text-soft-400" />
             )}
-          </div>
+          </span>
         </button>
       </div>
 
