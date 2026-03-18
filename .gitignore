@@ -41,3 +41,9 @@ yarn-error.log*
 next-env.d.ts
 # next-agents-md
 .next-docs/
+
+# Playwright MCP
+.playwright-mcp/
+
+# Screenshots
+screenshot-*.png

@@ -1,2 +1,0 @@
-[   55602ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://backend.migntender.app/api/v1/admin/users/?ordering=-created_at&page_size=2:0
-[   77982ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://backend.migntender.app/api/v1/admin/users/?ordering=-created_at&page_size=50:0
