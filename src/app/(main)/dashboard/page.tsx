@@ -10,6 +10,7 @@ import {
   Award01Icon,
 } from '@hugeicons/core-free-icons';
 
+import * as FancyButton from '@/shared/ui/fancy-button';
 import { useMyProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
@@ -67,11 +68,8 @@ function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
           {isDeveloper ? 'Создайте новый объект или аукцион' : 'Просмотрите доступные аукционы'}
         </p>
       </div>
-      <Link href={isDeveloper ? '/properties/create' : '/auctions'} className='mt-4'>
-        <button
-          type='button'
-          className='inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-blue-700'
-        >
+      <FancyButton.Root variant='primary' size='small' asChild className='mt-4'>
+        <Link href={isDeveloper ? '/properties/create' : '/auctions'}>
           <HugeiconsIcon
             icon={isDeveloper ? Add01Icon : EyeIcon}
             size={16}
@@ -79,8 +77,8 @@ function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
             strokeWidth={1.5}
           />
           {isDeveloper ? 'Создать объект' : 'Смотреть аукционы'}
-        </button>
-      </Link>
+        </Link>
+      </FancyButton.Root>
     </div>
   );
 }

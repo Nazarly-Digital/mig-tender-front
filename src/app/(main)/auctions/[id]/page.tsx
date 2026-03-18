@@ -17,6 +17,7 @@ import {
 } from '@hugeicons/core-free-icons';
 
 import { DetailPageSkeleton } from '@/shared/components/skeletons';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Modal from '@/shared/ui/modal';
@@ -175,24 +176,22 @@ function PlaceBidModal({
           </Modal.Body>
           <Modal.Footer>
             <Modal.Close asChild>
-              <button
-                type='button'
-                className='bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors'
-              >
+              <FancyButton.Root variant='basic' size='small'>
                 Отмена
-              </button>
+              </FancyButton.Root>
             </Modal.Close>
-            <button
+            <FancyButton.Root
+              variant='primary'
+              size='small'
               type='submit'
               disabled={mutation.isPending || !amount.trim()}
-              className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50'
             >
               {mutation.isPending
                 ? 'Отправка...'
                 : isUpdate
                   ? 'Обновить'
                   : 'Разместить'}
-            </button>
+            </FancyButton.Root>
           </Modal.Footer>
         </form>
       </Modal.Content>
@@ -274,21 +273,18 @@ function SelectWinnerModal({
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>
-            <button
-              type='button'
-              className='bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors'
-            >
+            <FancyButton.Root variant='basic' size='small'>
               Отмена
-            </button>
+            </FancyButton.Root>
           </Modal.Close>
-          <button
-            type='button'
+          <FancyButton.Root
+            variant='primary'
+            size='small'
             disabled={!selectedBidId || selectWinner.isPending}
             onClick={handleSubmit}
-            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50'
           >
             {selectWinner.isPending ? 'Выбор...' : 'Подтвердить'}
-          </button>
+          </FancyButton.Root>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
@@ -327,12 +323,11 @@ export default function AuctionDetailPage() {
         <div className='text-sm font-medium text-gray-500'>
           Аукцион не найден
         </div>
-        <Link
-          href='/auctions'
-          className='bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors'
-        >
-          Назад к аукционам
-        </Link>
+        <FancyButton.Root variant='basic' size='small' asChild>
+          <Link href='/auctions'>
+            Назад к аукционам
+          </Link>
+        </FancyButton.Root>
       </div>
     );
   }
@@ -405,22 +400,22 @@ export default function AuctionDetailPage() {
         </div>
         <div className='flex items-center gap-2'>
           {!isDeveloper && isActive && !isParticipant && (
-            <button type='button' onClick={handleJoin} disabled={joinAuction.isPending} className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 inline-flex items-center gap-2'>
+            <FancyButton.Root variant='primary' size='small' onClick={handleJoin} disabled={joinAuction.isPending}>
               <HugeiconsIcon icon={UserIcon} size={16} color='currentColor' strokeWidth={1.5} />
               {joinAuction.isPending ? 'Присоединение...' : 'Участвовать'}
-            </button>
+            </FancyButton.Root>
           )}
           {!isDeveloper && isActive && isParticipant && (
-            <button type='button' onClick={() => setBidModalOpen(true)} className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-2'>
+            <FancyButton.Root variant='primary' size='small' onClick={() => setBidModalOpen(true)}>
               <HugeiconsIcon icon={Coins01Icon} size={16} color='currentColor' strokeWidth={1.5} />
               {myBid ? 'Обновить ставку' : 'Сделать ставку'}
-            </button>
+            </FancyButton.Root>
           )}
           {isOwner && isActive && bidsList.length > 0 && (
-            <button type='button' onClick={() => setWinnerModalOpen(true)} className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-2'>
+            <FancyButton.Root variant='primary' size='small' onClick={() => setWinnerModalOpen(true)}>
               <HugeiconsIcon icon={ChampionIcon} size={16} color='currentColor' strokeWidth={1.5} />
               Выбрать победителя
-            </button>
+            </FancyButton.Root>
           )}
         </div>
       </div>
@@ -568,10 +563,10 @@ export default function AuctionDetailPage() {
             {isOwner && isActive && shortlistIds.size > 0 && (
               <>
                 <div className='my-3 border-t border-blue-50' />
-                <button type='button' className='w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2' onClick={handleShortlist} disabled={shortlist.isPending}>
+                <FancyButton.Root variant='primary' size='small' className='w-full' onClick={handleShortlist} disabled={shortlist.isPending}>
                   <HugeiconsIcon icon={CheckListIcon} size={16} color='currentColor' strokeWidth={1.5} />
                   {shortlist.isPending ? 'Формирование...' : `В шорт-лист (${shortlistIds.size})`}
-                </button>
+                </FancyButton.Root>
               </>
             )}
           </div>

@@ -10,6 +10,7 @@ import {
 } from '@hugeicons/core-free-icons';
 
 import { TableSkeleton } from '@/shared/components/skeletons';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
 import { PageHeader } from '@/shared/components/page-header';
 import {
@@ -120,21 +121,18 @@ function ApproveModal({
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>
-            <button
-              type='button'
-              className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
-            >
+            <FancyButton.Root variant='basic' size='small'>
               Отмена
-            </button>
+            </FancyButton.Root>
           </Modal.Close>
-          <button
-            type='button'
+          <FancyButton.Root
+            variant='primary'
+            size='small'
             onClick={handleConfirm}
             disabled={approve.isPending}
-            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
           >
             {approve.isPending ? 'Одобрение...' : 'Одобрить'}
-          </button>
+          </FancyButton.Root>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
@@ -218,20 +216,18 @@ function RejectModal({
           </Modal.Body>
           <Modal.Footer>
             <Modal.Close asChild>
-              <button
-                type='button'
-                className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
-              >
+              <FancyButton.Root variant='basic' size='small'>
                 Отмена
-              </button>
+              </FancyButton.Root>
             </Modal.Close>
-            <button
+            <FancyButton.Root
+              variant='destructive'
+              size='small'
               type='submit'
               disabled={reject.isPending}
-              className='bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
             >
               {reject.isPending ? 'Отклонение...' : 'Отклонить'}
-            </button>
+            </FancyButton.Root>
           </Modal.Footer>
         </form>
       </Modal.Content>
@@ -344,22 +340,14 @@ export default function AdminPropertiesPage() {
                   </td>
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
-                      <button
-                        type='button'
-                        onClick={() => setApproveTarget(property)}
-                        className='inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
-                      >
+                      <FancyButton.Root variant='primary' size='xsmall' onClick={() => setApproveTarget(property)}>
                         <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         Одобрить
-                      </button>
-                      <button
-                        type='button'
-                        onClick={() => setRejectTarget(property)}
-                        className='inline-flex items-center gap-1 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
-                      >
+                      </FancyButton.Root>
+                      <FancyButton.Root variant='basic' size='xsmall' onClick={() => setRejectTarget(property)}>
                         <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         Отклонить
-                      </button>
+                      </FancyButton.Root>
                     </div>
                   </td>
                 </tr>

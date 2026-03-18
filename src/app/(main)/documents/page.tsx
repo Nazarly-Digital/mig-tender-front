@@ -14,6 +14,7 @@ import {
 } from '@hugeicons/core-free-icons';
 
 import { cn } from '@/shared/lib/cn';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
 import { PageHeader } from '@/shared/components/page-header';
 
@@ -220,21 +221,17 @@ function UploadModal({
         </Modal.Body>
 
         <Modal.Footer>
-          <button
-            type='button'
-            onClick={handleClose}
-            className='bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors'
-          >
+          <FancyButton.Root variant='basic' size='small' onClick={handleClose}>
             Отмена
-          </button>
-          <button
-            type='button'
+          </FancyButton.Root>
+          <FancyButton.Root
+            variant='primary'
+            size='small'
             disabled={selectedFiles.length === 0}
             onClick={handleUpload}
-            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed'
           >
             Загрузить{selectedFiles.length > 0 ? ` (${selectedFiles.length})` : ''}
-          </button>
+          </FancyButton.Root>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
@@ -275,13 +272,9 @@ export default function DocumentsPage() {
         description='Управляйте вашими документами'
         action={
           documents.length > 0 ? (
-            <button
-              type='button'
-              onClick={() => setModalOpen(true)}
-              className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors'
-            >
+            <FancyButton.Root variant='primary' size='small' onClick={() => setModalOpen(true)}>
               Загрузить документы
-            </button>
+            </FancyButton.Root>
           ) : undefined
         }
       />
@@ -295,13 +288,9 @@ export default function DocumentsPage() {
             <p className='text-[13px] text-gray-400 mt-1 max-w-sm text-center'>
               Загрузите документы, чтобы они появились здесь
             </p>
-            <button
-              type='button'
-              onClick={() => setModalOpen(true)}
-              className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors mt-5'
-            >
+            <FancyButton.Root variant='primary' size='small' className='mt-5' onClick={() => setModalOpen(true)}>
               Загрузить документы
-            </button>
+            </FancyButton.Root>
           </div>
         </div>
       ) : (

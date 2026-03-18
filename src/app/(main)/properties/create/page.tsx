@@ -13,6 +13,7 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/shared/lib/cn';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
@@ -363,18 +364,19 @@ export default function CreatePropertyPage() {
 
         {/* Actions */}
         <div className='mt-5 flex items-center gap-3'>
-          <Link href='/properties'>
-            <button type='button' className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-5 py-2.5 text-[13px] font-medium transition-colors'>
+          <FancyButton.Root variant='basic' size='small' asChild>
+            <Link href='/properties'>
               Отмена
-            </button>
-          </Link>
-          <button
+            </Link>
+          </FancyButton.Root>
+          <FancyButton.Root
+            variant='primary'
+            size='small'
             type='submit'
             disabled={createMutation.isPending}
-            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-5 py-2.5 text-[13px] font-medium transition-colors disabled:opacity-50'
           >
             {createMutation.isPending ? 'Создание...' : 'Создать объект'}
-          </button>
+          </FancyButton.Root>
         </div>
       </form>
     </div>

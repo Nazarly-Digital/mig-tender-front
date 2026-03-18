@@ -6,6 +6,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { Award01Icon, Clock01Icon, Add01Icon } from '@hugeicons/core-free-icons';
 
 import { AuctionGridSkeleton } from '@/shared/components/skeletons';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
 import type {
@@ -140,13 +141,12 @@ export default function AuctionsPage() {
           </p>
         </div>
         {isDeveloper && (
-          <Link
-            href='/auctions/create'
-            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors inline-flex items-center gap-2'
-          >
-            <HugeiconsIcon icon={Add01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-            Создать аукцион
-          </Link>
+          <FancyButton.Root variant='primary' size='small' asChild>
+            <Link href='/auctions/create'>
+              <HugeiconsIcon icon={Add01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+              Создать аукцион
+            </Link>
+          </FancyButton.Root>
         )}
       </div>
 
@@ -184,13 +184,12 @@ export default function AuctionsPage() {
           {isDeveloper && tab === 'all' && (
             <>
               <div className='text-sm text-gray-500'>Создайте свой первый аукцион</div>
-              <Link
-                href='/auctions/create'
-                className='mt-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors inline-flex items-center gap-2'
-              >
-                <HugeiconsIcon icon={Add01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-                Создать аукцион
-              </Link>
+              <FancyButton.Root variant='primary' size='small' asChild className='mt-1'>
+                <Link href='/auctions/create'>
+                  <HugeiconsIcon icon={Add01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                  Создать аукцион
+                </Link>
+              </FancyButton.Root>
             </>
           )}
         </div>

@@ -14,6 +14,7 @@ import {
   Building03Icon,
 } from '@hugeicons/core-free-icons';
 
+import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
 import * as Select from '@/shared/ui/select';
 import { cn } from '@/shared/lib/cn';
@@ -279,12 +280,12 @@ export default function PropertiesPage() {
           <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>Мои объекты</h1>
           <p className='mt-1 text-sm text-gray-500'>Управление объектами недвижимости</p>
         </div>
-        <Link href='/properties/create'>
-          <button className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-2'>
+        <FancyButton.Root variant='primary' size='small' asChild>
+          <Link href='/properties/create'>
             <HugeiconsIcon icon={Add01Icon} size={16} />
             Создать объект
-          </button>
-        </Link>
+          </Link>
+        </FancyButton.Root>
       </div>
 
       {/* Filters */}
@@ -403,20 +404,22 @@ export default function PropertiesPage() {
             description={`Вы уверены, что хотите удалить \u00AB${deletingProperty?.address}\u00BB? Это действие нельзя отменить.`}
           />
           <Modal.Footer>
-            <button
+            <FancyButton.Root
+              variant='basic'
+              size='small'
               onClick={() => setDeleteDialogOpen(false)}
               disabled={deleteMutation.isPending}
-              className='border border-gray-200 rounded-lg px-4 py-2 text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50'
             >
               Отмена
-            </button>
-            <button
+            </FancyButton.Root>
+            <FancyButton.Root
+              variant='destructive'
+              size='small'
               onClick={handleDeleteConfirm}
               disabled={deleteMutation.isPending}
-              className='bg-red-600 text-white rounded-lg px-4 py-2 text-[13px] font-medium hover:bg-red-700 transition-colors disabled:opacity-50'
             >
               {deleteMutation.isPending ? 'Удаление...' : 'Удалить'}
-            </button>
+            </FancyButton.Root>
           </Modal.Footer>
         </Modal.Content>
       </Modal.Root>

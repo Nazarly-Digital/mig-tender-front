@@ -12,6 +12,7 @@ import {
 } from '@hugeicons/core-free-icons';
 
 import { TableSkeleton } from '@/shared/components/skeletons';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
 import { PageHeader } from '@/shared/components/page-header';
 import {
@@ -92,29 +93,22 @@ function BlockConfirmModal({
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>
-            <button
-              type='button'
-              className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
-            >
+            <FancyButton.Root variant='basic' size='small'>
               Отмена
-            </button>
+            </FancyButton.Root>
           </Modal.Close>
-          <button
-            type='button'
+          <FancyButton.Root
+            variant={user.is_blocked ? 'primary' : 'destructive'}
+            size='small'
             onClick={handleConfirm}
             disabled={blockUser.isPending}
-            className={
-              user.is_blocked
-                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
-                : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
-            }
           >
             {blockUser.isPending
               ? 'Загрузка...'
               : user.is_blocked
                 ? 'Разблокировать'
                 : 'Заблокировать'}
-          </button>
+          </FancyButton.Root>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
@@ -162,21 +156,18 @@ function VerifyBrokerModal({
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>
-            <button
-              type='button'
-              className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
-            >
+            <FancyButton.Root variant='basic' size='small'>
               Отмена
-            </button>
+            </FancyButton.Root>
           </Modal.Close>
-          <button
-            type='button'
+          <FancyButton.Root
+            variant='primary'
+            size='small'
             onClick={handleConfirm}
             disabled={verifyBroker.isPending}
-            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
           >
             {verifyBroker.isPending ? 'Загрузка...' : 'Верифицировать'}
-          </button>
+          </FancyButton.Root>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
@@ -320,27 +311,19 @@ export default function AdminUsersPage() {
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
                       {user.role === 'broker' && !user.is_verified && (
-                        <button
-                          type='button'
-                          onClick={() => setVerifyTarget(user)}
-                          className='inline-flex items-center gap-1 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
-                        >
+                        <FancyButton.Root variant='basic' size='xsmall' onClick={() => setVerifyTarget(user)}>
                           <HugeiconsIcon icon={SecurityCheckIcon} size={16} color='currentColor' strokeWidth={1.5} />
                           Верифицировать
-                        </button>
+                        </FancyButton.Root>
                       )}
-                      <button
-                        type='button'
-                        onClick={() => setBlockTarget(user)}
-                        className='inline-flex items-center gap-1 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
-                      >
+                      <FancyButton.Root variant='basic' size='xsmall' onClick={() => setBlockTarget(user)}>
                         {user.is_blocked ? (
                           <HugeiconsIcon icon={SquareUnlock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         ) : (
                           <HugeiconsIcon icon={SquareLock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         )}
                         {user.is_blocked ? 'Разблокировать' : 'Заблокировать'}
-                      </button>
+                      </FancyButton.Root>
                     </div>
                   </td>
                 </tr>

@@ -13,6 +13,7 @@ import {
 } from '@hugeicons/core-free-icons';
 
 import { PropertyDetailSkeleton } from '@/shared/components/skeletons';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import {
@@ -127,12 +128,11 @@ export default function CatalogDetailPage() {
               Возможно, объект был удален или у вас нет доступа
             </div>
           </div>
-          <Link
-            href='/catalog'
-            className='mt-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors'
-          >
-            Вернуться в каталог
-          </Link>
+          <FancyButton.Root variant='basic' size='small' asChild className='mt-2'>
+            <Link href='/catalog'>
+              Вернуться в каталог
+            </Link>
+          </FancyButton.Root>
         </div>
       </div>
     );
@@ -157,12 +157,12 @@ export default function CatalogDetailPage() {
           </div>
         </div>
         {activeAuction && (
-          <Link href={`/auctions/${activeAuction.id}`}>
-            <button className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-2'>
+          <FancyButton.Root variant='primary' size='small' asChild>
+            <Link href={`/auctions/${activeAuction.id}`}>
               <HugeiconsIcon icon={Award01Icon} size={16} />
               Участвовать в аукционе
-            </button>
-          </Link>
+            </Link>
+          </FancyButton.Root>
         )}
       </div>
 
@@ -282,12 +282,12 @@ export default function CatalogDetailPage() {
                 </div>
               </div>
               <div className='mt-4'>
-                <Link href={`/auctions/${activeAuction.id}`} className='block'>
-                  <button className='w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors inline-flex items-center justify-center gap-2'>
+                <FancyButton.Root variant='primary' size='small' asChild className='w-full'>
+                  <Link href={`/auctions/${activeAuction.id}`}>
                     <HugeiconsIcon icon={Award01Icon} size={16} />
                     Участвовать в аукционе
-                  </button>
-                </Link>
+                  </Link>
+                </FancyButton.Root>
               </div>
             </div>
           )}

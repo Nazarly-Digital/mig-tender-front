@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
 import { auctionSchema, type AuctionFormData } from '@/shared/lib/validations';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
@@ -167,16 +168,19 @@ export default function CreateAuctionPage() {
 
         {/* Actions */}
         <div className='mt-5 flex items-center gap-3'>
-          <Link href='/auctions' className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-5 py-2.5 text-[13px] font-medium transition-colors'>
-            Отмена
-          </Link>
-          <button
+          <FancyButton.Root variant='basic' size='small' asChild>
+            <Link href='/auctions'>
+              Отмена
+            </Link>
+          </FancyButton.Root>
+          <FancyButton.Root
+            variant='primary'
+            size='small'
             type='submit'
             disabled={createMutation.isPending || properties.length === 0}
-            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-5 py-2.5 text-[13px] font-medium transition-colors disabled:opacity-50'
           >
             {createMutation.isPending ? 'Создание...' : 'Создать аукцион'}
-          </button>
+          </FancyButton.Root>
         </div>
       </form>
     </div>
