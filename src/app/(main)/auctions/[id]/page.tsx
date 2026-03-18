@@ -64,16 +64,22 @@ function formatPrice(value: string) {
   return new Intl.NumberFormat('ru-RU').format(num) + ' ₸';
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
+function formatDate(dateStr: string | null | undefined) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
 }
 
-function formatDateTime(dateStr: string) {
-  return new Date(dateStr).toLocaleString('ru-RU', {
+function formatDateTime(dateStr: string | null | undefined) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('ru-RU', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
