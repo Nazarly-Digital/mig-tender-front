@@ -66,7 +66,7 @@ export default function AuthHeader() {
   if (!action) return null;
 
   return (
-    <div className='mx-auto flex w-full max-w-[1400px] items-center justify-between p-6'>
+    <div className='mx-auto flex w-full max-w-[1400px] items-center justify-between border-b border-[#E5E7EB] p-6'>
       <Image
         src='/images/logo.svg'
         alt='MIG Tender'

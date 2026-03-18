@@ -39,15 +39,15 @@ function StatCard({
   action: string;
 }) {
   return (
-    <div className='flex flex-col justify-between rounded-xl border border-[#E5E7EB] bg-white p-4'>
+    <div className='flex flex-col justify-between rounded-xl border border-[#E5E7EB] bg-white p-5'>
       <div className='flex items-center justify-between'>
-        <span className='text-[13px] text-[#6B7280]'>{label}</span>
-        <Icon className='size-4 text-[#9CA3AF]' />
+        <span className='text-[13px] font-medium text-[#6B7280]'>{label}</span>
+        <Icon className='size-4 text-[#D1D5DB]' />
       </div>
-      <div className='mt-3 text-[32px] font-bold leading-tight tracking-tight text-[#111827]'>
+      <div className='mt-2 text-[32px] font-bold tracking-[-0.02em] text-[#111827]'>
         {value}
       </div>
-      <div className='mt-3'>
+      <div className='mt-3 border-t border-[#E5E7EB] pt-3'>
         <Link href={href}>
           <LinkButton.Root variant='primary' size='small'>
             {action}
@@ -61,10 +61,10 @@ function StatCard({
 
 function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
   return (
-    <div className='flex flex-col items-start justify-between rounded-xl border border-[#E5E7EB] bg-white p-4'>
+    <div className='flex flex-col items-start justify-between rounded-xl border border-[#E5E7EB] bg-white p-5'>
       <div>
-        <div className='text-[13px] font-medium text-[#111827]'>Быстрое действие</div>
-        <p className='mt-0.5 text-[12px] text-[#6B7280]'>
+        <div className='text-[15px] font-semibold text-[#111827]'>Быстрое действие</div>
+        <p className='mt-1 text-[13px] text-[#6B7280]'>
           {isDeveloper ? 'Создайте новый объект или аукцион' : 'Просмотрите доступные аукционы'}
         </p>
       </div>
@@ -82,12 +82,12 @@ function RecentPropertyItem({ property }: { property: Property }) {
   return (
     <div className='flex items-center justify-between gap-3 py-2.5'>
       <div className='min-w-0 flex-1'>
-        <div className='truncate text-[13px] font-medium text-[#111827]'>
+        <div className='truncate text-[14px] font-medium text-[#111827]'>
           {property.address}
         </div>
-        <div className='mt-0.5 flex items-center gap-1.5 text-[12px] text-[#6B7280]'>
+        <div className='mt-0.5 flex items-center gap-1.5 text-[13px] text-[#6B7280]'>
           <span>{TYPE_LABELS[property.type]}</span>
-          <span className='text-[#9CA3AF]'>·</span>
+          <span className='text-[#D1D5DB]'>·</span>
           <span>{formatPrice(property.price)} {property.currency}</span>
         </div>
       </div>
@@ -109,12 +109,12 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
   return (
     <div className='flex items-center justify-between gap-3 py-2.5'>
       <div className='min-w-0 flex-1'>
-        <div className='truncate text-[13px] font-medium text-[#111827]'>
+        <div className='truncate text-[14px] font-medium text-[#111827]'>
           Аукцион #{auction.id}
         </div>
-        <div className='mt-0.5 flex items-center gap-1.5 text-[12px] text-[#6B7280]'>
+        <div className='mt-0.5 flex items-center gap-1.5 text-[13px] text-[#6B7280]'>
           <span>от {formatPrice(auction.min_price)}</span>
-          <span className='text-[#9CA3AF]'>·</span>
+          <span className='text-[#D1D5DB]'>·</span>
           <span>{formatDateShort(auction.end_date)}</span>
         </div>
       </div>
@@ -145,13 +145,13 @@ export default function DashboardPage() {
   return (
     <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
       <div>
-        <h1 className='text-[24px] font-bold text-[#111827]'>{greeting}</h1>
-        <p className='mt-0.5 text-[14px] text-[#6B7280]'>
+        <h1 className='text-[28px] font-bold tracking-[-0.02em] text-[#111827]'>{greeting}</h1>
+        <p className='mt-1 text-[14px] text-[#6B7280]'>
           Вот последние данные вашей панели управления.
         </p>
       </div>
 
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         {isDeveloper ? (
           <StatCard label='Мои объекты' value={propertiesCount} icon={RiBuilding2Line} href='/properties' action='Все объекты' />
         ) : (
@@ -166,7 +166,7 @@ export default function DashboardPage() {
         <QuickActionCard isDeveloper={isDeveloper} />
       </div>
 
-      <div className='grid grid-cols-1 gap-3 lg:grid-cols-2'>
+      <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
         {isDeveloper && (
           <WidgetBox.Root>
             <WidgetBox.Header>
@@ -174,7 +174,7 @@ export default function DashboardPage() {
               Последние объекты
             </WidgetBox.Header>
             {recentProperties.length === 0 ? (
-              <div className='py-6 text-center text-[13px] text-[#9CA3AF]'>Нет объектов</div>
+              <div className='py-6 text-center text-[14px] text-[#9CA3AF]'>Нет объектов</div>
             ) : (
               <div className='flex flex-col'>
                 {recentProperties.map((property, i) => (
@@ -185,7 +185,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
-            <div className='mt-3 pt-3 border-t border-[#E5E7EB]'>
+            <div className='mt-3 border-t border-[#E5E7EB] pt-3'>
               <Link href='/properties'>
                 <LinkButton.Root variant='primary' size='small'>
                   Все объекты
@@ -202,7 +202,7 @@ export default function DashboardPage() {
             {isDeveloper ? 'Мои аукционы' : 'Доступные аукционы'}
           </WidgetBox.Header>
           {recentAuctions.length === 0 ? (
-            <div className='py-6 text-center text-[13px] text-[#9CA3AF]'>Нет аукционов</div>
+            <div className='py-6 text-center text-[14px] text-[#9CA3AF]'>Нет аукционов</div>
           ) : (
             <div className='flex flex-col'>
               {recentAuctions.map((auction, i) => (
@@ -213,7 +213,7 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-          <div className='mt-3 pt-3 border-t border-[#E5E7EB]'>
+          <div className='mt-3 border-t border-[#E5E7EB] pt-3'>
             <Link href='/auctions'>
               <LinkButton.Root variant='primary' size='small'>
                 Все аукционы

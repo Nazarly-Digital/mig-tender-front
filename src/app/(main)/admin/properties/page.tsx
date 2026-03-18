@@ -272,20 +272,20 @@ export default function AdminPropertiesPage() {
         </div>
       ) : properties.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-full bg-[#F9FAFB]'>
+          <div className='flex size-12 items-center justify-center rounded-xl bg-[#F9FAFB]'>
             <RiCheckLine className='size-6 text-[#9CA3AF]' />
           </div>
           <div className='text-center'>
-            <div className='text-[14px] font-medium text-[#6B7280]'>
+            <div className='text-[16px] font-semibold text-[#111827]'>
               Нет объектов на модерации
             </div>
-            <div className='mt-1 text-[12px] text-[#9CA3AF]'>
+            <div className='mt-1 max-w-[360px] text-[14px] text-[#6B7280]'>
               Все объекты проверены
             </div>
           </div>
         </div>
       ) : (
-        <div className='rounded-2xl bg-white p-4 shadow-regular-xs ring-1 ring-inset ring-[#E5E7EB]'>
+        <div className='overflow-hidden rounded-xl border border-[#E5E7EB] bg-white'>
           <Table.Root>
             <Table.Header>
               <Table.Row>
@@ -321,7 +321,7 @@ export default function AdminPropertiesPage() {
                     </Badge.Root>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className='text-[14px] text-[#6B7280]'>
+                    <div className='text-[13px] text-[#6B7280]'>
                       {property.area} м²
                     </div>
                   </Table.Cell>
@@ -331,12 +331,12 @@ export default function AdminPropertiesPage() {
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className='text-[14px] text-[#6B7280]'>
+                    <div className='text-[13px] text-[#6B7280]'>
                       {property.developer_name}
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className='text-[14px] text-[#6B7280]'>
+                    <div className='text-[13px] text-[#6B7280]'>
                       {formatDate(property.created_at)}
                     </div>
                   </Table.Cell>

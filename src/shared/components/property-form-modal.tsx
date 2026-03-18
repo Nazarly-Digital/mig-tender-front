@@ -91,10 +91,10 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
               <img
                 src={img.url || img.external_url || ''}
                 alt=''
-                className='h-20 w-20 rounded-lg object-cover ring-1 ring-inset ring-[#E5E7EB]'
+                className='h-20 w-20 rounded-lg border border-[#E5E7EB] object-cover'
               />
               {img.is_primary && (
-                <span className='absolute bottom-1 left-1 flex size-4 items-center justify-center rounded-full bg-primary-base'>
+                <span className='absolute bottom-1 left-1 flex size-4 items-center justify-center rounded-full bg-[#2563EB]'>
                   <RiCheckLine className='size-2.5 text-white' />
                 </span>
               )}
@@ -115,10 +115,10 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
         disabled={uploading}
         onClick={() => inputRef.current?.click()}
         className={cn(
-          'flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-3 text-[14px] transition-colors',
+          'flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-3 text-[14px] transition-all duration-150',
           uploading
             ? 'cursor-not-allowed border-[#E5E7EB] text-[#9CA3AF] opacity-60'
-            : 'border-[#E5E7EB] text-[#9CA3AF] hover:border-primary-base hover:text-primary-base',
+            : 'border-[#E5E7EB] text-[#9CA3AF] hover:border-[#2563EB] hover:bg-[#EFF6FF] hover:text-[#2563EB]',
         )}
       >
         <RiImageAddLine className='size-4' />

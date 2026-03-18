@@ -1,15 +1,13 @@
 @import "tailwindcss";
 
 /* ============================================
-   Clean SaaS Dashboard Color System
-   Accent: #3B82F6 (blue-500)
-   Background: #FFFFFF / #F9FAFB
-   Border: #E5E7EB
+   Clean SaaS Dashboard — Linear / Vercel Style
+   Accent: #2563EB
    ============================================ */
 
 @theme {
-  /* Neutral Colors — cool gray palette */
-  --color-neutral-0: #ffffff;
+  /* Neutral — cool gray */
+  --color-neutral-0: #FFFFFF;
   --color-neutral-50: #F9FAFB;
   --color-neutral-100: #F3F4F6;
   --color-neutral-200: #E5E7EB;
@@ -22,7 +20,7 @@
   --color-neutral-900: #111827;
   --color-neutral-950: #030712;
 
-  /* Blue/Primary Colors — accent */
+  /* Blue / Accent — #2563EB */
   --color-blue-50: #EFF6FF;
   --color-blue-100: #DBEAFE;
   --color-blue-200: #BFDBFE;
@@ -35,7 +33,6 @@
   --color-blue-900: #1E3A8A;
   --color-blue-950: #172554;
 
-  /* Orange */
   --color-orange-50: #FFF7ED;
   --color-orange-100: #FFEDD5;
   --color-orange-200: #FED7AA;
@@ -48,7 +45,6 @@
   --color-orange-900: #7C2D12;
   --color-orange-950: #431407;
 
-  /* Red */
   --color-red-50: #FEF2F2;
   --color-red-100: #FEE2E2;
   --color-red-200: #FECACA;
@@ -61,7 +57,7 @@
   --color-red-900: #7F1D1D;
   --color-red-950: #450A0A;
 
-  /* Green / Emerald for success */
+  /* Green — Emerald */
   --color-green-50: #ECFDF5;
   --color-green-100: #D1FAE5;
   --color-green-200: #A7F3D0;
@@ -74,7 +70,7 @@
   --color-green-900: #064E3B;
   --color-green-950: #022C22;
 
-  /* Yellow / Amber for warning */
+  /* Yellow — Amber */
   --color-yellow-50: #FFFBEB;
   --color-yellow-100: #FEF3C7;
   --color-yellow-200: #FDE68A;
@@ -135,7 +131,7 @@
   --color-teal-900: #134E4A;
   --color-teal-950: #042F2E;
 
-  /* Semantic Background Colors */
+  /* Semantic — BG */
   --color-bg-white-0: #FFFFFF;
   --color-bg-weak-50: #F9FAFB;
   --color-bg-soft-200: #E5E7EB;
@@ -143,26 +139,26 @@
   --color-bg-surface-800: #1F2937;
   --color-bg-strong-950: #030712;
 
-  /* Semantic Text Colors */
+  /* Semantic — Text */
   --color-text-strong-950: #111827;
   --color-text-sub-600: #6B7280;
   --color-text-soft-400: #9CA3AF;
   --color-text-disabled-300: #D1D5DB;
   --color-text-white-0: #FFFFFF;
 
-  /* Semantic Stroke Colors */
+  /* Semantic — Stroke */
   --color-stroke-strong-950: #111827;
   --color-stroke-sub-300: #D1D5DB;
   --color-stroke-soft-200: #E5E7EB;
   --color-stroke-white-0: #FFFFFF;
 
-  /* Primary Colors — blue accent */
-  --color-primary-base: #3B82F6;
+  /* Primary — accent blue #2563EB */
+  --color-primary-base: #2563EB;
   --color-primary-dark: #1D4ED8;
   --color-primary-darker: #1E40AF;
-  --color-primary-alpha-10: oklch(from #3B82F6 l c h / 10%);
-  --color-primary-alpha-16: oklch(from #3B82F6 l c h / 16%);
-  --color-primary-alpha-24: oklch(from #3B82F6 l c h / 24%);
+  --color-primary-alpha-10: oklch(from #2563EB l c h / 10%);
+  --color-primary-alpha-16: oklch(from #2563EB l c h / 16%);
+  --color-primary-alpha-24: oklch(from #2563EB l c h / 24%);
 
   /* State Colors */
   --color-error-base: #EF4444;
@@ -185,13 +181,13 @@
   --color-information-light: #BFDBFE;
   --color-information-lighter: #EFF6FF;
 
-  /* Faded Colors */
+  /* Faded */
   --color-faded-dark: #1F2937;
   --color-faded-base: #6B7280;
   --color-faded-light: #E5E7EB;
   --color-faded-lighter: #F3F4F6;
 
-  /* Alpha Colors */
+  /* Alpha */
   --color-neutral-alpha-10: oklch(from #9CA3AF l c h / 10%);
   --color-neutral-alpha-16: oklch(from #9CA3AF l c h / 16%);
   --color-neutral-alpha-24: oklch(from #9CA3AF l c h / 24%);
@@ -200,12 +196,12 @@
   --color-red-alpha-16: oklch(from #EF4444 l c h / 16%);
   --color-red-alpha-24: oklch(from #EF4444 l c h / 24%);
 
-  /* Static Colors */
+  /* Static */
   --color-static-black: #030712;
   --color-static-white: #FFFFFF;
 
   /* Overlay */
-  --color-overlay: oklch(from #030712 l c h / 24%);
+  --color-overlay: rgba(0, 0, 0, 0.4);
 
   /* Typography */
   --text-title-h1: 3.5rem;
@@ -231,28 +227,28 @@
   --text-subheading-sm: 0.875rem;
   --text-subheading-xs: 0.75rem;
 
-  /* Border Radius */
+  /* Radius */
   --radius-10: 0.625rem;
   --radius-20: 1.25rem;
 
-  /* Shadows — subtle, no heavy shadows */
-  --shadow-regular-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  --shadow-regular-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
-  --shadow-regular-md: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
-  --shadow-button-primary-focus: 0 0 0 2px #FFFFFF, 0 0 0 4px oklch(from #3B82F6 l c h / 24%);
+  /* Shadows — subtle only */
+  --shadow-regular-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-regular-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-regular-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-button-primary-focus: 0 0 0 2px #FFFFFF, 0 0 0 4px oklch(from #2563EB l c h / 24%);
   --shadow-button-important-focus: 0 0 0 2px #FFFFFF, 0 0 0 4px oklch(from #9CA3AF l c h / 16%);
   --shadow-button-error-focus: 0 0 0 2px #FFFFFF, 0 0 0 4px oklch(from #EF4444 l c h / 16%);
-  --shadow-fancy-buttons-primary: 0 1px 2px 0 rgba(0, 0, 0, 0.12), 0 0 0 1px #3B82F6;
-  --shadow-fancy-buttons-stroke: 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 0 0 1px #E5E7EB;
-  --shadow-switch-thumb: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-  --shadow-tooltip: 0 4px 12px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-fancy-buttons-primary: 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 0 1px #2563EB;
+  --shadow-fancy-buttons-stroke: 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px #E5E7EB;
+  --shadow-switch-thumb: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-tooltip: 0 4px 12px rgba(0, 0, 0, 0.08);
 
   /* Animations */
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 }
 
-/* Dark mode overrides */
+/* Dark mode */
 .dark {
   --color-bg-white-0: #030712;
   --color-bg-weak-50: #111827;
@@ -274,34 +270,21 @@
 }
 
 @keyframes accordion-down {
-  from {
-    height: 0;
-    opacity: 0;
-  }
-  to {
-    height: var(--radix-accordion-content-height);
-    opacity: 1;
-  }
+  from { height: 0; opacity: 0; }
+  to { height: var(--radix-accordion-content-height); opacity: 1; }
 }
 
 @keyframes accordion-up {
-  from {
-    height: var(--radix-accordion-content-height);
-    opacity: 1;
-  }
-  to {
-    height: 0;
-    opacity: 0;
-  }
+  from { height: var(--radix-accordion-content-height); opacity: 1; }
+  to { height: 0; opacity: 0; }
 }
 
-/* Remix Icon scale fix */
 .remixicon path {
   transform: scale(0.8996);
   transform-origin: center;
 }
 
-/* Base styles */
+/* Base */
 html {
   color: #111827;
 }
@@ -311,23 +294,26 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
-/* Smooth scrollbar */
+/* All transitions 150ms */
+*, *::before, *::after {
+  transition-timing-function: ease;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: #D1D5DB;
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
 }

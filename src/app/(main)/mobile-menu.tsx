@@ -82,7 +82,7 @@ export default function MobileMenu() {
                 <input
                   type='text'
                   placeholder='Поиск...'
-                  className='h-6 w-full pl-9 text-paragraph-md outline-none placeholder:text-[#6B7280] focus:outline-none'
+                  className='h-6 w-full pl-9 text-[14px] text-[#111827] outline-none placeholder:text-[#6B7280] focus:outline-none'
                 />
               </div>
               <div className='flex gap-3'>
@@ -120,20 +120,20 @@ export default function MobileMenu() {
                     >
                       <Icon
                         className={cn(
-                          'transition-default size-[22px] shrink-0 text-[#6B7280]',
-                          'group-aria-[current=page]:text-primary-base',
+                          'size-[22px] shrink-0 text-[#6B7280] transition-colors duration-150',
+                          'group-aria-[current=page]:text-[#2563EB]',
                         )}
                       />
-                      <div className='flex-1 text-[16px] font-medium'>{displayLabel}</div>
+                      <div className='flex-1 text-[15px] font-medium text-[#111827]'>{displayLabel}</div>
                       <div
                         className={cn(
-                          'transition-default absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-primary-base',
+                          'absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-[#2563EB] transition-transform duration-150',
                           {
                             'scale-0': pathname !== displayHref,
                           },
                         )}
                       />
-                      <RiArrowRightSLine className='size-6 text-[#6B7280]' />
+                      <RiArrowRightSLine className='size-6 text-[#D1D5DB]' />
                     </Link>
                   );
                 })}

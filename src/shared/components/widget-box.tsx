@@ -24,7 +24,7 @@ function WidgetBoxHeader({
     <div
       className={cnExt(
         'grid auto-cols-auto grid-flow-col grid-cols-1 items-center gap-2 has-[>svg:first-child]:grid-cols-[auto,minmax(0,1fr)]',
-        'mb-5 pb-4 border-b border-[#E5E7EB] text-[14px] font-semibold text-[#111827]',
+        'mb-5 border-b border-[#E5E7EB] pb-4 text-[15px] font-semibold text-[#111827]',
         className,
       )}
       {...rest}

@@ -232,15 +232,15 @@ export default function AdminUsersPage() {
         </div>
       ) : users.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-full bg-[#F9FAFB]'>
+          <div className='flex size-12 items-center justify-center rounded-xl bg-[#F9FAFB]'>
             <RiUserLine className='size-6 text-[#9CA3AF]' />
           </div>
-          <div className='text-[14px] font-medium text-[#6B7280]'>
+          <div className='text-[16px] font-semibold text-[#111827]'>
             Нет пользователей
           </div>
         </div>
       ) : (
-        <div className='rounded-2xl bg-white p-4 shadow-regular-xs ring-1 ring-inset ring-[#E5E7EB]'>
+        <div className='overflow-hidden rounded-xl border border-[#E5E7EB] bg-white'>
           <Table.Root>
             <Table.Header>
               <Table.Row>
@@ -269,7 +269,7 @@ export default function AdminUsersPage() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <div className='text-[14px] text-[#6B7280]'>
+                      <div className='text-[13px] text-[#6B7280]'>
                         {user.email}
                       </div>
                     </Table.Cell>
@@ -317,7 +317,7 @@ export default function AdminUsersPage() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <div className='text-[14px] text-[#6B7280]'>
+                      <div className='text-[13px] text-[#6B7280]'>
                         {formatDate(user.created_at)}
                       </div>
                     </Table.Cell>

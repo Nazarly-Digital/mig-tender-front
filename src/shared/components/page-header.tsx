@@ -22,16 +22,16 @@ export function PageHeader({
         {backHref && (
           <Link
             href={backHref}
-            className='flex size-8 items-center justify-center rounded-lg text-[#9CA3AF] transition-colors hover:bg-[#F3F4F6] hover:text-[#6B7280]'
+            className='flex size-8 items-center justify-center rounded-lg text-[#9CA3AF] transition-all duration-150 hover:bg-[#F3F4F6] hover:text-[#6B7280]'
           >
             <RiArrowLeftSLine className='size-5' />
           </Link>
         )}
         <div>
-          <h1 className='text-[24px] font-bold leading-tight text-[#111827]'>
+          <h1 className='text-[28px] font-bold tracking-[-0.02em] text-[#111827]'>
             {title}
           </h1>
-          <p className='mt-1 text-[14px] text-[#6B7280]'>
+          <p className='mt-1 text-[14px] leading-relaxed text-[#6B7280]'>
             {description}
           </p>
         </div>

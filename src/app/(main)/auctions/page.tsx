@@ -70,17 +70,17 @@ function AuctionCard({ auction }: { auction: Auction }) {
   return (
     <Link
       href={`/auctions/${auction.id}`}
-      className='group flex flex-col rounded-xl border border-[#E5E7EB] bg-white p-4 transition-all duration-150 hover:border-[#D1D5DB] hover:shadow-sm'
+      className='group flex flex-col rounded-xl border border-[#E5E7EB] bg-white p-5 hover:border-[#D1D5DB] transition-all duration-150'
     >
       <div>
-        <div className='text-[14px] font-semibold text-[#111827]'>Аукцион #{auction.id}</div>
-        <div className='mt-0.5 text-[12px] text-[#6B7280]'>Объект #{auction.property_id}</div>
+        <div className='text-[15px] font-semibold text-[#111827]'>Аукцион #{auction.id}</div>
+        <div className='mt-0.5 text-[13px] text-[#6B7280]'>Объект #{auction.property_id}</div>
       </div>
 
       {isActive && (
         <div className='mt-3'>
           <ProgressBar.Root value={progress} color={getProgressColor(progress)} />
-          <div className='mt-1 text-right text-[11px] text-[#9CA3AF]'>{progress}% времени</div>
+          <div className='mt-1 text-right text-[12px] text-[#9CA3AF]'>{progress}% времени</div>
         </div>
       )}
 
@@ -93,17 +93,17 @@ function AuctionCard({ auction }: { auction: Auction }) {
       </div>
 
       <div className='mt-3 grid grid-cols-2 gap-2'>
-        <div className='rounded-lg bg-[#F9FAFB] px-3 py-2'>
-          <div className='text-[10px] font-medium uppercase tracking-wider text-[#9CA3AF]'>Мин. цена</div>
-          <div className='mt-0.5 text-[13px] font-semibold text-[#111827]'>{formatPrice(auction.min_price)}</div>
+        <div className='rounded-lg bg-[#F9FAFB] p-3'>
+          <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>Мин. цена</div>
+          <div className='mt-0.5 text-[14px] font-semibold text-[#111827]'>{formatPrice(auction.min_price)}</div>
         </div>
-        <div className='rounded-lg bg-[#F9FAFB] px-3 py-2'>
-          <div className='text-[10px] font-medium uppercase tracking-wider text-[#9CA3AF]'>Текущая макс.</div>
-          <div className='mt-0.5 text-[13px] font-semibold text-[#111827]'>{formatPrice(auction.current_price)}</div>
+        <div className='rounded-lg bg-[#F9FAFB] p-3'>
+          <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>Текущая макс.</div>
+          <div className='mt-0.5 text-[14px] font-semibold text-[#111827]'>{formatPrice(auction.current_price)}</div>
         </div>
       </div>
 
-      <div className='mt-3 flex items-center gap-3 border-t border-[#E5E7EB] pt-3 text-[12px] text-[#6B7280]'>
+      <div className='mt-3 flex items-center gap-3 border-t border-[#E5E7EB] pt-3 text-[13px] text-[#6B7280]'>
         <div className='flex items-center gap-1'>
           <RiAuctionLine className='size-3.5 text-[#D1D5DB]' />
           <span>{auction.bids_count} ставок</span>
@@ -159,20 +159,20 @@ export default function AuctionsPage() {
 
       {isLoading ? (
         <div className='flex flex-1 items-center justify-center py-16'>
-          <div className='text-[13px] text-[#9CA3AF]'>Загрузка...</div>
+          <div className='text-[14px] text-[#9CA3AF]'>Загрузка...</div>
         </div>
       ) : auctions.length === 0 ? (
-        <div className='flex flex-1 flex-col items-center justify-center gap-2 py-16'>
-          <div className='flex size-10 items-center justify-center rounded-full bg-[#F3F4F6]'>
+        <div className='flex flex-1 flex-col items-center justify-center gap-3 py-16'>
+          <div className='flex size-11 items-center justify-center rounded-xl bg-[#F9FAFB]'>
             <RiAuctionLine className='size-5 text-[#9CA3AF]' />
           </div>
-          <div className='text-[13px] font-medium text-[#4B5563]'>
+          <div className='text-[16px] font-semibold text-[#111827]'>
             {tab === 'all' ? 'Нет аукционов' : tab === 'active' ? 'Нет активных аукционов' : 'Нет завершённых аукционов'}
           </div>
           {isDeveloper && tab === 'all' && (
             <>
-              <div className='text-[12px] text-[#9CA3AF]'>Создайте свой первый аукцион</div>
-              <Link href='/auctions/create' className='mt-2'>
+              <div className='text-[14px] text-[#6B7280]'>Создайте свой первый аукцион</div>
+              <Link href='/auctions/create' className='mt-1'>
                 <FancyButton.Root variant='primary' size='xsmall'>
                   <FancyButton.Icon as={RiAddLine} />
                   Создать аукцион
@@ -182,7 +182,7 @@ export default function AuctionsPage() {
           )}
         </div>
       ) : (
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3'>
           {auctions.map((auction) => (<AuctionCard key={auction.id} auction={auction} />))}
         </div>
       )}

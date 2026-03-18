@@ -113,7 +113,7 @@ const getSortingIcon = (state: 'asc' | 'desc' | false) => {
     return <RiArrowUpSFill className='size-5 text-[#6B7280]' />;
   if (state === 'desc')
     return <RiArrowDownSFill className='size-5 text-[#6B7280]' />;
-  return <RiExpandUpDownFill className='size-5 text-[#6B7280]' />;
+  return <RiExpandUpDownFill className='size-5 text-[#9CA3AF]' />;
 };
 
 function SortableHeader({
@@ -223,7 +223,7 @@ const columns: ColumnDef<Property>[] = [
       <SortableHeader column={column}>Площадь</SortableHeader>
     ),
     cell: ({ row }) => (
-      <div className='text-[14px] text-[#6B7280]'>
+      <div className='text-[13px] text-[#6B7280]'>
         {formatArea(row.original.area)}
       </div>
     ),
@@ -235,7 +235,7 @@ const columns: ColumnDef<Property>[] = [
       <SortableHeader column={column}>Срок сдачи</SortableHeader>
     ),
     cell: ({ row }) => (
-      <div className='text-[14px] text-[#6B7280]'>
+      <div className='text-[13px] text-[#6B7280]'>
         {formatDate(row.original.deadline)}
       </div>
     ),
@@ -400,7 +400,7 @@ export function PropertiesTablePagination({
         >
           Назад
         </Button.Root>
-        <span className='whitespace-nowrap text-center text-[14px] text-[#6B7280]'>
+        <span className='whitespace-nowrap text-center text-[13px] text-[#6B7280]'>
           {page} из {totalPages}
         </span>
         <Button.Root
@@ -417,7 +417,7 @@ export function PropertiesTablePagination({
 
       {/* Desktop */}
       <div className='mt-10 hidden items-center gap-3 lg:flex'>
-        <span className='flex-1 whitespace-nowrap text-[14px] text-[#6B7280]'>
+        <span className='flex-1 whitespace-nowrap text-[13px] text-[#6B7280]'>
           Страница {page} из {totalPages}
         </span>
 

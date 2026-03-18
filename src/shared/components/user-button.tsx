@@ -34,7 +34,7 @@ export function UserButton({ className }: { className?: string }) {
     <Dropdown.Root>
       <Dropdown.Trigger
         className={cnExt(
-          'flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg p-2 text-left outline-none transition-colors duration-100 hover:bg-[#F3F4F6] focus:outline-none',
+          'flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg p-2 text-left outline-none transition-all duration-150 hover:bg-[#F3F4F6] focus:outline-none',
           className,
         )}
       >
@@ -45,7 +45,7 @@ export function UserButton({ className }: { className?: string }) {
         >
           <div className='truncate text-[13px] font-medium text-[#111827]'>{fullName}</div>
           {roleLabel && (
-            <div className='truncate text-[11px] text-[#6B7280]'>{roleLabel}</div>
+            <div className='truncate text-[11px] text-[#9CA3AF]'>{roleLabel}</div>
           )}
         </div>
       </Dropdown.Trigger>
@@ -54,7 +54,7 @@ export function UserButton({ className }: { className?: string }) {
         <div className='px-3 py-2'>
           <div className='text-[13px] font-medium text-[#111827]'>{fullName}</div>
           {user?.email && (
-            <div className='text-[11px] text-[#9CA3AF]'>{user.email}</div>
+            <div className='text-[12px] text-[#9CA3AF]'>{user.email}</div>
           )}
         </div>
         <Divider.Root variant='line-spacing' />

@@ -40,9 +40,9 @@ const PasswordInput = React.forwardRef<
         />
         <button type='button' onClick={() => setShowPassword((s) => !s)}>
           {showPassword ? (
-            <RiEyeOffLine className='size-5 text-[#9CA3AF] group-has-[disabled]:text-text-disabled-300' />
+            <RiEyeOffLine className='size-5 text-[#9CA3AF]' />
           ) : (
-            <RiEyeLine className='size-5 text-[#9CA3AF] group-has-[disabled]:text-text-disabled-300' />
+            <RiEyeLine className='size-5 text-[#9CA3AF]' />
           )}
         </button>
       </Input.Wrapper>
@@ -84,17 +84,17 @@ export default function PageLogin() {
 
   return (
     <div className='w-full max-w-[472px] px-4'>
-      <div className='flex w-full flex-col gap-6 rounded-xl bg-white p-5 shadow-regular-xs ring-1 ring-inset ring-[#E5E7EB] md:p-8'>
+      <div className='flex w-full flex-col gap-6 rounded-xl border border-[#E5E7EB] bg-white p-6 md:p-8'>
         <div className='flex flex-col items-center gap-2'>
-          <div className='flex size-[68px] shrink-0 items-center justify-center rounded-full bg-[#F9FAFB] ring-1 ring-inset ring-[#E5E7EB] lg:size-24'>
+          <div className='flex size-16 shrink-0 items-center justify-center rounded-full border border-[#E5E7EB] bg-[#F9FAFB]'>
             <RiUserFill className='size-6 text-[#6B7280] lg:size-8' />
           </div>
 
           <div className='space-y-1 text-center'>
-            <div className='text-[18px] font-semibold lg:text-[20px] lg:font-semibold'>
+            <div className='text-[24px] font-bold tracking-[-0.02em] text-[#111827]'>
               Войти в аккаунт
             </div>
-            <div className='text-[14px] text-[#6B7280] lg:text-paragraph-md'>
+            <div className='text-[14px] text-[#6B7280]'>
               Введите ваши данные для входа
             </div>
           </div>

@@ -260,10 +260,10 @@ function SelectWinnerModal({
                 key={bid.id}
                 type='button'
                 onClick={() => setSelectedBidId(bid.id)}
-                className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ring-1 ring-inset ${
+                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors duration-150 ${
                   selectedBidId === bid.id
-                    ? 'bg-primary-alpha-10 ring-primary-base'
-                    : 'ring-[#E5E7EB] hover:bg-[#F9FAFB]'
+                    ? 'border-[#2563EB] bg-[#EFF6FF]'
+                    : 'border-[#E5E7EB] hover:bg-[#F9FAFB]'
                 }`}
               >
                 <div>
@@ -274,7 +274,7 @@ function SelectWinnerModal({
                     {formatDateTime(bid.created_at)}
                   </div>
                 </div>
-                <div className='text-[16px] font-medium text-[#111827]'>
+                <div className='text-[16px] font-semibold text-[#111827]'>
                   {formatPrice(bid.amount)}
                 </div>
               </button>
@@ -410,7 +410,7 @@ export default function AuctionDetailPage() {
             </CompactButton.Root>
           </Link>
           <div>
-            <div className='text-[20px] font-medium font-semibold text-[#111827]'>
+            <div className='text-[20px] font-semibold tracking-[-0.02em] text-[#111827]'>
               Аукцион #{auction.id}
             </div>
             <div className='mt-1 text-[14px] text-[#6B7280]'>
@@ -461,20 +461,20 @@ export default function AuctionDetailPage() {
       </div>
 
       {/* Content Grid */}
-      <div className='grid grid-cols-1 gap-5 xl:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-4 xl:grid-cols-3'>
         {/* Left: Info */}
-        <div className='flex flex-col gap-5 xl:col-span-2'>
+        <div className='flex flex-col gap-4 xl:col-span-2'>
           {/* Auction Info Card */}
-          <WidgetBox.Root>
-            <WidgetBox.Header>
-              <WidgetBox.HeaderIcon as={RiAuctionLine} />
+          <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
+            <div className='flex items-center gap-2 text-[18px] font-semibold text-[#111827]'>
+              <RiAuctionLine className='size-5 text-[#9CA3AF]' />
               Информация об аукционе
-            </WidgetBox.Header>
+            </div>
 
             {/* Progress bar for active */}
             {isActive && (
-              <div className='mb-4'>
-                <div className='mb-1 flex items-center justify-between text-[12px] text-[#6B7280]'>
+              <div className='mt-4'>
+                <div className='mb-1 flex items-center justify-between text-[13px] text-[#6B7280]'>
                   <span>Прогресс</span>
                   <span>{progress}%</span>
                 </div>
@@ -485,9 +485,9 @@ export default function AuctionDetailPage() {
               </div>
             )}
 
-            <div className='grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3'>
+            <div className='mt-5 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3'>
               <div>
-                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                   Статус
                 </div>
                 <div className='mt-1'>
@@ -498,7 +498,7 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                   Тип
                 </div>
                 <div className='mt-1'>
@@ -508,7 +508,7 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                   Ставок
                 </div>
                 <div className='mt-1 text-[14px] font-medium text-[#111827]'>
@@ -516,7 +516,7 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                   Мин. цена
                 </div>
                 <div className='mt-1 text-[14px] font-medium text-[#111827]'>
@@ -524,7 +524,7 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                   Текущая макс.
                 </div>
                 <div className='mt-1 text-[14px] font-medium text-[#111827]'>
@@ -532,7 +532,7 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                   Участников
                 </div>
                 <div className='mt-1 text-[14px] font-medium text-[#111827]'>
@@ -541,13 +541,13 @@ export default function AuctionDetailPage() {
               </div>
             </div>
 
-            <Divider.Root variant='line-spacing' className='my-0 py-4' />
+            <div className='my-4 border-t border-[#E5E7EB]' />
 
             <div className='grid grid-cols-2 gap-4'>
               <div className='flex items-center gap-2'>
-                <RiTimeLine className='size-4 text-[#9CA3AF]' />
+                <RiTimeLine className='size-4 text-[#D1D5DB]' />
                 <div>
-                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                     Начало
                   </div>
                   <div className='text-[14px] font-medium text-[#111827]'>
@@ -556,9 +556,9 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div className='flex items-center gap-2'>
-                <RiTimeLine className='size-4 text-[#9CA3AF]' />
+                <RiTimeLine className='size-4 text-[#D1D5DB]' />
                 <div>
-                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                     Окончание
                   </div>
                   <div className='text-[14px] font-medium text-[#111827]'>
@@ -571,9 +571,9 @@ export default function AuctionDetailPage() {
             {/* Winner info */}
             {auction.winner_bid_id && (
               <>
-                <Divider.Root variant='line-spacing' className='my-0 py-4' />
-                <div className='flex items-center gap-3 rounded-xl bg-success-lighter p-4'>
-                  <RiTrophyLine className='size-5 text-success-base' />
+                <div className='my-4 border-t border-[#E5E7EB]' />
+                <div className='flex items-center gap-3 rounded-xl bg-[#ECFDF5] p-4'>
+                  <RiTrophyLine className='size-5 text-[#10B981]' />
                   <div>
                     <div className='text-[14px] font-medium text-[#111827]'>
                       Победитель определён
@@ -585,15 +585,15 @@ export default function AuctionDetailPage() {
                 </div>
               </>
             )}
-          </WidgetBox.Root>
+          </div>
 
           {/* Sealed Bids — visible to owner */}
           {isOwner && bidsList.length > 0 && (
-            <WidgetBox.Root>
-              <WidgetBox.Header>
-                <WidgetBox.HeaderIcon as={RiMoneyDollarCircleLine} />
+            <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
+              <div className='mb-4 flex items-center gap-2 text-[18px] font-semibold text-[#111827]'>
+                <RiMoneyDollarCircleLine className='size-5 text-[#9CA3AF]' />
                 Закрытые ставки
-              </WidgetBox.Header>
+              </div>
 
               <Table.Root>
                 <Table.Header>
@@ -637,27 +637,27 @@ export default function AuctionDetailPage() {
                   ))}
                 </Table.Body>
               </Table.Root>
-            </WidgetBox.Root>
+            </div>
           )}
 
           {/* My bid — visible to participant */}
           {!isDeveloper && isParticipant && myBid && (
-            <WidgetBox.Root>
-              <WidgetBox.Header>
-                <WidgetBox.HeaderIcon as={RiMoneyDollarCircleLine} />
+            <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
+              <div className='mb-4 flex items-center gap-2 text-[18px] font-semibold text-[#111827]'>
+                <RiMoneyDollarCircleLine className='size-5 text-[#9CA3AF]' />
                 Моя ставка
-              </WidgetBox.Header>
+              </div>
               <div className='grid grid-cols-2 gap-4 sm:grid-cols-3'>
                 <div>
-                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                     Сумма
                   </div>
-                  <div className='mt-1 text-[16px] font-medium text-[#111827]'>
+                  <div className='mt-1 text-[16px] font-semibold text-[#111827]'>
                     {formatPrice(myBid.amount)}
                   </div>
                 </div>
                 <div>
-                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                     Дата
                   </div>
                   <div className='mt-1 text-[14px] font-medium text-[#111827]'>
@@ -665,7 +665,7 @@ export default function AuctionDetailPage() {
                   </div>
                 </div>
                 <div>
-                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
+                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
                     Обновлена
                   </div>
                   <div className='mt-1 text-[14px] font-medium text-[#111827]'>
@@ -673,17 +673,17 @@ export default function AuctionDetailPage() {
                   </div>
                 </div>
               </div>
-            </WidgetBox.Root>
+            </div>
           )}
         </div>
 
         {/* Right: Participants */}
-        <div className='flex flex-col gap-5'>
-          <WidgetBox.Root>
-            <WidgetBox.Header>
-              <WidgetBox.HeaderIcon as={RiUserLine} />
+        <div className='flex flex-col gap-4'>
+          <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
+            <div className='mb-4 flex items-center gap-2 text-[18px] font-semibold text-[#111827]'>
+              <RiUserLine className='size-5 text-[#9CA3AF]' />
               Участники ({participantList.length})
-            </WidgetBox.Header>
+            </div>
 
             {participantList.length === 0 ? (
               <div className='py-6 text-center text-[14px] text-[#9CA3AF]'>
@@ -694,7 +694,7 @@ export default function AuctionDetailPage() {
                 {participantList.map((p) => (
                   <div
                     key={p.id}
-                    className='flex items-center justify-between rounded-xl px-3 py-2.5 ring-1 ring-inset ring-[#E5E7EB]'
+                    className='flex items-center justify-between rounded-lg border border-[#E5E7EB] px-3 py-2.5'
                   >
                     <div className='flex items-center gap-3'>
                       {/* Shortlist checkbox for owner */}
@@ -702,10 +702,10 @@ export default function AuctionDetailPage() {
                         <button
                           type='button'
                           onClick={() => toggleShortlist(p.id)}
-                          className={`flex size-5 shrink-0 items-center justify-center rounded border transition ${
+                          className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors duration-150 ${
                             shortlistIds.has(p.id)
-                              ? 'border-primary-base bg-primary-base text-white'
-                              : 'border-[#E5E7EB]'
+                              ? 'border-[#2563EB] bg-[#2563EB] text-white'
+                              : 'border-[#D1D5DB]'
                           }`}
                         >
                           {shortlistIds.has(p.id) && (
@@ -730,7 +730,7 @@ export default function AuctionDetailPage() {
             {/* Shortlist action */}
             {isOwner && isActive && shortlistIds.size > 0 && (
               <>
-                <Divider.Root variant='line-spacing' className='my-0 py-3' />
+                <div className='my-3 border-t border-[#E5E7EB]' />
                 <FancyButton.Root
                   variant='primary'
                   size='xsmall'
@@ -745,12 +745,12 @@ export default function AuctionDetailPage() {
                 </FancyButton.Root>
               </>
             )}
-          </WidgetBox.Root>
+          </div>
 
           {/* Broker status card */}
           {!isDeveloper && (
-            <WidgetBox.Root>
-              <WidgetBox.Header>Ваш статус</WidgetBox.Header>
+            <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
+              <div className='mb-4 text-[18px] font-semibold text-[#111827]'>Ваш статус</div>
               <div className='space-y-3'>
                 <div className='flex items-center justify-between'>
                   <span className='text-[14px] text-[#6B7280]'>
@@ -799,7 +799,7 @@ export default function AuctionDetailPage() {
                   </div>
                 )}
               </div>
-            </WidgetBox.Root>
+            </div>
           )}
         </div>
       </div>

@@ -80,10 +80,10 @@ export default function CreateAuctionPage() {
         backHref='/auctions'
       />
 
-      <form onSubmit={handleSubmit(onSubmit)} className='flex w-full max-w-[640px] flex-col gap-5'>
+      <form onSubmit={handleSubmit(onSubmit)} className='flex w-full max-w-[640px] flex-col gap-4'>
         {/* Section: Property select */}
-        <WidgetBox.Root className='space-y-5'>
-          <WidgetBox.Header>Выбор объекта</WidgetBox.Header>
+        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
+          <div className='text-[18px] font-semibold text-[#111827]'>Выбор объекта</div>
 
           <div className='space-y-1.5'>
             <Label.Root htmlFor='auction-property'>
@@ -118,14 +118,14 @@ export default function CreateAuctionPage() {
                 )}
               />
             )}
-            {errors.property_id && <p className='text-[12px] text-error-base'>{errors.property_id.message}</p>}
+            {errors.property_id && <p className='text-[13px] text-[#EF4444]'>{errors.property_id.message}</p>}
             <Hint.Root>Выберите объект, который будет выставлен на аукцион</Hint.Root>
           </div>
-        </WidgetBox.Root>
+        </div>
 
         {/* Section: Auction params */}
-        <WidgetBox.Root className='space-y-5'>
-          <WidgetBox.Header>Параметры аукциона</WidgetBox.Header>
+        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
+          <div className='text-[18px] font-semibold text-[#111827]'>Параметры аукциона</div>
 
           <div className='space-y-1.5'>
             <Label.Root htmlFor='auction-mode'>
@@ -154,7 +154,7 @@ export default function CreateAuctionPage() {
                 </Select.Root>
               )}
             />
-            {errors.mode && <p className='text-[12px] text-error-base'>{errors.mode.message}</p>}
+            {errors.mode && <p className='text-[13px] text-[#EF4444]'>{errors.mode.message}</p>}
           </div>
 
           <div className='space-y-1.5'>
@@ -172,14 +172,14 @@ export default function CreateAuctionPage() {
                 />
               </Input.Wrapper>
             </Input.Root>
-            {errors.min_price && <p className='text-[12px] text-error-base'>{errors.min_price.message}</p>}
+            {errors.min_price && <p className='text-[13px] text-[#EF4444]'>{errors.min_price.message}</p>}
             <Hint.Root>Минимальная стартовая цена для ставок</Hint.Root>
           </div>
-        </WidgetBox.Root>
+        </div>
 
         {/* Section: Dates */}
-        <WidgetBox.Root className='space-y-5'>
-          <WidgetBox.Header>Сроки проведения</WidgetBox.Header>
+        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
+          <div className='text-[18px] font-semibold text-[#111827]'>Сроки проведения</div>
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
@@ -195,7 +195,7 @@ export default function CreateAuctionPage() {
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {errors.start_date && <p className='text-[12px] text-error-base'>{errors.start_date.message}</p>}
+              {errors.start_date && <p className='text-[13px] text-[#EF4444]'>{errors.start_date.message}</p>}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-end'>
@@ -210,10 +210,10 @@ export default function CreateAuctionPage() {
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {errors.end_date && <p className='text-[12px] text-error-base'>{errors.end_date.message}</p>}
+              {errors.end_date && <p className='text-[13px] text-[#EF4444]'>{errors.end_date.message}</p>}
             </div>
           </div>
-        </WidgetBox.Root>
+        </div>
 
         {/* Actions */}
         <div className='flex items-center gap-3 pt-2'>

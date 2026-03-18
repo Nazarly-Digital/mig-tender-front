@@ -116,14 +116,18 @@ function useCollapsedState({
 function SidebarBrand({ collapsed }: { collapsed: boolean }) {
   return (
     <div
-      className={cn('flex items-center gap-2.5 px-5 py-5', {
-        'justify-center px-2': collapsed,
-      })}
+      className={cn(
+        'flex h-14 items-center gap-3 border-b border-gray-200 px-5',
+        collapsed && 'justify-center px-0',
+      )}
     >
-      <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#111827]'>
-        <Image src='/images/logo-icon.svg' alt='' width={18} height={18} className='size-[18px]' />
+      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#111827]">
+        <Image src="/images/logo-icon.svg" alt="" width={16} height={16} className="size-4" />
       </div>
-      <span className='text-[15px] font-semibold tracking-tight text-[#111827]' data-hide-collapsed>
+      <span
+        className="text-[15px] font-semibold tracking-[-0.01em] text-[#111827]"
+        data-hide-collapsed
+      >
         MIG Tender
       </span>
     </div>
@@ -151,28 +155,22 @@ function NavLink({
       aria-current={isActive ? 'page' : undefined}
       aria-disabled={disabled}
       className={cn(
-        'group flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[#6B7280]',
-        'transition-colors duration-100',
-        'hover:bg-[#F3F4F6] hover:text-[#374151]',
-        'aria-[current=page]:bg-[#F3F4F6] aria-[current=page]:text-[#111827]',
-        'aria-disabled:pointer-events-none aria-disabled:opacity-30',
-        {
-          'w-9 justify-center px-0': collapsed,
-          'w-full': !collapsed,
-        },
+        'group relative flex items-center gap-2.5 rounded-md px-2.5 py-[6px] text-[13px] font-medium text-[#6B7280] transition-colors',
+        'hover:bg-[#F9FAFB] hover:text-[#111827]',
+        'aria-disabled:pointer-events-none aria-disabled:opacity-40',
+        isActive && 'bg-[#F0F5FF] font-semibold text-[#2563EB] hover:bg-[#F0F5FF]',
+        collapsed && 'size-9 justify-center rounded-lg px-0',
+        !collapsed && 'w-full',
       )}
     >
       <Icon
         className={cn(
-          'size-[18px] shrink-0 transition-colors duration-100',
-          isActive ? 'text-[#111827]' : 'text-[#9CA3AF] group-hover:text-[#6B7280]',
+          'size-[18px] shrink-0',
+          isActive ? 'text-[#2563EB]' : 'text-[#9CA3AF] group-hover:text-[#6B7280]',
         )}
       />
       <span
-        className={cn(
-          'text-[13.5px] leading-5',
-          isActive && 'font-medium',
-        )}
+        className="truncate whitespace-nowrap text-[13px] leading-5"
         data-hide-collapsed
       >
         {label}
@@ -197,16 +195,16 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
   );
 
   return (
-    <div className='space-y-2'>
+    <div>
       <div
         className={cn(
-          'px-2.5 text-[11px] font-medium uppercase tracking-widest text-[#9CA3AF]',
-          { 'px-0 text-center': collapsed },
+          'px-3 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9CA3AF]',
+          collapsed && 'px-0 text-center',
         )}
       >
         <span data-hide-collapsed>Меню</span>
       </div>
-      <div className='space-y-0.5'>
+      <div className="space-y-px px-2">
         {visibleLinks.map(({ icon, label, developerLabel, href, developerHref, disabled }, i) => {
           const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
           const displayHref = isDeveloper && developerHref ? developerHref : href;
@@ -246,7 +244,7 @@ function SettingsAndSupport({ collapsed }: { collapsed: boolean }) {
   ];
 
   return (
-    <div className='space-y-0.5'>
+    <div className="space-y-px px-2">
       {links.map(({ icon, label, href, disabled }, i) => (
         <NavLink
           key={i}
@@ -264,11 +262,9 @@ function SettingsAndSupport({ collapsed }: { collapsed: boolean }) {
 
 function UserProfile({ collapsed }: { collapsed: boolean }) {
   return (
-    <div className={cn('px-3 py-3', { 'px-2': collapsed })}>
+    <div className={cn('px-3 py-2.5', collapsed && 'px-1.5')}>
       <UserButton
-        className={cn('transition-all duration-200', {
-          'w-auto': collapsed,
-        })}
+        className={cn('transition-all duration-200', collapsed && 'w-auto')}
       />
     </div>
   );
@@ -283,48 +279,53 @@ export default function Sidebar({
 
   return (
     <>
-      <div
+      <aside
         className={cn(
-          'fixed left-0 top-0 z-40 hidden h-full overflow-hidden border-r border-[#E5E7EB] bg-white transition-all duration-200 ease-out lg:block',
-          {
-            'w-[72px]': collapsed,
-            'w-[248px]': !collapsed,
-            '[&_[data-hide-collapsed]]:hidden': !collapsed
-              ? false
-              : defaultCollapsed,
-          },
+          'fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-in-out lg:block',
+          collapsed ? 'w-[72px]' : 'w-[252px]',
+          !collapsed ? false : defaultCollapsed && '[&_[data-hide-collapsed]]:hidden',
         )}
       >
         <div
           ref={sidebarRef}
-          className='flex h-full w-[248px] min-w-[248px] flex-col'
+          className="flex h-full w-[252px] min-w-[252px] flex-col"
         >
+          {/* Logo */}
           <SidebarBrand collapsed={collapsed} />
 
+          {/* Main navigation */}
           <nav
-            className={cn('flex flex-1 flex-col gap-6 overflow-y-auto px-3 pb-2', {
-              'px-[14px]': collapsed,
-            })}
+            className={cn(
+              'flex flex-1 flex-col overflow-y-auto scrollbar-none',
+              collapsed && 'items-center',
+            )}
           >
             <NavigationMenu collapsed={collapsed} />
           </nav>
 
-          <div className={cn('px-3 pb-1', { 'px-[14px]': collapsed })}>
+          {/* Bottom section: settings & support */}
+          <div
+            className={cn(
+              'border-t border-gray-200 pt-2 pb-1',
+              collapsed && 'flex flex-col items-center',
+            )}
+          >
             <SettingsAndSupport collapsed={collapsed} />
           </div>
 
-          <div className='mx-3 border-t border-[#E5E7EB]' />
-
-          <UserProfile collapsed={collapsed} />
+          {/* User profile */}
+          <div className="border-t border-gray-200">
+            <UserProfile collapsed={collapsed} />
+          </div>
         </div>
-      </div>
+      </aside>
 
-      {/* placeholder for fixed sidebar */}
+      {/* Layout spacer */}
       <div
-        className={cn('hidden shrink-0 lg:block', {
-          'w-[248px]': !collapsed,
-          'w-[72px]': collapsed,
-        })}
+        className={cn(
+          'hidden shrink-0 transition-[width] duration-200 ease-in-out lg:block',
+          collapsed ? 'w-[72px]' : 'w-[252px]',
+        )}
       />
     </>
   );
