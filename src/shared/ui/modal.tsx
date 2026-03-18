@@ -51,7 +51,7 @@ const ModalContent = React.forwardRef<
             className={cnExt(
               // base
               'relative w-full max-w-[400px]',
-              'rounded-20 bg-bg-white-0 shadow-regular-md',
+              'rounded-20 bg-gradient-to-br from-white via-white to-blue-50/90 shadow-regular-md',
               // focus
               'focus:outline-none',
               // animation

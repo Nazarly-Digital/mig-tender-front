@@ -2,18 +2,9 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import {
-  RiAddLine,
-  RiAuctionLine,
-  RiTimeLine,
-} from '@remixicon/react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Award01Icon, Clock01Icon, Add01Icon } from '@hugeicons/core-free-icons';
 
-import * as Badge from '@/shared/ui/badge';
-import * as FancyButton from '@/shared/ui/fancy-button';
-import * as ProgressBar from '@/shared/ui/progress-bar';
-import * as SegmentedControl from '@/shared/ui/segmented-control';
-import * as StatusBadge from '@/shared/ui/status-badge';
-import { PageHeader } from '@/shared/components/page-header';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
 import type {
@@ -22,11 +13,11 @@ import type {
   AuctionMode,
 } from '@/shared/types/auctions';
 
-const STATUS_CONFIG: Record<AuctionStatus, { label: string; status: 'completed' | 'pending' | 'failed' | 'disabled' }> = {
-  active: { label: 'Активный', status: 'completed' },
-  draft: { label: 'Черновик', status: 'disabled' },
-  finished: { label: 'Завершён', status: 'pending' },
-  cancelled: { label: 'Отменён', status: 'failed' },
+const STATUS_CONFIG: Record<AuctionStatus, { label: string; cls: string; dot: string; text: string }> = {
+  active: { label: 'Активный', cls: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500', text: 'text-emerald-600' },
+  draft: { label: 'Черновик', cls: 'bg-gray-100 text-gray-600', dot: 'bg-amber-500', text: 'text-amber-600' },
+  finished: { label: 'Завершён', cls: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500', text: 'text-blue-600' },
+  cancelled: { label: 'Отменён', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-500' },
 };
 
 const MODE_LABELS: Record<AuctionMode, string> = {
@@ -70,54 +61,55 @@ function AuctionCard({ auction }: { auction: Auction }) {
   return (
     <Link
       href={`/auctions/${auction.id}`}
-      className='group flex flex-col rounded-xl border border-gray-200 bg-white p-5 hover:border-gray-300 transition-colors'
+      className='group flex flex-col rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 hover:border-blue-200 hover:shadow-sm transition-all duration-200'
     >
-      <div>
-        <div className='text-sm font-semibold text-gray-900'>Аукцион #{auction.id}</div>
-        <div className='mt-0.5 text-xs text-gray-500'>Объект #{auction.property_id}</div>
+      {/* Header: title + price */}
+      <div className='flex items-start justify-between'>
+        <div>
+          <h3 className='text-[14px] font-semibold text-gray-900'>Аукцион #{auction.id}</h3>
+          <div className='mt-1 flex items-center gap-1.5'>
+            <span className={`size-1.5 rounded-full ${statusCfg.dot}`} />
+            <span className={`text-[11px] font-medium ${statusCfg.text}`}>{statusCfg.label}</span>
+            <span className='text-[11px] text-gray-300'>·</span>
+            <span className='text-[11px] text-gray-400'>{MODE_LABELS[auction.mode]}</span>
+          </div>
+        </div>
+        <span className='text-[17px] font-bold text-gray-900 shrink-0'>{formatPrice(auction.current_price)}</span>
       </div>
 
-      {isActive && (
-        <div className='mt-3'>
-          <ProgressBar.Root value={progress} color={getProgressColor(progress)} />
-          <div className='mt-1 text-right text-xs text-gray-400'>{progress}% времени</div>
+      {/* Progress */}
+      <div className='mt-4'>
+        <div className='mb-1 flex justify-between text-[11px]'>
+          <span className='text-gray-400'>{auction.bids_count} ставок · мин. {formatPrice(auction.min_price)}</span>
+          {isActive && <span className='font-semibold text-gray-500'>{progress}%</span>}
         </div>
-      )}
-
-      <div className='mt-3 flex flex-wrap items-center gap-1.5'>
-        <StatusBadge.Root variant='light' status={statusCfg.status}>
-          <StatusBadge.Dot />
-          {statusCfg.label}
-        </StatusBadge.Root>
-        <Badge.Root variant='lighter' color='gray' size='small'>{MODE_LABELS[auction.mode]}</Badge.Root>
-      </div>
-
-      <div className='mt-3 grid grid-cols-2 gap-2'>
-        <div className='rounded-lg bg-gray-50 p-3'>
-          <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Мин. цена</div>
-          <div className='mt-0.5 text-sm font-semibold text-gray-900'>{formatPrice(auction.min_price)}</div>
-        </div>
-        <div className='rounded-lg bg-gray-50 p-3'>
-          <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Текущая макс.</div>
-          <div className='mt-0.5 text-sm font-semibold text-gray-900'>{formatPrice(auction.current_price)}</div>
+        <div className='h-1 overflow-hidden rounded-full bg-gray-100'>
+          <div className='h-full rounded-full bg-blue-500' style={{ width: `${isActive ? progress : auction.status === 'finished' ? 100 : 0}%` }} />
         </div>
       </div>
 
-      <div className='mt-3 flex items-center gap-3 border-t border-gray-200 pt-3 text-xs text-gray-500'>
-        <div className='flex items-center gap-1'>
-          <RiAuctionLine className='size-3.5 text-gray-300' />
-          <span>{auction.bids_count} ставок</span>
-        </div>
-        <div className='flex items-center gap-1'>
-          <RiTimeLine className='size-3.5 text-gray-300' />
-          <span>до {formatDate(auction.end_date)}</span>
-        </div>
+      {/* Footer */}
+      <div className='mt-3 flex items-center gap-3 border-t border-blue-50 pt-3 text-[12px] text-gray-400'>
+        <span className='flex items-center gap-1'>
+          <HugeiconsIcon icon={Award01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
+          {auction.bids_count} ставок
+        </span>
+        <span className='flex items-center gap-1'>
+          <HugeiconsIcon icon={Clock01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
+          до {formatDate(auction.end_date)}
+        </span>
       </div>
     </Link>
   );
 }
 
 type Tab = 'all' | 'active' | 'finished';
+
+const TABS: { value: Tab; label: string }[] = [
+  { value: 'all', label: 'Все' },
+  { value: 'active', label: 'Активные' },
+  { value: 'finished', label: 'Завершённые' },
+];
 
 export default function AuctionsPage() {
   const [tab, setTab] = React.useState<Tab>('all');
@@ -135,28 +127,47 @@ export default function AuctionsPage() {
   const auctions = data?.results ?? [];
 
   return (
-    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
-      <PageHeader
-        title={isDeveloper ? 'Мои аукционы' : 'Аукционы'}
-        description={isDeveloper ? 'Управление вашими аукционами' : 'Доступные аукционы на торгах'}
-        action={isDeveloper ? (
-          <Link href='/auctions/create'>
-            <FancyButton.Root variant='primary' size='xsmall'>
-              <FancyButton.Icon as={RiAddLine} />
-              Создать аукцион
-            </FancyButton.Root>
+    <div className='w-full px-8 py-8'>
+      {/* Header */}
+      <div className='flex items-center justify-between'>
+        <div>
+          <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>
+            {isDeveloper ? 'Мои аукционы' : 'Аукционы'}
+          </h1>
+          <p className='mt-1 text-sm text-gray-500'>
+            {isDeveloper ? 'Управление вашими аукционами' : 'Доступные аукционы на торгах'}
+          </p>
+        </div>
+        {isDeveloper && (
+          <Link
+            href='/auctions/create'
+            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors inline-flex items-center gap-2'
+          >
+            <HugeiconsIcon icon={Add01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+            Создать аукцион
           </Link>
-        ) : undefined}
-      />
+        )}
+      </div>
 
-      <SegmentedControl.Root value={tab} onValueChange={(v) => setTab(v as Tab)} className='w-fit'>
-        <SegmentedControl.List>
-          <SegmentedControl.Trigger value='all'>Все</SegmentedControl.Trigger>
-          <SegmentedControl.Trigger value='active'>Активные</SegmentedControl.Trigger>
-          <SegmentedControl.Trigger value='finished'>Завершённые</SegmentedControl.Trigger>
-        </SegmentedControl.List>
-      </SegmentedControl.Root>
+      {/* Tabs */}
+      <div className='mt-6 flex items-center gap-0 border-b border-gray-200'>
+        {TABS.map((t) => (
+          <button
+            key={t.value}
+            type='button'
+            onClick={() => setTab(t.value)}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              tab === t.value
+                ? 'border-blue-600 text-gray-900'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
+      {/* Content */}
       {isLoading ? (
         <div className='flex flex-1 items-center justify-center py-16'>
           <div className='text-sm text-gray-400'>Загрузка...</div>
@@ -164,7 +175,7 @@ export default function AuctionsPage() {
       ) : auctions.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-16'>
           <div className='flex size-11 items-center justify-center rounded-xl bg-gray-50'>
-            <RiAuctionLine className='size-5 text-gray-400' />
+            <HugeiconsIcon icon={Award01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
           </div>
           <div className='text-base font-semibold text-gray-900'>
             {tab === 'all' ? 'Нет аукционов' : tab === 'active' ? 'Нет активных аукционов' : 'Нет завершённых аукционов'}
@@ -172,17 +183,18 @@ export default function AuctionsPage() {
           {isDeveloper && tab === 'all' && (
             <>
               <div className='text-sm text-gray-500'>Создайте свой первый аукцион</div>
-              <Link href='/auctions/create' className='mt-1'>
-                <FancyButton.Root variant='primary' size='xsmall'>
-                  <FancyButton.Icon as={RiAddLine} />
-                  Создать аукцион
-                </FancyButton.Root>
+              <Link
+                href='/auctions/create'
+                className='mt-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors inline-flex items-center gap-2'
+              >
+                <HugeiconsIcon icon={Add01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                Создать аукцион
               </Link>
             </>
           )}
         </div>
       ) : (
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3'>
+        <div className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
           {auctions.map((auction) => (<AuctionCard key={auction.id} auction={auction} />))}
         </div>
       )}

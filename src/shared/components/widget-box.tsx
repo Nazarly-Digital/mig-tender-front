@@ -8,7 +8,7 @@ function WidgetBox({
   return (
     <div
       className={cnExt(
-        'w-full min-w-0 rounded-xl border border-gray-200 bg-white p-6',
+        'w-full rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden',
         className,
       )}
       {...rest}
@@ -23,8 +23,7 @@ function WidgetBoxHeader({
   return (
     <div
       className={cnExt(
-        'grid auto-cols-auto grid-flow-col grid-cols-1 items-center gap-2 has-[>svg:first-child]:grid-cols-[auto,minmax(0,1fr)]',
-        'mb-5 border-b border-gray-200 pb-4 text-sm font-semibold text-gray-900',
+        'px-5 py-4 border-b border-gray-100 text-[14px] font-semibold text-gray-900 flex items-center gap-2',
         className,
       )}
       {...rest}

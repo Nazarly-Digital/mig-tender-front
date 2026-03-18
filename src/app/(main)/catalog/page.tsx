@@ -2,30 +2,23 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  RiArrowLeftSLine,
-  RiArrowRightSLine,
-  RiBuilding2Line,
-  RiImageLine,
-  RiSearch2Line,
-} from '@remixicon/react';
+  Search01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Image01Icon,
+  Building03Icon,
+} from '@hugeicons/core-free-icons';
 
-import * as Badge from '@/shared/ui/badge';
-import * as Divider from '@/shared/ui/divider';
-import * as Input from '@/shared/ui/input';
 import * as Select from '@/shared/ui/select';
-import * as StatusBadge from '@/shared/ui/status-badge';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
-import { PageHeader } from '@/shared/components/page-header';
 import {
   PropertiesTablePagination,
   TYPE_LABELS,
   CLASS_LABELS,
   STATUS_LABELS,
-  STATUS_MAP,
-  TYPE_COLORS,
-  CLASS_COLORS,
 } from '@/shared/components/properties-table';
 import { useProperties } from '@/features/properties';
 import type {
@@ -35,13 +28,21 @@ import type {
   PropertyListParams,
 } from '@/shared/types/properties';
 
+const STATUS_BADGE_STYLES: Record<string, string> = {
+  completed: 'bg-emerald-50 text-emerald-700',
+  active: 'bg-blue-50 text-blue-700',
+  draft: 'bg-gray-100 text-gray-600',
+  archived: 'bg-amber-50 text-amber-700',
+  cancelled: 'bg-red-50 text-red-700',
+};
+
 function PropertyImageCarousel({ images }: { images: Property['images'] }) {
   const [current, setCurrent] = React.useState(0);
 
   if (images.length === 0) {
     return (
-      <div className='flex h-44 items-center justify-center rounded-xl bg-gray-50'>
-        <RiImageLine className='size-8 text-gray-400' />
+      <div className='flex h-44 items-center justify-center bg-gray-50 rounded-t-xl'>
+        <HugeiconsIcon icon={Image01Icon} size={32} className='text-gray-400' />
       </div>
     );
   }
@@ -59,7 +60,7 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
   };
 
   return (
-    <div className='group relative h-44 overflow-hidden rounded-xl bg-gray-50'>
+    <div className='group/carousel relative h-44 overflow-hidden bg-gray-50 rounded-t-xl'>
       <img
         src={images[current].url || images[current].external_url || ''}
         alt=''
@@ -71,16 +72,16 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
           <button
             type='button'
             onClick={prev}
-            className='absolute left-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white/80 opacity-0 transition-opacity group-hover:opacity-100'
+            className='absolute left-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity group-hover/carousel:opacity-100'
           >
-            <RiArrowLeftSLine className='size-4 text-gray-900' />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} className='text-gray-900' />
           </button>
           <button
             type='button'
             onClick={next}
-            className='absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white/80 opacity-0 transition-opacity group-hover:opacity-100'
+            className='absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity group-hover/carousel:opacity-100'
           >
-            <RiArrowRightSLine className='size-4 text-gray-900' />
+            <HugeiconsIcon icon={ArrowRight01Icon} size={16} className='text-gray-900' />
           </button>
 
           <div className='absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1'>
@@ -107,63 +108,60 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
 }
 
 function CatalogPropertyCard({ property }: { property: Property }) {
+  const badgeStyle = STATUS_BADGE_STYLES[property.status] || STATUS_BADGE_STYLES.draft;
+
   return (
     <Link href={`/catalog/${property.id}`} className='block'>
-      <div className='flex flex-col rounded-xl border border-gray-200 bg-white transition-all duration-150 hover:border-gray-300'>
+      <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden transition-all duration-150 hover:border-blue-200 hover:shadow-sm'>
         {/* Carousel */}
-        <div className='p-2 pb-0'>
-          <PropertyImageCarousel images={property.images} />
-        </div>
+        <PropertyImageCarousel images={property.images} />
 
-        <div className='flex flex-col p-5 pt-4'>
+        <div className='p-5'>
           {/* Header */}
           <div className='min-w-0'>
-            <div className='truncate text-sm font-semibold text-gray-900'>
+            <div className='text-[14px] font-medium text-gray-900 truncate'>
               {property.address}
             </div>
-            <div className='mt-1.5 flex flex-wrap items-center gap-1.5'>
-              <Badge.Root variant='lighter' color={TYPE_COLORS[property.type]} size='small'>
+            <div className='flex items-center gap-1.5 mt-2'>
+              <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
                 {TYPE_LABELS[property.type]}
-              </Badge.Root>
-              <Badge.Root variant='lighter' color={CLASS_COLORS[property.property_class]} size='small'>
+              </span>
+              <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
                 {CLASS_LABELS[property.property_class]}
-              </Badge.Root>
+              </span>
             </div>
           </div>
 
-          <Divider.Root variant='line-spacing' className='my-0 py-3' />
-
           {/* Status */}
-          <div>
-            <StatusBadge.Root variant='light' status={STATUS_MAP[property.status]}>
-              <StatusBadge.Dot />
+          <div className='mt-3'>
+            <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', badgeStyle)}>
               {STATUS_LABELS[property.status]}
-            </StatusBadge.Root>
+            </span>
           </div>
 
           {/* Details grid */}
-          <div className='mt-4 grid grid-cols-2 gap-x-4 gap-y-3'>
+          <div className='mt-4 pt-4 border-t border-blue-50 grid grid-cols-2 gap-x-4 gap-y-3'>
             <div>
-              <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Цена</div>
-              <div className='mt-0.5 text-sm font-medium text-gray-900'>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</div>
+              <div className='text-[13px] font-medium text-gray-900 mt-1'>
                 {formatPrice(property.price)} {property.currency}
               </div>
             </div>
             <div>
-              <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Площадь</div>
-              <div className='mt-0.5 text-sm font-medium text-gray-900'>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</div>
+              <div className='text-[13px] font-medium text-gray-900 mt-1'>
                 {property.area} м²
               </div>
             </div>
             <div>
-              <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Дедлайн</div>
-              <div className='mt-0.5 text-sm font-medium text-gray-900'>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дедлайн</div>
+              <div className='text-[13px] font-medium text-gray-900 mt-1'>
                 {formatDateShort(property.deadline)}
               </div>
             </div>
             <div>
-              <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Создан</div>
-              <div className='mt-0.5 text-sm font-medium text-gray-900'>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Создан</div>
+              <div className='text-[13px] font-medium text-gray-900 mt-1'>
                 {formatDateShort(property.created_at)}
               </div>
             </div>
@@ -196,109 +194,97 @@ export default function CatalogPage() {
   const properties = data?.results ?? [];
 
   return (
-    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
-      <PageHeader
-        title='Каталог объектов'
-        description='Объекты недвижимости, доступные для аукционов'
-        icon={RiBuilding2Line}
-      />
+    <div className='w-full px-8 py-8'>
+      {/* Header */}
+      <div>
+        <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>Каталог объектов</h1>
+        <p className='mt-1 text-sm text-gray-500'>Объекты недвижимости, доступные для аукционов</p>
+      </div>
 
       {/* Filters */}
-      <div className='flex flex-col gap-2'>
-        <Input.Root size='small'>
-          <Input.Wrapper>
-            <Input.Icon as={RiSearch2Line} />
-            <Input.Input
-              placeholder='Поиск по адресу...'
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            />
-          </Input.Wrapper>
-        </Input.Root>
+      <div className='mt-6 flex items-center gap-2'>
+        <div className='relative min-w-0 flex-1'>
+          <div className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'>
+            <HugeiconsIcon icon={Search01Icon} size={16} />
+          </div>
+          <input
+            type='text'
+            placeholder='Поиск по адресу...'
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className='h-9 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[13px] placeholder:text-gray-400 focus:border-blue-300 focus:outline-none transition-colors'
+          />
+        </div>
 
-        <div className='flex flex-wrap gap-2'>
-          <Select.Root
-            size='small'
-            value={typeFilter}
-            onValueChange={(v) => { setTypeFilter(v); setPage(1); }}
-          >
-            <Select.Trigger className='flex-1 sm:flex-none'>
+        <div className='w-[140px] shrink-0'>
+          <Select.Root size='small' value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+            <Select.Trigger className='h-9 w-full'>
               <Select.Value placeholder='Тип' />
             </Select.Trigger>
             <Select.Content>
               <Select.Item value='all'>Все типы</Select.Item>
-              {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(
-                ([value, label]) => (
-                  <Select.Item key={value} value={value}>
-                    {label}
-                  </Select.Item>
-                ),
-              )}
+              {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(([value, label]) => (
+                <Select.Item key={value} value={value}>{label}</Select.Item>
+              ))}
             </Select.Content>
           </Select.Root>
+        </div>
 
-          <Select.Root
-            size='small'
-            value={classFilter}
-            onValueChange={(v) => { setClassFilter(v); setPage(1); }}
-          >
-            <Select.Trigger className='flex-1 sm:flex-none'>
+        <div className='w-[140px] shrink-0'>
+          <Select.Root size='small' value={classFilter} onValueChange={(v) => { setClassFilter(v); setPage(1); }}>
+            <Select.Trigger className='h-9 w-full'>
               <Select.Value placeholder='Класс' />
             </Select.Trigger>
             <Select.Content>
               <Select.Item value='all'>Все классы</Select.Item>
-              {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(
-                ([value, label]) => (
-                  <Select.Item key={value} value={value}>
-                    {label}
-                  </Select.Item>
-                ),
-              )}
+              {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([value, label]) => (
+                <Select.Item key={value} value={value}>{label}</Select.Item>
+              ))}
             </Select.Content>
           </Select.Root>
         </div>
       </div>
 
       {/* Content */}
-      {isLoading ? (
-        <div className='flex flex-1 items-center justify-center'>
-          <div className='text-sm text-gray-400'>
-            Загрузка...
+      <div className='mt-6'>
+        {isLoading ? (
+          <div className='flex items-center justify-center py-20'>
+            <div className='text-sm text-gray-400'>Загрузка...</div>
           </div>
-        </div>
-      ) : properties.length === 0 ? (
-        <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>
-            <RiBuilding2Line className='size-6 text-gray-400' />
-          </div>
-          <div className='text-center'>
-            <div className='text-base font-semibold text-gray-900'>
-              Объекты не найдены
+        ) : properties.length === 0 ? (
+          <div className='flex flex-col items-center justify-center gap-3 py-20'>
+            <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>
+              <HugeiconsIcon icon={Building03Icon} size={24} className='text-gray-400' />
             </div>
-            <div className='mt-1 max-w-[360px] text-sm text-gray-500'>
-              Попробуйте изменить фильтры
+            <div className='text-center'>
+              <div className='text-base font-semibold text-gray-900'>
+                Объекты не найдены
+              </div>
+              <div className='mt-1 max-w-[360px] text-sm text-gray-500'>
+                Попробуйте изменить фильтры
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <>
-          <div className='grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3'>
-            {properties.map((property) => (
-              <CatalogPropertyCard
-                key={property.id}
-                property={property}
-              />
-            ))}
+        ) : (
+          <div className='space-y-6'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+              {properties.map((property) => (
+                <CatalogPropertyCard
+                  key={property.id}
+                  property={property}
+                />
+              ))}
+            </div>
+            <PropertiesTablePagination
+              page={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+            />
           </div>
-          <PropertiesTablePagination
-            page={page}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
-          />
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }

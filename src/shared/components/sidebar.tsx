@@ -3,29 +3,30 @@
 import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  RiAddLine,
-  RiAuctionLine,
-  RiBarChartBoxLine,
-  RiBuilding2Line,
-  RiFileLine,
-  RiHandCoinLine,
-  RiHeadphoneLine,
-  RiLayoutGridLine,
-  RiSettings2Line,
-  RiShieldCheckLine,
-  RiUserLine,
-  RiWalletLine,
-} from '@remixicon/react';
-import { useHotkeys } from 'react-hotkeys-hook';
+  Home01Icon,
+  Award01Icon,
+  Building03Icon,
+  PlusSignSquareIcon,
+  AnalyticsUpIcon,
+  File01Icon,
+  UserIcon,
+  SecurityCheckIcon,
+  Wallet01Icon,
+  HeadphonesIcon,
+  Logout01Icon,
+  CogIcon,
+  Coins01Icon,
+  CatalogueIcon,
+} from '@hugeicons/core-free-icons';
 
 import { cn } from '@/shared/lib/cn';
-import { UserButton } from '@/shared/components/user-button';
 import { useSessionStore } from '@/entities/auth/model/store';
 
 type NavigationLink = {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: typeof Home01Icon;
   label: string;
   developerLabel?: string;
   href: string;
@@ -37,296 +38,199 @@ type NavigationLink = {
 };
 
 export const navigationLinks: NavigationLink[] = [
-  { icon: RiLayoutGridLine, label: 'Главная', href: '/dashboard' },
-  { icon: RiAuctionLine, label: 'Аукционы', developerLabel: 'Мои аукционы', href: '/auctions' },
-  { icon: RiBuilding2Line, label: 'Каталог объектов', href: '/catalog', brokerOnly: true },
-  { icon: RiBuilding2Line, label: 'Мои объекты', href: '/properties', developerOnly: true },
-  { icon: RiAddLine, label: 'Создать объект', href: '/properties/create', developerOnly: true },
-  { icon: RiUserLine, label: 'Личный кабинет', href: '/cabinet', brokerOnly: true },
-  { icon: RiHandCoinLine, label: 'Сделки', developerLabel: 'Фиксация сделки', href: '/deals' },
-  { icon: RiWalletLine, label: 'Выплаты / история', href: '/payments', brokerOnly: true },
-  { icon: RiBarChartBoxLine, label: 'Аналитика', href: '/analytics', developerOnly: true },
-  { icon: RiFileLine, label: 'Документы', href: '/documents' },
-  { icon: RiUserLine, label: 'Пользователи', href: '/admin/users', adminOnly: true },
-  { icon: RiShieldCheckLine, label: 'Модерация', href: '/admin/properties', adminOnly: true },
+  { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
+  { icon: Award01Icon, label: 'Аукционы', developerLabel: 'Мои аукционы', href: '/auctions' },
+  { icon: CatalogueIcon, label: 'Каталог объектов', href: '/catalog', brokerOnly: true },
+  { icon: Building03Icon, label: 'Мои объекты', href: '/properties', developerOnly: true },
+  { icon: PlusSignSquareIcon, label: 'Создать объект', href: '/properties/create', developerOnly: true },
+  { icon: UserIcon, label: 'Личный кабинет', href: '/cabinet', brokerOnly: true },
+  { icon: Coins01Icon, label: 'Сделки', developerLabel: 'Фиксация сделки', href: '/deals' },
+  { icon: Wallet01Icon, label: 'Выплаты / история', href: '/payments', brokerOnly: true },
+  { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics', developerOnly: true },
+  { icon: File01Icon, label: 'Документы', href: '/documents' },
+  { icon: UserIcon, label: 'Пользователи', href: '/admin/users', adminOnly: true },
+  { icon: SecurityCheckIcon, label: 'Модерация', href: '/admin/properties', adminOnly: true },
 ];
 
-function useCollapsedState({
-  defaultCollapsed = false,
-}: {
-  defaultCollapsed?: boolean;
-}): {
-  collapsed: boolean;
-  sidebarRef: React.RefObject<HTMLDivElement>;
-} {
-  const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
-  const sidebarRef = React.useRef<HTMLDivElement>(null);
-
-  useHotkeys(
-    ['ctrl+b', 'meta+b'],
-    () => setCollapsed((prev) => !prev),
-    { preventDefault: true },
-    [collapsed],
-  );
-
-  React.useEffect(() => {
-    if (!sidebarRef.current) return;
-
-    const elementsToHide = sidebarRef.current.querySelectorAll(
-      '[data-hide-collapsed]',
-    );
-
-    const listeners: { el: Element; listener: EventListener }[] = [];
-
-    elementsToHide.forEach((el) => {
-      const hideListener = () => {
-        el.classList.add('hidden');
-        el.classList.remove('transition', 'duration-200');
-      };
-
-      const showListener = () => {
-        el.classList.remove('transition', 'duration-200');
-      };
-
-      if (collapsed) {
-        el.classList.add('opacity-0', 'transition', 'duration-200');
-        el.addEventListener('transitionend', hideListener, { once: true });
-        listeners.push({ el, listener: hideListener });
-      } else {
-        el.classList.add('transition', 'duration-200');
-        el.classList.remove('hidden');
-        setTimeout(() => {
-          el.classList.remove('opacity-0');
-        }, 1);
-        el.addEventListener('transitionend', showListener, { once: true });
-        listeners.push({ el, listener: showListener });
-      }
-    });
-
-    return () => {
-      listeners.forEach(({ el, listener }) => {
-        el.removeEventListener('transitionend', listener);
-      });
-    };
-  }, [collapsed]);
-
-  return { collapsed, sidebarRef };
-}
-
-function SidebarBrand({ collapsed }: { collapsed: boolean }) {
-  return (
-    <div
-      className={cn(
-        'flex h-14 items-center gap-3 border-b border-gray-200 px-5',
-        collapsed && 'justify-center px-0',
-      )}
-    >
-      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gray-900">
-        <Image src="/images/logo-icon.svg" alt="" width={16} height={16} className="size-4" />
-      </div>
-      <span
-        className="text-[15px] font-semibold tracking-tight text-gray-900"
-        data-hide-collapsed
-      >
-        MIG Tender
-      </span>
-    </div>
-  );
-}
-
-function NavLink({
-  href,
-  icon: Icon,
-  label,
-  isActive,
-  disabled,
-  collapsed,
-}: {
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  isActive: boolean;
-  disabled?: boolean;
-  collapsed: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={isActive ? 'page' : undefined}
-      aria-disabled={disabled}
-      className={cn(
-        'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors',
-        'hover:bg-gray-100 hover:text-gray-900',
-        'aria-disabled:pointer-events-none aria-disabled:opacity-40',
-        isActive && 'bg-gray-100 font-semibold text-gray-900',
-        collapsed && 'size-9 justify-center rounded-lg px-0',
-        !collapsed && 'w-full',
-      )}
-    >
-      <Icon
-        className={cn(
-          'size-5 shrink-0',
-          isActive ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600',
-        )}
-      />
-      <span
-        className="truncate whitespace-nowrap text-sm leading-5"
-        data-hide-collapsed
-      >
-        {label}
-      </span>
-    </Link>
-  );
-}
-
-function NavigationMenu({ collapsed }: { collapsed: boolean }) {
+export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useSessionStore((s) => s.user);
+  const logout = useSessionStore((s) => s.logout);
   const isDeveloper = user?.role === 'developer';
   const isAdmin = user?.role === 'admin';
 
-  const visibleLinks = navigationLinks.filter(
-    (link) => {
-      if (link.adminOnly && !isAdmin) return false;
-      if (link.developerOnly && !isDeveloper) return false;
-      if (link.brokerOnly && isDeveloper) return false;
-      return true;
-    },
-  );
+  const visibleLinks = navigationLinks.filter((link) => {
+    if (link.adminOnly && !isAdmin) return false;
+    if (link.developerOnly && !isDeveloper) return false;
+    if (link.brokerOnly && isDeveloper) return false;
+    return true;
+  });
 
-  return (
-    <div>
-      <div
-        className={cn(
-          'px-3 pt-6 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400',
-          collapsed && 'px-0 text-center',
-        )}
-      >
-        <span data-hide-collapsed>Меню</span>
-      </div>
-      <div className="space-y-px px-2">
-        {visibleLinks.map(({ icon, label, developerLabel, href, developerHref, disabled }, i) => {
-          const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
-          const displayHref = isDeveloper && developerHref ? developerHref : href;
-          return (
-            <NavLink
-              key={i}
-              href={displayHref}
-              icon={icon}
-              label={displayLabel}
-              isActive={pathname === displayHref}
-              disabled={disabled}
-              collapsed={collapsed}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+  const mainLinks = visibleLinks.filter((link) => !link.adminOnly);
+  const adminLinks = visibleLinks.filter((link) => link.adminOnly);
 
-function SettingsAndSupport({ collapsed }: { collapsed: boolean }) {
-  const pathname = usePathname();
+  const fullName = user
+    ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
+    : '—';
+  const initials = user
+    ? [user.first_name?.[0], user.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'
+    : '?';
 
-  const links = [
-    {
-      href: '/settings/profile-settings',
-      icon: RiSettings2Line,
-      label: 'Настройки',
-      disabled: true,
-    },
-    {
-      href: '#',
-      icon: RiHeadphoneLine,
-      label: 'Поддержка',
-      disabled: true,
-    },
-  ];
+  const roleLabel = isAdmin ? 'Администратор' : isDeveloper ? 'Застройщик' : 'Брокер';
 
-  return (
-    <div className="space-y-px px-2">
-      {links.map(({ icon, label, href, disabled }, i) => (
-        <NavLink
-          key={i}
-          href={href}
-          icon={icon}
-          label={label}
-          isActive={pathname.startsWith(href)}
-          disabled={disabled}
-          collapsed={collapsed}
-        />
-      ))}
-    </div>
-  );
-}
-
-function UserProfile({ collapsed }: { collapsed: boolean }) {
-  return (
-    <div className={cn('px-3 py-2.5', collapsed && 'px-1.5')}>
-      <UserButton
-        className={cn('transition-all duration-200', collapsed && 'w-auto')}
-      />
-    </div>
-  );
-}
-
-export default function Sidebar({
-  defaultCollapsed = false,
-}: {
-  defaultCollapsed?: boolean;
-}) {
-  const { collapsed, sidebarRef } = useCollapsedState({ defaultCollapsed });
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
     <>
-      <aside
-        className={cn(
-          'fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-in-out lg:block',
-          collapsed ? 'w-[72px]' : 'w-64',
-          !collapsed ? false : defaultCollapsed && '[&_[data-hide-collapsed]]:hidden',
-        )}
-      >
-        <div
-          ref={sidebarRef}
-          className="flex h-full w-64 min-w-64 flex-col"
-        >
-          {/* Logo */}
-          <SidebarBrand collapsed={collapsed} />
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[240px] flex-col border-r border-gray-200 bg-gradient-to-b from-white to-blue-50/30 lg:flex">
+        {/* Logo */}
+        <div className="flex h-14 shrink-0 items-center border-b border-gray-200 px-4">
+          <Image src="/images/logo.svg" alt="MIG Tender" width={120} height={36} className="h-8 w-auto" />
+        </div>
 
-          {/* Main navigation */}
-          <nav
-            className={cn(
-              'flex flex-1 flex-col overflow-y-auto scrollbar-none',
-              collapsed && 'items-center',
-            )}
-          >
-            <NavigationMenu collapsed={collapsed} />
-          </nav>
+        {/* Navigation */}
+        <nav className="flex flex-1 flex-col overflow-y-auto py-4">
+          {/* Main section */}
+          <div className="px-3 mb-1">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 px-3">
+              Навигация
+            </span>
+          </div>
+          <div className="flex flex-col gap-0.5 px-3">
+            {mainLinks.map(({ icon, label, developerLabel, href, developerHref, disabled }, i) => {
+              const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
+              const displayHref = isDeveloper && developerHref ? developerHref : href;
+              const isActive = pathname === displayHref;
 
-          {/* Bottom section: settings & support */}
-          <div
-            className={cn(
-              'border-t border-gray-200 pt-2 pb-1',
-              collapsed && 'flex flex-col items-center',
-            )}
-          >
-            <SettingsAndSupport collapsed={collapsed} />
+              return (
+                <Link
+                  key={i}
+                  href={displayHref}
+                  aria-current={isActive ? 'page' : undefined}
+                  aria-disabled={disabled}
+                  className={cn(
+                    'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors',
+                    'aria-disabled:pointer-events-none aria-disabled:opacity-30',
+                    isActive
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100',
+                  )}
+                >
+                  <HugeiconsIcon
+                    icon={icon}
+                    size={20}
+                    color="currentColor"
+                    strokeWidth={1.5}
+                    className="shrink-0"
+                  />
+                  <span className="truncate">{displayLabel}</span>
+                </Link>
+              );
+            })}
           </div>
 
-          {/* User profile */}
-          <div className="border-t border-gray-200">
-            <UserProfile collapsed={collapsed} />
+          {/* Admin section */}
+          {adminLinks.length > 0 && (
+            <>
+              <div className="px-3 mb-1 mt-6">
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 px-3">
+                  Администрирование
+                </span>
+              </div>
+              <div className="flex flex-col gap-0.5 px-3">
+                {adminLinks.map(({ icon, label, href, disabled }, i) => {
+                  const isActive = pathname === href;
+
+                  return (
+                    <Link
+                      key={i}
+                      href={href}
+                      aria-current={isActive ? 'page' : undefined}
+                      aria-disabled={disabled}
+                      className={cn(
+                        'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors',
+                        'aria-disabled:pointer-events-none aria-disabled:opacity-30',
+                        isActive
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100',
+                      )}
+                    >
+                      <HugeiconsIcon
+                        icon={icon}
+                        size={20}
+                        color="currentColor"
+                        strokeWidth={1.5}
+                        className="shrink-0"
+                      />
+                      <span className="truncate">{label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </nav>
+
+        {/* Bottom links */}
+        <div className="border-t border-gray-200 py-2 px-3">
+          <div className="flex flex-col gap-0.5">
+            <Link
+              href="/settings/profile-settings"
+              aria-disabled
+              className={cn(
+                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors',
+                'aria-disabled:pointer-events-none aria-disabled:opacity-30',
+                pathname === '/settings/profile-settings'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100',
+              )}
+            >
+              <HugeiconsIcon icon={CogIcon} size={20} color="currentColor" strokeWidth={1.5} className="shrink-0" />
+              <span className="truncate">Настройки</span>
+            </Link>
+            <Link
+              href="#"
+              aria-disabled
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-gray-600 transition-colors hover:bg-gray-100 aria-disabled:pointer-events-none aria-disabled:opacity-30"
+            >
+              <HugeiconsIcon icon={HeadphonesIcon} size={20} color="currentColor" strokeWidth={1.5} className="shrink-0" />
+              <span className="truncate">Поддержка</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* User profile */}
+        <div className="group border-t border-gray-200 p-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-semibold text-white">
+              {initials}
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-[13px] font-medium text-gray-900">
+                {fullName}
+              </span>
+              <span className="truncate text-[11px] text-gray-500">
+                {roleLabel}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="shrink-0 rounded-lg p-1.5 text-gray-400 opacity-0 transition-all hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
+              title="Выйти"
+            >
+              <HugeiconsIcon icon={Logout01Icon} size={18} color="currentColor" strokeWidth={1.5} />
+            </button>
           </div>
         </div>
       </aside>
 
-      {/* Layout spacer */}
-      <div
-        className={cn(
-          'hidden shrink-0 transition-[width] duration-200 ease-in-out lg:block',
-          collapsed ? 'w-[72px]' : 'w-64',
-        )}
-      />
+      {/* Spacer */}
+      <div className="hidden w-[240px] shrink-0 lg:block" />
     </>
   );
 }

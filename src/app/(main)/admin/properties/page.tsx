@@ -2,20 +2,14 @@
 
 import * as React from 'react';
 import toast from 'react-hot-toast';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  RiBuilding2Line,
-  RiCheckLine,
-  RiCloseLine,
-} from '@remixicon/react';
+  Tick01Icon,
+  Cancel01Icon,
+  Building03Icon,
+} from '@hugeicons/core-free-icons';
 
-import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
-import * as FancyButton from '@/shared/ui/fancy-button';
-import * as Input from '@/shared/ui/input';
-import * as Label from '@/shared/ui/label';
 import * as Modal from '@/shared/ui/modal';
-import * as StatusBadge from '@/shared/ui/status-badge';
-import * as Table from '@/shared/ui/table';
 import { PageHeader } from '@/shared/components/page-header';
 import {
   usePendingProperties,
@@ -94,12 +88,11 @@ function ApproveModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content>
         <Modal.Header
-          icon={RiCheckLine}
           title='Одобрить объект?'
           description={property.address}
         />
         <Modal.Body>
-          <div className='grid grid-cols-2 gap-3 text-sm'>
+          <div className='grid grid-cols-2 gap-3 text-[13px]'>
             <div>
               <span className='text-gray-400'>Тип: </span>
               <span className='text-gray-900'>
@@ -126,18 +119,21 @@ function ApproveModal({
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>
-            <Button.Root variant='neutral' mode='stroke' type='button'>
+            <button
+              type='button'
+              className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
+            >
               Отмена
-            </Button.Root>
+            </button>
           </Modal.Close>
-          <FancyButton.Root
-            variant='primary'
-            size='small'
+          <button
+            type='button'
             onClick={handleConfirm}
             disabled={approve.isPending}
+            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
           >
             {approve.isPending ? 'Одобрение...' : 'Одобрить'}
-          </FancyButton.Root>
+          </button>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
@@ -180,7 +176,6 @@ function RejectModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content>
         <Modal.Header
-          icon={RiCloseLine}
           title='Отклонить объект?'
           description={property.address}
         />
@@ -191,7 +186,7 @@ function RejectModal({
           }}
         >
           <Modal.Body className='space-y-4'>
-            <div className='grid grid-cols-2 gap-3 text-sm'>
+            <div className='grid grid-cols-2 gap-3 text-[13px]'>
               <div>
                 <span className='text-gray-400'>Тип: </span>
                 <span className='text-gray-900'>
@@ -207,33 +202,35 @@ function RejectModal({
             </div>
 
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='reject-reason'>Причина отклонения</Label.Root>
-              <Input.Root>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='reject-reason'
-                    placeholder='Укажите причину (необязательно)'
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <label htmlFor='reject-reason' className='block text-[13px] font-medium text-gray-700'>
+                Причина отклонения
+              </label>
+              <input
+                id='reject-reason'
+                type='text'
+                placeholder='Укажите причину (необязательно)'
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className='w-full h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors'
+              />
             </div>
           </Modal.Body>
           <Modal.Footer>
             <Modal.Close asChild>
-              <Button.Root variant='neutral' mode='stroke' type='button'>
+              <button
+                type='button'
+                className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
+              >
                 Отмена
-              </Button.Root>
+              </button>
             </Modal.Close>
-            <FancyButton.Root
-              variant='neutral'
-              size='small'
+            <button
               type='submit'
               disabled={reject.isPending}
+              className='bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
             >
               {reject.isPending ? 'Отклонение...' : 'Отклонить'}
-            </FancyButton.Root>
+            </button>
           </Modal.Footer>
         </form>
       </Modal.Content>
@@ -256,116 +253,118 @@ export default function AdminPropertiesPage() {
   const properties = data?.results ?? [];
 
   return (
-    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
+    <div className='w-full px-8 py-8'>
       <PageHeader
         title='Модерация объектов'
         description='Объекты, ожидающие проверки и одобрения'
-        icon={RiBuilding2Line}
       />
 
       {/* Content */}
       {isLoading ? (
-        <div className='flex flex-1 items-center justify-center py-20'>
-          <div className='text-sm text-gray-400'>
-            Загрузка...
-          </div>
+        <div className='flex items-center justify-center py-20'>
+          <span className='text-[13px] text-gray-400'>Загрузка...</span>
         </div>
       ) : properties.length === 0 ? (
-        <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>
-            <RiCheckLine className='size-6 text-gray-400' />
-          </div>
-          <div className='text-center'>
-            <div className='text-base font-semibold text-gray-900'>
-              Нет объектов на модерации
-            </div>
-            <div className='mt-1 max-w-[360px] text-sm text-gray-500'>
-              Все объекты проверены
-            </div>
-          </div>
+        <div className='flex flex-col items-center justify-center gap-2 py-20'>
+          <HugeiconsIcon icon={Building03Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
+          <span className='text-[13px] font-medium text-gray-500'>Нет объектов на модерации</span>
         </div>
       ) : (
-        <div className='overflow-hidden rounded-xl border border-gray-200 bg-white'>
-          <Table.Root>
-            <Table.Header>
-              <Table.Row>
-                <Table.Head>Адрес</Table.Head>
-                <Table.Head>Тип</Table.Head>
-                <Table.Head>Класс</Table.Head>
-                <Table.Head>Площадь</Table.Head>
-                <Table.Head>Цена</Table.Head>
-                <Table.Head>Девелопер</Table.Head>
-                <Table.Head>Дата</Table.Head>
-                <Table.Head className='w-[200px] text-right'>
+        <div className='mt-6 overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40'>
+          <table className='w-full text-left'>
+            <thead>
+              <tr className='bg-gray-50/50'>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Адрес
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Тип
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Класс
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Площадь
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Цена
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Девелопер
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Дата
+                </th>
+                <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Действия
-                </Table.Head>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
               {properties.map((property) => (
-                <Table.Row key={property.id}>
-                  <Table.Cell>
-                    <div className='max-w-[200px] truncate text-sm font-medium text-gray-900'>
+                <tr
+                  key={property.id}
+                  className='border-b border-gray-100 last:border-0 transition-colors hover:bg-blue-50/20'
+                >
+                  <td className='px-5 py-3.5'>
+                    <span className='block max-w-[200px] truncate text-[13px] font-medium text-gray-900'>
                       {property.address}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge.Root variant='lighter' color='gray' size='small'>
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600'>
                       {TYPE_LABELS[property.type] ?? property.type}
-                    </Badge.Root>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Badge.Root variant='lighter' color='blue' size='small'>
-                      {CLASS_LABELS[property.property_class] ??
-                        property.property_class}
-                    </Badge.Root>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className='text-[13px] text-gray-500'>
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-700'>
+                      {CLASS_LABELS[property.property_class] ?? property.property_class}
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] text-gray-500'>
                       {property.area} м²
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className='text-sm font-medium text-gray-900'>
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] font-medium text-gray-900'>
                       {formatPrice(property.price)} {property.currency}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className='text-[13px] text-gray-500'>
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] text-gray-500'>
                       {property.developer_name}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className='text-[13px] text-gray-500'>
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] text-gray-400'>
                       {formatDate(property.created_at)}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className='flex items-center justify-end gap-2'>
-                      <Button.Root
-                        variant='neutral'
-                        mode='stroke'
-                        size='xsmall'
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <div className='flex items-center justify-end gap-1.5'>
+                      <button
+                        type='button'
                         onClick={() => setApproveTarget(property)}
+                        className='inline-flex items-center gap-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
                       >
-                        <Button.Icon as={RiCheckLine} />
+                        <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         Одобрить
-                      </Button.Root>
-                      <Button.Root
-                        variant='neutral'
-                        mode='stroke'
-                        size='xsmall'
+                      </button>
+                      <button
+                        type='button'
                         onClick={() => setRejectTarget(property)}
+                        className='inline-flex items-center gap-1 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
                       >
-                        <Button.Icon as={RiCloseLine} />
+                        <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         Отклонить
-                      </Button.Root>
+                      </button>
                     </div>
-                  </Table.Cell>
-                </Table.Row>
+                  </td>
+                </tr>
               ))}
-            </Table.Body>
-          </Table.Root>
+            </tbody>
+          </table>
         </div>
       )}
 

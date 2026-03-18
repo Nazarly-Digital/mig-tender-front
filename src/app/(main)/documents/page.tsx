@@ -1,24 +1,21 @@
 'use client';
 
 import * as React from 'react';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  RiUploadCloud2Line,
-  RiFileTextLine,
-  RiCloseLine,
-  RiFilePdfLine,
-  RiFileWordLine,
-  RiFileExcelLine,
-  RiFileImageLine,
-  RiDeleteBinLine,
-} from '@remixicon/react';
+  CloudUploadIcon,
+  File01Icon,
+  Cancel01Icon,
+  Pdf01Icon,
+  Doc01Icon,
+  Xls01Icon,
+  Image01Icon,
+  Delete01Icon,
+} from '@hugeicons/core-free-icons';
 
 import { cn } from '@/shared/lib/cn';
-import * as FancyButton from '@/shared/ui/fancy-button';
-import * as Button from '@/shared/ui/button';
 import * as Modal from '@/shared/ui/modal';
-import * as CompactButton from '@/shared/ui/compact-button';
 import { PageHeader } from '@/shared/components/page-header';
-import * as WidgetBox from '@/shared/components/widget-box';
 
 type UploadedFile = {
   id: string;
@@ -55,11 +52,19 @@ function formatBytes(bytes: number): string {
 }
 
 function getFileIcon(type: string) {
-  if (type.includes('pdf')) return RiFilePdfLine;
-  if (type.includes('word') || type.includes('document')) return RiFileWordLine;
-  if (type.includes('sheet') || type.includes('excel')) return RiFileExcelLine;
-  if (type.startsWith('image/')) return RiFileImageLine;
-  return RiFileTextLine;
+  if (type.includes('pdf')) return Pdf01Icon;
+  if (type.includes('word') || type.includes('document')) return Doc01Icon;
+  if (type.includes('sheet') || type.includes('excel')) return Xls01Icon;
+  if (type.startsWith('image/')) return Image01Icon;
+  return File01Icon;
+}
+
+function getFileIconColor(type: string): { bg: string; text: string } {
+  if (type.includes('pdf')) return { bg: 'bg-red-50', text: 'text-red-600' };
+  if (type.includes('word') || type.includes('document')) return { bg: 'bg-blue-50', text: 'text-blue-600' };
+  if (type.includes('sheet') || type.includes('excel')) return { bg: 'bg-emerald-50', text: 'text-emerald-600' };
+  if (type.startsWith('image/')) return { bg: 'bg-purple-50', text: 'text-purple-600' };
+  return { bg: 'bg-gray-100', text: 'text-gray-500' };
 }
 
 function getFileTypeBadge(type: string): string {
@@ -127,20 +132,10 @@ function UploadModal({
       <Modal.Content className='max-w-[480px]'>
         <Modal.Header className='pr-5'>
           <div className='flex flex-1 items-start justify-between gap-3'>
-            <div className='flex items-center gap-3'>
-              <div className='flex size-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50'>
-                <RiUploadCloud2Line className='size-5 text-gray-500' />
-              </div>
-              <div>
-                <Modal.Title>Загрузить документы</Modal.Title>
-                <Modal.Description>PDF, Word, Excel, изображения</Modal.Description>
-              </div>
+            <div>
+              <Modal.Title>Загрузить документы</Modal.Title>
+              <Modal.Description>PDF, Word, Excel, изображения</Modal.Description>
             </div>
-            <Modal.Close asChild>
-              <CompactButton.Root variant='ghost' size='medium' onClick={handleClose}>
-                <CompactButton.Icon as={RiCloseLine} />
-              </CompactButton.Root>
-            </Modal.Close>
           </div>
         </Modal.Header>
 
@@ -152,31 +147,22 @@ function UploadModal({
             onDrop={handleDrop}
             onClick={() => inputRef.current?.click()}
             className={cn(
-              'flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-all duration-150',
+              'flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-8 text-center transition-all duration-150',
               dragging
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-gray-200 bg-gray-50 hover:border-blue-600 hover:bg-blue-50',
+                ? 'border-gray-400 bg-gray-50'
+                : 'border-gray-200 hover:border-gray-400',
             )}
           >
-            <div
-              className={cn(
-                'flex size-12 items-center justify-center rounded-xl transition-colors',
-                dragging ? 'bg-blue-50' : 'border border-gray-200 bg-white',
-              )}
-            >
-              <RiUploadCloud2Line
-                className={cn('size-6', dragging ? 'text-blue-600' : 'text-gray-500')}
-              />
-            </div>
+            <HugeiconsIcon icon={CloudUploadIcon} size={24} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
             <div className='space-y-1'>
-              <p className='text-sm font-medium text-gray-900'>
+              <p className='text-[13px] font-medium text-gray-900'>
                 Перетащите файлы сюда
               </p>
-              <p className='text-xs text-gray-400'>
+              <p className='text-[12px] text-gray-400'>
                 или нажмите, чтобы выбрать файлы
               </p>
             </div>
-            <p className='text-xs text-gray-400'>
+            <p className='text-[12px] text-gray-400'>
               PDF, DOCX, XLSX, PNG, JPG — до 50 МБ
             </p>
             <input
@@ -192,37 +178,39 @@ function UploadModal({
           {/* Selected files list */}
           {selectedFiles.length > 0 && (
             <div className='space-y-2'>
-              <p className='text-xs font-medium text-gray-500'>
+              <p className='text-[12px] font-medium text-gray-500'>
                 Выбрано файлов: {selectedFiles.length}
               </p>
               <div className='max-h-[200px] space-y-2 overflow-y-auto'>
                 {selectedFiles.map((file, i) => {
-                  const Icon = getFileIcon(file.type);
+                  const icon = getFileIcon(file.type);
+                  const colors = getFileIconColor(file.type);
                   return (
                     <div
                       key={i}
-                      className='flex animate-in fade-in slide-in-from-bottom-1 items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5'
-                      style={{ animationDelay: `${i * 30}ms`, animationFillMode: 'both', animationDuration: '150ms' }}
+                      className='flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5'
                     >
-                      <Icon className='size-5 shrink-0 text-blue-600' />
+                      <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg', colors.bg)}>
+                        <HugeiconsIcon icon={icon} size={16} color='currentColor' strokeWidth={1.5} className={colors.text} />
+                      </div>
                       <div className='min-w-0 flex-1'>
-                        <p className='truncate text-sm font-medium text-gray-900'>
+                        <p className='truncate text-[13px] font-medium text-gray-900'>
                           {file.name}
                         </p>
-                        <p className='text-xs text-gray-400'>
+                        <p className='text-[12px] text-gray-400'>
                           {formatBytes(file.size)}
                         </p>
                       </div>
-                      <CompactButton.Root
-                        variant='ghost'
-                        size='medium'
+                      <button
+                        type='button'
                         onClick={(e) => {
                           e.stopPropagation();
                           removeFile(i);
                         }}
+                        className='text-gray-400 hover:text-gray-600 transition-colors'
                       >
-                        <CompactButton.Icon as={RiCloseLine} />
-                      </CompactButton.Root>
+                        <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                      </button>
                     </div>
                   );
                 })}
@@ -232,61 +220,24 @@ function UploadModal({
         </Modal.Body>
 
         <Modal.Footer>
-          <Button.Root variant='neutral' mode='stroke' onClick={handleClose}>
+          <button
+            type='button'
+            onClick={handleClose}
+            className='bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors'
+          >
             Отмена
-          </Button.Root>
-          <FancyButton.Root
-            variant='primary'
+          </button>
+          <button
+            type='button'
             disabled={selectedFiles.length === 0}
             onClick={handleUpload}
+            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed'
           >
-            <FancyButton.Icon as={RiUploadCloud2Line} />
             Загрузить{selectedFiles.length > 0 ? ` (${selectedFiles.length})` : ''}
-          </FancyButton.Root>
+          </button>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
-  );
-}
-
-function DocumentCard({
-  doc,
-  onDelete,
-  index,
-}: {
-  doc: UploadedFile;
-  onDelete: (id: string) => void;
-  index: number;
-}) {
-  const Icon = getFileIcon(doc.type);
-  const badge = getFileTypeBadge(doc.type);
-
-  return (
-    <div
-      className='group flex animate-in fade-in slide-in-from-bottom-2 items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 transition-all duration-150 hover:bg-gray-50'
-      style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'both', animationDuration: '200ms' }}
-    >
-      <div className='flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50'>
-        <Icon className='size-5 text-blue-600' />
-      </div>
-      <div className='min-w-0 flex-1'>
-        <p className='truncate text-sm font-medium text-gray-900'>{doc.name}</p>
-        <p className='text-xs text-gray-400'>
-          {formatBytes(doc.size)} · {doc.uploadedAt.toLocaleDateString('ru-RU')}
-        </p>
-      </div>
-      <span className='shrink-0 rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-600'>
-        {badge}
-      </span>
-      <CompactButton.Root
-        variant='ghost'
-        size='medium'
-        className='opacity-0 transition-opacity group-hover:opacity-100'
-        onClick={() => onDelete(doc.id)}
-      >
-        <CompactButton.Icon as={RiDeleteBinLine} />
-      </CompactButton.Root>
-    </div>
   );
 }
 
@@ -318,56 +269,83 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
+    <div className='w-full px-8 py-8'>
       <PageHeader
         title='Документы'
         description='Управляйте вашими документами'
         action={
           documents.length > 0 ? (
-            <FancyButton.Root variant='primary' onClick={() => setModalOpen(true)}>
-              <FancyButton.Icon as={RiUploadCloud2Line} />
+            <button
+              type='button'
+              onClick={() => setModalOpen(true)}
+              className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors'
+            >
               Загрузить документы
-            </FancyButton.Root>
+            </button>
           ) : undefined
         }
       />
 
       {documents.length === 0 ? (
         /* Empty state */
-        <div className='flex flex-1 items-center justify-center'>
-          <div className='flex flex-col items-center gap-5 text-center'>
-            <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>
-              <RiFileTextLine className='size-6 text-gray-400' />
-            </div>
-            <div className='space-y-1'>
-              <p className='text-base font-semibold text-gray-900'>
-                Никаких документов?
-              </p>
-              <p className='max-w-[360px] text-sm text-gray-500'>
-                Загрузите, пожалуйста.
-              </p>
-            </div>
-            <FancyButton.Root variant='primary' onClick={() => setModalOpen(true)}>
-              <FancyButton.Icon as={RiUploadCloud2Line} />
+        <div className='flex flex-1 items-center justify-center py-32'>
+          <div className='flex flex-col items-center text-center'>
+            <HugeiconsIcon icon={File01Icon} size={24} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
+            <p className='text-[14px] font-medium text-gray-900 mt-3'>Нет загруженных документов</p>
+            <p className='text-[13px] text-gray-400 mt-1 max-w-sm text-center'>
+              Загрузите документы, чтобы они появились здесь
+            </p>
+            <button
+              type='button'
+              onClick={() => setModalOpen(true)}
+              className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-4 py-2 text-[13px] font-medium transition-colors mt-5'
+            >
               Загрузить документы
-            </FancyButton.Root>
+            </button>
           </div>
         </div>
       ) : (
         /* Documents list */
-        <WidgetBox.Root className='space-y-4'>
-          <WidgetBox.Header>
-            Все документы
-            <span className='ml-auto text-[13px] font-normal text-gray-400'>
-              {documents.length}
-            </span>
-          </WidgetBox.Header>
-          <div className='space-y-2'>
-            {documents.map((doc, i) => (
-              <DocumentCard key={doc.id} doc={doc} onDelete={handleDelete} index={i} />
-            ))}
+        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden mt-6'>
+          <div className='px-5 py-4 border-b border-blue-50 flex items-center justify-between'>
+            <span className='text-[14px] font-semibold text-gray-900'>Все документы</span>
+            <span className='text-[13px] text-gray-400'>{documents.length}</span>
           </div>
-        </WidgetBox.Root>
+          <div>
+            {documents.map((doc) => {
+              const icon = getFileIcon(doc.type);
+              const colors = getFileIconColor(doc.type);
+              const badge = getFileTypeBadge(doc.type);
+
+              return (
+                <div
+                  key={doc.id}
+                  className='flex items-center gap-3 px-5 py-3 border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors group'
+                >
+                  <div className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg', colors.bg)}>
+                    <HugeiconsIcon icon={icon} size={16} color='currentColor' strokeWidth={1.5} className={colors.text} />
+                  </div>
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-[13px] font-medium text-gray-900'>{doc.name}</p>
+                    <p className='text-[12px] text-gray-400'>
+                      {formatBytes(doc.size)} · {doc.uploadedAt.toLocaleDateString('ru-RU')}
+                    </p>
+                  </div>
+                  <span className='rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-500'>
+                    {badge}
+                  </span>
+                  <button
+                    type='button'
+                    onClick={() => handleDelete(doc.id)}
+                    className='opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500'
+                  >
+                    <HugeiconsIcon icon={Delete01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       <UploadModal

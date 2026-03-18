@@ -23,7 +23,7 @@ export default function SelectRolePage() {
 
       <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
         {/* Broker Card */}
-        <div className='flex flex-col items-center gap-6 rounded-xl border border-gray-200 bg-white p-6 transition-all duration-150 hover:border-gray-300 md:p-8'>
+        <div className='flex flex-col items-center gap-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6 transition-all duration-150 hover:border-blue-200 md:p-8'>
           <div className='flex flex-col items-center gap-3'>
             <div
               className={cn(
@@ -68,7 +68,7 @@ export default function SelectRolePage() {
         </div>
 
         {/* Developer Card */}
-        <div className='flex flex-col items-center gap-6 rounded-xl border border-gray-200 bg-white p-6 transition-all duration-150 hover:border-gray-300 md:p-8'>
+        <div className='flex flex-col items-center gap-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6 transition-all duration-150 hover:border-blue-200 md:p-8'>
           <div className='flex flex-col items-center gap-3'>
             <div
               className={cn(

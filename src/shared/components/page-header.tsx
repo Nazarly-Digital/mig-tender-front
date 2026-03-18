@@ -12,31 +12,31 @@ type PageHeaderProps = {
 export function PageHeader({
   title,
   description,
-  icon: Icon,
+  icon: _Icon,
   backHref,
   action,
 }: PageHeaderProps) {
   return (
-    <div className='flex items-start justify-between gap-4'>
-      <div className='flex items-center gap-3'>
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
         {backHref && (
           <Link
             href={backHref}
-            className='flex size-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600'
+            className="flex size-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
-            <RiArrowLeftSLine className='size-5' />
+            <RiArrowLeftSLine className="size-[18px]" />
           </Link>
         )}
         <div>
-          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>
+          <h1 className="text-xl font-semibold tracking-tight text-gray-900">
             {title}
           </h1>
-          <p className='mt-1 text-sm text-gray-500'>
+          <p className="mt-0.5 text-[13px] text-gray-500">
             {description}
           </p>
         </div>
       </div>
-      {action && <div className='shrink-0'>{action}</div>}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

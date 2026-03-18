@@ -1,19 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  RiAddLine,
-  RiArrowRightLine,
-  RiAuctionLine,
-  RiBuilding2Line,
-  RiEyeLine,
-} from '@remixicon/react';
+  Add01Icon,
+  EyeIcon,
+  ArrowRight01Icon,
+  Building03Icon,
+  Award01Icon,
+} from '@hugeicons/core-free-icons';
 
-import * as Badge from '@/shared/ui/badge';
-import * as Divider from '@/shared/ui/divider';
-import * as FancyButton from '@/shared/ui/fancy-button';
-import * as LinkButton from '@/shared/ui/link-button';
-import * as WidgetBox from '@/shared/components/widget-box';
 import { useMyProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
@@ -28,31 +24,34 @@ import type { Auction } from '@/shared/types/auctions';
 function StatCard({
   label,
   value,
-  icon: Icon,
   href,
   action,
+  icon,
 }: {
   label: string;
   value: number | string;
-  icon: React.ElementType;
   href: string;
   action: string;
+  icon: typeof Building03Icon;
 }) {
   return (
-    <div className='flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-5'>
-      <div className='flex items-center justify-between'>
-        <span className='text-sm font-medium text-gray-500'>{label}</span>
-        <Icon className='size-4 text-gray-300' />
+    <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
+      <div className='flex items-center gap-2.5'>
+        <div className='flex size-8 items-center justify-center rounded-lg bg-blue-50'>
+          <HugeiconsIcon icon={icon} size={16} color='currentColor' strokeWidth={1.5} className='text-blue-600' />
+        </div>
+        <span className='text-[12px] font-semibold text-gray-500'>{label}</span>
       </div>
-      <div className='mt-2 text-3xl font-bold tracking-tight text-gray-900'>
+      <span className='mt-3 block text-2xl font-bold tracking-tight text-gray-900'>
         {value}
-      </div>
-      <div className='mt-3 border-t border-gray-200 pt-3'>
-        <Link href={href}>
-          <LinkButton.Root variant='primary' size='small'>
-            {action}
-            <LinkButton.Icon as={RiArrowRightLine} />
-          </LinkButton.Root>
+      </span>
+      <div className='mt-4 border-t border-blue-50 pt-3'>
+        <Link
+          href={href}
+          className='inline-flex items-center gap-1 text-[13px] font-medium text-gray-400 transition-colors hover:text-blue-600'
+        >
+          {action}
+          <HugeiconsIcon icon={ArrowRight01Icon} size={14} color='currentColor' strokeWidth={1.5} />
         </Link>
       </div>
     </div>
@@ -61,66 +60,86 @@ function StatCard({
 
 function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
   return (
-    <div className='flex flex-col items-start justify-between rounded-xl border border-gray-200 bg-white p-5'>
+    <div className='group flex flex-col justify-between rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
       <div>
-        <div className='text-sm font-semibold text-gray-900'>Быстрое действие</div>
-        <p className='mt-1 text-xs text-gray-500'>
+        <span className='text-[14px] font-semibold text-gray-900'>Быстрое действие</span>
+        <p className='mt-1 text-[13px] text-gray-400'>
           {isDeveloper ? 'Создайте новый объект или аукцион' : 'Просмотрите доступные аукционы'}
         </p>
       </div>
       <Link href={isDeveloper ? '/properties/create' : '/auctions'} className='mt-4'>
-        <FancyButton.Root variant='primary' size='small'>
-          <FancyButton.Icon as={isDeveloper ? RiAddLine : RiEyeLine} />
+        <button
+          type='button'
+          className='inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-blue-700'
+        >
+          <HugeiconsIcon
+            icon={isDeveloper ? Add01Icon : EyeIcon}
+            size={16}
+            color='currentColor'
+            strokeWidth={1.5}
+          />
           {isDeveloper ? 'Создать объект' : 'Смотреть аукционы'}
-        </FancyButton.Root>
+        </button>
       </Link>
     </div>
   );
 }
 
 function RecentPropertyItem({ property }: { property: Property }) {
+  const statusStyles: Record<string, string> = {
+    published: 'bg-emerald-50 text-emerald-700',
+    draft: 'bg-amber-50 text-amber-700',
+  };
+
   return (
-    <div className='flex items-center justify-between gap-3 py-2.5'>
+    <div className='flex items-center gap-3 px-5 py-3 border-b border-blue-50 last:border-0 transition-colors hover:bg-blue-50/20'>
+      <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50'>
+        <HugeiconsIcon icon={Building03Icon} size={15} color='currentColor' strokeWidth={1.5} className='text-blue-500' />
+      </div>
       <div className='min-w-0 flex-1'>
-        <div className='truncate text-sm font-medium text-gray-900'>
+        <span className='block truncate text-[13px] font-medium text-gray-900'>
           {property.address}
-        </div>
-        <div className='mt-0.5 flex items-center gap-1.5 text-xs text-gray-500'>
+        </span>
+        <span className='mt-0.5 flex items-center gap-1.5 text-[12px] text-gray-400'>
           <span>{TYPE_LABELS[property.type]}</span>
           <span className='text-gray-300'>·</span>
           <span>{formatPrice(property.price)} {property.currency}</span>
-        </div>
+        </span>
       </div>
-      <Badge.Root
-        variant='light'
-        size='small'
-        color={property.status === 'published' ? 'green' : property.status === 'draft' ? 'orange' : 'gray'}
-      >
+      <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${statusStyles[property.status] ?? 'bg-gray-100 text-gray-500'}`}>
         {STATUS_LABELS[property.status]}
-      </Badge.Root>
+      </span>
     </div>
   );
 }
 
 function RecentAuctionItem({ auction }: { auction: Auction }) {
-  const statusColor = auction.status === 'active' ? 'green' : auction.status === 'finished' ? 'blue' : 'gray';
-  const statusLabel = auction.status === 'active' ? 'Активный' : auction.status === 'finished' ? 'Завершён' : auction.status === 'draft' ? 'Черновик' : 'Отменён';
+  const statusMap: Record<string, { label: string; style: string }> = {
+    active: { label: 'Активный', style: 'bg-emerald-50 text-emerald-700' },
+    finished: { label: 'Завершён', style: 'bg-blue-50 text-blue-600' },
+    draft: { label: 'Черновик', style: 'bg-amber-50 text-amber-700' },
+    cancelled: { label: 'Отменён', style: 'bg-gray-100 text-gray-500' },
+  };
+  const status = statusMap[auction.status] ?? { label: auction.status, style: 'bg-gray-100 text-gray-500' };
 
   return (
-    <div className='flex items-center justify-between gap-3 py-2.5'>
+    <div className='flex items-center gap-3 px-5 py-3 border-b border-blue-50 last:border-0 transition-colors hover:bg-blue-50/20'>
+      <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50'>
+        <HugeiconsIcon icon={Award01Icon} size={15} color='currentColor' strokeWidth={1.5} className='text-blue-500' />
+      </div>
       <div className='min-w-0 flex-1'>
-        <div className='truncate text-sm font-medium text-gray-900'>
+        <span className='block truncate text-[13px] font-medium text-gray-900'>
           Аукцион #{auction.id}
-        </div>
-        <div className='mt-0.5 flex items-center gap-1.5 text-xs text-gray-500'>
+        </span>
+        <span className='mt-0.5 flex items-center gap-1.5 text-[12px] text-gray-400'>
           <span>от {formatPrice(auction.min_price)}</span>
           <span className='text-gray-300'>·</span>
           <span>{formatDateShort(auction.end_date)}</span>
-        </div>
+        </span>
       </div>
-      <Badge.Root variant='light' size='small' color={statusColor}>
-        {statusLabel}
-      </Badge.Root>
+      <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${status.style}`}>
+        {status.label}
+      </span>
     </div>
   );
 }
@@ -143,85 +162,63 @@ export default function DashboardPage() {
   const greeting = user?.first_name ? `Привет, ${user.first_name}` : 'Добро пожаловать';
 
   return (
-    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
-      <div>
-        <h1 className='text-2xl font-bold tracking-tight text-gray-900'>{greeting}</h1>
-        <p className='mt-1 text-sm text-gray-500'>
-          Вот последние данные вашей панели управления.
-        </p>
-      </div>
+    <div className='w-full px-8 py-8'>
+      <div className='flex flex-col gap-8'>
+        <div>
+          <h1 className='text-xl font-semibold tracking-tight text-gray-900'>{greeting}</h1>
+          <p className='mt-1 text-[13px] text-gray-500'>
+            Вот последние данные вашей панели управления.
+          </p>
+        </div>
 
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-        {isDeveloper ? (
-          <StatCard label='Мои объекты' value={propertiesCount} icon={RiBuilding2Line} href='/properties' action='Все объекты' />
-        ) : (
-          <>
-            <StatCard label='Каталог объектов' value={propertiesCount} icon={RiBuilding2Line} href='/catalog' action='Открыть каталог' />
-            <StatCard label='Доступные аукционы' value={auctionsCount} icon={RiAuctionLine} href='/auctions' action='Все аукционы' />
-          </>
-        )}
-        {isDeveloper && (
-          <StatCard label='Мои аукционы' value={auctionsCount} icon={RiAuctionLine} href='/auctions' action='Подробнее' />
-        )}
-        <QuickActionCard isDeveloper={isDeveloper} />
-      </div>
-
-      <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-        {isDeveloper && (
-          <WidgetBox.Root>
-            <WidgetBox.Header>
-              <WidgetBox.HeaderIcon as={RiBuilding2Line} />
-              Последние объекты
-            </WidgetBox.Header>
-            {recentProperties.length === 0 ? (
-              <div className='py-6 text-center text-sm text-gray-400'>Нет объектов</div>
-            ) : (
-              <div className='flex flex-col'>
-                {recentProperties.map((property, i) => (
-                  <div key={property.id}>
-                    {i > 0 && <Divider.Root variant='line' />}
-                    <RecentPropertyItem property={property} />
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className='mt-3 border-t border-gray-200 pt-3'>
-              <Link href='/properties'>
-                <LinkButton.Root variant='primary' size='small'>
-                  Все объекты
-                  <LinkButton.Icon as={RiArrowRightLine} />
-                </LinkButton.Root>
-              </Link>
-            </div>
-          </WidgetBox.Root>
-        )}
-
-        <WidgetBox.Root>
-          <WidgetBox.Header>
-            <WidgetBox.HeaderIcon as={RiAuctionLine} />
-            {isDeveloper ? 'Мои аукционы' : 'Доступные аукционы'}
-          </WidgetBox.Header>
-          {recentAuctions.length === 0 ? (
-            <div className='py-6 text-center text-sm text-gray-400'>Нет аукционов</div>
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+          {isDeveloper ? (
+            <StatCard label='Мои объекты' value={propertiesCount} href='/properties' action='Все объекты' icon={Building03Icon} />
           ) : (
-            <div className='flex flex-col'>
-              {recentAuctions.map((auction, i) => (
-                <div key={auction.id}>
-                  {i > 0 && <Divider.Root variant='line' />}
-                  <RecentAuctionItem auction={auction} />
-                </div>
-              ))}
+            <>
+              <StatCard label='Каталог объектов' value={propertiesCount} href='/catalog' action='Открыть каталог' icon={Building03Icon} />
+              <StatCard label='Доступные аукционы' value={auctionsCount} href='/auctions' action='Все аукционы' icon={Award01Icon} />
+            </>
+          )}
+          {isDeveloper && (
+            <StatCard label='Мои аукционы' value={auctionsCount} href='/auctions' action='Подробнее' icon={Award01Icon} />
+          )}
+          <QuickActionCard isDeveloper={isDeveloper} />
+        </div>
+
+        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+          {isDeveloper && (
+            <div className='overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
+              <div className='flex items-center justify-between px-5 py-4 border-b border-gray-100'>
+                <span className='text-[14px] font-semibold text-gray-900'>Последние объекты</span>
+                <Link href='/properties' className='inline-flex items-center gap-1 text-[13px] font-medium text-gray-400 transition-colors hover:text-blue-600'>
+                  Все <HugeiconsIcon icon={ArrowRight01Icon} size={12} color='currentColor' strokeWidth={1.5} />
+                </Link>
+              </div>
+              {recentProperties.length === 0 ? (
+                <div className='py-10 text-center text-[13px] text-gray-400'>Нет объектов</div>
+              ) : (
+                <div>{recentProperties.map((p) => <RecentPropertyItem key={p.id} property={p} />)}</div>
+              )}
             </div>
           )}
-          <div className='mt-3 border-t border-gray-200 pt-3'>
-            <Link href='/auctions'>
-              <LinkButton.Root variant='primary' size='small'>
-                Все аукционы
-                <LinkButton.Icon as={RiArrowRightLine} />
-              </LinkButton.Root>
-            </Link>
+
+          <div className='overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
+            <div className='flex items-center justify-between px-5 py-4 border-b border-gray-100'>
+              <span className='text-[14px] font-semibold text-gray-900'>
+                {isDeveloper ? 'Мои аукционы' : 'Доступные аукционы'}
+              </span>
+              <Link href='/auctions' className='inline-flex items-center gap-1 text-[13px] font-medium text-gray-400 transition-colors hover:text-blue-600'>
+                Все <HugeiconsIcon icon={ArrowRight01Icon} size={12} color='currentColor' strokeWidth={1.5} />
+              </Link>
+            </div>
+            {recentAuctions.length === 0 ? (
+              <div className='py-10 text-center text-[13px] text-gray-400'>Нет аукционов</div>
+            ) : (
+              <div>{recentAuctions.map((a) => <RecentAuctionItem key={a.id} auction={a} />)}</div>
+            )}
           </div>
-        </WidgetBox.Root>
+        </div>
       </div>
     </div>
   );

@@ -2,22 +2,16 @@
 
 import * as React from 'react';
 import toast from 'react-hot-toast';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  RiUserLine,
-  RiShieldCheckLine,
-  RiForbidLine,
-  RiCheckLine,
-  RiLockLine,
-  RiLockUnlockLine,
-} from '@remixicon/react';
+  UserIcon,
+  SecurityCheckIcon,
+  SquareLock01Icon,
+  SquareUnlock01Icon,
+  Cancel01Icon,
+} from '@hugeicons/core-free-icons';
 
-import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
-import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
-import * as SegmentedControl from '@/shared/ui/segmented-control';
-import * as StatusBadge from '@/shared/ui/status-badge';
-import * as Table from '@/shared/ui/table';
 import { PageHeader } from '@/shared/components/page-header';
 import {
   useAdminUsers,
@@ -28,10 +22,10 @@ import type { AdminUser } from '@/shared/types/admin';
 
 // --- Helpers ---
 
-const ROLE_LABELS: Record<string, { label: string; color: 'blue' | 'orange' | 'gray' | 'purple' }> = {
-  developer: { label: 'Девелопер', color: 'blue' },
-  broker: { label: 'Брокер', color: 'orange' },
-  admin: { label: 'Админ', color: 'purple' },
+const ROLE_LABELS: Record<string, string> = {
+  developer: 'Девелопер',
+  broker: 'Брокер',
+  admin: 'Админ',
 };
 
 function formatDate(dateStr: string | undefined | null) {
@@ -85,12 +79,11 @@ function BlockConfirmModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content>
         <Modal.Header
-          icon={user.is_blocked ? RiLockUnlockLine : RiForbidLine}
           title={user.is_blocked ? 'Разблокировать пользователя?' : 'Заблокировать пользователя?'}
           description={`${user.first_name} ${user.last_name} (${user.email})`}
         />
         <Modal.Body>
-          <p className='text-sm text-gray-500'>
+          <p className='text-[13px] text-gray-500'>
             {user.is_blocked
               ? 'Пользователь сможет снова войти в систему и использовать платформу.'
               : 'Пользователь не сможет войти в систему и использовать платформу.'}
@@ -98,22 +91,29 @@ function BlockConfirmModal({
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>
-            <Button.Root variant='neutral' mode='stroke' type='button'>
+            <button
+              type='button'
+              className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
+            >
               Отмена
-            </Button.Root>
+            </button>
           </Modal.Close>
-          <FancyButton.Root
-            variant={user.is_blocked ? 'primary' : 'neutral'}
-            size='small'
+          <button
+            type='button'
             onClick={handleConfirm}
             disabled={blockUser.isPending}
+            className={
+              user.is_blocked
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
+                : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
+            }
           >
             {blockUser.isPending
               ? 'Загрузка...'
               : user.is_blocked
                 ? 'Разблокировать'
                 : 'Заблокировать'}
-          </FancyButton.Root>
+          </button>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
@@ -151,29 +151,31 @@ function VerifyBrokerModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content>
         <Modal.Header
-          icon={RiShieldCheckLine}
           title='Верифицировать брокера?'
           description={`${user.first_name} ${user.last_name} (${user.email})`}
         />
         <Modal.Body>
-          <p className='text-sm text-gray-500'>
+          <p className='text-[13px] text-gray-500'>
             Брокер получит статус верифицированного и сможет участвовать в аукционах.
           </p>
         </Modal.Body>
         <Modal.Footer>
           <Modal.Close asChild>
-            <Button.Root variant='neutral' mode='stroke' type='button'>
+            <button
+              type='button'
+              className='border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
+            >
               Отмена
-            </Button.Root>
+            </button>
           </Modal.Close>
-          <FancyButton.Root
-            variant='primary'
-            size='small'
+          <button
+            type='button'
             onClick={handleConfirm}
             disabled={verifyBroker.isPending}
+            className='bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors disabled:opacity-50'
           >
             {verifyBroker.isPending ? 'Загрузка...' : 'Верифицировать'}
-          </FancyButton.Root>
+          </button>
         </Modal.Footer>
       </Modal.Content>
     </Modal.Root>
@@ -198,163 +200,152 @@ export default function AdminUsersPage() {
   const { data, isLoading } = useAdminUsers(params);
   const users = data?.results ?? [];
 
+  const filters: { value: RoleFilter; label: string }[] = [
+    { value: 'all', label: 'Все' },
+    { value: 'developer', label: 'Девелоперы' },
+    { value: 'broker', label: 'Брокеры' },
+  ];
+
   return (
-    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
+    <div className='w-full px-8 py-8'>
       <PageHeader
         title='Пользователи'
         description='Управление пользователями платформы'
-        icon={RiUserLine}
       />
 
-      {/* Filters */}
-      <SegmentedControl.Root
-        value={roleFilter}
-        onValueChange={(v) => setRoleFilter(v as RoleFilter)}
-        className='w-fit'
-      >
-        <SegmentedControl.List>
-          <SegmentedControl.Trigger value='all'>Все</SegmentedControl.Trigger>
-          <SegmentedControl.Trigger value='developer'>
-            Девелоперы
-          </SegmentedControl.Trigger>
-          <SegmentedControl.Trigger value='broker'>
-            Брокеры
-          </SegmentedControl.Trigger>
-        </SegmentedControl.List>
-      </SegmentedControl.Root>
+      {/* Filters — flat underline tab bar */}
+      <div className='mt-6 flex items-center gap-1 border-b border-gray-100'>
+        {filters.map((f) => (
+          <button
+            key={f.value}
+            type='button'
+            onClick={() => setRoleFilter(f.value)}
+            className={
+              roleFilter === f.value
+                ? 'border-b-2 border-blue-600 px-3 pb-2.5 text-[13px] font-medium text-gray-900'
+                : 'border-b-2 border-transparent px-3 pb-2.5 text-[13px] font-medium text-gray-400 transition-colors hover:text-gray-600'
+            }
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
 
       {/* Content */}
       {isLoading ? (
-        <div className='flex flex-1 items-center justify-center py-20'>
-          <div className='text-sm text-gray-400'>
-            Загрузка...
-          </div>
+        <div className='flex items-center justify-center py-20'>
+          <span className='text-[13px] text-gray-400'>Загрузка...</span>
         </div>
       ) : users.length === 0 ? (
-        <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>
-            <RiUserLine className='size-6 text-gray-400' />
-          </div>
-          <div className='text-base font-semibold text-gray-900'>
-            Нет пользователей
-          </div>
+        <div className='flex flex-col items-center justify-center gap-2 py-20'>
+          <HugeiconsIcon icon={UserIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
+          <span className='text-[13px] font-medium text-gray-500'>Нет пользователей</span>
         </div>
       ) : (
-        <div className='overflow-hidden rounded-xl border border-gray-200 bg-white'>
-          <Table.Root>
-            <Table.Header>
-              <Table.Row>
-                <Table.Head>Пользователь</Table.Head>
-                <Table.Head>Email</Table.Head>
-                <Table.Head>Роль</Table.Head>
-                <Table.Head>Статус</Table.Head>
-                <Table.Head>Регистрация</Table.Head>
-                <Table.Head className='w-[200px] text-right'>
+        <div className='mt-6 overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40'>
+          <table className='w-full text-left'>
+            <thead>
+              <tr className='bg-gray-50/50'>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Пользователь
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Email
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Роль
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Статус
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Регистрация
+                </th>
+                <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Действия
-                </Table.Head>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {users.map((user) => {
-                const roleCfg = ROLE_LABELS[user.role] ?? {
-                  label: user.role,
-                  color: 'gray' as const,
-                };
-
-                return (
-                  <Table.Row key={user.id}>
-                    <Table.Cell>
-                      <div className='text-sm font-medium text-gray-900'>
-                        {user.first_name} {user.last_name}
-                      </div>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <div className='text-[13px] text-gray-500'>
-                        {user.email}
-                      </div>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Badge.Root
-                        variant='lighter'
-                        color={roleCfg.color}
-                        size='small'
-                      >
-                        {roleCfg.label}
-                      </Badge.Root>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <div className='flex flex-wrap items-center gap-1.5'>
-                        {user.is_blocked ? (
-                          <StatusBadge.Root variant='light' status='failed'>
-                            <StatusBadge.Dot />
-                            Заблокирован
-                          </StatusBadge.Root>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr
+                  key={user.id}
+                  className='border-b border-gray-100 last:border-0 transition-colors hover:bg-blue-50/20'
+                >
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] font-medium text-gray-900'>
+                      {user.first_name} {user.last_name}
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] text-gray-500'>{user.email}</span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600'>
+                      {ROLE_LABELS[user.role] ?? user.role}
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <div className='flex items-center gap-1.5'>
+                      {user.is_blocked ? (
+                        <span className='inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700'>
+                          <span className='inline-block size-1.5 rounded-full bg-red-500 mr-1' />
+                          Заблокирован
+                        </span>
+                      ) : (
+                        <span className='inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700'>
+                          <span className='inline-block size-1.5 rounded-full bg-emerald-500 mr-1' />
+                          Активен
+                        </span>
+                      )}
+                      {user.role === 'broker' && (
+                        user.is_verified ? (
+                          <span className='rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700'>
+                            Верифицирован
+                          </span>
                         ) : (
-                          <StatusBadge.Root variant='light' status='completed'>
-                            <StatusBadge.Dot />
-                            Активен
-                          </StatusBadge.Root>
-                        )}
-                        {user.role === 'broker' && (
-                          user.is_verified ? (
-                            <Badge.Root
-                              variant='light'
-                              color='green'
-                              size='small'
-                            >
-                              Верифицирован
-                            </Badge.Root>
-                          ) : (
-                            <Badge.Root
-                              variant='light'
-                              color='orange'
-                              size='small'
-                            >
-                              Не верифицирован
-                            </Badge.Root>
-                          )
-                        )}
-                      </div>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <div className='text-[13px] text-gray-500'>
-                        {formatDate(user.created_at)}
-                      </div>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <div className='flex items-center justify-end gap-2'>
-                        {/* Verify broker */}
-                        {user.role === 'broker' && !user.is_verified && (
-                          <Button.Root
-                            variant='neutral'
-                            mode='stroke'
-                            size='xsmall'
-                            onClick={() => setVerifyTarget(user)}
-                          >
-                            <Button.Icon as={RiShieldCheckLine} />
-                            Верифицировать
-                          </Button.Root>
-                        )}
-
-                        {/* Block / unblock */}
-                        <Button.Root
-                          variant='neutral'
-                          mode='stroke'
-                          size='xsmall'
-                          onClick={() => setBlockTarget(user)}
+                          <span className='rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700'>
+                            Не верифицирован
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] text-gray-400'>
+                      {formatDate(user.created_at)}
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <div className='flex items-center justify-end gap-1.5'>
+                      {user.role === 'broker' && !user.is_verified && (
+                        <button
+                          type='button'
+                          onClick={() => setVerifyTarget(user)}
+                          className='inline-flex items-center gap-1 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
                         >
-                          <Button.Icon
-                            as={user.is_blocked ? RiLockUnlockLine : RiLockLine}
-                          />
-                          {user.is_blocked ? 'Разблокировать' : 'Заблокировать'}
-                        </Button.Root>
-                      </div>
-                    </Table.Cell>
-                  </Table.Row>
-                );
-              })}
-            </Table.Body>
-          </Table.Root>
+                          <HugeiconsIcon icon={SecurityCheckIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                          Верифицировать
+                        </button>
+                      )}
+                      <button
+                        type='button'
+                        onClick={() => setBlockTarget(user)}
+                        className='inline-flex items-center gap-1 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors'
+                      >
+                        {user.is_blocked ? (
+                          <HugeiconsIcon icon={SquareUnlock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                        ) : (
+                          <HugeiconsIcon icon={SquareLock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                        )}
+                        {user.is_blocked ? 'Разблокировать' : 'Заблокировать'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
