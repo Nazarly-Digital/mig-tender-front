@@ -14,6 +14,7 @@ import {
   RiHeadphoneLine,
   RiLayoutGridLine,
   RiSettings2Line,
+  RiShieldCheckLine,
   RiUserLine,
   RiWalletLine,
 } from '@remixicon/react';
@@ -34,6 +35,7 @@ type NavigationLink = {
   disabled?: boolean;
   developerOnly?: boolean;
   brokerOnly?: boolean;
+  adminOnly?: boolean;
 };
 
 export const navigationLinks: NavigationLink[] = [
@@ -47,6 +49,8 @@ export const navigationLinks: NavigationLink[] = [
   { icon: RiWalletLine, label: 'Выплаты / история', href: '/payments', brokerOnly: true },
   { icon: RiBarChartBoxLine, label: 'Аналитика', href: '/analytics', developerOnly: true },
   { icon: RiFileLine, label: 'Документы', href: '/documents' },
+  { icon: RiUserLine, label: 'Пользователи', href: '/admin/users', adminOnly: true },
+  { icon: RiShieldCheckLine, label: 'Модерация', href: '/admin/properties', adminOnly: true },
 ];
 
 
@@ -132,9 +136,11 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
   const pathname = usePathname();
   const user = useSessionStore((s) => s.user);
   const isDeveloper = user?.role === 'developer';
+  const isAdmin = user?.role === 'admin';
 
   const visibleLinks = navigationLinks.filter(
     (link) => {
+      if (link.adminOnly && !isAdmin) return false;
       if (link.developerOnly && !isDeveloper) return false;
       if (link.brokerOnly && isDeveloper) return false;
       return true;
