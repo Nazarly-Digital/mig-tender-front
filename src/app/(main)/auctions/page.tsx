@@ -70,17 +70,17 @@ function AuctionCard({ auction }: { auction: Auction }) {
   return (
     <Link
       href={`/auctions/${auction.id}`}
-      className='group flex flex-col rounded-xl border border-[#E5E7EB] bg-white p-5 hover:border-[#D1D5DB] transition-all duration-150'
+      className='group flex flex-col rounded-xl border border-gray-200 bg-white p-5 hover:border-gray-300 transition-colors'
     >
       <div>
-        <div className='text-[15px] font-semibold text-[#111827]'>Аукцион #{auction.id}</div>
-        <div className='mt-0.5 text-[13px] text-[#6B7280]'>Объект #{auction.property_id}</div>
+        <div className='text-sm font-semibold text-gray-900'>Аукцион #{auction.id}</div>
+        <div className='mt-0.5 text-xs text-gray-500'>Объект #{auction.property_id}</div>
       </div>
 
       {isActive && (
         <div className='mt-3'>
           <ProgressBar.Root value={progress} color={getProgressColor(progress)} />
-          <div className='mt-1 text-right text-[12px] text-[#9CA3AF]'>{progress}% времени</div>
+          <div className='mt-1 text-right text-xs text-gray-400'>{progress}% времени</div>
         </div>
       )}
 
@@ -93,23 +93,23 @@ function AuctionCard({ auction }: { auction: Auction }) {
       </div>
 
       <div className='mt-3 grid grid-cols-2 gap-2'>
-        <div className='rounded-lg bg-[#F9FAFB] p-3'>
-          <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>Мин. цена</div>
-          <div className='mt-0.5 text-[14px] font-semibold text-[#111827]'>{formatPrice(auction.min_price)}</div>
+        <div className='rounded-lg bg-gray-50 p-3'>
+          <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Мин. цена</div>
+          <div className='mt-0.5 text-sm font-semibold text-gray-900'>{formatPrice(auction.min_price)}</div>
         </div>
-        <div className='rounded-lg bg-[#F9FAFB] p-3'>
-          <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>Текущая макс.</div>
-          <div className='mt-0.5 text-[14px] font-semibold text-[#111827]'>{formatPrice(auction.current_price)}</div>
+        <div className='rounded-lg bg-gray-50 p-3'>
+          <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Текущая макс.</div>
+          <div className='mt-0.5 text-sm font-semibold text-gray-900'>{formatPrice(auction.current_price)}</div>
         </div>
       </div>
 
-      <div className='mt-3 flex items-center gap-3 border-t border-[#E5E7EB] pt-3 text-[13px] text-[#6B7280]'>
+      <div className='mt-3 flex items-center gap-3 border-t border-gray-200 pt-3 text-xs text-gray-500'>
         <div className='flex items-center gap-1'>
-          <RiAuctionLine className='size-3.5 text-[#D1D5DB]' />
+          <RiAuctionLine className='size-3.5 text-gray-300' />
           <span>{auction.bids_count} ставок</span>
         </div>
         <div className='flex items-center gap-1'>
-          <RiTimeLine className='size-3.5 text-[#D1D5DB]' />
+          <RiTimeLine className='size-3.5 text-gray-300' />
           <span>до {formatDate(auction.end_date)}</span>
         </div>
       </div>
@@ -159,19 +159,19 @@ export default function AuctionsPage() {
 
       {isLoading ? (
         <div className='flex flex-1 items-center justify-center py-16'>
-          <div className='text-[14px] text-[#9CA3AF]'>Загрузка...</div>
+          <div className='text-sm text-gray-400'>Загрузка...</div>
         </div>
       ) : auctions.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-16'>
-          <div className='flex size-11 items-center justify-center rounded-xl bg-[#F9FAFB]'>
-            <RiAuctionLine className='size-5 text-[#9CA3AF]' />
+          <div className='flex size-11 items-center justify-center rounded-xl bg-gray-50'>
+            <RiAuctionLine className='size-5 text-gray-400' />
           </div>
-          <div className='text-[16px] font-semibold text-[#111827]'>
+          <div className='text-base font-semibold text-gray-900'>
             {tab === 'all' ? 'Нет аукционов' : tab === 'active' ? 'Нет активных аукционов' : 'Нет завершённых аукционов'}
           </div>
           {isDeveloper && tab === 'all' && (
             <>
-              <div className='text-[14px] text-[#6B7280]'>Создайте свой первый аукцион</div>
+              <div className='text-sm text-gray-500'>Создайте свой первый аукцион</div>
               <Link href='/auctions/create' className='mt-1'>
                 <FancyButton.Root variant='primary' size='xsmall'>
                   <FancyButton.Icon as={RiAddLine} />

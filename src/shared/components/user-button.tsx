@@ -34,7 +34,7 @@ export function UserButton({ className }: { className?: string }) {
     <Dropdown.Root>
       <Dropdown.Trigger
         className={cnExt(
-          'flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg p-2 text-left outline-none transition-all duration-150 hover:bg-[#F3F4F6] focus:outline-none',
+          'flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg p-2 text-left outline-none transition-colors hover:bg-gray-100 focus:outline-none',
           className,
         )}
       >
@@ -43,18 +43,18 @@ export function UserButton({ className }: { className?: string }) {
           className='flex min-w-0 flex-1 flex-col'
           data-hide-collapsed
         >
-          <div className='truncate text-[13px] font-medium text-[#111827]'>{fullName}</div>
+          <div className='truncate text-[13px] font-medium text-gray-900'>{fullName}</div>
           {roleLabel && (
-            <div className='truncate text-[11px] text-[#9CA3AF]'>{roleLabel}</div>
+            <div className='truncate text-[11px] text-gray-500'>{roleLabel}</div>
           )}
         </div>
       </Dropdown.Trigger>
 
       <Dropdown.Content side='right' sideOffset={16} align='end'>
         <div className='px-3 py-2'>
-          <div className='text-[13px] font-medium text-[#111827]'>{fullName}</div>
+          <div className='text-[13px] font-medium text-gray-900'>{fullName}</div>
           {user?.email && (
-            <div className='text-[12px] text-[#9CA3AF]'>{user.email}</div>
+            <div className='text-xs text-gray-400'>{user.email}</div>
           )}
         </div>
         <Divider.Root variant='line-spacing' />

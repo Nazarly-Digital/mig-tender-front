@@ -110,10 +110,10 @@ function formatDate(dateStr: string | null) {
 
 const getSortingIcon = (state: 'asc' | 'desc' | false) => {
   if (state === 'asc')
-    return <RiArrowUpSFill className='size-5 text-[#6B7280]' />;
+    return <RiArrowUpSFill className='size-5 text-gray-500' />;
   if (state === 'desc')
-    return <RiArrowDownSFill className='size-5 text-[#6B7280]' />;
-  return <RiExpandUpDownFill className='size-5 text-[#9CA3AF]' />;
+    return <RiArrowDownSFill className='size-5 text-gray-500' />;
+  return <RiExpandUpDownFill className='size-5 text-gray-400' />;
 };
 
 function SortableHeader({
@@ -167,7 +167,7 @@ const columns: ColumnDef<Property>[] = [
       <SortableHeader column={column}>Адрес</SortableHeader>
     ),
     cell: ({ row }) => (
-      <div className='max-w-[240px] truncate text-[14px] text-[#111827]'>
+      <div className='max-w-[240px] truncate text-sm text-gray-900'>
         {row.original.address}
       </div>
     ),
@@ -211,7 +211,7 @@ const columns: ColumnDef<Property>[] = [
       <SortableHeader column={column}>Цена</SortableHeader>
     ),
     cell: ({ row }) => (
-      <div className='text-[14px] font-medium text-[#111827]'>
+      <div className='text-sm font-medium text-gray-900'>
         {formatPrice(row.original.price, row.original.currency)}
       </div>
     ),
@@ -223,7 +223,7 @@ const columns: ColumnDef<Property>[] = [
       <SortableHeader column={column}>Площадь</SortableHeader>
     ),
     cell: ({ row }) => (
-      <div className='text-[13px] text-[#6B7280]'>
+      <div className='text-[13px] text-gray-500'>
         {formatArea(row.original.area)}
       </div>
     ),
@@ -235,7 +235,7 @@ const columns: ColumnDef<Property>[] = [
       <SortableHeader column={column}>Срок сдачи</SortableHeader>
     ),
     cell: ({ row }) => (
-      <div className='text-[13px] text-[#6B7280]'>
+      <div className='text-[13px] text-gray-500'>
         {formatDate(row.original.deadline)}
       </div>
     ),
@@ -340,7 +340,7 @@ export function PropertiesTable({
         ) : (
           <Table.Row>
             <Table.Cell colSpan={columns.length} className='h-24 text-center'>
-              <div className='text-[14px] text-[#9CA3AF]'>
+              <div className='text-sm text-gray-400'>
                 Объекты не найдены
               </div>
             </Table.Cell>
@@ -400,7 +400,7 @@ export function PropertiesTablePagination({
         >
           Назад
         </Button.Root>
-        <span className='whitespace-nowrap text-center text-[13px] text-[#6B7280]'>
+        <span className='whitespace-nowrap text-center text-[13px] text-gray-500'>
           {page} из {totalPages}
         </span>
         <Button.Root
@@ -417,7 +417,7 @@ export function PropertiesTablePagination({
 
       {/* Desktop */}
       <div className='mt-10 hidden items-center gap-3 lg:flex'>
-        <span className='flex-1 whitespace-nowrap text-[13px] text-[#6B7280]'>
+        <span className='flex-1 whitespace-nowrap text-[13px] text-gray-500'>
           Страница {page} из {totalPages}
         </span>
 

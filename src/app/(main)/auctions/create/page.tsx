@@ -82,17 +82,17 @@ export default function CreateAuctionPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className='flex w-full max-w-[640px] flex-col gap-4'>
         {/* Section: Property select */}
-        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
-          <div className='text-[18px] font-semibold text-[#111827]'>Выбор объекта</div>
+        <div className='rounded-xl border border-gray-200 bg-white p-6 space-y-5'>
+          <div className='text-lg font-semibold text-gray-900'>Выбор объекта</div>
 
           <div className='space-y-1.5'>
             <Label.Root htmlFor='auction-property'>
               Объект <Label.Asterisk />
             </Label.Root>
             {propertiesLoading ? (
-              <div className='text-[14px] text-[#9CA3AF]'>Загрузка объектов...</div>
+              <div className='text-sm text-gray-400'>Загрузка объектов...</div>
             ) : properties.length === 0 ? (
-              <div className='text-[14px] text-[#9CA3AF]'>
+              <div className='text-sm text-gray-400'>
                 Нет доступных объектов. Сначала создайте объект.
               </div>
             ) : (
@@ -118,14 +118,14 @@ export default function CreateAuctionPage() {
                 )}
               />
             )}
-            {errors.property_id && <p className='text-[13px] text-[#EF4444]'>{errors.property_id.message}</p>}
+            {errors.property_id && <p className='text-xs text-red-500'>{errors.property_id.message}</p>}
             <Hint.Root>Выберите объект, который будет выставлен на аукцион</Hint.Root>
           </div>
         </div>
 
         {/* Section: Auction params */}
-        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
-          <div className='text-[18px] font-semibold text-[#111827]'>Параметры аукциона</div>
+        <div className='rounded-xl border border-gray-200 bg-white p-6 space-y-5'>
+          <div className='text-lg font-semibold text-gray-900'>Параметры аукциона</div>
 
           <div className='space-y-1.5'>
             <Label.Root htmlFor='auction-mode'>
@@ -154,7 +154,7 @@ export default function CreateAuctionPage() {
                 </Select.Root>
               )}
             />
-            {errors.mode && <p className='text-[13px] text-[#EF4444]'>{errors.mode.message}</p>}
+            {errors.mode && <p className='text-xs text-red-500'>{errors.mode.message}</p>}
           </div>
 
           <div className='space-y-1.5'>
@@ -172,14 +172,14 @@ export default function CreateAuctionPage() {
                 />
               </Input.Wrapper>
             </Input.Root>
-            {errors.min_price && <p className='text-[13px] text-[#EF4444]'>{errors.min_price.message}</p>}
+            {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
             <Hint.Root>Минимальная стартовая цена для ставок</Hint.Root>
           </div>
         </div>
 
         {/* Section: Dates */}
-        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
-          <div className='text-[18px] font-semibold text-[#111827]'>Сроки проведения</div>
+        <div className='rounded-xl border border-gray-200 bg-white p-6 space-y-5'>
+          <div className='text-lg font-semibold text-gray-900'>Сроки проведения</div>
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
@@ -195,7 +195,7 @@ export default function CreateAuctionPage() {
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {errors.start_date && <p className='text-[13px] text-[#EF4444]'>{errors.start_date.message}</p>}
+              {errors.start_date && <p className='text-xs text-red-500'>{errors.start_date.message}</p>}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-end'>
@@ -210,7 +210,7 @@ export default function CreateAuctionPage() {
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {errors.end_date && <p className='text-[13px] text-[#EF4444]'>{errors.end_date.message}</p>}
+              {errors.end_date && <p className='text-xs text-red-500'>{errors.end_date.message}</p>}
             </div>
           </div>
         </div>

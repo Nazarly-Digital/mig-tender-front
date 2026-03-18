@@ -68,8 +68,8 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
 
   if (images.length === 0) {
     return (
-      <div className='flex h-44 items-center justify-center rounded-lg bg-[#F9FAFB]'>
-        <RiImageLine className='size-8 text-[#9CA3AF]' />
+      <div className='flex h-44 items-center justify-center rounded-lg bg-gray-50'>
+        <RiImageLine className='size-8 text-gray-400' />
       </div>
     );
   }
@@ -85,7 +85,7 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
   };
 
   return (
-    <div className='group relative h-44 overflow-hidden rounded-lg bg-[#F9FAFB]'>
+    <div className='group relative h-44 overflow-hidden rounded-lg bg-gray-50'>
       <img
         src={images[current].url || images[current].external_url || ''}
         alt=''
@@ -99,14 +99,14 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
             onClick={prev}
             className='absolute left-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity group-hover:opacity-100'
           >
-            <RiArrowLeftSLine className='size-4 text-[#111827]' />
+            <RiArrowLeftSLine className='size-4 text-gray-900' />
           </button>
           <button
             type='button'
             onClick={next}
             className='absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity group-hover:opacity-100'
           >
-            <RiArrowRightSLine className='size-4 text-[#111827]' />
+            <RiArrowRightSLine className='size-4 text-gray-900' />
           </button>
 
           <div className='absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1'>
@@ -138,7 +138,7 @@ function PropertyCard({
   onDelete: (p: Property) => void;
 }) {
   return (
-    <div className='flex flex-col rounded-xl border border-[#E5E7EB] bg-white hover:border-[#D1D5DB] transition-all duration-150'>
+    <div className='flex flex-col rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors'>
       {/* Carousel */}
       <div className='p-2 pb-0'>
         <PropertyImageCarousel images={property.images} />
@@ -148,7 +148,7 @@ function PropertyCard({
       {/* Header */}
       <div className='flex items-start justify-between gap-2'>
         <div className='min-w-0 flex-1'>
-          <div className='truncate text-[15px] font-semibold text-[#111827]'>
+          <div className='truncate text-sm font-semibold text-gray-900'>
             {property.address}
           </div>
           <div className='mt-1.5 flex flex-wrap items-center gap-1.5'>
@@ -178,7 +178,7 @@ function PropertyCard({
         </div>
       </div>
 
-      <div className='my-3 border-t border-[#E5E7EB]' />
+      <div className='my-3 border-t border-gray-200' />
 
       {/* Status */}
       <div>
@@ -191,26 +191,26 @@ function PropertyCard({
       {/* Details grid */}
       <div className='mt-4 grid grid-cols-2 gap-x-4 gap-y-3'>
         <div>
-          <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>Цена</div>
-          <div className='mt-0.5 text-[14px] font-medium text-[#111827]'>
+          <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Цена</div>
+          <div className='mt-0.5 text-sm font-medium text-gray-900'>
             {formatPrice(property.price)} {property.currency}
           </div>
         </div>
         <div>
-          <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>Площадь</div>
-          <div className='mt-0.5 text-[14px] font-medium text-[#111827]'>
+          <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Площадь</div>
+          <div className='mt-0.5 text-sm font-medium text-gray-900'>
             {property.area} м²
           </div>
         </div>
         <div>
-          <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>Дедлайн</div>
-          <div className='mt-0.5 text-[14px] font-medium text-[#111827]'>
+          <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Дедлайн</div>
+          <div className='mt-0.5 text-sm font-medium text-gray-900'>
             {formatDate(property.deadline)}
           </div>
         </div>
         <div>
-          <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>Создан</div>
-          <div className='mt-0.5 text-[14px] font-medium text-[#111827]'>
+          <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>Создан</div>
+          <div className='mt-0.5 text-sm font-medium text-gray-900'>
             {formatDate(property.created_at)}
           </div>
         </div>
@@ -395,20 +395,20 @@ export default function PropertiesPage() {
       {/* Content */}
       {isLoading ? (
         <div className='flex flex-1 items-center justify-center'>
-          <div className='text-[14px] text-[#9CA3AF]'>
+          <div className='text-sm text-gray-400'>
             Загрузка...
           </div>
         </div>
       ) : properties.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-xl bg-[#F9FAFB]'>
-            <RiBuilding2Line className='size-6 text-[#9CA3AF]' />
+          <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>
+            <RiBuilding2Line className='size-6 text-gray-400' />
           </div>
           <div className='text-center'>
-            <div className='text-[16px] font-semibold text-[#111827]'>
+            <div className='text-base font-semibold text-gray-900'>
               Объекты не найдены
             </div>
-            <div className='mt-1 text-[14px] text-[#6B7280]'>
+            <div className='mt-1 text-sm text-gray-500'>
               Попробуйте изменить фильтры или создайте новый объект
             </div>
           </div>

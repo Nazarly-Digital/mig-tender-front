@@ -76,13 +76,13 @@ export default function MobileMenu() {
               settings.
             </DialogPrimitives.Description>
 
-            <div className='flex h-[60px] w-full shrink-0 items-center border-b border-[#E5E7EB] px-4'>
+            <div className='flex h-[60px] w-full shrink-0 items-center border-b border-gray-200 px-4'>
               <div className='relative flex-1 opacity-0 pointer-events-none'>
-                <RiSearch2Line className='absolute left-0 top-1/2 size-6 -translate-y-1/2 text-[#9CA3AF]' />
+                <RiSearch2Line className='absolute left-0 top-1/2 size-6 -translate-y-1/2 text-gray-400' />
                 <input
                   type='text'
                   placeholder='Поиск...'
-                  className='h-6 w-full pl-9 text-[14px] text-[#111827] outline-none placeholder:text-[#6B7280] focus:outline-none'
+                  className='h-6 w-full pl-9 text-sm text-gray-900 outline-none placeholder:text-gray-500 focus:outline-none'
                 />
               </div>
               <div className='flex gap-3'>
@@ -94,7 +94,7 @@ export default function MobileMenu() {
                     <TopbarItemButton.Icon as={RiSettings2Line} />
                   </TopbarItemButton.Root>
                 </div> */}
-                <div className='flex w-1 shrink-0 items-center before:h-full before:w-px before:bg-[#E5E7EB]' />
+                <div className='flex w-1 shrink-0 items-center before:h-full before:w-px before:bg-gray-200' />
                 <DialogPrimitives.Close asChild>
                   <TopbarItemButton.Root>
                     <TopbarItemButton.Icon as={RiCloseFill} />
@@ -115,32 +115,32 @@ export default function MobileMenu() {
                       href={displayHref}
                       aria-current={pathname === displayHref ? 'page' : undefined}
                       className={cn(
-                        'group relative flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-[#6B7280]',
+                        'group relative flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-gray-500',
                       )}
                     >
                       <Icon
                         className={cn(
-                          'size-[22px] shrink-0 text-[#6B7280] transition-colors duration-150',
-                          'group-aria-[current=page]:text-[#2563EB]',
+                          'size-[22px] shrink-0 text-gray-500 transition-colors duration-150',
+                          'group-aria-[current=page]:text-blue-600',
                         )}
                       />
-                      <div className='flex-1 text-[15px] font-medium text-[#111827]'>{displayLabel}</div>
+                      <div className='flex-1 text-sm font-medium text-gray-900'>{displayLabel}</div>
                       <div
                         className={cn(
-                          'absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-[#2563EB] transition-transform duration-150',
+                          'absolute left-0 top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-blue-600 transition-transform duration-150',
                           {
                             'scale-0': pathname !== displayHref,
                           },
                         )}
                       />
-                      <RiArrowRightSLine className='size-6 text-[#D1D5DB]' />
+                      <RiArrowRightSLine className='size-6 text-gray-300' />
                     </Link>
                   );
                 })}
               </div>
             </div>
 
-            {/* <div className='grid border-y border-[#E5E7EB] p-4'>
+            {/* <div className='grid border-y border-gray-200 p-4'>
               <MoveMoneyButton />
             </div> */}
 

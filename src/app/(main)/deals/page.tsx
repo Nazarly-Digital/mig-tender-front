@@ -13,12 +13,12 @@ export default function DealsPage() {
       />
 
       <div className='flex flex-1 flex-col items-center justify-center gap-4 py-20'>
-        <div className='flex size-12 items-center justify-center rounded-xl bg-[#F9FAFB]'>
-          <RiHandCoinLine className='size-6 text-[#9CA3AF]' />
+        <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>
+          <RiHandCoinLine className='size-6 text-gray-400' />
         </div>
         <div className='text-center'>
-          <div className='text-[16px] font-semibold text-[#111827]'>Скоро здесь появятся сделки</div>
-          <div className='mt-1 max-w-[360px] text-[14px] text-[#6B7280]'>
+          <div className='text-base font-semibold text-gray-900'>Скоро здесь появятся сделки</div>
+          <div className='mt-1 max-w-[360px] text-sm text-gray-500'>
             Здесь будут отображаться ваши сделки, загрузка ДДУ и подтверждение оплаты
           </div>
         </div>

@@ -40,9 +40,9 @@ const PasswordInput = React.forwardRef<
         />
         <button type='button' onClick={() => setShowPassword((s) => !s)}>
           {showPassword ? (
-            <RiEyeOffLine className='size-5 text-[#9CA3AF]' />
+            <RiEyeOffLine className='size-5 text-gray-400' />
           ) : (
-            <RiEyeLine className='size-5 text-[#9CA3AF]' />
+            <RiEyeLine className='size-5 text-gray-400' />
           )}
         </button>
       </Input.Wrapper>
@@ -84,17 +84,17 @@ export default function PageLogin() {
 
   return (
     <div className='w-full max-w-[472px] px-4'>
-      <div className='flex w-full flex-col gap-6 rounded-xl border border-[#E5E7EB] bg-white p-6 md:p-8'>
+      <div className='flex w-full flex-col gap-6 rounded-xl border border-gray-200 bg-white p-6 md:p-8'>
         <div className='flex flex-col items-center gap-2'>
-          <div className='flex size-16 shrink-0 items-center justify-center rounded-full border border-[#E5E7EB] bg-[#F9FAFB]'>
-            <RiUserFill className='size-6 text-[#6B7280] lg:size-8' />
+          <div className='flex size-16 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50'>
+            <RiUserFill className='size-6 text-gray-500 lg:size-8' />
           </div>
 
           <div className='space-y-1 text-center'>
-            <div className='text-[24px] font-bold tracking-[-0.02em] text-[#111827]'>
+            <div className='text-xl font-bold tracking-tight text-gray-900'>
               Войти в аккаунт
             </div>
-            <div className='text-[14px] text-[#6B7280]'>
+            <div className='text-sm text-gray-500'>
               Введите ваши данные для входа
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function PageLogin() {
                 </Input.Wrapper>
               </Input.Root>
               {errors.email?.message && (
-                <p className='text-[12px] text-error-base'>{errors.email.message}</p>
+                <p className='text-xs text-red-500'>{errors.email.message}</p>
               )}
             </div>
 
@@ -142,7 +142,7 @@ export default function PageLogin() {
                 {...register('password')}
               />
               {errors.password?.message && (
-                <p className='text-[12px] text-error-base'>{errors.password.message}</p>
+                <p className='text-xs text-red-500'>{errors.password.message}</p>
               )}
             </div>
           </div>

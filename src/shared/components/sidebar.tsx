@@ -121,11 +121,11 @@ function SidebarBrand({ collapsed }: { collapsed: boolean }) {
         collapsed && 'justify-center px-0',
       )}
     >
-      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#111827]">
+      <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gray-900">
         <Image src="/images/logo-icon.svg" alt="" width={16} height={16} className="size-4" />
       </div>
       <span
-        className="text-[15px] font-semibold tracking-[-0.01em] text-[#111827]"
+        className="text-[15px] font-semibold tracking-tight text-gray-900"
         data-hide-collapsed
       >
         MIG Tender
@@ -155,22 +155,22 @@ function NavLink({
       aria-current={isActive ? 'page' : undefined}
       aria-disabled={disabled}
       className={cn(
-        'group relative flex items-center gap-2.5 rounded-md px-2.5 py-[6px] text-[13px] font-medium text-[#6B7280] transition-colors',
-        'hover:bg-[#F9FAFB] hover:text-[#111827]',
+        'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors',
+        'hover:bg-gray-100 hover:text-gray-900',
         'aria-disabled:pointer-events-none aria-disabled:opacity-40',
-        isActive && 'bg-[#F0F5FF] font-semibold text-[#2563EB] hover:bg-[#F0F5FF]',
+        isActive && 'bg-gray-100 font-semibold text-gray-900',
         collapsed && 'size-9 justify-center rounded-lg px-0',
         !collapsed && 'w-full',
       )}
     >
       <Icon
         className={cn(
-          'size-[18px] shrink-0',
-          isActive ? 'text-[#2563EB]' : 'text-[#9CA3AF] group-hover:text-[#6B7280]',
+          'size-5 shrink-0',
+          isActive ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600',
         )}
       />
       <span
-        className="truncate whitespace-nowrap text-[13px] leading-5"
+        className="truncate whitespace-nowrap text-sm leading-5"
         data-hide-collapsed
       >
         {label}
@@ -198,7 +198,7 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
     <div>
       <div
         className={cn(
-          'px-3 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#9CA3AF]',
+          'px-3 pt-6 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400',
           collapsed && 'px-0 text-center',
         )}
       >
@@ -282,13 +282,13 @@ export default function Sidebar({
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-gray-200 bg-white transition-[width] duration-200 ease-in-out lg:block',
-          collapsed ? 'w-[72px]' : 'w-[252px]',
+          collapsed ? 'w-[72px]' : 'w-64',
           !collapsed ? false : defaultCollapsed && '[&_[data-hide-collapsed]]:hidden',
         )}
       >
         <div
           ref={sidebarRef}
-          className="flex h-full w-[252px] min-w-[252px] flex-col"
+          className="flex h-full w-64 min-w-64 flex-col"
         >
           {/* Logo */}
           <SidebarBrand collapsed={collapsed} />
@@ -324,7 +324,7 @@ export default function Sidebar({
       <div
         className={cn(
           'hidden shrink-0 transition-[width] duration-200 ease-in-out lg:block',
-          collapsed ? 'w-[72px]' : 'w-[252px]',
+          collapsed ? 'w-[72px]' : 'w-64',
         )}
       />
     </>

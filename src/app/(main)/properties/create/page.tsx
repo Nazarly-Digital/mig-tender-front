@@ -159,8 +159,8 @@ export default function CreatePropertyPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className='flex w-full max-w-[640px] flex-col gap-4'>
         {/* Section: Basic info */}
-        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
-          <div className='text-[18px] font-semibold text-[#111827]'>Основная информация</div>
+        <div className='rounded-xl border border-gray-200 bg-white p-6 space-y-5'>
+          <div className='text-lg font-semibold text-gray-900'>Основная информация</div>
 
           <div className='space-y-1.5'>
             <Label.Root htmlFor='property-type'>
@@ -189,7 +189,7 @@ export default function CreatePropertyPage() {
                 </Select.Root>
               )}
             />
-            {errors.type && <p className='text-[13px] text-[#EF4444]'>{errors.type.message}</p>}
+            {errors.type && <p className='text-xs text-red-500'>{errors.type.message}</p>}
           </div>
 
           <div className='space-y-1.5'>
@@ -206,7 +206,7 @@ export default function CreatePropertyPage() {
               </Input.Wrapper>
             </Input.Root>
             {errors.address ? (
-              <p className='text-[13px] text-[#EF4444]'>{errors.address.message}</p>
+              <p className='text-xs text-red-500'>{errors.address.message}</p>
             ) : (
               <Hint.Root>Полный адрес объекта недвижимости</Hint.Root>
             )}
@@ -214,8 +214,8 @@ export default function CreatePropertyPage() {
         </div>
 
         {/* Section: Characteristics */}
-        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
-          <div className='text-[18px] font-semibold text-[#111827]'>Характеристики</div>
+        <div className='rounded-xl border border-gray-200 bg-white p-6 space-y-5'>
+          <div className='text-lg font-semibold text-gray-900'>Характеристики</div>
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
@@ -252,7 +252,7 @@ export default function CreatePropertyPage() {
                 )}
               />
               {errors.area && (
-                <p className='text-[13px] text-[#EF4444]'>{errors.area.message}</p>
+                <p className='text-xs text-red-500'>{errors.area.message}</p>
               )}
             </div>
             <div className='space-y-1.5'>
@@ -282,14 +282,14 @@ export default function CreatePropertyPage() {
                   </Select.Root>
                 )}
               />
-              {errors.property_class && <p className='text-[13px] text-[#EF4444]'>{errors.property_class.message}</p>}
+              {errors.property_class && <p className='text-xs text-red-500'>{errors.property_class.message}</p>}
             </div>
           </div>
         </div>
 
         {/* Section: Price */}
-        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
-          <div className='text-[18px] font-semibold text-[#111827]'>Стоимость</div>
+        <div className='rounded-xl border border-gray-200 bg-white p-6 space-y-5'>
+          <div className='text-lg font-semibold text-gray-900'>Стоимость</div>
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
@@ -326,7 +326,7 @@ export default function CreatePropertyPage() {
                 )}
               />
               {errors.price && (
-                <p className='text-[13px] text-[#EF4444]'>{errors.price.message}</p>
+                <p className='text-xs text-red-500'>{errors.price.message}</p>
               )}
             </div>
             <div className='space-y-1.5'>
@@ -348,14 +348,14 @@ export default function CreatePropertyPage() {
                   </Select.Root>
                 )}
               />
-              {errors.currency && <p className='text-[13px] text-[#EF4444]'>{errors.currency.message}</p>}
+              {errors.currency && <p className='text-xs text-red-500'>{errors.currency.message}</p>}
             </div>
           </div>
         </div>
 
         {/* Section: Deadlines & Status */}
-        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-5'>
-          <div className='text-[18px] font-semibold text-[#111827]'>Сроки и статус</div>
+        <div className='rounded-xl border border-gray-200 bg-white p-6 space-y-5'>
+          <div className='text-lg font-semibold text-gray-900'>Сроки и статус</div>
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-1.5'>
@@ -396,14 +396,14 @@ export default function CreatePropertyPage() {
                   </Select.Root>
                 )}
               />
-              {errors.status && <p className='text-[13px] text-[#EF4444]'>{errors.status.message}</p>}
+              {errors.status && <p className='text-xs text-red-500'>{errors.status.message}</p>}
             </div>
           </div>
         </div>
 
         {/* Section: Photos */}
-        <div className='rounded-xl border border-[#E5E7EB] bg-white p-6 space-y-4'>
-          <div className='text-[18px] font-semibold text-[#111827]'>Фотографии</div>
+        <div className='rounded-xl border border-gray-200 bg-white p-6 space-y-4'>
+          <div className='text-lg font-semibold text-gray-900'>Фотографии</div>
 
           {previews.length > 0 && (
             <div className='flex flex-wrap gap-3'>
@@ -420,19 +420,19 @@ export default function CreatePropertyPage() {
                     src={src}
                     alt=''
                     className={cn(
-                      'h-24 w-24 rounded-lg border object-cover transition-colors duration-150',
-                      i === 0 ? 'border-[#2563EB]' : 'border-[#E5E7EB]',
+                      'h-24 w-24 rounded-lg border object-cover transition-colors',
+                      i === 0 ? 'border-blue-600' : 'border-gray-200',
                     )}
                   />
                   {i === 0 ? (
-                    <span className='absolute bottom-1.5 left-1.5 rounded-md bg-[#2563EB] px-1.5 py-0.5 text-[11px] font-medium text-white'>
+                    <span className='absolute bottom-1.5 left-1.5 rounded-md bg-blue-600 px-1.5 py-0.5 text-[11px] font-medium text-white'>
                       Главная
                     </span>
                   ) : (
                     <button
                       type='button'
                       onClick={() => handleMakePrimary(i)}
-                      className='absolute bottom-1.5 left-1.5 rounded-md bg-white/80 px-1.5 py-0.5 text-[11px] font-medium text-[#6B7280] opacity-0 transition-opacity group-hover:opacity-100'
+                      className='absolute bottom-1.5 left-1.5 rounded-md bg-white/80 px-1.5 py-0.5 text-[11px] font-medium text-gray-500 opacity-0 transition-opacity group-hover:opacity-100'
                     >
                       Сделать главной
                     </button>
@@ -457,7 +457,7 @@ export default function CreatePropertyPage() {
           <button
             type='button'
             onClick={() => inputRef.current?.click()}
-            className='flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#E5E7EB] px-4 py-4 text-[14px] text-[#9CA3AF] transition-colors duration-150 hover:border-[#2563EB] hover:text-[#2563EB]'
+            className='flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 px-4 py-4 text-sm text-gray-400 transition-colors hover:border-blue-600 hover:text-blue-600'
           >
             <RiImageAddLine className='size-4' />
             Добавить фотографии

@@ -251,7 +251,7 @@ function SelectWinnerModal({
         />
         <Modal.Body className='max-h-[320px] space-y-2 overflow-y-auto'>
           {bids.length === 0 ? (
-            <div className='py-4 text-center text-[14px] text-[#9CA3AF]'>
+            <div className='py-4 text-center text-sm text-gray-400'>
               Нет ставок
             </div>
           ) : (
@@ -260,21 +260,21 @@ function SelectWinnerModal({
                 key={bid.id}
                 type='button'
                 onClick={() => setSelectedBidId(bid.id)}
-                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors duration-150 ${
+                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${
                   selectedBidId === bid.id
-                    ? 'border-[#2563EB] bg-[#EFF6FF]'
-                    : 'border-[#E5E7EB] hover:bg-[#F9FAFB]'
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:bg-gray-50'
                 }`}
               >
                 <div>
-                  <div className='text-[14px] font-medium text-[#111827]'>
+                  <div className='text-sm font-medium text-gray-900'>
                     {bid.first_name} {bid.last_name}
                   </div>
-                  <div className='text-[12px] text-[#6B7280]'>
+                  <div className='text-xs text-gray-500'>
                     {formatDateTime(bid.created_at)}
                   </div>
                 </div>
-                <div className='text-[16px] font-semibold text-[#111827]'>
+                <div className='text-base font-semibold text-gray-900'>
                   {formatPrice(bid.amount)}
                 </div>
               </button>
@@ -326,7 +326,7 @@ export default function AuctionDetailPage() {
   if (isLoading) {
     return (
       <div className='flex flex-1 items-center justify-center py-20'>
-        <div className='text-[14px] text-[#9CA3AF]'>Загрузка...</div>
+        <div className='text-sm text-gray-400'>Загрузка...</div>
       </div>
     );
   }
@@ -334,7 +334,7 @@ export default function AuctionDetailPage() {
   if (!auction) {
     return (
       <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-        <div className='text-[14px] font-medium text-[#6B7280]'>
+        <div className='text-sm font-medium text-gray-500'>
           Аукцион не найден
         </div>
         <Link href='/auctions'>
@@ -410,10 +410,10 @@ export default function AuctionDetailPage() {
             </CompactButton.Root>
           </Link>
           <div>
-            <div className='text-[20px] font-semibold tracking-[-0.02em] text-[#111827]'>
+            <div className='text-xl font-semibold tracking-tight text-gray-900'>
               Аукцион #{auction.id}
             </div>
-            <div className='mt-1 text-[14px] text-[#6B7280]'>
+            <div className='mt-1 text-sm text-gray-500'>
               Объект #{auction.property_id}
             </div>
           </div>
@@ -465,16 +465,16 @@ export default function AuctionDetailPage() {
         {/* Left: Info */}
         <div className='flex flex-col gap-4 xl:col-span-2'>
           {/* Auction Info Card */}
-          <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
-            <div className='flex items-center gap-2 text-[18px] font-semibold text-[#111827]'>
-              <RiAuctionLine className='size-5 text-[#9CA3AF]' />
+          <div className='rounded-xl border border-gray-200 bg-white p-5'>
+            <div className='flex items-center gap-2 text-lg font-semibold text-gray-900'>
+              <RiAuctionLine className='size-5 text-gray-400' />
               Информация об аукционе
             </div>
 
             {/* Progress bar for active */}
             {isActive && (
               <div className='mt-4'>
-                <div className='mb-1 flex items-center justify-between text-[13px] text-[#6B7280]'>
+                <div className='mb-1 flex items-center justify-between text-xs text-gray-500'>
                   <span>Прогресс</span>
                   <span>{progress}%</span>
                 </div>
@@ -487,7 +487,7 @@ export default function AuctionDetailPage() {
 
             <div className='mt-5 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3'>
               <div>
-                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                   Статус
                 </div>
                 <div className='mt-1'>
@@ -498,7 +498,7 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                   Тип
                 </div>
                 <div className='mt-1'>
@@ -508,60 +508,60 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                   Ставок
                 </div>
-                <div className='mt-1 text-[14px] font-medium text-[#111827]'>
+                <div className='mt-1 text-sm font-medium text-gray-900'>
                   {auction.bids_count}
                 </div>
               </div>
               <div>
-                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                   Мин. цена
                 </div>
-                <div className='mt-1 text-[14px] font-medium text-[#111827]'>
+                <div className='mt-1 text-sm font-medium text-gray-900'>
                   {formatPrice(auction.min_price)}
                 </div>
               </div>
               <div>
-                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                   Текущая макс.
                 </div>
-                <div className='mt-1 text-[14px] font-medium text-[#111827]'>
+                <div className='mt-1 text-sm font-medium text-gray-900'>
                   {formatPrice(auction.current_price)}
                 </div>
               </div>
               <div>
-                <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                   Участников
                 </div>
-                <div className='mt-1 text-[14px] font-medium text-[#111827]'>
+                <div className='mt-1 text-sm font-medium text-gray-900'>
                   {participantList.length}
                 </div>
               </div>
             </div>
 
-            <div className='my-4 border-t border-[#E5E7EB]' />
+            <div className='my-4 border-t border-gray-200' />
 
             <div className='grid grid-cols-2 gap-4'>
               <div className='flex items-center gap-2'>
-                <RiTimeLine className='size-4 text-[#D1D5DB]' />
+                <RiTimeLine className='size-4 text-gray-300' />
                 <div>
-                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                  <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                     Начало
                   </div>
-                  <div className='text-[14px] font-medium text-[#111827]'>
+                  <div className='text-sm font-medium text-gray-900'>
                     {formatDateTime(auction.start_date)}
                   </div>
                 </div>
               </div>
               <div className='flex items-center gap-2'>
-                <RiTimeLine className='size-4 text-[#D1D5DB]' />
+                <RiTimeLine className='size-4 text-gray-300' />
                 <div>
-                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                  <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                     Окончание
                   </div>
-                  <div className='text-[14px] font-medium text-[#111827]'>
+                  <div className='text-sm font-medium text-gray-900'>
                     {formatDateTime(auction.end_date)}
                   </div>
                 </div>
@@ -571,14 +571,14 @@ export default function AuctionDetailPage() {
             {/* Winner info */}
             {auction.winner_bid_id && (
               <>
-                <div className='my-4 border-t border-[#E5E7EB]' />
-                <div className='flex items-center gap-3 rounded-xl bg-[#ECFDF5] p-4'>
-                  <RiTrophyLine className='size-5 text-[#10B981]' />
+                <div className='my-4 border-t border-gray-200' />
+                <div className='flex items-center gap-3 rounded-xl bg-emerald-50 p-4'>
+                  <RiTrophyLine className='size-5 text-emerald-500' />
                   <div>
-                    <div className='text-[14px] font-medium text-[#111827]'>
+                    <div className='text-sm font-medium text-gray-900'>
                       Победитель определён
                     </div>
-                    <div className='text-[12px] text-[#6B7280]'>
+                    <div className='text-xs text-gray-500'>
                       Ставка #{auction.winner_bid_id}
                     </div>
                   </div>
@@ -589,9 +589,9 @@ export default function AuctionDetailPage() {
 
           {/* Sealed Bids — visible to owner */}
           {isOwner && bidsList.length > 0 && (
-            <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
-              <div className='mb-4 flex items-center gap-2 text-[18px] font-semibold text-[#111827]'>
-                <RiMoneyDollarCircleLine className='size-5 text-[#9CA3AF]' />
+            <div className='rounded-xl border border-gray-200 bg-white p-5'>
+              <div className='mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900'>
+                <RiMoneyDollarCircleLine className='size-5 text-gray-400' />
                 Закрытые ставки
               </div>
 
@@ -608,17 +608,17 @@ export default function AuctionDetailPage() {
                   {bidsList.map((bid) => (
                     <Table.Row key={bid.id}>
                       <Table.Cell>
-                        <div className='text-[14px] font-medium text-[#111827]'>
+                        <div className='text-sm font-medium text-gray-900'>
                           {bid.first_name} {bid.last_name}
                         </div>
                       </Table.Cell>
                       <Table.Cell>
-                        <div className='text-[14px] font-medium text-[#111827]'>
+                        <div className='text-sm font-medium text-gray-900'>
                           {formatPrice(bid.amount)}
                         </div>
                       </Table.Cell>
                       <Table.Cell>
-                        <div className='text-[14px] text-[#6B7280]'>
+                        <div className='text-sm text-gray-500'>
                           {formatDateTime(bid.created_at)}
                         </div>
                       </Table.Cell>
@@ -642,33 +642,33 @@ export default function AuctionDetailPage() {
 
           {/* My bid — visible to participant */}
           {!isDeveloper && isParticipant && myBid && (
-            <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
-              <div className='mb-4 flex items-center gap-2 text-[18px] font-semibold text-[#111827]'>
-                <RiMoneyDollarCircleLine className='size-5 text-[#9CA3AF]' />
+            <div className='rounded-xl border border-gray-200 bg-white p-5'>
+              <div className='mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900'>
+                <RiMoneyDollarCircleLine className='size-5 text-gray-400' />
                 Моя ставка
               </div>
               <div className='grid grid-cols-2 gap-4 sm:grid-cols-3'>
                 <div>
-                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                  <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                     Сумма
                   </div>
-                  <div className='mt-1 text-[16px] font-semibold text-[#111827]'>
+                  <div className='mt-1 text-base font-semibold text-gray-900'>
                     {formatPrice(myBid.amount)}
                   </div>
                 </div>
                 <div>
-                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                  <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                     Дата
                   </div>
-                  <div className='mt-1 text-[14px] font-medium text-[#111827]'>
+                  <div className='mt-1 text-sm font-medium text-gray-900'>
                     {formatDateTime(myBid.created_at)}
                   </div>
                 </div>
                 <div>
-                  <div className='text-[12px] font-medium uppercase tracking-[0.05em] text-[#9CA3AF]'>
+                  <div className='text-xs font-medium uppercase tracking-wide text-gray-400'>
                     Обновлена
                   </div>
-                  <div className='mt-1 text-[14px] font-medium text-[#111827]'>
+                  <div className='mt-1 text-sm font-medium text-gray-900'>
                     {formatDateTime(myBid.updated_at)}
                   </div>
                 </div>
@@ -679,14 +679,14 @@ export default function AuctionDetailPage() {
 
         {/* Right: Participants */}
         <div className='flex flex-col gap-4'>
-          <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
-            <div className='mb-4 flex items-center gap-2 text-[18px] font-semibold text-[#111827]'>
-              <RiUserLine className='size-5 text-[#9CA3AF]' />
+          <div className='rounded-xl border border-gray-200 bg-white p-5'>
+            <div className='mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900'>
+              <RiUserLine className='size-5 text-gray-400' />
               Участники ({participantList.length})
             </div>
 
             {participantList.length === 0 ? (
-              <div className='py-6 text-center text-[14px] text-[#9CA3AF]'>
+              <div className='py-6 text-center text-sm text-gray-400'>
                 Пока нет участников
               </div>
             ) : (
@@ -694,7 +694,7 @@ export default function AuctionDetailPage() {
                 {participantList.map((p) => (
                   <div
                     key={p.id}
-                    className='flex items-center justify-between rounded-lg border border-[#E5E7EB] px-3 py-2.5'
+                    className='flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2.5'
                   >
                     <div className='flex items-center gap-3'>
                       {/* Shortlist checkbox for owner */}
@@ -702,10 +702,10 @@ export default function AuctionDetailPage() {
                         <button
                           type='button'
                           onClick={() => toggleShortlist(p.id)}
-                          className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors duration-150 ${
+                          className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${
                             shortlistIds.has(p.id)
-                              ? 'border-[#2563EB] bg-[#2563EB] text-white'
-                              : 'border-[#D1D5DB]'
+                              ? 'border-blue-600 bg-blue-600 text-white'
+                              : 'border-gray-300'
                           }`}
                         >
                           {shortlistIds.has(p.id) && (
@@ -714,10 +714,10 @@ export default function AuctionDetailPage() {
                         </button>
                       )}
                       <div>
-                        <div className='text-[14px] font-medium text-[#111827]'>
+                        <div className='text-sm font-medium text-gray-900'>
                           {p.first_name} {p.last_name}
                         </div>
-                        <div className='text-[12px] text-[#6B7280]'>
+                        <div className='text-xs text-gray-500'>
                           {formatDate(p.joined_at)}
                         </div>
                       </div>
@@ -730,7 +730,7 @@ export default function AuctionDetailPage() {
             {/* Shortlist action */}
             {isOwner && isActive && shortlistIds.size > 0 && (
               <>
-                <div className='my-3 border-t border-[#E5E7EB]' />
+                <div className='my-3 border-t border-gray-200' />
                 <FancyButton.Root
                   variant='primary'
                   size='xsmall'
@@ -749,11 +749,11 @@ export default function AuctionDetailPage() {
 
           {/* Broker status card */}
           {!isDeveloper && (
-            <div className='rounded-xl border border-[#E5E7EB] bg-white p-5'>
-              <div className='mb-4 text-[18px] font-semibold text-[#111827]'>Ваш статус</div>
+            <div className='rounded-xl border border-gray-200 bg-white p-5'>
+              <div className='mb-4 text-lg font-semibold text-gray-900'>Ваш статус</div>
               <div className='space-y-3'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-[14px] text-[#6B7280]'>
+                  <span className='text-sm text-gray-500'>
                     Участие
                   </span>
                   {isParticipant ? (
@@ -769,22 +769,22 @@ export default function AuctionDetailPage() {
                   )}
                 </div>
                 <div className='flex items-center justify-between'>
-                  <span className='text-[14px] text-[#6B7280]'>
+                  <span className='text-sm text-gray-500'>
                     Ставка
                   </span>
                   {myBid ? (
-                    <span className='text-[14px] font-medium text-[#111827]'>
+                    <span className='text-sm font-medium text-gray-900'>
                       {formatPrice(myBid.amount)}
                     </span>
                   ) : (
-                    <span className='text-[14px] text-[#9CA3AF]'>
+                    <span className='text-sm text-gray-400'>
                       —
                     </span>
                   )}
                 </div>
                 {auction.winner_bid_id && myBid && (
                   <div className='flex items-center justify-between'>
-                    <span className='text-[14px] text-[#6B7280]'>
+                    <span className='text-sm text-gray-500'>
                       Результат
                     </span>
                     {auction.winner_bid_id === myBid.id ? (

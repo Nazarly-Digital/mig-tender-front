@@ -66,7 +66,7 @@ export default function AuthHeader() {
   if (!action) return null;
 
   return (
-    <div className='mx-auto flex w-full max-w-[1400px] items-center justify-between border-b border-[#E5E7EB] p-6'>
+    <div className='mx-auto flex w-full max-w-[1400px] items-center justify-between border-b border-gray-200 p-6'>
       <Image
         src='/images/logo.svg'
         alt='MIG Tender'
@@ -76,7 +76,7 @@ export default function AuthHeader() {
       />
 
       {/* <div className='flex items-center gap-1.5'>
-        <div className='text-[14px] text-[#6B7280]'>{action.text}</div>
+        <div className='text-sm text-gray-500'>{action.text}</div>
         <LinkButton.Root variant='primary' size='medium' underline asChild>
           <Link href={action.link.href}>{action.link.label}</Link>
         </LinkButton.Root>

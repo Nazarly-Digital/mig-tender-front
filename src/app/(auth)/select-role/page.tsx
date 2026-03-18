@@ -17,42 +17,42 @@ export default function SelectRolePage() {
   return (
     <div className='w-full max-w-[900px] px-4'>
       <div className='mb-8 text-center'>
-        <h1 className='text-[24px] font-bold tracking-[-0.02em] text-[#111827] lg:text-[28px]'>Платформа закрытых аукционов недвижимости</h1>
-        <p className='mt-2 text-[14px] text-[#6B7280]'>Выберите роль для регистрации</p>
+        <h1 className='text-xl font-bold tracking-tight text-gray-900 lg:text-2xl'>Платформа закрытых аукционов недвижимости</h1>
+        <p className='mt-2 text-sm text-gray-500'>Выберите роль для регистрации</p>
       </div>
 
       <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
         {/* Broker Card */}
-        <div className='flex flex-col items-center gap-6 rounded-xl border border-[#E5E7EB] bg-white p-6 transition-all duration-150 hover:border-[#D1D5DB] md:p-8'>
+        <div className='flex flex-col items-center gap-6 rounded-xl border border-gray-200 bg-white p-6 transition-all duration-150 hover:border-gray-300 md:p-8'>
           <div className='flex flex-col items-center gap-3'>
             <div
               className={cn(
                 'flex size-16 items-center justify-center rounded-xl',
-                'bg-[#EFF6FF]',
+                'bg-blue-50',
               )}
             >
-              <RiGroupLine className='size-8 text-[#2563EB]' />
+              <RiGroupLine className='size-8 text-blue-600' />
             </div>
 
             <div className='space-y-2 text-center'>
-              <h2 className='text-[18px] font-semibold text-[#111827]'>Регистрация как Брокер</h2>
-              <p className='text-[14px] text-[#6B7280]'>
+              <h2 className='text-lg font-semibold text-gray-900'>Регистрация как Брокер</h2>
+              <p className='text-sm text-gray-500'>
                 Участвуйте в аукционах и делайте ставки на объекты недвижимости
               </p>
             </div>
           </div>
 
-          <ul className='flex w-full flex-col gap-2 text-[14px] text-[#6B7280]'>
+          <ul className='flex w-full flex-col gap-2 text-sm text-gray-500'>
             <li className='flex items-center gap-2'>
-              <span className='size-1.5 shrink-0 rounded-full bg-[#9CA3AF]' />
+              <span className='size-1.5 shrink-0 rounded-full bg-gray-400' />
               Просмотр активных аукционов
             </li>
             <li className='flex items-center gap-2'>
-              <span className='size-1.5 shrink-0 rounded-full bg-[#9CA3AF]' />
+              <span className='size-1.5 shrink-0 rounded-full bg-gray-400' />
               Размещение и повышение ставок
             </li>
             <li className='flex items-center gap-2'>
-              <span className='size-1.5 shrink-0 rounded-full bg-[#9CA3AF]' />
+              <span className='size-1.5 shrink-0 rounded-full bg-gray-400' />
               История участия и сделки
             </li>
           </ul>
@@ -68,36 +68,36 @@ export default function SelectRolePage() {
         </div>
 
         {/* Developer Card */}
-        <div className='flex flex-col items-center gap-6 rounded-xl border border-[#E5E7EB] bg-white p-6 transition-all duration-150 hover:border-[#D1D5DB] md:p-8'>
+        <div className='flex flex-col items-center gap-6 rounded-xl border border-gray-200 bg-white p-6 transition-all duration-150 hover:border-gray-300 md:p-8'>
           <div className='flex flex-col items-center gap-3'>
             <div
               className={cn(
                 'flex size-16 items-center justify-center rounded-xl',
-                'bg-[#ECFDF5]',
+                'bg-emerald-50',
               )}
             >
               <RiBuildingLine className='size-8 text-green-600' />
             </div>
 
             <div className='space-y-2 text-center'>
-              <h2 className='text-[18px] font-semibold text-[#111827]'>Регистрация как Девелопер</h2>
-              <p className='text-[14px] text-[#6B7280]'>
+              <h2 className='text-lg font-semibold text-gray-900'>Регистрация как Девелопер</h2>
+              <p className='text-sm text-gray-500'>
                 Создавайте аукционы и управляйте продажей своих объектов
               </p>
             </div>
           </div>
 
-          <ul className='flex w-full flex-col gap-2 text-[14px] text-[#6B7280]'>
+          <ul className='flex w-full flex-col gap-2 text-sm text-gray-500'>
             <li className='flex items-center gap-2'>
-              <span className='size-1.5 shrink-0 rounded-full bg-[#9CA3AF]' />
+              <span className='size-1.5 shrink-0 rounded-full bg-gray-400' />
               Создание объектов и аукционов
             </li>
             <li className='flex items-center gap-2'>
-              <span className='size-1.5 shrink-0 rounded-full bg-[#9CA3AF]' />
+              <span className='size-1.5 shrink-0 rounded-full bg-gray-400' />
               Просмотр результатов торгов
             </li>
             <li className='flex items-center gap-2'>
-              <span className='size-1.5 shrink-0 rounded-full bg-[#9CA3AF]' />
+              <span className='size-1.5 shrink-0 rounded-full bg-gray-400' />
               Контроль сроков и цен
             </li>
           </ul>
@@ -114,7 +114,7 @@ export default function SelectRolePage() {
       </div>
 
       <div className='mt-6 flex items-center justify-center gap-1.5'>
-        <span className='text-[14px] text-[#6B7280]'>Уже есть аккаунт?</span>
+        <span className='text-sm text-gray-500'>Уже есть аккаунт?</span>
         <LinkButton.Root variant='primary' size='medium' underline asChild>
           <Link href='/login'>Войти</Link>
         </LinkButton.Root>
