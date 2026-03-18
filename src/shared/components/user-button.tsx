@@ -34,27 +34,27 @@ export function UserButton({ className }: { className?: string }) {
     <Dropdown.Root>
       <Dropdown.Trigger
         className={cnExt(
-          'flex w-full items-center gap-3 whitespace-nowrap rounded-10 p-3 text-left outline-none hover:bg-bg-weak-50 focus:outline-none',
+          'flex w-full items-center gap-3 whitespace-nowrap rounded-lg p-2.5 text-left outline-none transition-colors duration-150 hover:bg-bg-weak-50 focus:outline-none',
           className,
         )}
       >
-        <Avatar.Root size='40' color='blue' />
+        <Avatar.Root size='32' color='blue' />
         <div
-          className='flex w-[172px] shrink-0 flex-col gap-0.5'
+          className='flex flex-1 flex-col gap-0.5'
           data-hide-collapsed
         >
-          <div className='truncate text-label-sm text-text-strong-950'>{fullName}</div>
+          <div className='truncate text-[13px] font-medium text-text-strong-950'>{fullName}</div>
           {roleLabel && (
-            <div className='text-paragraph-xs text-text-sub-600'>{roleLabel}</div>
+            <div className='text-[11px] text-text-sub-600'>{roleLabel}</div>
           )}
         </div>
       </Dropdown.Trigger>
 
       <Dropdown.Content side='right' sideOffset={24} align='end'>
         <div className='px-3 py-2'>
-          <div className='text-label-sm text-text-strong-950'>{fullName}</div>
+          <div className='text-[13px] font-medium text-text-strong-950'>{fullName}</div>
           {user?.email && (
-            <div className='text-paragraph-xs text-text-soft-400'>{user.email}</div>
+            <div className='text-[11px] text-text-soft-400'>{user.email}</div>
           )}
         </div>
         <Divider.Root variant='line-spacing' />

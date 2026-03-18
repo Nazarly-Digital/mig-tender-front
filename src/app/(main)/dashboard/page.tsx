@@ -4,9 +4,9 @@ import Link from 'next/link';
 import {
   RiAddLine,
   RiArrowRightLine,
+  RiArrowRightUpLine,
   RiAuctionLine,
   RiBuilding2Line,
-  RiDashboardLine,
   RiEyeLine,
 } from '@remixicon/react';
 
@@ -15,7 +15,6 @@ import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as LinkButton from '@/shared/ui/link-button';
 import * as WidgetBox from '@/shared/components/widget-box';
-import { PageHeader } from '@/shared/components/page-header';
 import { useMyProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
@@ -33,31 +32,45 @@ function StatCard({
   icon: Icon,
   href,
   action,
+  trend,
 }: {
   label: string;
   value: number | string;
   icon: React.ElementType;
   href: string;
   action: string;
+  trend?: string;
 }) {
   return (
-    <WidgetBox.Root className='flex flex-col gap-3'>
-      <div className='flex items-center gap-3'>
-        <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-weak-50'>
-          <Icon className='size-5 text-text-sub-600' />
-        </div>
-        <div className='text-subheading-2xs uppercase text-text-soft-400'>
+    <div className='flex flex-col justify-between rounded-xl border border-stroke-soft-200 bg-bg-white-0 p-5'>
+      <div className='flex items-center justify-between'>
+        <span className='text-[13px] font-medium text-text-sub-600'>
           {label}
+        </span>
+        <div className='flex size-8 items-center justify-center rounded-lg bg-bg-weak-50'>
+          <Icon className='size-4 text-text-soft-400' />
         </div>
       </div>
-      <div className='text-title-h2 text-text-strong-950'>{value}</div>
-      <Link href={href}>
-        <LinkButton.Root variant='primary' size='small'>
-          {action}
-          <LinkButton.Icon as={RiArrowRightLine} />
-        </LinkButton.Root>
-      </Link>
-    </WidgetBox.Root>
+      <div className='mt-4'>
+        <div className='text-3xl font-semibold tracking-tight text-text-strong-950'>
+          {value}
+        </div>
+        {trend && (
+          <div className='mt-1 flex items-center gap-1 text-xs text-success-base'>
+            <RiArrowRightUpLine className='size-3.5' />
+            {trend}
+          </div>
+        )}
+      </div>
+      <div className='mt-4'>
+        <Link href={href}>
+          <LinkButton.Root variant='primary' size='small'>
+            {action}
+            <LinkButton.Icon as={RiArrowRightLine} />
+          </LinkButton.Root>
+        </Link>
+      </div>
+    </div>
   );
 }
 
@@ -67,35 +80,37 @@ function QuickActionCard({
   isDeveloper: boolean;
 }) {
   return (
-    <WidgetBox.Root className='flex flex-col items-start justify-between gap-4'>
+    <div className='flex flex-col items-start justify-between rounded-xl border border-stroke-soft-200 bg-bg-white-0 p-5'>
       <div>
-        <div className='text-label-sm text-text-strong-950'>Быстрое действие</div>
-        <div className='mt-1 text-paragraph-xs text-text-sub-600'>
+        <div className='text-[13px] font-medium text-text-strong-950'>
+          Быстрое действие
+        </div>
+        <p className='mt-1 text-xs text-text-sub-600'>
           {isDeveloper
             ? 'Создайте новый объект или аукцион'
             : 'Просмотрите доступные аукционы'}
-        </div>
+        </p>
       </div>
-      <Link href={isDeveloper ? '/properties/create' : '/auctions'}>
+      <Link href={isDeveloper ? '/properties/create' : '/auctions'} className='mt-5'>
         <FancyButton.Root variant='primary' size='small'>
           <FancyButton.Icon as={isDeveloper ? RiAddLine : RiEyeLine} />
           {isDeveloper ? 'Создать объект' : 'Смотреть аукционы'}
         </FancyButton.Root>
       </Link>
-    </WidgetBox.Root>
+    </div>
   );
 }
 
 function RecentPropertyItem({ property }: { property: Property }) {
   return (
-    <div className='flex items-center justify-between gap-3 py-2.5'>
+    <div className='flex items-center justify-between gap-3 py-3'>
       <div className='min-w-0 flex-1'>
-        <div className='truncate text-label-sm text-text-strong-950'>
+        <div className='truncate text-[13px] font-medium text-text-strong-950'>
           {property.address}
         </div>
-        <div className='mt-0.5 flex items-center gap-2 text-paragraph-xs text-text-sub-600'>
+        <div className='mt-0.5 flex items-center gap-1.5 text-xs text-text-sub-600'>
           <span>{TYPE_LABELS[property.type]}</span>
-          <span>·</span>
+          <span className='text-text-soft-400'>·</span>
           <span>{formatPrice(property.price)} {property.currency}</span>
         </div>
       </div>
@@ -115,14 +130,14 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
   const statusLabel = auction.status === 'active' ? 'Активный' : auction.status === 'finished' ? 'Завершён' : auction.status === 'draft' ? 'Черновик' : 'Отменён';
 
   return (
-    <div className='flex items-center justify-between gap-3 py-2.5'>
+    <div className='flex items-center justify-between gap-3 py-3'>
       <div className='min-w-0 flex-1'>
-        <div className='truncate text-label-sm text-text-strong-950'>
+        <div className='truncate text-[13px] font-medium text-text-strong-950'>
           Аукцион #{auction.id}
         </div>
-        <div className='mt-0.5 flex items-center gap-2 text-paragraph-xs text-text-sub-600'>
+        <div className='mt-0.5 flex items-center gap-1.5 text-xs text-text-sub-600'>
           <span>от {formatPrice(auction.min_price)}</span>
-          <span>·</span>
+          <span className='text-text-soft-400'>·</span>
           <span>{formatDateShort(auction.end_date)}</span>
         </div>
       </div>
@@ -148,18 +163,22 @@ export default function DashboardPage() {
   const recentProperties = propertiesData?.results ?? [];
   const recentAuctions = auctionsData?.results ?? [];
 
-  const greeting = user?.first_name ? `Привет, ${user.first_name}!` : 'Добро пожаловать!';
+  const greeting = user?.first_name ? `Привет, ${user.first_name}` : 'Добро пожаловать';
 
   return (
-    <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
-      <PageHeader
-        title={greeting}
-        description='Панель управления'
-        icon={RiDashboardLine}
-      />
+    <div className='flex flex-1 flex-col gap-8 px-6 py-8 lg:px-10'>
+      {/* Greeting */}
+      <div>
+        <h1 className='text-2xl font-semibold tracking-tight text-text-strong-950'>
+          {greeting}
+        </h1>
+        <p className='mt-1 text-sm text-text-sub-600'>
+          Вот последние данные вашей панели управления.
+        </p>
+      </div>
 
       {/* Stat cards */}
-      <div className='grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         {isDeveloper ? (
           <StatCard
             label='Мои объекты'
@@ -201,7 +220,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent items */}
-      <div className='grid grid-cols-1 gap-5 lg:grid-cols-2'>
+      <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
         {/* Recent Properties */}
         {isDeveloper && (
           <WidgetBox.Root>
@@ -210,7 +229,7 @@ export default function DashboardPage() {
               Последние объекты
             </WidgetBox.Header>
             {recentProperties.length === 0 ? (
-              <div className='py-6 text-center text-paragraph-sm text-text-soft-400'>
+              <div className='py-8 text-center text-sm text-text-soft-400'>
                 Нет объектов
               </div>
             ) : (
@@ -223,7 +242,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
-            <div className='mt-3'>
+            <div className='mt-3 pt-3 border-t border-stroke-soft-200'>
               <Link href='/properties'>
                 <LinkButton.Root variant='primary' size='small'>
                   Все объекты
@@ -241,7 +260,7 @@ export default function DashboardPage() {
             {isDeveloper ? 'Мои аукционы' : 'Доступные аукционы'}
           </WidgetBox.Header>
           {recentAuctions.length === 0 ? (
-            <div className='py-6 text-center text-paragraph-sm text-text-soft-400'>
+            <div className='py-8 text-center text-sm text-text-soft-400'>
               Нет аукционов
             </div>
           ) : (
@@ -254,7 +273,7 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-          <div className='mt-3'>
+          <div className='mt-3 pt-3 border-t border-stroke-soft-200'>
             <Link href='/auctions'>
               <LinkButton.Root variant='primary' size='small'>
                 Все аукционы

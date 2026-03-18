@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   RiAddLine,
-  RiArrowRightSLine,
   RiAuctionLine,
   RiBarChartBoxLine,
   RiBuilding2Line,
@@ -21,8 +21,6 @@ import {
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { cn } from '@/shared/lib/cn';
-import * as Divider from '@/shared/ui/divider';
-import { CompanySwitch } from '@/shared/components/company-switch';
 import { UserButton } from '@/shared/components/user-button';
 import { useSessionStore } from '@/entities/auth/model/store';
 
@@ -116,19 +114,71 @@ function useCollapsedState({
   return { collapsed, sidebarRef };
 }
 
-export function SidebarHeader({ collapsed }: { collapsed?: boolean }) {
+function SidebarBrand({ collapsed }: { collapsed: boolean }) {
   return (
     <div
-      className={cn('lg:p-3', {
-        'lg:px-2': collapsed,
+      className={cn('flex items-center gap-3 px-5 py-5', {
+        'justify-center px-2': collapsed,
       })}
     >
-      <CompanySwitch
-        className={cn('transition-all-default', {
-          'w-16': collapsed,
-        })}
-      />
+      <div className='flex size-9 shrink-0 items-center justify-center rounded-lg bg-bg-strong-950'>
+        <Image src='/images/logo-icon.svg' alt='' width={20} height={20} className='size-5' />
+      </div>
+      <div className='flex flex-col' data-hide-collapsed>
+        <span className='text-label-md font-semibold text-text-strong-950'>
+          MIG Tender
+        </span>
+      </div>
     </div>
+  );
+}
+
+function NavLink({
+  href,
+  icon: Icon,
+  label,
+  isActive,
+  disabled,
+  collapsed,
+}: {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  isActive: boolean;
+  disabled?: boolean;
+  collapsed: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={isActive ? 'page' : undefined}
+      aria-disabled={disabled}
+      className={cn(
+        'group relative flex items-center gap-2.5 whitespace-nowrap rounded-lg py-2 text-text-sub-600',
+        'transition-all duration-150 ease-out',
+        'hover:bg-bg-weak-50 hover:text-text-strong-950',
+        'aria-[current=page]:bg-bg-weak-50 aria-[current=page]:text-text-strong-950 aria-[current=page]:font-medium',
+        'aria-disabled:pointer-events-none aria-disabled:opacity-40',
+        {
+          'w-9 justify-center px-0': collapsed,
+          'w-full px-3': !collapsed,
+        },
+      )}
+    >
+      <Icon
+        className={cn(
+          'size-[18px] shrink-0 text-text-soft-400 transition-colors duration-150',
+          'group-hover:text-text-sub-600',
+          'group-aria-[current=page]:text-text-strong-950',
+        )}
+      />
+      <div
+        className='flex flex-1 items-center gap-2'
+        data-hide-collapsed
+      >
+        <span className='text-[13px] leading-5'>{label}</span>
+      </div>
+    </Link>
   );
 }
 
@@ -148,63 +198,29 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
   );
 
   return (
-    <div className='space-y-2'>
+    <div className='space-y-3'>
       <div
-        className={cn('p-1 text-subheading-xs uppercase text-text-soft-400', {
-          '-mx-2.5 w-14 px-0 text-center': collapsed,
-        })}
+        className={cn(
+          'px-3 text-[11px] font-medium uppercase tracking-wider text-text-soft-400',
+          { 'px-0 text-center': collapsed },
+        )}
       >
-        Меню
+        <span data-hide-collapsed>Основное</span>
       </div>
-      <div className='space-y-1'>
-        {visibleLinks.map(({ icon: Icon, label, developerLabel, href, developerHref, disabled }, i) => {
+      <div className='space-y-0.5'>
+        {visibleLinks.map(({ icon, label, developerLabel, href, developerHref, disabled }, i) => {
           const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
           const displayHref = isDeveloper && developerHref ? developerHref : href;
           return (
-          <Link
-            key={i}
-            href={displayHref}
-            aria-current={pathname === displayHref ? 'page' : undefined}
-            aria-disabled={disabled}
-            className={cn(
-              'group relative flex items-center gap-2 whitespace-nowrap rounded-lg py-2 text-text-sub-600 hover:bg-bg-weak-50',
-              'transition-default',
-              'aria-[current=page]:bg-bg-weak-50',
-              'aria-disabled:pointer-events-none aria-disabled:opacity-50',
-              {
-                'w-9 px-2': collapsed,
-                'w-full px-3': !collapsed,
-              },
-            )}
-          >
-            <div
-              className={cn(
-                'transition-default absolute top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-primary-base',
-                {
-                  '-left-[22px]': collapsed,
-                  '-left-5': !collapsed,
-                  'scale-100': pathname === displayHref,
-                  'scale-0': pathname !== displayHref,
-                },
-              )}
+            <NavLink
+              key={i}
+              href={displayHref}
+              icon={icon}
+              label={displayLabel}
+              isActive={pathname === displayHref}
+              disabled={disabled}
+              collapsed={collapsed}
             />
-            <Icon
-              className={cn(
-                'transition-default size-5 shrink-0 text-text-sub-600',
-                'group-aria-[current=page]:text-primary-base',
-              )}
-            />
-
-            <div
-              className='flex w-[180px] shrink-0 items-center gap-2'
-              data-hide-collapsed
-            >
-              <div className='flex-1 text-label-sm'>{displayLabel}</div>
-              {pathname === displayHref && (
-                <RiArrowRightSLine className='size-5 text-text-sub-600' />
-              )}
-            </div>
-          </Link>
           );
         })}
       </div>
@@ -231,65 +247,27 @@ function SettingsAndSupport({ collapsed }: { collapsed: boolean }) {
   ];
 
   return (
-    <div className='space-y-2'>
+    <div className='space-y-3'>
       <div
-        className={cn('p-1 text-subheading-xs uppercase text-text-soft-400', {
-          '-mx-2.5 w-14 px-0 text-center': collapsed,
-        })}
+        className={cn(
+          'px-3 text-[11px] font-medium uppercase tracking-wider text-text-soft-400',
+          { 'px-0 text-center': collapsed },
+        )}
       >
-        Прочее
+        <span data-hide-collapsed>Прочее</span>
       </div>
-      <div className='space-y-1'>
-        {links.map(({ icon: Icon, label, href, disabled }, i) => {
-          const isActivePage = pathname.startsWith(href);
-
-          return (
-            <Link
-              key={i}
-              href={href}
-              aria-current={isActivePage ? 'page' : undefined}
-              aria-disabled={disabled}
-              className={cn(
-                'group relative flex items-center gap-2 whitespace-nowrap rounded-lg py-2 text-text-sub-600 hover:bg-bg-weak-50',
-                'transition-default',
-                'aria-[current=page]:bg-bg-weak-50',
-                'aria-disabled:pointer-events-none aria-disabled:opacity-50',
-                {
-                  'w-9 px-2': collapsed,
-                  'w-full px-3': !collapsed,
-                },
-              )}
-            >
-              <div
-                className={cn(
-                  'transition-default absolute top-1/2 h-5 w-1 origin-left -translate-y-1/2 rounded-r-full bg-primary-base',
-                  {
-                    '-left-[22px]': collapsed,
-                    '-left-5': !collapsed,
-                    'scale-100': isActivePage,
-                    'scale-0': !isActivePage,
-                  },
-                )}
-              />
-              <Icon
-                className={cn(
-                  'transition-default size-5 shrink-0 text-text-sub-600',
-                  'group-aria-[current=page]:text-primary-base',
-                )}
-              />
-
-              <div
-                className='flex w-[180px] shrink-0 items-center gap-2'
-                data-hide-collapsed
-              >
-                <div className='flex-1 text-label-sm'>{label}</div>
-                {isActivePage && (
-                  <RiArrowRightSLine className='size-5 text-text-sub-600' />
-                )}
-              </div>
-            </Link>
-          );
-        })}
+      <div className='space-y-0.5'>
+        {links.map(({ icon, label, href, disabled }, i) => (
+          <NavLink
+            key={i}
+            href={href}
+            icon={icon}
+            label={label}
+            isActive={pathname.startsWith(href)}
+            disabled={disabled}
+            collapsed={collapsed}
+          />
+        ))}
       </div>
     </div>
   );
@@ -303,20 +281,8 @@ function UserProfile({ collapsed }: { collapsed: boolean }) {
       })}
     >
       <UserButton
-        className={cn('transition-all-default', {
+        className={cn('transition-all duration-300', {
           'w-auto': collapsed,
-        })}
-      />
-    </div>
-  );
-}
-
-function SidebarDivider({ collapsed }: { collapsed: boolean }) {
-  return (
-    <div className='px-5'>
-      <Divider.Root
-        className={cn('transition-all-default', {
-          'w-10': collapsed,
         })}
       />
     </div>
@@ -334,10 +300,10 @@ export default function Sidebar({
     <>
       <div
         className={cn(
-          'transition-all-default fixed left-0 top-0 z-40 hidden h-full overflow-hidden border-r border-stroke-soft-200 bg-bg-white-0 duration-300 lg:block',
+          'fixed left-0 top-0 z-40 hidden h-full overflow-hidden border-r border-stroke-soft-200 bg-bg-white-0 transition-all duration-300 ease-out lg:block',
           {
             'w-20': collapsed,
-            'w-[272px]': !collapsed,
+            'w-[260px]': !collapsed,
             '[&_[data-hide-collapsed]]:hidden': !collapsed
               ? false
               : defaultCollapsed,
@@ -346,32 +312,31 @@ export default function Sidebar({
       >
         <div
           ref={sidebarRef}
-          className='flex h-full w-[272px] min-w-[272px] flex-col overflow-auto'
+          className='flex h-full w-[260px] min-w-[260px] flex-col'
         >
-          {/* <SidebarHeader collapsed={collapsed} /> */}
+          <SidebarBrand collapsed={collapsed} />
 
-          <SidebarDivider collapsed={collapsed} />
+          <div className='mx-4 border-t border-stroke-soft-200' />
 
           <div
-            className={cn('flex flex-1 flex-col gap-5 pb-4 pt-5', {
-              'px-[22px]': collapsed,
-              'px-5': !collapsed,
+            className={cn('flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-4', {
+              'px-[18px]': collapsed,
             })}
           >
             <NavigationMenu collapsed={collapsed} />
             <SettingsAndSupport collapsed={collapsed} />
           </div>
 
-          <SidebarDivider collapsed={collapsed} />
+          <div className='mx-4 border-t border-stroke-soft-200' />
 
           <UserProfile collapsed={collapsed} />
         </div>
       </div>
 
-      {/* a necessary placeholder because of sidebar is fixed */}
+      {/* placeholder for fixed sidebar */}
       <div
         className={cn('shrink-0', {
-          'w-[272px]': !collapsed,
+          'w-[260px]': !collapsed,
           'w-20': collapsed,
         })}
       />

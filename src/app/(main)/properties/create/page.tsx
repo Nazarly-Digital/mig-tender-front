@@ -150,7 +150,7 @@ export default function CreatePropertyPage() {
   };
 
   return (
-    <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
+    <div className='flex flex-1 flex-col gap-8 px-6 py-8 lg:px-10'>
       <PageHeader
         title='Новый объект'
         description='Заполните информацию о новом объекте недвижимости'

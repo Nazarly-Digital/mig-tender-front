@@ -32,14 +32,14 @@ export default function MainLayout({
   if (!isAuthenticated) return null;
 
   return (
-    <>
-      <div className='flex min-h-screen flex-col items-start lg:grid lg:grid-cols-[auto,minmax(0,1fr)]'>
-        <Sidebar />
+    <div className='flex min-h-screen'>
+      <Sidebar />
+      <div className='flex min-w-0 flex-1 flex-col'>
         <HeaderMobile />
-        <div className='w-full min-h-screen lg:max-w-[calc(100%-272px)] flex-col self-stretch ml-auto'>
+        <main className='flex flex-1 flex-col'>
           {children}
-        </div>
+        </main>
       </div>
-    </>
+    </div>
   );
 }

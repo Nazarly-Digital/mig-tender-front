@@ -73,7 +73,7 @@ export default function CreateAuctionPage() {
   };
 
   return (
-    <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
+    <div className='flex flex-1 flex-col gap-8 px-6 py-8 lg:px-10'>
       <PageHeader
         title='Новый аукцион'
         description='Создайте аукцион для вашего объекта недвижимости'

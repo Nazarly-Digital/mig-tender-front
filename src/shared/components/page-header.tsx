@@ -21,25 +21,20 @@ export function PageHeader({
   return (
     <div className='flex items-start justify-between gap-4'>
       <div className='flex items-center gap-3'>
-        {/* {backHref && (
+        {backHref && (
           <Link href={backHref}>
             <CompactButton.Root variant='stroke' size='medium'>
               <CompactButton.Icon as={RiArrowLeftLine} />
             </CompactButton.Root>
           </Link>
         )}
-        {Icon && !backHref && (
-          <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
-            <Icon className='size-5 text-text-sub-600' />
-          </div>
-        )} */}
         <div>
-          <div className='text-label-xl font-semibold text-text-strong-950'>
+          <h1 className='text-xl font-semibold tracking-tight text-text-strong-950'>
             {title}
-          </div>
-          <div className='mt-1 text-paragraph-sm text-text-sub-600'>
+          </h1>
+          <p className='mt-1 text-sm text-text-sub-600'>
             {description}
-          </div>
+          </p>
         </div>
       </div>
       {action && <div className='shrink-0'>{action}</div>}
