@@ -16,6 +16,7 @@ import * as Input from '@/shared/ui/input';
 import * as Select from '@/shared/ui/select';
 import * as StatusBadge from '@/shared/ui/status-badge';
 import { cn } from '@/shared/lib/cn';
+import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import { PageHeader } from '@/shared/components/page-header';
 import {
   PropertiesTablePagination,
@@ -33,21 +34,6 @@ import type {
   PropertyClass,
   PropertyListParams,
 } from '@/shared/types/properties';
-
-function formatPrice(value: string) {
-  const num = parseFloat(value);
-  if (isNaN(num)) return '—';
-  return new Intl.NumberFormat('ru-RU').format(num);
-}
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
 
 function PropertyImageCarousel({ images }: { images: Property['images'] }) {
   const [current, setCurrent] = React.useState(0);
@@ -172,13 +158,13 @@ function CatalogPropertyCard({ property }: { property: Property }) {
             <div>
               <div className='text-subheading-2xs uppercase text-text-soft-400'>Дедлайн</div>
               <div className='mt-0.5 text-label-sm text-text-strong-950'>
-                {formatDate(property.deadline)}
+                {formatDateShort(property.deadline)}
               </div>
             </div>
             <div>
               <div className='text-subheading-2xs uppercase text-text-soft-400'>Создан</div>
               <div className='mt-0.5 text-label-sm text-text-strong-950'>
-                {formatDate(property.created_at)}
+                {formatDateShort(property.created_at)}
               </div>
             </div>
           </div>
@@ -209,20 +195,6 @@ export default function CatalogPage() {
   const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
   const properties = data?.results ?? [];
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-    setPage(1);
-  };
-
-  // Reset page when filters change
-  React.useEffect(() => {
-    setPage(1);
-  }, [search, typeFilter, classFilter]);
-
   return (
     <div className='flex flex-1 flex-col gap-6 px-4 py-6 lg:px-10 lg:py-8'>
       <PageHeader
@@ -239,7 +211,7 @@ export default function CatalogPage() {
             <Input.Input
               placeholder='Поиск по адресу...'
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             />
           </Input.Wrapper>
         </Input.Root>
@@ -248,7 +220,7 @@ export default function CatalogPage() {
           <Select.Root
             size='small'
             value={typeFilter}
-            onValueChange={setTypeFilter}
+            onValueChange={(v) => { setTypeFilter(v); setPage(1); }}
           >
             <Select.Trigger className='flex-1 sm:flex-none'>
               <Select.Value placeholder='Тип' />
@@ -268,7 +240,7 @@ export default function CatalogPage() {
           <Select.Root
             size='small'
             value={classFilter}
-            onValueChange={setClassFilter}
+            onValueChange={(v) => { setClassFilter(v); setPage(1); }}
           >
             <Select.Trigger className='flex-1 sm:flex-none'>
               <Select.Value placeholder='Класс' />
@@ -322,8 +294,8 @@ export default function CatalogPage() {
             page={page}
             totalPages={totalPages}
             pageSize={pageSize}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
           />
         </>
       )}

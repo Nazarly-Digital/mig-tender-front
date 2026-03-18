@@ -16,6 +16,7 @@ import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as StatusBadge from '@/shared/ui/status-badge';
 import { cn } from '@/shared/lib/cn';
+import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import { PageHeader } from '@/shared/components/page-header';
 import {
   TYPE_LABELS,
@@ -28,21 +29,6 @@ import {
 import { useProperty } from '@/features/properties';
 import { useAuctions } from '@/features/auctions';
 import type { Property } from '@/shared/types/properties';
-
-function formatPrice(value: string) {
-  const num = parseFloat(value);
-  if (isNaN(num)) return '—';
-  return new Intl.NumberFormat('ru-RU').format(num);
-}
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
 
 function DetailImageCarousel({ images }: { images: Property['images'] }) {
   const [current, setCurrent] = React.useState(0);
@@ -221,7 +207,7 @@ export default function CatalogDetailPage() {
             <div>
               <div className='text-subheading-2xs uppercase text-text-soft-400'>Дедлайн</div>
               <div className='mt-1 text-label-sm text-text-strong-950'>
-                {formatDate(property.deadline)}
+                {formatDateShort(property.deadline)}
               </div>
             </div>
           </div>
@@ -242,13 +228,13 @@ export default function CatalogDetailPage() {
               <div className='flex justify-between'>
                 <span className='text-paragraph-sm text-text-sub-600'>Создан</span>
                 <span className='text-label-sm text-text-strong-950'>
-                  {formatDate(property.created_at)}
+                  {formatDateShort(property.created_at)}
                 </span>
               </div>
               <div className='flex justify-between'>
                 <span className='text-paragraph-sm text-text-sub-600'>Обновлен</span>
                 <span className='text-label-sm text-text-strong-950'>
-                  {formatDate(property.updated_at)}
+                  {formatDateShort(property.updated_at)}
                 </span>
               </div>
             </div>
@@ -281,7 +267,7 @@ export default function CatalogDetailPage() {
                 <div className='flex justify-between'>
                   <span className='text-paragraph-sm text-text-sub-600'>Окончание</span>
                   <span className='text-label-sm text-text-strong-950'>
-                    {formatDate(activeAuction.end_date)}
+                    {formatDateShort(activeAuction.end_date)}
                   </span>
                 </div>
               </div>

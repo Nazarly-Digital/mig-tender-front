@@ -8,25 +8,12 @@ import {
 import Link from 'next/link';
 
 import * as Badge from '@/shared/ui/badge';
-import * as Divider from '@/shared/ui/divider';
 import * as LinkButton from '@/shared/ui/link-button';
 import * as WidgetBox from '@/shared/components/widget-box';
 import { PageHeader } from '@/shared/components/page-header';
 import { useAuctions } from '@/features/auctions';
-import { useSessionStore } from '@/entities/auth/model/store';
+import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Auction } from '@/shared/types/auctions';
-
-function formatPrice(value: string) {
-  const num = parseFloat(value);
-  if (isNaN(num)) return '—';
-  return new Intl.NumberFormat('ru-RU').format(num);
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-  });
-}
 
 function AuctionItem({ auction }: { auction: Auction }) {
   const statusColor = auction.status === 'active' ? 'green' : auction.status === 'finished' ? 'blue' : 'gray';
@@ -42,7 +29,7 @@ function AuctionItem({ auction }: { auction: Auction }) {
           <div>
             <div className='text-label-sm text-text-strong-950'>Аукцион #{auction.id}</div>
             <div className='text-paragraph-xs text-text-soft-400'>
-              от {formatPrice(auction.min_price)} · до {formatDate(auction.end_date)}
+              от {formatPrice(auction.min_price)} · до {formatDateShort(auction.end_date)}
             </div>
           </div>
         </div>
@@ -55,7 +42,6 @@ function AuctionItem({ auction }: { auction: Auction }) {
 }
 
 export default function CabinetPage() {
-  const user = useSessionStore((s) => s.user);
   const { data: activeData } = useAuctions({ status: 'active', page_size: 5 });
   const { data: finishedData } = useAuctions({ status: 'finished', page_size: 5 });
 

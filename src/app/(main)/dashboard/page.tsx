@@ -23,22 +23,9 @@ import {
   TYPE_LABELS,
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
+import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Property } from '@/shared/types/properties';
 import type { Auction } from '@/shared/types/auctions';
-
-function formatPrice(value: string) {
-  const num = parseFloat(value);
-  if (isNaN(num)) return '—';
-  return new Intl.NumberFormat('ru-RU').format(num);
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
 
 function StatCard({
   label,
