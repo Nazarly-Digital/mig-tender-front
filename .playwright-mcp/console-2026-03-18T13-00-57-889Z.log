@@ -1,0 +1,1 @@
+[    2163ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ https://backend.migntender.app/api/v1/auctions/?page_size=3&ordering=-created_at:0

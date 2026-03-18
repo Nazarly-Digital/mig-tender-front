@@ -16,12 +16,12 @@ export const adminService = {
   getUsers: (params?: AdminUserListParams) =>
     apiInstance.get<PaginatedResponse<AdminUser>>("/admin/users/", { params }),
 
-  blockUser: (id: number) =>
-    apiInstance.patch<BlockUserResponse>(`/admin/users/${id}/block/`),
+  blockUser: (id: number, isActive: boolean) =>
+    apiInstance.patch<BlockUserResponse>(`/admin/users/${id}/block/`, { is_active: isActive }),
 
   // Broker verification
   verifyBroker: (id: number) =>
-    apiInstance.post<VerifyBrokerResponse>("/admin/broker/verify/", { id }),
+    apiInstance.post<VerifyBrokerResponse>("/admin/broker/verify/", { id, action: "accept" }),
 
   // Properties moderation
   getPendingProperties: (params?: PendingPropertyListParams) =>

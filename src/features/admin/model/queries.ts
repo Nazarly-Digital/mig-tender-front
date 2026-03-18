@@ -26,8 +26,8 @@ export function useAdminUsers(params?: AdminUserListParams) {
 export function useBlockUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) =>
-      adminService.blockUser(id).then((res) => res.data),
+    mutationFn: ({ id, isActive }: { id: number; isActive: boolean }) =>
+      adminService.blockUser(id, isActive).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.all });
     },

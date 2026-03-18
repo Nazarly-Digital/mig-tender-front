@@ -62,10 +62,10 @@ function BlockConfirmModal({
   if (!user) return null;
 
   const handleConfirm = () => {
-    blockUser.mutate(user.id, {
+    blockUser.mutate({ id: user.id, isActive: user.is_active === false }, {
       onSuccess: () => {
         toast.success(
-          user.is_blocked
+          !user.is_active
             ? `${user.first_name} ${user.last_name} разблокирован`
             : `${user.first_name} ${user.last_name} заблокирован`,
         );
@@ -81,12 +81,12 @@ function BlockConfirmModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content>
         <Modal.Header
-          title={user.is_blocked ? 'Разблокировать пользователя?' : 'Заблокировать пользователя?'}
+          title={!user.is_active ? 'Разблокировать пользователя?' : 'Заблокировать пользователя?'}
           description={`${user.first_name} ${user.last_name} (${user.email})`}
         />
         <Modal.Body>
           <p className='text-[13px] text-gray-500'>
-            {user.is_blocked
+            {!user.is_active
               ? 'Пользователь сможет снова войти в систему и использовать платформу.'
               : 'Пользователь не сможет войти в систему и использовать платформу.'}
           </p>
@@ -98,14 +98,14 @@ function BlockConfirmModal({
             </FancyButton.Root>
           </Modal.Close>
           <FancyButton.Root
-            variant={user.is_blocked ? 'primary' : 'destructive'}
+            variant={!user.is_active ? 'primary' : 'destructive'}
             size='small'
             onClick={handleConfirm}
             disabled={blockUser.isPending}
           >
             {blockUser.isPending
               ? 'Загрузка...'
-              : user.is_blocked
+              : !user.is_active
                 ? 'Разблокировать'
                 : 'Заблокировать'}
           </FancyButton.Root>
@@ -279,7 +279,7 @@ export default function AdminUsersPage() {
                   </td>
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center gap-1.5'>
-                      {user.is_blocked ? (
+                      {!user.is_active ? (
                         <span className='inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700'>
                           <span className='inline-block size-1.5 rounded-full bg-red-500 mr-1' />
                           Заблокирован
@@ -291,7 +291,7 @@ export default function AdminUsersPage() {
                         </span>
                       )}
                       {user.role === 'broker' && (
-                        user.is_verified ? (
+                        user.broker?.is_verified ? (
                           <span className='rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700'>
                             Верифицирован
                           </span>
@@ -310,19 +310,19 @@ export default function AdminUsersPage() {
                   </td>
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
-                      {user.role === 'broker' && !user.is_verified && (
+                      {user.role === 'broker' && !user.broker?.is_verified && (
                         <FancyButton.Root variant='basic' size='xsmall' onClick={() => setVerifyTarget(user)}>
                           <HugeiconsIcon icon={SecurityCheckIcon} size={16} color='currentColor' strokeWidth={1.5} />
                           Верифицировать
                         </FancyButton.Root>
                       )}
                       <FancyButton.Root variant='basic' size='xsmall' onClick={() => setBlockTarget(user)}>
-                        {user.is_blocked ? (
+                        {!user.is_active ? (
                           <HugeiconsIcon icon={SquareUnlock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         ) : (
                           <HugeiconsIcon icon={SquareLock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         )}
-                        {user.is_blocked ? 'Разблокировать' : 'Заблокировать'}
+                        {!user.is_active ? 'Разблокировать' : 'Заблокировать'}
                       </FancyButton.Root>
                     </div>
                   </td>
