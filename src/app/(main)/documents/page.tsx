@@ -132,8 +132,8 @@ function UploadModal({
         <Modal.Header className='pr-5'>
           <div className='flex flex-1 items-start justify-between gap-3'>
             <div className='flex items-center gap-3'>
-              <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200'>
-                <RiUploadCloud2Line className='size-5 text-text-sub-600' />
+              <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-inset ring-[#E5E7EB]'>
+                <RiUploadCloud2Line className='size-5 text-[#6B7280]' />
               </div>
               <div>
                 <Modal.Title>Загрузить документы</Modal.Title>
@@ -159,28 +159,28 @@ function UploadModal({
               'flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors duration-200',
               dragging
                 ? 'border-primary-base bg-primary-alpha-10'
-                : 'border-stroke-soft-200 bg-bg-weak-50 hover:border-primary-base hover:bg-primary-alpha-10',
+                : 'border-[#E5E7EB] bg-[#F9FAFB] hover:border-primary-base hover:bg-primary-alpha-10',
             )}
           >
             <div
               className={cn(
                 'flex size-12 items-center justify-center rounded-full transition-colors',
-                dragging ? 'bg-primary-alpha-10' : 'bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200',
+                dragging ? 'bg-primary-alpha-10' : 'bg-white ring-1 ring-inset ring-[#E5E7EB]',
               )}
             >
               <RiUploadCloud2Line
-                className={cn('size-6', dragging ? 'text-primary-base' : 'text-text-sub-600')}
+                className={cn('size-6', dragging ? 'text-primary-base' : 'text-[#6B7280]')}
               />
             </div>
             <div className='space-y-1'>
-              <p className='text-label-sm text-text-strong-950'>
+              <p className='text-[14px] font-medium text-[#111827]'>
                 Перетащите файлы сюда
               </p>
-              <p className='text-paragraph-xs text-text-soft-400'>
+              <p className='text-[12px] text-[#9CA3AF]'>
                 или нажмите, чтобы выбрать файлы
               </p>
             </div>
-            <p className='text-paragraph-xs text-text-soft-400'>
+            <p className='text-[12px] text-[#9CA3AF]'>
               PDF, DOCX, XLSX, PNG, JPG — до 50 МБ
             </p>
             <input
@@ -196,7 +196,7 @@ function UploadModal({
           {/* Selected files list */}
           {selectedFiles.length > 0 && (
             <div className='space-y-2'>
-              <p className='text-label-xs text-text-sub-600'>
+              <p className='text-label-xs text-[#6B7280]'>
                 Выбрано файлов: {selectedFiles.length}
               </p>
               <div className='max-h-[200px] space-y-2 overflow-y-auto'>
@@ -211,10 +211,10 @@ function UploadModal({
                     >
                       <Icon className={cn('size-5 shrink-0', iconColor)} />
                       <div className='min-w-0 flex-1'>
-                        <p className='truncate text-label-sm text-text-strong-950'>
+                        <p className='truncate text-[14px] font-medium text-[#111827]'>
                           {file.name}
                         </p>
-                        <p className='text-paragraph-xs text-text-soft-400'>
+                        <p className='text-[12px] text-[#9CA3AF]'>
                           {formatBytes(file.size)}
                         </p>
                       </div>
@@ -269,15 +269,15 @@ function DocumentCard({
 
   return (
     <div
-      className='group flex animate-in fade-in slide-in-from-bottom-2 items-center gap-3 rounded-xl bg-bg-white-0 px-4 py-3 ring-1 ring-inset ring-stroke-soft-200 transition-shadow duration-200 hover:shadow-regular-xs'
+      className='group flex animate-in fade-in slide-in-from-bottom-2 items-center gap-3 rounded-xl bg-white px-4 py-3 ring-1 ring-inset ring-[#E5E7EB] transition-shadow duration-200 hover:shadow-regular-xs'
       style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'both', animationDuration: '200ms' }}
     >
       <div className='flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-alpha-10'>
         <Icon className={cn('size-5', iconColor)} />
       </div>
       <div className='min-w-0 flex-1'>
-        <p className='truncate text-label-sm text-text-strong-950'>{doc.name}</p>
-        <p className='text-paragraph-xs text-text-soft-400'>
+        <p className='truncate text-[14px] font-medium text-[#111827]'>{doc.name}</p>
+        <p className='text-[12px] text-[#9CA3AF]'>
           {formatBytes(doc.size)} · {doc.uploadedAt.toLocaleDateString('ru-RU')}
         </p>
       </div>
@@ -342,14 +342,14 @@ export default function DocumentsPage() {
         /* Empty state */
         <div className='flex flex-1 items-center justify-center'>
           <div className='flex flex-col items-center gap-6 text-center'>
-            <div className='flex size-20 items-center justify-center rounded-2xl bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200 shadow-regular-xs'>
-              <RiFileTextLine className='size-9 text-text-soft-400' />
+            <div className='flex size-20 items-center justify-center rounded-2xl bg-white ring-1 ring-inset ring-[#E5E7EB] shadow-regular-xs'>
+              <RiFileTextLine className='size-9 text-[#9CA3AF]' />
             </div>
             <div className='space-y-2'>
-              <p className='text-label-lg text-text-strong-950'>
+              <p className='text-[18px] font-semibold text-[#111827]'>
                 Никаких документов?
               </p>
-              <p className='text-paragraph-sm text-text-sub-600'>
+              <p className='text-[14px] text-[#6B7280]'>
                 Загрузите, пожалуйста.
               </p>
             </div>
@@ -364,7 +364,7 @@ export default function DocumentsPage() {
         <WidgetBox.Root className='space-y-4'>
           <WidgetBox.Header>
             Все документы
-            <span className='ml-auto text-label-sm font-normal text-text-soft-400'>
+            <span className='ml-auto text-[14px] font-normal text-[#9CA3AF]'>
               {documents.length}
             </span>
           </WidgetBox.Header>

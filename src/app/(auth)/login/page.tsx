@@ -13,7 +13,6 @@ import { AxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { cn } from '@/shared/lib/cn';
 import { loginSchema, type LoginFormData } from '@/shared/lib/validations';
 import * as Alert from '@/shared/ui/alert';
 import * as Divider from '@/shared/ui/divider';
@@ -41,9 +40,9 @@ const PasswordInput = React.forwardRef<
         />
         <button type='button' onClick={() => setShowPassword((s) => !s)}>
           {showPassword ? (
-            <RiEyeOffLine className='size-5 text-text-soft-400 group-has-[disabled]:text-text-disabled-300' />
+            <RiEyeOffLine className='size-5 text-[#9CA3AF] group-has-[disabled]:text-text-disabled-300' />
           ) : (
-            <RiEyeLine className='size-5 text-text-soft-400 group-has-[disabled]:text-text-disabled-300' />
+            <RiEyeLine className='size-5 text-[#9CA3AF] group-has-[disabled]:text-text-disabled-300' />
           )}
         </button>
       </Input.Wrapper>
@@ -85,25 +84,17 @@ export default function PageLogin() {
 
   return (
     <div className='w-full max-w-[472px] px-4'>
-      <div className='flex w-full flex-col gap-6 rounded-20 bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
+      <div className='flex w-full flex-col gap-6 rounded-xl bg-white p-5 shadow-regular-xs ring-1 ring-inset ring-[#E5E7EB] md:p-8'>
         <div className='flex flex-col items-center gap-2'>
-          <div
-            className={cn(
-              'relative flex size-[68px] shrink-0 items-center justify-center rounded-full backdrop-blur-xl lg:size-24',
-              'before:absolute before:inset-0 before:rounded-full',
-              'before:bg-gradient-to-b before:from-neutral-500 before:to-transparent before:opacity-10',
-            )}
-          >
-            <div className='relative z-10 flex size-12 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 lg:size-16'>
-              <RiUserFill className='size-6 text-text-sub-600 lg:size-8' />
-            </div>
+          <div className='flex size-[68px] shrink-0 items-center justify-center rounded-full bg-[#F9FAFB] ring-1 ring-inset ring-[#E5E7EB] lg:size-24'>
+            <RiUserFill className='size-6 text-[#6B7280] lg:size-8' />
           </div>
 
           <div className='space-y-1 text-center'>
-            <div className='text-title-h6 lg:text-title-h5'>
+            <div className='text-[18px] font-semibold lg:text-[20px] lg:font-semibold'>
               Войти в аккаунт
             </div>
-            <div className='text-paragraph-sm text-text-sub-600 lg:text-paragraph-md'>
+            <div className='text-[14px] text-[#6B7280] lg:text-paragraph-md'>
               Введите ваши данные для входа
             </div>
           </div>
@@ -136,7 +127,7 @@ export default function PageLogin() {
                 </Input.Wrapper>
               </Input.Root>
               {errors.email?.message && (
-                <p className='text-paragraph-xs text-error-base'>{errors.email.message}</p>
+                <p className='text-[12px] text-error-base'>{errors.email.message}</p>
               )}
             </div>
 
@@ -151,7 +142,7 @@ export default function PageLogin() {
                 {...register('password')}
               />
               {errors.password?.message && (
-                <p className='text-paragraph-xs text-error-base'>{errors.password.message}</p>
+                <p className='text-[12px] text-error-base'>{errors.password.message}</p>
               )}
             </div>
           </div>

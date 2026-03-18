@@ -76,7 +76,7 @@ export default function AuthHeader() {
       />
 
       {/* <div className='flex items-center gap-1.5'>
-        <div className='text-paragraph-sm text-text-sub-600'>{action.text}</div>
+        <div className='text-[14px] text-[#6B7280]'>{action.text}</div>
         <LinkButton.Root variant='primary' size='medium' underline asChild>
           <Link href={action.link.href}>{action.link.label}</Link>
         </LinkButton.Root>

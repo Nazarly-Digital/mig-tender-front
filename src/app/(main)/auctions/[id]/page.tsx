@@ -251,7 +251,7 @@ function SelectWinnerModal({
         />
         <Modal.Body className='max-h-[320px] space-y-2 overflow-y-auto'>
           {bids.length === 0 ? (
-            <div className='py-4 text-center text-paragraph-sm text-text-soft-400'>
+            <div className='py-4 text-center text-[14px] text-[#9CA3AF]'>
               Нет ставок
             </div>
           ) : (
@@ -263,18 +263,18 @@ function SelectWinnerModal({
                 className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left transition ring-1 ring-inset ${
                   selectedBidId === bid.id
                     ? 'bg-primary-alpha-10 ring-primary-base'
-                    : 'ring-stroke-soft-200 hover:bg-bg-weak-50'
+                    : 'ring-[#E5E7EB] hover:bg-[#F9FAFB]'
                 }`}
               >
                 <div>
-                  <div className='text-label-sm text-text-strong-950'>
+                  <div className='text-[14px] font-medium text-[#111827]'>
                     {bid.first_name} {bid.last_name}
                   </div>
-                  <div className='text-paragraph-xs text-text-sub-600'>
+                  <div className='text-[12px] text-[#6B7280]'>
                     {formatDateTime(bid.created_at)}
                   </div>
                 </div>
-                <div className='text-label-md text-text-strong-950'>
+                <div className='text-[16px] font-medium text-[#111827]'>
                   {formatPrice(bid.amount)}
                 </div>
               </button>
@@ -326,7 +326,7 @@ export default function AuctionDetailPage() {
   if (isLoading) {
     return (
       <div className='flex flex-1 items-center justify-center py-20'>
-        <div className='text-paragraph-sm text-text-soft-400'>Загрузка...</div>
+        <div className='text-[14px] text-[#9CA3AF]'>Загрузка...</div>
       </div>
     );
   }
@@ -334,7 +334,7 @@ export default function AuctionDetailPage() {
   if (!auction) {
     return (
       <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-        <div className='text-label-sm text-text-sub-600'>
+        <div className='text-[14px] font-medium text-[#6B7280]'>
           Аукцион не найден
         </div>
         <Link href='/auctions'>
@@ -410,10 +410,10 @@ export default function AuctionDetailPage() {
             </CompactButton.Root>
           </Link>
           <div>
-            <div className='text-label-xl font-semibold text-text-strong-950'>
+            <div className='text-[20px] font-medium font-semibold text-[#111827]'>
               Аукцион #{auction.id}
             </div>
-            <div className='mt-1 text-paragraph-sm text-text-sub-600'>
+            <div className='mt-1 text-[14px] text-[#6B7280]'>
               Объект #{auction.property_id}
             </div>
           </div>
@@ -474,7 +474,7 @@ export default function AuctionDetailPage() {
             {/* Progress bar for active */}
             {isActive && (
               <div className='mb-4'>
-                <div className='mb-1 flex items-center justify-between text-paragraph-xs text-text-sub-600'>
+                <div className='mb-1 flex items-center justify-between text-[12px] text-[#6B7280]'>
                   <span>Прогресс</span>
                   <span>{progress}%</span>
                 </div>
@@ -487,7 +487,7 @@ export default function AuctionDetailPage() {
 
             <div className='grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3'>
               <div>
-                <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                   Статус
                 </div>
                 <div className='mt-1'>
@@ -498,7 +498,7 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                   Тип
                 </div>
                 <div className='mt-1'>
@@ -508,34 +508,34 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               <div>
-                <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                   Ставок
                 </div>
-                <div className='mt-1 text-label-sm text-text-strong-950'>
+                <div className='mt-1 text-[14px] font-medium text-[#111827]'>
                   {auction.bids_count}
                 </div>
               </div>
               <div>
-                <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                   Мин. цена
                 </div>
-                <div className='mt-1 text-label-sm text-text-strong-950'>
+                <div className='mt-1 text-[14px] font-medium text-[#111827]'>
                   {formatPrice(auction.min_price)}
                 </div>
               </div>
               <div>
-                <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                   Текущая макс.
                 </div>
-                <div className='mt-1 text-label-sm text-text-strong-950'>
+                <div className='mt-1 text-[14px] font-medium text-[#111827]'>
                   {formatPrice(auction.current_price)}
                 </div>
               </div>
               <div>
-                <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                   Участников
                 </div>
-                <div className='mt-1 text-label-sm text-text-strong-950'>
+                <div className='mt-1 text-[14px] font-medium text-[#111827]'>
                   {participantList.length}
                 </div>
               </div>
@@ -545,23 +545,23 @@ export default function AuctionDetailPage() {
 
             <div className='grid grid-cols-2 gap-4'>
               <div className='flex items-center gap-2'>
-                <RiTimeLine className='size-4 text-text-soft-400' />
+                <RiTimeLine className='size-4 text-[#9CA3AF]' />
                 <div>
-                  <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                     Начало
                   </div>
-                  <div className='text-label-sm text-text-strong-950'>
+                  <div className='text-[14px] font-medium text-[#111827]'>
                     {formatDateTime(auction.start_date)}
                   </div>
                 </div>
               </div>
               <div className='flex items-center gap-2'>
-                <RiTimeLine className='size-4 text-text-soft-400' />
+                <RiTimeLine className='size-4 text-[#9CA3AF]' />
                 <div>
-                  <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                     Окончание
                   </div>
-                  <div className='text-label-sm text-text-strong-950'>
+                  <div className='text-[14px] font-medium text-[#111827]'>
                     {formatDateTime(auction.end_date)}
                   </div>
                 </div>
@@ -575,10 +575,10 @@ export default function AuctionDetailPage() {
                 <div className='flex items-center gap-3 rounded-xl bg-success-lighter p-4'>
                   <RiTrophyLine className='size-5 text-success-base' />
                   <div>
-                    <div className='text-label-sm text-text-strong-950'>
+                    <div className='text-[14px] font-medium text-[#111827]'>
                       Победитель определён
                     </div>
-                    <div className='text-paragraph-xs text-text-sub-600'>
+                    <div className='text-[12px] text-[#6B7280]'>
                       Ставка #{auction.winner_bid_id}
                     </div>
                   </div>
@@ -608,17 +608,17 @@ export default function AuctionDetailPage() {
                   {bidsList.map((bid) => (
                     <Table.Row key={bid.id}>
                       <Table.Cell>
-                        <div className='text-label-sm text-text-strong-950'>
+                        <div className='text-[14px] font-medium text-[#111827]'>
                           {bid.first_name} {bid.last_name}
                         </div>
                       </Table.Cell>
                       <Table.Cell>
-                        <div className='text-label-sm text-text-strong-950'>
+                        <div className='text-[14px] font-medium text-[#111827]'>
                           {formatPrice(bid.amount)}
                         </div>
                       </Table.Cell>
                       <Table.Cell>
-                        <div className='text-paragraph-sm text-text-sub-600'>
+                        <div className='text-[14px] text-[#6B7280]'>
                           {formatDateTime(bid.created_at)}
                         </div>
                       </Table.Cell>
@@ -649,26 +649,26 @@ export default function AuctionDetailPage() {
               </WidgetBox.Header>
               <div className='grid grid-cols-2 gap-4 sm:grid-cols-3'>
                 <div>
-                  <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                     Сумма
                   </div>
-                  <div className='mt-1 text-label-md text-text-strong-950'>
+                  <div className='mt-1 text-[16px] font-medium text-[#111827]'>
                     {formatPrice(myBid.amount)}
                   </div>
                 </div>
                 <div>
-                  <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                     Дата
                   </div>
-                  <div className='mt-1 text-label-sm text-text-strong-950'>
+                  <div className='mt-1 text-[14px] font-medium text-[#111827]'>
                     {formatDateTime(myBid.created_at)}
                   </div>
                 </div>
                 <div>
-                  <div className='text-subheading-2xs uppercase text-text-soft-400'>
+                  <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>
                     Обновлена
                   </div>
-                  <div className='mt-1 text-label-sm text-text-strong-950'>
+                  <div className='mt-1 text-[14px] font-medium text-[#111827]'>
                     {formatDateTime(myBid.updated_at)}
                   </div>
                 </div>
@@ -686,7 +686,7 @@ export default function AuctionDetailPage() {
             </WidgetBox.Header>
 
             {participantList.length === 0 ? (
-              <div className='py-6 text-center text-paragraph-sm text-text-soft-400'>
+              <div className='py-6 text-center text-[14px] text-[#9CA3AF]'>
                 Пока нет участников
               </div>
             ) : (
@@ -694,7 +694,7 @@ export default function AuctionDetailPage() {
                 {participantList.map((p) => (
                   <div
                     key={p.id}
-                    className='flex items-center justify-between rounded-xl px-3 py-2.5 ring-1 ring-inset ring-stroke-soft-200'
+                    className='flex items-center justify-between rounded-xl px-3 py-2.5 ring-1 ring-inset ring-[#E5E7EB]'
                   >
                     <div className='flex items-center gap-3'>
                       {/* Shortlist checkbox for owner */}
@@ -705,7 +705,7 @@ export default function AuctionDetailPage() {
                           className={`flex size-5 shrink-0 items-center justify-center rounded border transition ${
                             shortlistIds.has(p.id)
                               ? 'border-primary-base bg-primary-base text-white'
-                              : 'border-stroke-soft-200'
+                              : 'border-[#E5E7EB]'
                           }`}
                         >
                           {shortlistIds.has(p.id) && (
@@ -714,10 +714,10 @@ export default function AuctionDetailPage() {
                         </button>
                       )}
                       <div>
-                        <div className='text-label-sm text-text-strong-950'>
+                        <div className='text-[14px] font-medium text-[#111827]'>
                           {p.first_name} {p.last_name}
                         </div>
-                        <div className='text-paragraph-xs text-text-sub-600'>
+                        <div className='text-[12px] text-[#6B7280]'>
                           {formatDate(p.joined_at)}
                         </div>
                       </div>
@@ -753,7 +753,7 @@ export default function AuctionDetailPage() {
               <WidgetBox.Header>Ваш статус</WidgetBox.Header>
               <div className='space-y-3'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-paragraph-sm text-text-sub-600'>
+                  <span className='text-[14px] text-[#6B7280]'>
                     Участие
                   </span>
                   {isParticipant ? (
@@ -769,22 +769,22 @@ export default function AuctionDetailPage() {
                   )}
                 </div>
                 <div className='flex items-center justify-between'>
-                  <span className='text-paragraph-sm text-text-sub-600'>
+                  <span className='text-[14px] text-[#6B7280]'>
                     Ставка
                   </span>
                   {myBid ? (
-                    <span className='text-label-sm text-text-strong-950'>
+                    <span className='text-[14px] font-medium text-[#111827]'>
                       {formatPrice(myBid.amount)}
                     </span>
                   ) : (
-                    <span className='text-paragraph-sm text-text-soft-400'>
+                    <span className='text-[14px] text-[#9CA3AF]'>
                       —
                     </span>
                   )}
                 </div>
                 {auction.winner_bid_id && myBid && (
                   <div className='flex items-center justify-between'>
-                    <span className='text-paragraph-sm text-text-sub-600'>
+                    <span className='text-[14px] text-[#6B7280]'>
                       Результат
                     </span>
                     {auction.winner_bid_id === myBid.id ? (

@@ -40,8 +40,8 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
 
   if (images.length === 0) {
     return (
-      <div className='flex h-44 items-center justify-center rounded-xl bg-bg-weak-50'>
-        <RiImageLine className='size-8 text-text-soft-400' />
+      <div className='flex h-44 items-center justify-center rounded-xl bg-[#F9FAFB]'>
+        <RiImageLine className='size-8 text-[#9CA3AF]' />
       </div>
     );
   }
@@ -59,7 +59,7 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
   };
 
   return (
-    <div className='group relative h-44 overflow-hidden rounded-xl bg-bg-weak-50'>
+    <div className='group relative h-44 overflow-hidden rounded-xl bg-[#F9FAFB]'>
       <img
         src={images[current].url || images[current].external_url || ''}
         alt=''
@@ -71,16 +71,16 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
           <button
             type='button'
             onClick={prev}
-            className='absolute left-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-bg-white-0/80 opacity-0 shadow-regular-xs transition-opacity group-hover:opacity-100'
+            className='absolute left-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 shadow-regular-xs transition-opacity group-hover:opacity-100'
           >
-            <RiArrowLeftSLine className='size-4 text-text-strong-950' />
+            <RiArrowLeftSLine className='size-4 text-[#111827]' />
           </button>
           <button
             type='button'
             onClick={next}
-            className='absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-bg-white-0/80 opacity-0 shadow-regular-xs transition-opacity group-hover:opacity-100'
+            className='absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 shadow-regular-xs transition-opacity group-hover:opacity-100'
           >
-            <RiArrowRightSLine className='size-4 text-text-strong-950' />
+            <RiArrowRightSLine className='size-4 text-[#111827]' />
           </button>
 
           <div className='absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1'>
@@ -109,7 +109,7 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
 function CatalogPropertyCard({ property }: { property: Property }) {
   return (
     <Link href={`/catalog/${property.id}`} className='block'>
-      <div className='flex flex-col rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 transition-shadow hover:shadow-regular-md'>
+      <div className='flex flex-col rounded-2xl bg-white shadow-regular-xs ring-1 ring-inset ring-[#E5E7EB] transition-shadow hover:shadow-regular-md'>
         {/* Carousel */}
         <div className='p-2 pb-0'>
           <PropertyImageCarousel images={property.images} />
@@ -118,7 +118,7 @@ function CatalogPropertyCard({ property }: { property: Property }) {
         <div className='flex flex-col p-5 pt-4'>
           {/* Header */}
           <div className='min-w-0'>
-            <div className='truncate text-label-md text-text-strong-950'>
+            <div className='truncate text-[16px] font-medium text-[#111827]'>
               {property.address}
             </div>
             <div className='mt-1.5 flex flex-wrap items-center gap-1.5'>
@@ -144,26 +144,26 @@ function CatalogPropertyCard({ property }: { property: Property }) {
           {/* Details grid */}
           <div className='mt-4 grid grid-cols-2 gap-x-4 gap-y-3'>
             <div>
-              <div className='text-subheading-2xs uppercase text-text-soft-400'>Цена</div>
-              <div className='mt-0.5 text-label-sm text-text-strong-950'>
+              <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>Цена</div>
+              <div className='mt-0.5 text-[14px] font-medium text-[#111827]'>
                 {formatPrice(property.price)} {property.currency}
               </div>
             </div>
             <div>
-              <div className='text-subheading-2xs uppercase text-text-soft-400'>Площадь</div>
-              <div className='mt-0.5 text-label-sm text-text-strong-950'>
+              <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>Площадь</div>
+              <div className='mt-0.5 text-[14px] font-medium text-[#111827]'>
                 {property.area} м²
               </div>
             </div>
             <div>
-              <div className='text-subheading-2xs uppercase text-text-soft-400'>Дедлайн</div>
-              <div className='mt-0.5 text-label-sm text-text-strong-950'>
+              <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>Дедлайн</div>
+              <div className='mt-0.5 text-[14px] font-medium text-[#111827]'>
                 {formatDateShort(property.deadline)}
               </div>
             </div>
             <div>
-              <div className='text-subheading-2xs uppercase text-text-soft-400'>Создан</div>
-              <div className='mt-0.5 text-label-sm text-text-strong-950'>
+              <div className='text-[11px] font-medium uppercase text-[#9CA3AF]'>Создан</div>
+              <div className='mt-0.5 text-[14px] font-medium text-[#111827]'>
                 {formatDateShort(property.created_at)}
               </div>
             </div>
@@ -262,20 +262,20 @@ export default function CatalogPage() {
       {/* Content */}
       {isLoading ? (
         <div className='flex flex-1 items-center justify-center'>
-          <div className='text-paragraph-sm text-text-soft-400'>
+          <div className='text-[14px] text-[#9CA3AF]'>
             Загрузка...
           </div>
         </div>
       ) : properties.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-full bg-bg-weak-50'>
-            <RiBuilding2Line className='size-6 text-text-soft-400' />
+          <div className='flex size-12 items-center justify-center rounded-full bg-[#F9FAFB]'>
+            <RiBuilding2Line className='size-6 text-[#9CA3AF]' />
           </div>
           <div className='text-center'>
-            <div className='text-label-sm text-text-sub-600'>
+            <div className='text-[14px] font-medium text-[#6B7280]'>
               Объекты не найдены
             </div>
-            <div className='mt-1 text-paragraph-xs text-text-soft-400'>
+            <div className='mt-1 text-[12px] text-[#9CA3AF]'>
               Попробуйте изменить фильтры
             </div>
           </div>

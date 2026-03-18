@@ -21,14 +21,14 @@ function AuctionItem({ auction }: { auction: Auction }) {
 
   return (
     <Link href={`/auctions/${auction.id}`} className='block'>
-      <div className='flex items-center justify-between gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-bg-weak-50'>
+      <div className='flex items-center justify-between gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-[#F3F4F6]'>
         <div className='flex items-center gap-3'>
-          <div className='flex size-9 items-center justify-center rounded-full bg-bg-weak-50'>
-            <RiAuctionLine className='size-4 text-text-sub-600' />
+          <div className='flex size-9 items-center justify-center rounded-full bg-[#F9FAFB]'>
+            <RiAuctionLine className='size-4 text-[#6B7280]' />
           </div>
           <div>
-            <div className='text-label-sm text-text-strong-950'>Аукцион #{auction.id}</div>
-            <div className='text-paragraph-xs text-text-soft-400'>
+            <div className='text-[13px] font-medium text-[#111827]'>Аукцион #{auction.id}</div>
+            <div className='text-[12px] text-[#9CA3AF]'>
               от {formatPrice(auction.min_price)} · до {formatDateShort(auction.end_date)}
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function CabinetPage() {
             Активные аукционы
           </WidgetBox.Header>
           {activeAuctions.length === 0 ? (
-            <div className='py-8 text-center text-paragraph-sm text-text-soft-400'>
+            <div className='py-8 text-center text-[13px] text-[#9CA3AF]'>
               Нет активных аукционов
             </div>
           ) : (
@@ -90,7 +90,7 @@ export default function CabinetPage() {
             Завершённые аукционы
           </WidgetBox.Header>
           {finishedAuctions.length === 0 ? (
-            <div className='py-8 text-center text-paragraph-sm text-text-soft-400'>
+            <div className='py-8 text-center text-[13px] text-[#9CA3AF]'>
               Нет завершённых аукционов
             </div>
           ) : (

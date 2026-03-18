@@ -116,14 +116,14 @@ function useCollapsedState({
 function SidebarBrand({ collapsed }: { collapsed: boolean }) {
   return (
     <div
-      className={cn('flex items-center gap-2.5 px-5 py-4', {
+      className={cn('flex items-center gap-2.5 px-5 py-5', {
         'justify-center px-2': collapsed,
       })}
     >
-      <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-neutral-950'>
+      <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#111827]'>
         <Image src='/images/logo-icon.svg' alt='' width={18} height={18} className='size-[18px]' />
       </div>
-      <span className='text-[15px] font-bold tracking-tight text-neutral-950' data-hide-collapsed>
+      <span className='text-[15px] font-semibold tracking-tight text-[#111827]' data-hide-collapsed>
         MIG Tender
       </span>
     </div>
@@ -151,10 +151,10 @@ function NavLink({
       aria-current={isActive ? 'page' : undefined}
       aria-disabled={disabled}
       className={cn(
-        'group flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-neutral-500',
+        'group flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[#6B7280]',
         'transition-colors duration-100',
-        'hover:bg-neutral-100 hover:text-neutral-700',
-        'aria-[current=page]:bg-neutral-100 aria-[current=page]:text-neutral-950',
+        'hover:bg-[#F3F4F6] hover:text-[#374151]',
+        'aria-[current=page]:bg-[#F3F4F6] aria-[current=page]:text-[#111827]',
         'aria-disabled:pointer-events-none aria-disabled:opacity-30',
         {
           'w-9 justify-center px-0': collapsed,
@@ -165,7 +165,7 @@ function NavLink({
       <Icon
         className={cn(
           'size-[18px] shrink-0 transition-colors duration-100',
-          isActive ? 'text-neutral-950' : 'text-neutral-400 group-hover:text-neutral-600',
+          isActive ? 'text-[#111827]' : 'text-[#9CA3AF] group-hover:text-[#6B7280]',
         )}
       />
       <span
@@ -200,7 +200,7 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
     <div className='space-y-2'>
       <div
         className={cn(
-          'px-2.5 text-[11px] font-semibold uppercase tracking-widest text-neutral-400',
+          'px-2.5 text-[11px] font-medium uppercase tracking-widest text-[#9CA3AF]',
           { 'px-0 text-center': collapsed },
         )}
       >
@@ -285,10 +285,10 @@ export default function Sidebar({
     <>
       <div
         className={cn(
-          'fixed left-0 top-0 z-40 hidden h-full overflow-hidden border-r border-neutral-200/80 bg-white transition-all duration-200 ease-out lg:block',
+          'fixed left-0 top-0 z-40 hidden h-full overflow-hidden border-r border-[#E5E7EB] bg-white transition-all duration-200 ease-out lg:block',
           {
             'w-[72px]': collapsed,
-            'w-[240px]': !collapsed,
+            'w-[248px]': !collapsed,
             '[&_[data-hide-collapsed]]:hidden': !collapsed
               ? false
               : defaultCollapsed,
@@ -297,7 +297,7 @@ export default function Sidebar({
       >
         <div
           ref={sidebarRef}
-          className='flex h-full w-[240px] min-w-[240px] flex-col'
+          className='flex h-full w-[248px] min-w-[248px] flex-col'
         >
           <SidebarBrand collapsed={collapsed} />
 
@@ -313,7 +313,7 @@ export default function Sidebar({
             <SettingsAndSupport collapsed={collapsed} />
           </div>
 
-          <div className='mx-3 border-t border-neutral-200/80' />
+          <div className='mx-3 border-t border-[#E5E7EB]' />
 
           <UserProfile collapsed={collapsed} />
         </div>
@@ -322,7 +322,7 @@ export default function Sidebar({
       {/* placeholder for fixed sidebar */}
       <div
         className={cn('hidden shrink-0 lg:block', {
-          'w-[240px]': !collapsed,
+          'w-[248px]': !collapsed,
           'w-[72px]': collapsed,
         })}
       />

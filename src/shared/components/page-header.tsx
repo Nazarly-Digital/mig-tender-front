@@ -18,20 +18,20 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className='flex items-start justify-between gap-4'>
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-3'>
         {backHref && (
           <Link
             href={backHref}
-            className='flex size-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600'
+            className='flex size-8 items-center justify-center rounded-lg text-[#9CA3AF] transition-colors hover:bg-[#F3F4F6] hover:text-[#6B7280]'
           >
             <RiArrowLeftSLine className='size-5' />
           </Link>
         )}
         <div>
-          <h1 className='text-lg font-semibold text-neutral-900'>
+          <h1 className='text-[24px] font-bold leading-tight text-[#111827]'>
             {title}
           </h1>
-          <p className='mt-0.5 text-[13px] text-neutral-500'>
+          <p className='mt-1 text-[14px] text-[#6B7280]'>
             {description}
           </p>
         </div>

@@ -189,7 +189,7 @@ export default function CreatePropertyPage() {
                 </Select.Root>
               )}
             />
-            {errors.type && <p className='text-paragraph-xs text-error-base'>{errors.type.message}</p>}
+            {errors.type && <p className='text-[12px] text-error-base'>{errors.type.message}</p>}
           </div>
 
           <div className='space-y-1.5'>
@@ -206,7 +206,7 @@ export default function CreatePropertyPage() {
               </Input.Wrapper>
             </Input.Root>
             {errors.address ? (
-              <p className='text-paragraph-xs text-error-base'>{errors.address.message}</p>
+              <p className='text-[12px] text-error-base'>{errors.address.message}</p>
             ) : (
               <Hint.Root>Полный адрес объекта недвижимости</Hint.Root>
             )}
@@ -252,7 +252,7 @@ export default function CreatePropertyPage() {
                 )}
               />
               {errors.area && (
-                <p className='text-paragraph-xs text-error-base'>{errors.area.message}</p>
+                <p className='text-[12px] text-error-base'>{errors.area.message}</p>
               )}
             </div>
             <div className='space-y-1.5'>
@@ -282,7 +282,7 @@ export default function CreatePropertyPage() {
                   </Select.Root>
                 )}
               />
-              {errors.property_class && <p className='text-paragraph-xs text-error-base'>{errors.property_class.message}</p>}
+              {errors.property_class && <p className='text-[12px] text-error-base'>{errors.property_class.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>
@@ -326,7 +326,7 @@ export default function CreatePropertyPage() {
                 )}
               />
               {errors.price && (
-                <p className='text-paragraph-xs text-error-base'>{errors.price.message}</p>
+                <p className='text-[12px] text-error-base'>{errors.price.message}</p>
               )}
             </div>
             <div className='space-y-1.5'>
@@ -348,7 +348,7 @@ export default function CreatePropertyPage() {
                   </Select.Root>
                 )}
               />
-              {errors.currency && <p className='text-paragraph-xs text-error-base'>{errors.currency.message}</p>}
+              {errors.currency && <p className='text-[12px] text-error-base'>{errors.currency.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>
@@ -396,7 +396,7 @@ export default function CreatePropertyPage() {
                   </Select.Root>
                 )}
               />
-              {errors.status && <p className='text-paragraph-xs text-error-base'>{errors.status.message}</p>}
+              {errors.status && <p className='text-[12px] text-error-base'>{errors.status.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>
@@ -421,18 +421,18 @@ export default function CreatePropertyPage() {
                     alt=''
                     className={cn(
                       'h-24 w-24 rounded-xl object-cover ring-1 ring-inset transition-opacity',
-                      i === 0 ? 'ring-primary-base' : 'ring-stroke-soft-200',
+                      i === 0 ? 'ring-primary-base' : 'ring-[#E5E7EB]',
                     )}
                   />
                   {i === 0 ? (
-                    <span className='absolute bottom-1.5 left-1.5 rounded-md bg-primary-base px-1.5 py-0.5 text-subheading-xs text-white'>
+                    <span className='absolute bottom-1.5 left-1.5 rounded-md bg-primary-base px-1.5 py-0.5 text-[10px] font-medium text-white'>
                       Главная
                     </span>
                   ) : (
                     <button
                       type='button'
                       onClick={() => handleMakePrimary(i)}
-                      className='absolute bottom-1.5 left-1.5 rounded-md bg-bg-white-0/80 px-1.5 py-0.5 text-subheading-xs text-text-sub-600 opacity-0 transition-opacity group-hover:opacity-100'
+                      className='absolute bottom-1.5 left-1.5 rounded-md bg-white/80 px-1.5 py-0.5 text-[10px] font-medium text-[#6B7280] opacity-0 transition-opacity group-hover:opacity-100'
                     >
                       Сделать главной
                     </button>
@@ -441,7 +441,7 @@ export default function CreatePropertyPage() {
                     type='button'
                     variant='ghost'
                     size='medium'
-                    className='absolute right-1 top-1 size-5 rounded-md bg-bg-white-0/80 opacity-0 transition-opacity group-hover:opacity-100'
+                    className='absolute right-1 top-1 size-5 rounded-md bg-white/80 opacity-0 transition-opacity group-hover:opacity-100'
                     onClick={() => handleRemovePhoto(i)}
                   >
                     <CompactButton.Icon as={RiCloseLine} />
@@ -458,8 +458,8 @@ export default function CreatePropertyPage() {
             type='button'
             onClick={() => inputRef.current?.click()}
             className={cn(
-              'flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-4 text-paragraph-sm text-text-soft-400 transition-colors',
-              'border-stroke-soft-200 hover:border-primary-base hover:text-primary-base',
+              'flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-4 text-[14px] text-[#9CA3AF] transition-colors',
+              'border-[#E5E7EB] hover:border-primary-base hover:text-primary-base',
             )}
           >
             <RiImageAddLine className='size-4' />

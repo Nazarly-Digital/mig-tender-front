@@ -8,7 +8,7 @@ function WidgetBox({
   return (
     <div
       className={cnExt(
-        'w-full min-w-0 rounded-xl border border-neutral-200/80 bg-white p-5',
+        'w-full min-w-0 rounded-xl border border-[#E5E7EB] bg-white p-6',
         className,
       )}
       {...rest}
@@ -24,7 +24,7 @@ function WidgetBoxHeader({
     <div
       className={cnExt(
         'grid auto-cols-auto grid-flow-col grid-cols-1 items-center gap-2 has-[>svg:first-child]:grid-cols-[auto,minmax(0,1fr)]',
-        'mb-4 pb-3.5 border-b border-neutral-200/80 text-[13px] font-semibold text-neutral-900',
+        'mb-5 pb-4 border-b border-[#E5E7EB] text-[14px] font-semibold text-[#111827]',
         className,
       )}
       {...rest}
@@ -40,7 +40,7 @@ function WidgetBoxHeaderIcon<T extends React.ElementType>({
   const Component = as || 'div';
   return (
     <Component
-      className={cnExt('size-[18px] text-neutral-400', className)}
+      className={cnExt('size-[18px] text-[#9CA3AF]', className)}
       {...rest}
     />
   );

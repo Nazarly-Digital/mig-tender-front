@@ -90,7 +90,7 @@ function BlockConfirmModal({
           description={`${user.first_name} ${user.last_name} (${user.email})`}
         />
         <Modal.Body>
-          <p className='text-paragraph-sm text-text-sub-600'>
+          <p className='text-[14px] text-[#6B7280]'>
             {user.is_blocked
               ? 'Пользователь сможет снова войти в систему и использовать платформу.'
               : 'Пользователь не сможет войти в систему и использовать платформу.'}
@@ -156,7 +156,7 @@ function VerifyBrokerModal({
           description={`${user.first_name} ${user.last_name} (${user.email})`}
         />
         <Modal.Body>
-          <p className='text-paragraph-sm text-text-sub-600'>
+          <p className='text-[14px] text-[#6B7280]'>
             Брокер получит статус верифицированного и сможет участвовать в аукционах.
           </p>
         </Modal.Body>
@@ -226,21 +226,21 @@ export default function AdminUsersPage() {
       {/* Content */}
       {isLoading ? (
         <div className='flex flex-1 items-center justify-center py-20'>
-          <div className='text-paragraph-sm text-text-soft-400'>
+          <div className='text-[14px] text-[#9CA3AF]'>
             Загрузка...
           </div>
         </div>
       ) : users.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-full bg-bg-weak-50'>
-            <RiUserLine className='size-6 text-text-soft-400' />
+          <div className='flex size-12 items-center justify-center rounded-full bg-[#F9FAFB]'>
+            <RiUserLine className='size-6 text-[#9CA3AF]' />
           </div>
-          <div className='text-label-sm text-text-sub-600'>
+          <div className='text-[14px] font-medium text-[#6B7280]'>
             Нет пользователей
           </div>
         </div>
       ) : (
-        <div className='rounded-2xl bg-bg-white-0 p-4 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
+        <div className='rounded-2xl bg-white p-4 shadow-regular-xs ring-1 ring-inset ring-[#E5E7EB]'>
           <Table.Root>
             <Table.Header>
               <Table.Row>
@@ -264,12 +264,12 @@ export default function AdminUsersPage() {
                 return (
                   <Table.Row key={user.id}>
                     <Table.Cell>
-                      <div className='text-label-sm text-text-strong-950'>
+                      <div className='text-[14px] font-medium text-[#111827]'>
                         {user.first_name} {user.last_name}
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <div className='text-paragraph-sm text-text-sub-600'>
+                      <div className='text-[14px] text-[#6B7280]'>
                         {user.email}
                       </div>
                     </Table.Cell>
@@ -317,7 +317,7 @@ export default function AdminUsersPage() {
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <div className='text-paragraph-sm text-text-sub-600'>
+                      <div className='text-[14px] text-[#6B7280]'>
                         {formatDate(user.created_at)}
                       </div>
                     </Table.Cell>

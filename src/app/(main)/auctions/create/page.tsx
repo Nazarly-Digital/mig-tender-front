@@ -90,9 +90,9 @@ export default function CreateAuctionPage() {
               Объект <Label.Asterisk />
             </Label.Root>
             {propertiesLoading ? (
-              <div className='text-paragraph-sm text-text-soft-400'>Загрузка объектов...</div>
+              <div className='text-[14px] text-[#9CA3AF]'>Загрузка объектов...</div>
             ) : properties.length === 0 ? (
-              <div className='text-paragraph-sm text-text-soft-400'>
+              <div className='text-[14px] text-[#9CA3AF]'>
                 Нет доступных объектов. Сначала создайте объект.
               </div>
             ) : (
@@ -118,7 +118,7 @@ export default function CreateAuctionPage() {
                 )}
               />
             )}
-            {errors.property_id && <p className='text-paragraph-xs text-error-base'>{errors.property_id.message}</p>}
+            {errors.property_id && <p className='text-[12px] text-error-base'>{errors.property_id.message}</p>}
             <Hint.Root>Выберите объект, который будет выставлен на аукцион</Hint.Root>
           </div>
         </WidgetBox.Root>
@@ -154,7 +154,7 @@ export default function CreateAuctionPage() {
                 </Select.Root>
               )}
             />
-            {errors.mode && <p className='text-paragraph-xs text-error-base'>{errors.mode.message}</p>}
+            {errors.mode && <p className='text-[12px] text-error-base'>{errors.mode.message}</p>}
           </div>
 
           <div className='space-y-1.5'>
@@ -172,7 +172,7 @@ export default function CreateAuctionPage() {
                 />
               </Input.Wrapper>
             </Input.Root>
-            {errors.min_price && <p className='text-paragraph-xs text-error-base'>{errors.min_price.message}</p>}
+            {errors.min_price && <p className='text-[12px] text-error-base'>{errors.min_price.message}</p>}
             <Hint.Root>Минимальная стартовая цена для ставок</Hint.Root>
           </div>
         </WidgetBox.Root>
@@ -195,7 +195,7 @@ export default function CreateAuctionPage() {
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {errors.start_date && <p className='text-paragraph-xs text-error-base'>{errors.start_date.message}</p>}
+              {errors.start_date && <p className='text-[12px] text-error-base'>{errors.start_date.message}</p>}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-end'>
@@ -210,7 +210,7 @@ export default function CreateAuctionPage() {
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {errors.end_date && <p className='text-paragraph-xs text-error-base'>{errors.end_date.message}</p>}
+              {errors.end_date && <p className='text-[12px] text-error-base'>{errors.end_date.message}</p>}
             </div>
           </div>
         </WidgetBox.Root>

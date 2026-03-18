@@ -99,26 +99,26 @@ function ApproveModal({
           description={property.address}
         />
         <Modal.Body>
-          <div className='grid grid-cols-2 gap-3 text-paragraph-sm'>
+          <div className='grid grid-cols-2 gap-3 text-[14px]'>
             <div>
-              <span className='text-text-soft-400'>Тип: </span>
-              <span className='text-text-strong-950'>
+              <span className='text-[#9CA3AF]'>Тип: </span>
+              <span className='text-[#111827]'>
                 {TYPE_LABELS[property.type] ?? property.type}
               </span>
             </div>
             <div>
-              <span className='text-text-soft-400'>Площадь: </span>
-              <span className='text-text-strong-950'>{property.area} м²</span>
+              <span className='text-[#9CA3AF]'>Площадь: </span>
+              <span className='text-[#111827]'>{property.area} м²</span>
             </div>
             <div>
-              <span className='text-text-soft-400'>Цена: </span>
-              <span className='text-text-strong-950'>
+              <span className='text-[#9CA3AF]'>Цена: </span>
+              <span className='text-[#111827]'>
                 {formatPrice(property.price)} {property.currency}
               </span>
             </div>
             <div>
-              <span className='text-text-soft-400'>Девелопер: </span>
-              <span className='text-text-strong-950'>
+              <span className='text-[#9CA3AF]'>Девелопер: </span>
+              <span className='text-[#111827]'>
                 {property.developer_name}
               </span>
             </div>
@@ -191,16 +191,16 @@ function RejectModal({
           }}
         >
           <Modal.Body className='space-y-4'>
-            <div className='grid grid-cols-2 gap-3 text-paragraph-sm'>
+            <div className='grid grid-cols-2 gap-3 text-[14px]'>
               <div>
-                <span className='text-text-soft-400'>Тип: </span>
-                <span className='text-text-strong-950'>
+                <span className='text-[#9CA3AF]'>Тип: </span>
+                <span className='text-[#111827]'>
                   {TYPE_LABELS[property.type] ?? property.type}
                 </span>
               </div>
               <div>
-                <span className='text-text-soft-400'>Цена: </span>
-                <span className='text-text-strong-950'>
+                <span className='text-[#9CA3AF]'>Цена: </span>
+                <span className='text-[#111827]'>
                   {formatPrice(property.price)} {property.currency}
                 </span>
               </div>
@@ -266,26 +266,26 @@ export default function AdminPropertiesPage() {
       {/* Content */}
       {isLoading ? (
         <div className='flex flex-1 items-center justify-center py-20'>
-          <div className='text-paragraph-sm text-text-soft-400'>
+          <div className='text-[14px] text-[#9CA3AF]'>
             Загрузка...
           </div>
         </div>
       ) : properties.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-20'>
-          <div className='flex size-12 items-center justify-center rounded-full bg-bg-weak-50'>
-            <RiCheckLine className='size-6 text-text-soft-400' />
+          <div className='flex size-12 items-center justify-center rounded-full bg-[#F9FAFB]'>
+            <RiCheckLine className='size-6 text-[#9CA3AF]' />
           </div>
           <div className='text-center'>
-            <div className='text-label-sm text-text-sub-600'>
+            <div className='text-[14px] font-medium text-[#6B7280]'>
               Нет объектов на модерации
             </div>
-            <div className='mt-1 text-paragraph-xs text-text-soft-400'>
+            <div className='mt-1 text-[12px] text-[#9CA3AF]'>
               Все объекты проверены
             </div>
           </div>
         </div>
       ) : (
-        <div className='rounded-2xl bg-bg-white-0 p-4 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200'>
+        <div className='rounded-2xl bg-white p-4 shadow-regular-xs ring-1 ring-inset ring-[#E5E7EB]'>
           <Table.Root>
             <Table.Header>
               <Table.Row>
@@ -305,7 +305,7 @@ export default function AdminPropertiesPage() {
               {properties.map((property) => (
                 <Table.Row key={property.id}>
                   <Table.Cell>
-                    <div className='max-w-[200px] truncate text-label-sm text-text-strong-950'>
+                    <div className='max-w-[200px] truncate text-[14px] font-medium text-[#111827]'>
                       {property.address}
                     </div>
                   </Table.Cell>
@@ -321,22 +321,22 @@ export default function AdminPropertiesPage() {
                     </Badge.Root>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className='text-paragraph-sm text-text-sub-600'>
+                    <div className='text-[14px] text-[#6B7280]'>
                       {property.area} м²
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className='text-label-sm text-text-strong-950'>
+                    <div className='text-[14px] font-medium text-[#111827]'>
                       {formatPrice(property.price)} {property.currency}
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className='text-paragraph-sm text-text-sub-600'>
+                    <div className='text-[14px] text-[#6B7280]'>
                       {property.developer_name}
                     </div>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className='text-paragraph-sm text-text-sub-600'>
+                    <div className='text-[14px] text-[#6B7280]'>
                       {formatDate(property.created_at)}
                     </div>
                   </Table.Cell>

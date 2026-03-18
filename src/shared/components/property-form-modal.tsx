@@ -91,7 +91,7 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
               <img
                 src={img.url || img.external_url || ''}
                 alt=''
-                className='h-20 w-20 rounded-lg object-cover ring-1 ring-inset ring-stroke-soft-200'
+                className='h-20 w-20 rounded-lg object-cover ring-1 ring-inset ring-[#E5E7EB]'
               />
               {img.is_primary && (
                 <span className='absolute bottom-1 left-1 flex size-4 items-center justify-center rounded-full bg-primary-base'>
@@ -100,10 +100,10 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
               )}
               <button
                 type='button'
-                className='absolute right-1 top-1 flex size-5 items-center justify-center rounded-md bg-bg-white-0/80 opacity-0 transition-opacity group-hover:opacity-100'
+                className='absolute right-1 top-1 flex size-5 items-center justify-center rounded-md bg-white/80 opacity-0 transition-opacity group-hover:opacity-100'
                 onClick={() => deleteImage.mutate({ propertyId, imageId: img.id })}
               >
-                <RiCloseLine className='size-3 text-text-strong-950' />
+                <RiCloseLine className='size-3 text-[#111827]' />
               </button>
             </div>
           ))}
@@ -115,10 +115,10 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
         disabled={uploading}
         onClick={() => inputRef.current?.click()}
         className={cn(
-          'flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-3 text-paragraph-sm transition-colors',
+          'flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-3 text-[14px] transition-colors',
           uploading
-            ? 'cursor-not-allowed border-stroke-soft-200 text-text-soft-400 opacity-60'
-            : 'border-stroke-soft-200 text-text-soft-400 hover:border-primary-base hover:text-primary-base',
+            ? 'cursor-not-allowed border-[#E5E7EB] text-[#9CA3AF] opacity-60'
+            : 'border-[#E5E7EB] text-[#9CA3AF] hover:border-primary-base hover:text-primary-base',
         )}
       >
         <RiImageAddLine className='size-4' />
@@ -238,7 +238,7 @@ export function PropertyFormModal({
                   </Select.Root>
                 )}
               />
-              {errors.type && <p className='text-paragraph-xs text-error-base'>{errors.type.message}</p>}
+              {errors.type && <p className='text-[12px] text-error-base'>{errors.type.message}</p>}
             </div>
 
             {/* Address */}
@@ -255,7 +255,7 @@ export function PropertyFormModal({
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {errors.address && <p className='text-paragraph-xs text-error-base'>{errors.address.message}</p>}
+              {errors.address && <p className='text-[12px] text-error-base'>{errors.address.message}</p>}
             </div>
 
             {/* Area + Class */}
@@ -275,7 +275,7 @@ export function PropertyFormModal({
                     />
                   </Input.Wrapper>
                 </Input.Root>
-                {errors.area && <p className='text-paragraph-xs text-error-base'>{errors.area.message}</p>}
+                {errors.area && <p className='text-[12px] text-error-base'>{errors.area.message}</p>}
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-class'>
@@ -305,7 +305,7 @@ export function PropertyFormModal({
                     </Select.Root>
                   )}
                 />
-                {errors.property_class && <p className='text-paragraph-xs text-error-base'>{errors.property_class.message}</p>}
+                {errors.property_class && <p className='text-[12px] text-error-base'>{errors.property_class.message}</p>}
               </div>
             </div>
 
@@ -326,7 +326,7 @@ export function PropertyFormModal({
                     />
                   </Input.Wrapper>
                 </Input.Root>
-                {errors.price && <p className='text-paragraph-xs text-error-base'>{errors.price.message}</p>}
+                {errors.price && <p className='text-[12px] text-error-base'>{errors.price.message}</p>}
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
@@ -351,7 +351,7 @@ export function PropertyFormModal({
                     </Select.Root>
                   )}
                 />
-                {errors.currency && <p className='text-paragraph-xs text-error-base'>{errors.currency.message}</p>}
+                {errors.currency && <p className='text-[12px] text-error-base'>{errors.currency.message}</p>}
               </div>
             </div>
 
@@ -398,7 +398,7 @@ export function PropertyFormModal({
                     </Select.Root>
                   )}
                 />
-                {errors.status && <p className='text-paragraph-xs text-error-base'>{errors.status.message}</p>}
+                {errors.status && <p className='text-[12px] text-error-base'>{errors.status.message}</p>}
               </div>
             </div>
 

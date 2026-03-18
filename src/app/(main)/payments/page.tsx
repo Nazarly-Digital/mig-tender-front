@@ -13,12 +13,12 @@ export default function PaymentsPage() {
       />
 
       <div className='flex flex-1 flex-col items-center justify-center gap-4 py-20'>
-        <div className='flex size-16 items-center justify-center rounded-full bg-bg-weak-50'>
-          <RiWalletLine className='size-8 text-text-soft-400' />
+        <div className='flex size-16 items-center justify-center rounded-full bg-[#F9FAFB]'>
+          <RiWalletLine className='size-8 text-[#9CA3AF]' />
         </div>
         <div className='text-center'>
-          <div className='text-label-md text-text-strong-950'>Скоро здесь появится история выплат</div>
-          <div className='mt-1 max-w-sm text-paragraph-sm text-text-sub-600'>
+          <div className='text-[16px] font-semibold text-[#111827]'>Скоро здесь появится история выплат</div>
+          <div className='mt-1 max-w-sm text-[14px] text-[#6B7280]'>
             Здесь будут отображаться ваши выплаты, комиссии и история транзакций
           </div>
         </div>
