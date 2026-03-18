@@ -48,4 +48,48 @@ export type AuctionListParams = {
   page_size?: number;
 };
 
+// Participants
+export type Participant = {
+  id: number;
+  user_id: number;
+  auction_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  joined_at: string;
+};
+
+export type JoinAuctionResponse = {
+  message: string;
+};
+
+// Bids
+export type Bid = {
+  id: number;
+  auction_id: number;
+  user_id: number;
+  amount: string;
+  first_name: string;
+  last_name: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BidCreateRequest = {
+  amount: string;
+};
+
+export type BidUpdateRequest = {
+  amount: string;
+};
+
+// Closed flow
+export type ShortlistRequest = {
+  participant_ids: number[];
+};
+
+export type SelectWinnerRequest = {
+  bid_id: number;
+};
+
 export type { PaginatedResponse };

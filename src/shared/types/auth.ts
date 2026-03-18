@@ -96,3 +96,6 @@ export type BrokerVerificationRequest = {
   id: number;
   action: "accept" | "reject";
 };
+
+// Me (current user profile)
+export type MeResponse = TokenUser;

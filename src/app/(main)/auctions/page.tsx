@@ -82,8 +82,9 @@ function AuctionCard({ auction }: { auction: Auction }) {
   const progress = getTimeProgress(auction.start_date, auction.end_date);
 
   return (
-    <div
-      className={`flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 ${
+    <Link
+      href={`/auctions/${auction.id}`}
+      className={`flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 transition hover:shadow-regular-md ${
         isActive ? 'border-l-[3px] border-l-success-base' : ''
       }`}
     >
@@ -169,7 +170,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
           <span>до {formatDate(auction.end_date)} г.</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

@@ -1,4 +1,6 @@
 export {
+  authKeys,
+  useMe,
   useLogin,
   useGetCode,
   useVerifyEmail,

@@ -5,6 +5,13 @@ import type {
   AuctionCreateRequest,
   AuctionListParams,
   PaginatedResponse,
+  Participant,
+  JoinAuctionResponse,
+  Bid,
+  BidCreateRequest,
+  BidUpdateRequest,
+  ShortlistRequest,
+  SelectWinnerRequest,
 } from "@/shared/types/auctions";
 
 export const auctionsService = {
@@ -19,4 +26,28 @@ export const auctionsService = {
 
   create: (data: AuctionCreateRequest) =>
     apiInstance.post<AuctionDetail>("/auctions/", data),
+
+  // Participants
+  join: (auctionId: number) =>
+    apiInstance.post<JoinAuctionResponse>(`/auctions/${auctionId}/join/`),
+
+  getParticipants: (auctionId: number) =>
+    apiInstance.get<Participant[]>(`/auctions/${auctionId}/participants/`),
+
+  // Bids
+  placeBid: (auctionId: number, data: BidCreateRequest) =>
+    apiInstance.post<Bid>(`/auctions/${auctionId}/bid/`, data),
+
+  updateBid: (auctionId: number, data: BidUpdateRequest) =>
+    apiInstance.patch<Bid>(`/auctions/${auctionId}/bid/update/`, data),
+
+  getSealedBids: (auctionId: number) =>
+    apiInstance.get<Bid[]>(`/auctions/${auctionId}/sealed-bids/`),
+
+  // Closed flow
+  shortlist: (auctionId: number, data: ShortlistRequest) =>
+    apiInstance.post(`/auctions/${auctionId}/shortlist/`, data),
+
+  selectWinner: (auctionId: number, data: SelectWinnerRequest) =>
+    apiInstance.post(`/auctions/${auctionId}/select-winner/`, data),
 };

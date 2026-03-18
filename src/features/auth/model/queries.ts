@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authService } from "@/entities/auth/api/auth.service";
 import { useSessionStore } from "@/entities/auth/model/store";
@@ -11,6 +11,26 @@ import type {
   RegisterBrokerRequest,
   BrokerVerificationRequest,
 } from "@/shared/types/auth";
+
+export const authKeys = {
+  me: ["auth", "me"] as const,
+};
+
+export function useMe() {
+  const { isAuthenticated, setUser } = useSessionStore();
+
+  const query = useQuery({
+    queryKey: authKeys.me,
+    queryFn: async () => {
+      const res = await authService.getMe();
+      setUser(res.data);
+      return res.data;
+    },
+    enabled: isAuthenticated,
+  });
+
+  return query;
+}
 
 export function useLogin() {
   const { setTokens, setUser } = useSessionStore();
