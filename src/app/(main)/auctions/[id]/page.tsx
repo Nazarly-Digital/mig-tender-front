@@ -323,11 +323,11 @@ export default function AuctionDetailPage() {
         <div className='text-sm font-medium text-gray-500'>
           Аукцион не найден
         </div>
-        <FancyButton.Root variant='basic' size='small' asChild>
-          <Link href='/auctions'>
+        <Link href='/auctions'>
+          <FancyButton.Root variant='basic' size='small'>
             Назад к аукционам
-          </Link>
-        </FancyButton.Root>
+          </FancyButton.Root>
+        </Link>
       </div>
     );
   }

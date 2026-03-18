@@ -128,11 +128,11 @@ export default function CatalogDetailPage() {
               Возможно, объект был удален или у вас нет доступа
             </div>
           </div>
-          <FancyButton.Root variant='basic' size='small' asChild className='mt-2'>
-            <Link href='/catalog'>
+          <Link href='/catalog' className='mt-2'>
+            <FancyButton.Root variant='basic' size='small'>
               Вернуться в каталог
-            </Link>
-          </FancyButton.Root>
+            </FancyButton.Root>
+          </Link>
         </div>
       </div>
     );
@@ -157,12 +157,12 @@ export default function CatalogDetailPage() {
           </div>
         </div>
         {activeAuction && (
-          <FancyButton.Root variant='primary' size='small' asChild>
-            <Link href={`/auctions/${activeAuction.id}`}>
+          <Link href={`/auctions/${activeAuction.id}`}>
+            <FancyButton.Root variant='primary' size='small'>
               <HugeiconsIcon icon={Award01Icon} size={16} />
               Участвовать в аукционе
-            </Link>
-          </FancyButton.Root>
+            </FancyButton.Root>
+          </Link>
         )}
       </div>
 
@@ -282,12 +282,12 @@ export default function CatalogDetailPage() {
                 </div>
               </div>
               <div className='mt-4'>
-                <FancyButton.Root variant='primary' size='small' asChild className='w-full'>
-                  <Link href={`/auctions/${activeAuction.id}`}>
+                <Link href={`/auctions/${activeAuction.id}`} className='w-full'>
+                  <FancyButton.Root variant='primary' size='small' className='w-full'>
                     <HugeiconsIcon icon={Award01Icon} size={16} />
                     Участвовать в аукционе
-                  </Link>
-                </FancyButton.Root>
+                  </FancyButton.Root>
+                </Link>
               </div>
             </div>
           )}

@@ -68,8 +68,8 @@ function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
           {isDeveloper ? 'Создайте новый объект или аукцион' : 'Просмотрите доступные аукционы'}
         </p>
       </div>
-      <FancyButton.Root variant='primary' size='small' asChild className='mt-4'>
-        <Link href={isDeveloper ? '/properties/create' : '/auctions'}>
+      <Link href={isDeveloper ? '/properties/create' : '/auctions'} className='mt-4'>
+        <FancyButton.Root variant='primary' size='small'>
           <HugeiconsIcon
             icon={isDeveloper ? Add01Icon : EyeIcon}
             size={16}
@@ -77,8 +77,8 @@ function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
             strokeWidth={1.5}
           />
           {isDeveloper ? 'Создать объект' : 'Смотреть аукционы'}
-        </Link>
-      </FancyButton.Root>
+        </FancyButton.Root>
+      </Link>
     </div>
   );
 }

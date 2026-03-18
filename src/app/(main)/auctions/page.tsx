@@ -141,12 +141,12 @@ export default function AuctionsPage() {
           </p>
         </div>
         {isDeveloper && (
-          <FancyButton.Root variant='primary' size='small' asChild>
-            <Link href='/auctions/create'>
+          <Link href='/auctions/create'>
+            <FancyButton.Root variant='primary' size='small'>
               <HugeiconsIcon icon={Add01Icon} size={16} color='currentColor' strokeWidth={1.5} />
               Создать аукцион
-            </Link>
-          </FancyButton.Root>
+            </FancyButton.Root>
+          </Link>
         )}
       </div>
 
@@ -184,12 +184,12 @@ export default function AuctionsPage() {
           {isDeveloper && tab === 'all' && (
             <>
               <div className='text-sm text-gray-500'>Создайте свой первый аукцион</div>
-              <FancyButton.Root variant='primary' size='small' asChild className='mt-1'>
-                <Link href='/auctions/create'>
+              <Link href='/auctions/create' className='mt-1'>
+                <FancyButton.Root variant='primary' size='small'>
                   <HugeiconsIcon icon={Add01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                   Создать аукцион
-                </Link>
-              </FancyButton.Root>
+                </FancyButton.Root>
+              </Link>
             </>
           )}
         </div>

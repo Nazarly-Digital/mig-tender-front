@@ -280,12 +280,12 @@ export default function PropertiesPage() {
           <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>Мои объекты</h1>
           <p className='mt-1 text-sm text-gray-500'>Управление объектами недвижимости</p>
         </div>
-        <FancyButton.Root variant='primary' size='small' asChild>
-          <Link href='/properties/create'>
+        <Link href='/properties/create'>
+          <FancyButton.Root variant='primary' size='small'>
             <HugeiconsIcon icon={Add01Icon} size={16} />
             Создать объект
-          </Link>
-        </FancyButton.Root>
+          </FancyButton.Root>
+        </Link>
       </div>
 
       {/* Filters */}

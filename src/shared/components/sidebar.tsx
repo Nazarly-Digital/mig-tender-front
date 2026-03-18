@@ -60,6 +60,14 @@ export default function Sidebar() {
   const isDeveloper = user?.role === 'developer';
   const isAdmin = user?.role === 'admin';
 
+  const adminNavLinks: NavigationLink[] = [
+    { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
+    { icon: UserIcon, label: 'Пользователи', href: '/admin/users' },
+    { icon: SecurityCheckIcon, label: 'Модерация', href: '/admin/properties' },
+    { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics' },
+    { icon: File01Icon, label: 'Документы', href: '/documents' },
+  ];
+
   const visibleLinks = navigationLinks.filter((link) => {
     if (link.adminOnly && !isAdmin) return false;
     if (link.developerOnly && !isDeveloper) return false;
@@ -67,8 +75,8 @@ export default function Sidebar() {
     return true;
   });
 
-  const mainLinks = visibleLinks.filter((link) => !link.adminOnly);
-  const adminLinks = visibleLinks.filter((link) => link.adminOnly);
+  const mainLinks = isAdmin ? adminNavLinks : visibleLinks.filter((link) => !link.adminOnly);
+  const adminLinks = isAdmin ? [] : visibleLinks.filter((link) => link.adminOnly);
 
   const fullName = user
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email

@@ -168,11 +168,11 @@ export default function CreateAuctionPage() {
 
         {/* Actions */}
         <div className='mt-5 flex items-center gap-3'>
-          <FancyButton.Root variant='basic' size='small' asChild>
-            <Link href='/auctions'>
+          <Link href='/auctions'>
+            <FancyButton.Root variant='basic' size='small'>
               Отмена
-            </Link>
-          </FancyButton.Root>
+            </FancyButton.Root>
+          </Link>
           <FancyButton.Root
             variant='primary'
             size='small'
