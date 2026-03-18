@@ -12,6 +12,7 @@ import {
   Award01Icon,
 } from '@hugeicons/core-free-icons';
 
+import { PropertyDetailSkeleton } from '@/shared/components/skeletons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import {
@@ -110,13 +111,7 @@ export default function CatalogDetailPage() {
   const activeAuction = auctionsData?.results?.[0] ?? null;
 
   if (isPropertyLoading) {
-    return (
-      <div className='w-full px-8 py-8'>
-        <div className='flex items-center justify-center py-20'>
-          <div className='text-sm text-gray-400'>Загрузка...</div>
-        </div>
-      </div>
-    );
+    return <PropertyDetailSkeleton />;
   }
 
   if (!property) {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Award01Icon, Clock01Icon, Add01Icon } from '@hugeicons/core-free-icons';
 
+import { AuctionGridSkeleton } from '@/shared/components/skeletons';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
 import type {
@@ -169,8 +170,8 @@ export default function AuctionsPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className='flex flex-1 items-center justify-center py-16'>
-          <div className='text-sm text-gray-400'>Загрузка...</div>
+        <div className='mt-6'>
+          <AuctionGridSkeleton count={8} />
         </div>
       ) : auctions.length === 0 ? (
         <div className='flex flex-1 flex-col items-center justify-center gap-3 py-16'>

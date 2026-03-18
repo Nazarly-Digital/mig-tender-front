@@ -25,6 +25,7 @@ import {
   STATUS_MAP,
 } from '@/shared/components/properties-table';
 import { PropertyFormModal } from '@/shared/components/property-form-modal';
+import { CardGridSkeleton } from '@/shared/components/skeletons';
 import {
   useMyProperties,
   useUpdateProperty,
@@ -347,9 +348,7 @@ export default function PropertiesPage() {
       {/* Content */}
       <div className='mt-6'>
         {isLoading ? (
-          <div className='flex items-center justify-center py-20'>
-            <div className='text-sm text-gray-400'>Загрузка...</div>
-          </div>
+          <CardGridSkeleton count={8} />
         ) : properties.length === 0 ? (
           <div className='flex flex-col items-center justify-center gap-3 py-20'>
             <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>

@@ -11,6 +11,7 @@ import {
   Cancel01Icon,
 } from '@hugeicons/core-free-icons';
 
+import { TableSkeleton } from '@/shared/components/skeletons';
 import * as Modal from '@/shared/ui/modal';
 import { PageHeader } from '@/shared/components/page-header';
 import {
@@ -233,8 +234,8 @@ export default function AdminUsersPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className='flex items-center justify-center py-20'>
-          <span className='text-[13px] text-gray-400'>Загрузка...</span>
+        <div className='mt-6'>
+          <TableSkeleton rows={8} cols={6} />
         </div>
       ) : users.length === 0 ? (
         <div className='flex flex-col items-center justify-center gap-2 py-20'>

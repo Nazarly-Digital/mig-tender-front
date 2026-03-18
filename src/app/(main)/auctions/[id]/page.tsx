@@ -16,6 +16,7 @@ import {
   Tick01Icon,
 } from '@hugeicons/core-free-icons';
 
+import { DetailPageSkeleton } from '@/shared/components/skeletons';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Modal from '@/shared/ui/modal';
@@ -317,11 +318,7 @@ export default function AuctionDetailPage() {
   );
 
   if (isLoading) {
-    return (
-      <div className='flex flex-1 items-center justify-center py-20'>
-        <div className='text-sm text-gray-400'>Загрузка...</div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (!auction) {
