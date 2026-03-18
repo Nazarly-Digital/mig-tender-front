@@ -9,19 +9,19 @@
    ============================================ */
 
 @theme {
-  /* Neutral Colors */
+  /* Neutral Colors — warm gray palette */
   --color-neutral-0: #ffffff;
-  --color-neutral-50: #F3F5FA;
-  --color-neutral-100: #e9edf4;
-  --color-neutral-200: #DEE5F3;
-  --color-neutral-300: #bec4ce;
-  --color-neutral-400: #9ca4b0;
-  --color-neutral-500: #7a8494;
-  --color-neutral-600: #5a6578;
-  --color-neutral-700: #3a4556;
-  --color-neutral-800: #252f40;
-  --color-neutral-900: #1a2332;
-  --color-neutral-950: #0F1725;
+  --color-neutral-50: #f7f7f5;
+  --color-neutral-100: #f0efed;
+  --color-neutral-200: #e4e3e0;
+  --color-neutral-300: #c8c7c3;
+  --color-neutral-400: #a3a19c;
+  --color-neutral-500: #7c7a75;
+  --color-neutral-600: #5c5a56;
+  --color-neutral-700: #3d3c39;
+  --color-neutral-800: #282725;
+  --color-neutral-900: #1c1b19;
+  --color-neutral-950: #111110;
 
   /* Blue/Primary Colors based on #0B61FA */
   --color-blue-50: #e8f0ff;

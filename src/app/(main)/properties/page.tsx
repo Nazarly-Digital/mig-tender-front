@@ -301,7 +301,7 @@ export default function PropertiesPage() {
       : allProperties.filter((p) => p.status === statusFilter);
 
   return (
-    <div className='flex flex-1 flex-col gap-8 px-6 py-8 lg:px-10'>
+    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
       <PageHeader
         title='Мои объекты'
         description='Управление объектами недвижимости'

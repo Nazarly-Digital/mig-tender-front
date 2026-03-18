@@ -110,7 +110,7 @@ export default function CatalogDetailPage() {
 
   if (isPropertyLoading) {
     return (
-      <div className='flex flex-1 items-center justify-center px-6 py-8 lg:px-10'>
+      <div className='flex flex-1 items-center justify-center p-6 lg:p-8'>
         <div className='text-paragraph-sm text-text-soft-400'>Загрузка...</div>
       </div>
     );
@@ -138,7 +138,7 @@ export default function CatalogDetailPage() {
   }
 
   return (
-    <div className='flex flex-1 flex-col gap-8 px-6 py-8 lg:px-10'>
+    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
       <PageHeader
         title={property.address}
         description='Информация об объекте недвижимости'

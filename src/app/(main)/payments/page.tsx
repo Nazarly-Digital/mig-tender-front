@@ -5,7 +5,7 @@ import { PageHeader } from '@/shared/components/page-header';
 
 export default function PaymentsPage() {
   return (
-    <div className='flex flex-1 flex-col gap-8 px-6 py-8 lg:px-10'>
+    <div className='flex flex-1 flex-col gap-6 p-6 lg:p-8'>
       <PageHeader
         title='Выплаты и история'
         description='История выплат и транзакций'

@@ -51,7 +51,6 @@ export const navigationLinks: NavigationLink[] = [
   { icon: RiShieldCheckLine, label: 'Модерация', href: '/admin/properties', adminOnly: true },
 ];
 
-
 function useCollapsedState({
   defaultCollapsed = false,
 }: {
@@ -82,19 +81,19 @@ function useCollapsedState({
     elementsToHide.forEach((el) => {
       const hideListener = () => {
         el.classList.add('hidden');
-        el.classList.remove('transition', 'duration-300');
+        el.classList.remove('transition', 'duration-200');
       };
 
       const showListener = () => {
-        el.classList.remove('transition', 'duration-300');
+        el.classList.remove('transition', 'duration-200');
       };
 
       if (collapsed) {
-        el.classList.add('opacity-0', 'transition', 'duration-300');
+        el.classList.add('opacity-0', 'transition', 'duration-200');
         el.addEventListener('transitionend', hideListener, { once: true });
         listeners.push({ el, listener: hideListener });
       } else {
-        el.classList.add('transition', 'duration-300');
+        el.classList.add('transition', 'duration-200');
         el.classList.remove('hidden');
         setTimeout(() => {
           el.classList.remove('opacity-0');
@@ -117,18 +116,16 @@ function useCollapsedState({
 function SidebarBrand({ collapsed }: { collapsed: boolean }) {
   return (
     <div
-      className={cn('flex items-center gap-3 px-5 py-5', {
+      className={cn('flex items-center gap-2.5 px-5 py-4', {
         'justify-center px-2': collapsed,
       })}
     >
-      <div className='flex size-9 shrink-0 items-center justify-center rounded-lg bg-bg-strong-950'>
-        <Image src='/images/logo-icon.svg' alt='' width={20} height={20} className='size-5' />
+      <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-neutral-950'>
+        <Image src='/images/logo-icon.svg' alt='' width={18} height={18} className='size-[18px]' />
       </div>
-      <div className='flex flex-col' data-hide-collapsed>
-        <span className='text-label-md font-semibold text-text-strong-950'>
-          MIG Tender
-        </span>
-      </div>
+      <span className='text-[15px] font-bold tracking-tight text-neutral-950' data-hide-collapsed>
+        MIG Tender
+      </span>
     </div>
   );
 }
@@ -154,30 +151,32 @@ function NavLink({
       aria-current={isActive ? 'page' : undefined}
       aria-disabled={disabled}
       className={cn(
-        'group relative flex items-center gap-2.5 whitespace-nowrap rounded-lg py-2 text-text-sub-600',
-        'transition-all duration-150 ease-out',
-        'hover:bg-bg-weak-50 hover:text-text-strong-950',
-        'aria-[current=page]:bg-bg-weak-50 aria-[current=page]:text-text-strong-950 aria-[current=page]:font-medium',
-        'aria-disabled:pointer-events-none aria-disabled:opacity-40',
+        'group flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-neutral-500',
+        'transition-colors duration-100',
+        'hover:bg-neutral-100 hover:text-neutral-700',
+        'aria-[current=page]:bg-neutral-100 aria-[current=page]:text-neutral-950',
+        'aria-disabled:pointer-events-none aria-disabled:opacity-30',
         {
           'w-9 justify-center px-0': collapsed,
-          'w-full px-3': !collapsed,
+          'w-full': !collapsed,
         },
       )}
     >
       <Icon
         className={cn(
-          'size-[18px] shrink-0 text-text-soft-400 transition-colors duration-150',
-          'group-hover:text-text-sub-600',
-          'group-aria-[current=page]:text-text-strong-950',
+          'size-[18px] shrink-0 transition-colors duration-100',
+          isActive ? 'text-neutral-950' : 'text-neutral-400 group-hover:text-neutral-600',
         )}
       />
-      <div
-        className='flex flex-1 items-center gap-2'
+      <span
+        className={cn(
+          'text-[13.5px] leading-5',
+          isActive && 'font-medium',
+        )}
         data-hide-collapsed
       >
-        <span className='text-[13px] leading-5'>{label}</span>
-      </div>
+        {label}
+      </span>
     </Link>
   );
 }
@@ -198,14 +197,14 @@ function NavigationMenu({ collapsed }: { collapsed: boolean }) {
   );
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-2'>
       <div
         className={cn(
-          'px-3 text-[11px] font-medium uppercase tracking-wider text-text-soft-400',
+          'px-2.5 text-[11px] font-semibold uppercase tracking-widest text-neutral-400',
           { 'px-0 text-center': collapsed },
         )}
       >
-        <span data-hide-collapsed>Основное</span>
+        <span data-hide-collapsed>Меню</span>
       </div>
       <div className='space-y-0.5'>
         {visibleLinks.map(({ icon, label, developerLabel, href, developerHref, disabled }, i) => {
@@ -247,41 +246,27 @@ function SettingsAndSupport({ collapsed }: { collapsed: boolean }) {
   ];
 
   return (
-    <div className='space-y-3'>
-      <div
-        className={cn(
-          'px-3 text-[11px] font-medium uppercase tracking-wider text-text-soft-400',
-          { 'px-0 text-center': collapsed },
-        )}
-      >
-        <span data-hide-collapsed>Прочее</span>
-      </div>
-      <div className='space-y-0.5'>
-        {links.map(({ icon, label, href, disabled }, i) => (
-          <NavLink
-            key={i}
-            href={href}
-            icon={icon}
-            label={label}
-            isActive={pathname.startsWith(href)}
-            disabled={disabled}
-            collapsed={collapsed}
-          />
-        ))}
-      </div>
+    <div className='space-y-0.5'>
+      {links.map(({ icon, label, href, disabled }, i) => (
+        <NavLink
+          key={i}
+          href={href}
+          icon={icon}
+          label={label}
+          isActive={pathname.startsWith(href)}
+          disabled={disabled}
+          collapsed={collapsed}
+        />
+      ))}
     </div>
   );
 }
 
 function UserProfile({ collapsed }: { collapsed: boolean }) {
   return (
-    <div
-      className={cn('p-3', {
-        'px-2': collapsed,
-      })}
-    >
+    <div className={cn('px-3 py-3', { 'px-2': collapsed })}>
       <UserButton
-        className={cn('transition-all duration-300', {
+        className={cn('transition-all duration-200', {
           'w-auto': collapsed,
         })}
       />
@@ -300,10 +285,10 @@ export default function Sidebar({
     <>
       <div
         className={cn(
-          'fixed left-0 top-0 z-40 hidden h-full overflow-hidden border-r border-stroke-soft-200 bg-bg-white-0 transition-all duration-300 ease-out lg:block',
+          'fixed left-0 top-0 z-40 hidden h-full overflow-hidden border-r border-neutral-200/80 bg-white transition-all duration-200 ease-out lg:block',
           {
-            'w-20': collapsed,
-            'w-[260px]': !collapsed,
+            'w-[72px]': collapsed,
+            'w-[240px]': !collapsed,
             '[&_[data-hide-collapsed]]:hidden': !collapsed
               ? false
               : defaultCollapsed,
@@ -312,22 +297,23 @@ export default function Sidebar({
       >
         <div
           ref={sidebarRef}
-          className='flex h-full w-[260px] min-w-[260px] flex-col'
+          className='flex h-full w-[240px] min-w-[240px] flex-col'
         >
           <SidebarBrand collapsed={collapsed} />
 
-          <div className='mx-4 border-t border-stroke-soft-200' />
-
-          <div
-            className={cn('flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-4', {
-              'px-[18px]': collapsed,
+          <nav
+            className={cn('flex flex-1 flex-col gap-6 overflow-y-auto px-3 pb-2', {
+              'px-[14px]': collapsed,
             })}
           >
             <NavigationMenu collapsed={collapsed} />
+          </nav>
+
+          <div className={cn('px-3 pb-1', { 'px-[14px]': collapsed })}>
             <SettingsAndSupport collapsed={collapsed} />
           </div>
 
-          <div className='mx-4 border-t border-stroke-soft-200' />
+          <div className='mx-3 border-t border-neutral-200/80' />
 
           <UserProfile collapsed={collapsed} />
         </div>
@@ -335,9 +321,9 @@ export default function Sidebar({
 
       {/* placeholder for fixed sidebar */}
       <div
-        className={cn('shrink-0', {
-          'w-[260px]': !collapsed,
-          'w-20': collapsed,
+        className={cn('hidden shrink-0 lg:block', {
+          'w-[240px]': !collapsed,
+          'w-[72px]': collapsed,
         })}
       />
     </>

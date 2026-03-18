@@ -1,7 +1,5 @@
 import Link from 'next/link';
-import { RiArrowLeftLine } from '@remixicon/react';
-
-import * as CompactButton from '@/shared/ui/compact-button';
+import { RiArrowLeftSLine } from '@remixicon/react';
 
 type PageHeaderProps = {
   title: string;
@@ -20,19 +18,20 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className='flex items-start justify-between gap-4'>
-      <div className='flex items-center gap-3'>
+      <div className='flex items-center gap-2'>
         {backHref && (
-          <Link href={backHref}>
-            <CompactButton.Root variant='stroke' size='medium'>
-              <CompactButton.Icon as={RiArrowLeftLine} />
-            </CompactButton.Root>
+          <Link
+            href={backHref}
+            className='flex size-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600'
+          >
+            <RiArrowLeftSLine className='size-5' />
           </Link>
         )}
         <div>
-          <h1 className='text-xl font-semibold tracking-tight text-text-strong-950'>
+          <h1 className='text-lg font-semibold text-neutral-900'>
             {title}
           </h1>
-          <p className='mt-1 text-sm text-text-sub-600'>
+          <p className='mt-0.5 text-[13px] text-neutral-500'>
             {description}
           </p>
         </div>
