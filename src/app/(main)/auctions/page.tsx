@@ -167,7 +167,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
         </div>
         <div className='flex items-center gap-1.5'>
           <RiTimeLine className='size-3.5 text-text-soft-400' />
-          <span>до {formatDate(auction.end_date)} г.</span>
+          <span>до {formatDate(auction.end_date)}</span>
         </div>
       </div>
     </Link>

@@ -123,7 +123,7 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
         <div className='mt-0.5 flex items-center gap-2 text-paragraph-xs text-text-sub-600'>
           <span>от {formatPrice(auction.min_price)}</span>
           <span>·</span>
-          <span>{formatDate(auction.end_date)}</span>
+          <span>{formatDateShort(auction.end_date)}</span>
         </div>
       </div>
       <Badge.Root variant='light' size='small' color={statusColor}>

@@ -9,8 +9,7 @@ export const loginSchema = z.object({
     .email('Введите корректный email'),
   password: z
     .string()
-    .min(1, 'Введите пароль')
-    .min(8, 'Пароль должен содержать минимум 8 символов'),
+    .min(1, 'Введите пароль'),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;

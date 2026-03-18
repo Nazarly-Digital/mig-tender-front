@@ -34,8 +34,11 @@ const ROLE_LABELS: Record<string, { label: string; color: 'blue' | 'orange' | 'g
   admin: { label: 'Админ', color: 'purple' },
 };
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('ru-RU', {
+function formatDate(dateStr: string | undefined | null) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('ru-RU', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
