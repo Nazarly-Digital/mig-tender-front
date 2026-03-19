@@ -238,14 +238,18 @@ function CatalogPropertyCard({
       {showActions && (() => {
         const isThisApproving = approvingId === property.id;
         const isThisRejecting = rejectingId === property.id;
-        const isBusy = approvingId != null || rejectingId != null;
+        const isThisCard = isThisApproving || isThisRejecting;
+        const isOtherBusy = !isThisCard && (approvingId != null || rejectingId != null);
         return (
-          <div className='flex items-center gap-2 border-t border-blue-50 px-5 py-3'>
+          <div className={cn('flex items-center gap-2 border-t border-blue-50 px-5 py-3', isOtherBusy && 'pointer-events-none')}>
             <button
               type='button'
               onClick={() => onApprove?.(property.id)}
-              disabled={isBusy}
-              className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50'
+              disabled={isThisRejecting}
+              className={cn(
+                'flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-emerald-700',
+                isThisApproving && 'opacity-70',
+              )}
             >
               <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
               {isThisApproving ? 'Одобрение...' : 'Одобрить'}
@@ -253,8 +257,11 @@ function CatalogPropertyCard({
             <button
               type='button'
               onClick={() => onReject?.(property.id)}
-              disabled={isBusy}
-              className='flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50'
+              disabled={isThisApproving}
+              className={cn(
+                'flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50',
+                isThisRejecting && 'opacity-70',
+              )}
             >
               <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
               {isThisRejecting ? 'Отклонение...' : 'Отклонить'}
