@@ -165,7 +165,7 @@ function CatalogPropertyCard({
 
   return (
     <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden transition-all duration-150 hover:border-blue-200 hover:shadow-sm'>
-      <Link href={`/catalog/${property.id}`} className='block'>
+      <Link href={`/objects/${property.id}`} className='block'>
         {/* Carousel */}
         <PropertyImageCarousel images={property.images ?? []} />
 
@@ -310,7 +310,14 @@ export default function CatalogPage() {
   // When admin selects "pending" filter: /admin/properties/pending/
   const propertiesQuery = useProperties(params, { enabled: !isPendingMode });
   const pendingQuery = usePendingProperties(
-    { ordering: '-created_at', page, page_size: pageSize },
+    {
+      page,
+      page_size: pageSize,
+      ...(search && { address: search }),
+      ...(typeFilter !== 'all' && { type: typeFilter }),
+      ...(classFilter !== 'all' && { property_class: classFilter }),
+      ordering: '-created_at',
+    },
     { enabled: isPendingMode },
   );
 

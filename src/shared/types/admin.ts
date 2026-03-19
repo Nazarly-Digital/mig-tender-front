@@ -51,9 +51,19 @@ export type PendingProperty = {
 };
 
 export type PendingPropertyListParams = {
+  address?: string;
+  area_min?: number;
+  area_max?: number;
+  currency?: string;
+  deadline?: string;
   ordering?: string;
   page?: number;
   page_size?: number;
+  price_min?: number;
+  price_max?: number;
+  property_class?: string;
+  status?: string;
+  type?: string;
 };
 
 export type PropertyActionResponse = {
