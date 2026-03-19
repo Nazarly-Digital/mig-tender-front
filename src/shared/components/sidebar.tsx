@@ -23,6 +23,8 @@ import {
 } from '@hugeicons/core-free-icons';
 
 import { cn } from '@/shared/lib/cn';
+import * as Modal from '@/shared/ui/modal';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import { useSessionStore } from '@/entities/auth/model/store';
 
 type NavigationLink = {
@@ -86,6 +88,7 @@ export default function Sidebar() {
     : '?';
 
   const roleLabel = isAdmin ? 'Администратор' : isDeveloper ? 'Застройщик' : 'Брокер';
+  const [logoutOpen, setLogoutOpen] = React.useState(false);
 
   const handleLogout = () => {
     logout();
@@ -227,7 +230,7 @@ export default function Sidebar() {
             </div>
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => setLogoutOpen(true)}
               className="shrink-0 rounded-lg p-1.5 text-gray-400 opacity-0 transition-all hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
               title="Выйти"
             >
@@ -239,6 +242,26 @@ export default function Sidebar() {
 
       {/* Spacer */}
       <div className="hidden w-[240px] shrink-0 lg:block" />
+
+      {/* Logout confirmation modal */}
+      <Modal.Root open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <Modal.Content>
+          <Modal.Header
+            title="Выйти из аккаунта?"
+            description="Вы уверены, что хотите выйти из системы?"
+          />
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant="basic" size="small">
+                Отмена
+              </FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root variant="destructive" size="small" onClick={handleLogout}>
+              Выйти
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
     </>
   );
 }
