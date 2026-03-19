@@ -64,12 +64,12 @@ export function useCreateAuction() {
 
 // --- Participants ---
 
-export function useParticipants(auctionId: number) {
+export function useParticipants(auctionId: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: auctionKeys.participants(auctionId),
     queryFn: () =>
       auctionsService.getParticipants(auctionId).then((res) => res.data),
-    enabled: auctionId > 0,
+    enabled: (options?.enabled ?? true) && auctionId > 0,
   });
 }
 

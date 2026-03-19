@@ -380,10 +380,14 @@ export default function AuctionDetailPage() {
   const isDeveloper = user?.role === 'developer';
   const isBroker = user?.role === 'broker';
 
+  const isAdmin = user?.role === 'admin';
   const { data: auction, isLoading } = useAuctionDetail(auctionId);
-  const { data: participants } = useParticipants(auctionId);
   const isOpenAuction = auction?.mode === 'open';
-  const { data: sealedBids } = useSealedBids(auctionId, { enabled: auction != null && !isOpenAuction });
+  const isOwnerOrAdmin = auction != null && (auction.owner_id === user?.id || isAdmin);
+  // For CLOSED auctions, participants and sealed-bids are owner/admin only
+  const canViewClosedData = auction != null && !isOpenAuction && isOwnerOrAdmin;
+  const { data: participants } = useParticipants(auctionId, { enabled: isOpenAuction || isOwnerOrAdmin });
+  const { data: sealedBids } = useSealedBids(auctionId, { enabled: canViewClosedData });
   const isActiveOpen = isOpenAuction && auction?.status === 'active';
 
   // WebSocket for OPEN auctions
