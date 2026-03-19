@@ -231,7 +231,7 @@ export default function Sidebar() {
             <button
               type="button"
               onClick={() => setLogoutOpen(true)}
-              className="shrink-0 rounded-lg p-1.5 text-gray-400 opacity-0 transition-all hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
+              className="shrink-0 rounded-lg p-1.5 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600"
               title="Выйти"
             >
               <HugeiconsIcon icon={Logout01Icon} size={18} color="currentColor" strokeWidth={1.5} />
