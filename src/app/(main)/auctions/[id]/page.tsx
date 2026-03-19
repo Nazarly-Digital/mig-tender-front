@@ -32,6 +32,8 @@ import {
   useShortlist,
   useSelectWinner,
 } from '@/features/auctions';
+import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
+import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
 import type { AuctionStatus, AuctionMode, Bid } from '@/shared/types/auctions';
 
 // --- Helpers ---
@@ -294,6 +296,78 @@ function SelectWinnerModal({
   );
 }
 
+// --- Live Bid Input for OPEN auction ---
+
+function LiveBidInput({
+  sendBid,
+  currentPrice,
+  minPrice,
+  bidsCount,
+  isHighestBidder,
+}: {
+  sendBid: (amount: string) => void;
+  currentPrice: string;
+  minPrice: string;
+  bidsCount: number;
+  isHighestBidder: boolean;
+}) {
+  const [amount, setAmount] = React.useState('');
+  const MIN_INCREMENT = 150000;
+
+  const minBid = bidsCount === 0 || parseFloat(currentPrice) <= 0
+    ? parseFloat(minPrice)
+    : parseFloat(currentPrice) + MIN_INCREMENT;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const raw = stripPriceFormat(amount);
+    if (!raw) return;
+    sendBid(raw);
+    setAmount('');
+  };
+
+  return (
+    <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
+      <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2 mb-3'>
+        <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+        Сделать ставку
+      </h3>
+      {isHighestBidder ? (
+        <div className='rounded-lg bg-emerald-50 p-3 text-[13px] text-emerald-700 font-medium'>
+          Вы лидер торгов. Ожидайте новых ставок.
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className='space-y-3'>
+          <div className='space-y-1.5'>
+            <Label.Root htmlFor='live-bid-amount'>Сумма ставки</Label.Root>
+            <Input.Root>
+              <Input.Wrapper>
+                <Input.Input
+                  id='live-bid-amount'
+                  type='text'
+                  inputMode='decimal'
+                  placeholder={formatPriceInput(String(Math.ceil(minBid)))}
+                  value={formatPriceInput(amount)}
+                  onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
+                />
+              </Input.Wrapper>
+            </Input.Root>
+            <p className='text-[11px] text-gray-400'>
+              {bidsCount === 0
+                ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)})`
+                : `Минимум: ${formatPrice(String(minBid))}`}
+            </p>
+          </div>
+          <FancyButton.Root variant='primary' size='small' type='submit' className='w-full'>
+            <HugeiconsIcon icon={Coins01Icon} size={16} />
+            Поставить
+          </FancyButton.Root>
+        </form>
+      )}
+    </div>
+  );
+}
+
 // --- Main Page ---
 
 export default function AuctionDetailPage() {
@@ -302,19 +376,31 @@ export default function AuctionDetailPage() {
   const auctionId = Number(params.id);
   const user = useSessionStore((s) => s.user);
   const isDeveloper = user?.role === 'developer';
+  const isBroker = user?.role === 'broker';
 
   const { data: auction, isLoading } = useAuctionDetail(auctionId);
   const { data: participants } = useParticipants(auctionId);
-  const { data: sealedBids } = useSealedBids(auctionId);
+  const isOpenAuction = auction?.mode === 'open';
+  const { data: sealedBids } = useSealedBids(auctionId, { enabled: auction != null && !isOpenAuction });
+  const isActiveOpen = isOpenAuction && auction?.status === 'active';
+
+  // WebSocket for OPEN auctions
+  const ws = useAuctionSocket(auctionId, isActiveOpen === true);
 
   const joinAuction = useJoinAuction();
   const shortlist = useShortlist();
 
+  const [joined, setJoined] = React.useState(false);
   const [bidModalOpen, setBidModalOpen] = React.useState(false);
   const [winnerModalOpen, setWinnerModalOpen] = React.useState(false);
   const [shortlistIds, setShortlistIds] = React.useState<Set<number>>(
     new Set(),
   );
+
+  // Show WS errors as toast
+  React.useEffect(() => {
+    if (ws.error) toast.error(ws.error);
+  }, [ws.error]);
 
   if (isLoading) {
     return <DetailPageSkeleton />;
@@ -341,14 +427,25 @@ export default function AuctionDetailPage() {
   const isOwner = auction.owner_id === user?.id;
   const progress = getTimeProgress(auction.start_date, auction.end_date);
 
-  const participantList = Array.isArray(participants) ? participants : [];
-  const isParticipant = participantList.some((p) => p.user_id === user?.id);
+  // For OPEN active auctions, merge WS data with REST data
+  const liveAuction = isActiveOpen && ws.auction ? ws.auction : auction;
+  const liveBidsCount = isActiveOpen && ws.auction ? ws.auction.bids_count : auction.bids_count;
+  const liveCurrentPrice = isActiveOpen && ws.auction ? ws.auction.current_price : auction.current_price;
+  const liveHighestBidId = isActiveOpen && ws.auction ? ws.auction.highest_bid_id : auction.highest_bid_id;
+  const liveParticipantsCount = isActiveOpen && ws.participants.length > 0 ? ws.participants.length : 0;
+  const isHighestBidder = liveHighestBidId != null && ws.bids.length > 0 && ws.bids[0]?.broker === user?.id;
+
+  const participantIds: number[] = participants?.participants ?? [];
+  const isParticipant = joined
+    || participantIds.includes(user?.id ?? 0)
+    || (isActiveOpen && ws.participants.includes(user?.id ?? 0));
   const bidsList = Array.isArray(sealedBids) ? sealedBids : [];
   const myBid = bidsList.find((b) => b.user_id === user?.id);
 
   const handleJoin = () => {
     joinAuction.mutate(auctionId, {
       onSuccess: () => {
+        setJoined(true);
         toast.success('Вы присоединились к аукциону');
       },
       onError: (error) => {
@@ -408,7 +505,7 @@ export default function AuctionDetailPage() {
               {joinAuction.isPending ? 'Присоединение...' : 'Участвовать'}
             </FancyButton.Root>
           )}
-          {!isDeveloper && isActive && isParticipant && (
+          {!isDeveloper && isActive && isParticipant && !isOpenAuction && (
             <FancyButton.Root variant='primary' size='small' onClick={() => setBidModalOpen(true)}>
               <HugeiconsIcon icon={Coins01Icon} size={16} color='currentColor' strokeWidth={1.5} />
               {myBid ? 'Обновить ставку' : 'Сделать ставку'}
@@ -427,7 +524,7 @@ export default function AuctionDetailPage() {
       <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Текущая ставка</span>
-          <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(auction.current_price)}</span>
+          <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Мин. цена</span>
@@ -435,11 +532,11 @@ export default function AuctionDetailPage() {
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{auction.bids_count}</span>
+          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantList.length}</span>
+          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{isActiveOpen ? Math.max(liveParticipantsCount, participantIds.length) : participantIds.length}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прогресс</span>
@@ -519,6 +616,39 @@ export default function AuctionDetailPage() {
             </div>
           )}
 
+          {/* Live bids feed — OPEN auction */}
+          {isActiveOpen && ws.bids.length > 0 && (
+            <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
+              <div className='flex items-center justify-between mb-4'>
+                <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
+                  <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+                  Ставки (live)
+                </h3>
+                {ws.connected && (
+                  <span className='inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-600'>
+                    <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
+                    Online
+                  </span>
+                )}
+              </div>
+              <div className='space-y-2 max-h-80 overflow-y-auto'>
+                {ws.bids.map((bid) => (
+                  <div key={bid.id} className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                    <div className='flex items-center gap-2.5'>
+                      <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                        #{bid.broker}
+                      </div>
+                      <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)}</span>
+                    </div>
+                    <span className='text-[11px] text-gray-400'>
+                      {new Date(bid.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* My bid — participant */}
           {!isDeveloper && isParticipant && myBid && (
             <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
@@ -536,29 +666,37 @@ export default function AuctionDetailPage() {
 
         {/* Right 1/3 */}
         <div className='space-y-4'>
+          {/* Live bid input — OPEN auction, broker participant */}
+          {isActiveOpen && isBroker && isParticipant && (
+            <LiveBidInput
+              sendBid={ws.sendBid}
+              currentPrice={liveCurrentPrice}
+              minPrice={auction.min_price}
+              bidsCount={liveBidsCount}
+              isHighestBidder={isHighestBidder}
+            />
+          )}
+
           {/* Participants */}
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
-              <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantList.length})
+              <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
             </h3>
-            {participantList.length === 0 ? (
+            {participantIds.length === 0 ? (
               <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
             ) : (
               <div className='mt-3 space-y-1.5'>
-                {participantList.map((p) => (
-                  <div key={p.id} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                {participantIds.map((pid) => (
+                  <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
                     {isOwner && isActive && (
-                      <button type='button' onClick={() => toggleShortlist(p.id)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(p.id) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
-                        {shortlistIds.has(p.id) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
+                      <button type='button' onClick={() => toggleShortlist(pid)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(pid) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
+                        {shortlistIds.has(pid) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
                       </button>
                     )}
                     <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                      {p.first_name?.[0]}{p.last_name?.[0]}
+                      #{pid}
                     </div>
-                    <div>
-                      <span className='text-[13px] font-medium text-gray-900'>{p.first_name} {p.last_name}</span>
-                      <span className='block text-[11px] text-gray-400'>{formatDate(p.joined_at)}</span>
-                    </div>
+                    <span className='text-[13px] font-medium text-gray-900'>Участник #{pid}</span>
                   </div>
                 ))}
               </div>

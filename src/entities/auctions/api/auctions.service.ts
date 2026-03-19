@@ -32,7 +32,7 @@ export const auctionsService = {
     apiInstance.post<JoinAuctionResponse>(`/auctions/${auctionId}/join/`),
 
   getParticipants: (auctionId: number) =>
-    apiInstance.get<Participant[]>(`/auctions/${auctionId}/participants/`),
+    apiInstance.get<{ auction_id: number; participants: number[] }>(`/auctions/${auctionId}/participants/`),
 
   // Bids
   placeBid: (auctionId: number, data: BidCreateRequest) =>

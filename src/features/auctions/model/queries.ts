@@ -91,12 +91,12 @@ export function useJoinAuction() {
 
 // --- Bids ---
 
-export function useSealedBids(auctionId: number) {
+export function useSealedBids(auctionId: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: auctionKeys.sealedBids(auctionId),
     queryFn: () =>
       auctionsService.getSealedBids(auctionId).then((res) => res.data),
-    enabled: auctionId > 0,
+    enabled: (options?.enabled ?? true) && auctionId > 0,
   });
 }
 
