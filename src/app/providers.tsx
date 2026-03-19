@@ -3,6 +3,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
+import { useMe } from "@/features/auth";
+
+function AuthSync() {
+  useMe();
+  return null;
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -20,6 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthSync />
       {children}
       <Toaster position="top-right" />
     </QueryClientProvider>

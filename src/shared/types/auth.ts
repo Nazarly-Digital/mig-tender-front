@@ -4,8 +4,18 @@ export type TokenUser = {
   first_name: string;
   last_name: string;
   role: string;
-  broker: string | null;
-  developer: string | null;
+  broker: {
+    is_verified: boolean;
+    verification_status: string;
+    inn_number?: string;
+    inn_url?: string;
+    passport_url?: string;
+    verified_at?: string | null;
+    rejected_at?: string | null;
+  } | null;
+  developer: {
+    company_name?: string;
+  } | null;
 };
 
 // Login
