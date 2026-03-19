@@ -148,15 +148,15 @@ function CatalogPropertyCard({
   showActions,
   onApprove,
   onReject,
-  isApproving,
-  isRejecting,
+  approvingId,
+  rejectingId,
 }: {
   property: CatalogCardItem;
   showActions?: boolean;
   onApprove?: (id: number) => void;
   onReject?: (id: number) => void;
-  isApproving?: boolean;
-  isRejecting?: boolean;
+  approvingId?: number | null;
+  rejectingId?: number | null;
 }) {
   const badgeStyle = STATUS_BADGE_STYLES[property.status] || STATUS_BADGE_STYLES.draft;
   const moderationStyle = property.moderation_status
@@ -235,28 +235,33 @@ function CatalogPropertyCard({
       </Link>
 
       {/* Admin approve/reject actions — only for pending */}
-      {showActions && (
-        <div className='flex items-center gap-2 border-t border-blue-50 px-5 py-3'>
-          <button
-            type='button'
-            onClick={() => onApprove?.(property.id)}
-            disabled={isApproving || isRejecting}
-            className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50'
-          >
-            <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-            {isApproving ? 'Одобрение...' : 'Одобрить'}
-          </button>
-          <button
-            type='button'
-            onClick={() => onReject?.(property.id)}
-            disabled={isApproving || isRejecting}
-            className='flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50'
-          >
-            <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-            {isRejecting ? 'Отклонение...' : 'Отклонить'}
-          </button>
-        </div>
-      )}
+      {showActions && (() => {
+        const isThisApproving = approvingId === property.id;
+        const isThisRejecting = rejectingId === property.id;
+        const isBusy = approvingId != null || rejectingId != null;
+        return (
+          <div className='flex items-center gap-2 border-t border-blue-50 px-5 py-3'>
+            <button
+              type='button'
+              onClick={() => onApprove?.(property.id)}
+              disabled={isBusy}
+              className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50'
+            >
+              <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+              {isThisApproving ? 'Одобрение...' : 'Одобрить'}
+            </button>
+            <button
+              type='button'
+              onClick={() => onReject?.(property.id)}
+              disabled={isBusy}
+              className='flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50'
+            >
+              <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+              {isThisRejecting ? 'Отклонение...' : 'Отклонить'}
+            </button>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -323,20 +328,24 @@ export default function CatalogPage() {
 
   const approve = useApproveProperty();
   const reject = useRejectProperty();
+  const [approvingId, setApprovingId] = React.useState<number | null>(null);
+  const [rejectingId, setRejectingId] = React.useState<number | null>(null);
 
   const handleApprove = (id: number) => {
+    setApprovingId(id);
     approve.mutate(id, {
       onSuccess: () => toast.success('Объект одобрен'),
-      onError: () => toast.error('Ошибка при одобрении'),
+      onSettled: () => setApprovingId(null),
     });
   };
 
   const handleReject = (id: number) => {
+    setRejectingId(id);
     reject.mutate(
       { id },
       {
         onSuccess: () => toast.success('Объект отклонён'),
-        onError: () => toast.error('Ошибка при отклонении'),
+        onSettled: () => setRejectingId(null),
       },
     );
   };
@@ -458,8 +467,8 @@ export default function CatalogPage() {
                   showActions={isPendingMode}
                   onApprove={handleApprove}
                   onReject={handleReject}
-                  isApproving={approve.isPending}
-                  isRejecting={reject.isPending}
+                  approvingId={approvingId}
+                  rejectingId={rejectingId}
                 />
               ))}
             </div>
