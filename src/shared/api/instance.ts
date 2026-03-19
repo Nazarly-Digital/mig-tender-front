@@ -1,6 +1,22 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 import type { RefreshResponse } from "@/shared/types/auth";
 import { useSessionStore } from "@/entities/auth/model/store";
+
+function extractErrorMessage(error: unknown): string | null {
+  const data = (error as { response?: { data?: Record<string, unknown> } })
+    ?.response?.data;
+  if (!data || typeof data !== "object") return null;
+  if (typeof data.error === "string") return data.error;
+  if (typeof data.detail === "string") return data.detail;
+  if (typeof data.message === "string") return data.message;
+  // Handle field-level errors like { "email": ["This field is required."] }
+  const firstField = Object.values(data).find(
+    (v) => Array.isArray(v) && typeof v[0] === "string",
+  ) as string[] | undefined;
+  if (firstField) return firstField[0];
+  return null;
+}
 
 export const apiInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -39,6 +55,12 @@ apiInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Show backend error as toast (skip 401 — handled below)
+    if (error.response && error.response.status !== 401) {
+      const msg = extractErrorMessage(error);
+      if (msg) toast.error(msg);
+    }
 
     if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
