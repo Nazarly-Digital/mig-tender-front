@@ -128,7 +128,7 @@ export default function CatalogDetailPage() {
               Возможно, объект был удален или у вас нет доступа
             </div>
           </div>
-          <Link href='/catalog' className='mt-2'>
+          <Link href='/objects' className='mt-2'>
             <FancyButton.Root variant='basic' size='small'>
               Вернуться в каталог
             </FancyButton.Root>
@@ -146,7 +146,7 @@ export default function CatalogDetailPage() {
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-3'>
           <Link
-            href='/catalog'
+            href='/objects'
             className='flex size-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors'
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />

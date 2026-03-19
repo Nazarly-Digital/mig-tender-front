@@ -283,7 +283,7 @@ function useFilterParams() {
         }
       }
       const qs = params.toString();
-      router.replace(qs ? `?${qs}` : '/catalog', { scroll: false });
+      router.replace(qs ? `?${qs}` : '/objects', { scroll: false });
     },
     [router, searchParams],
   );

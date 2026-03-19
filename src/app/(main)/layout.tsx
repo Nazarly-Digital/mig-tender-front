@@ -10,7 +10,7 @@ const BREADCRUMB_MAP: Record<string, string> = {
   '/dashboard': 'Главная',
   '/auctions': 'Аукционы',
   '/auctions/create': 'Новый аукцион',
-  '/catalog': 'Объекты',
+  '/objects': 'Объекты',
   '/properties': 'Объекты',
   '/properties/create': 'Новый объект',
   '/cabinet': 'Кабинет',

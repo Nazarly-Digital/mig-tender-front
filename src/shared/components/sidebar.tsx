@@ -40,7 +40,7 @@ type NavigationLink = {
 export const navigationLinks: NavigationLink[] = [
   { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
   { icon: Award01Icon, label: 'Аукционы', developerLabel: 'Мои аукционы', href: '/auctions' },
-  { icon: CatalogueIcon, label: 'Каталог объектов', href: '/catalog', brokerOnly: true },
+  { icon: CatalogueIcon, label: 'Каталог объектов', href: '/objects', brokerOnly: true },
   { icon: Building03Icon, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: PlusSignSquareIcon, label: 'Создать объект', href: '/properties/create', developerOnly: true },
   { icon: UserIcon, label: 'Личный кабинет', href: '/cabinet', brokerOnly: true },
@@ -62,7 +62,7 @@ export default function Sidebar() {
 
   const adminNavLinks: NavigationLink[] = [
     { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
-    { icon: Building03Icon, label: 'Объекты', href: '/catalog' },
+    { icon: Building03Icon, label: 'Объекты', href: '/objects' },
     { icon: UserIcon, label: 'Пользователи', href: '/admin/users' },
     { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics' },
     { icon: File01Icon, label: 'Документы', href: '/documents' },

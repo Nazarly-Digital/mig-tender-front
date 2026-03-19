@@ -179,14 +179,14 @@ export default function DashboardPage() {
         <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
           {isAdmin ? (
             <>
-              <StatCard label='Все объекты' value={allPropertiesCount} href='/catalog' action='Открыть объекты' icon={Building03Icon} />
-              <StatCard label='Объекты на модерации' value={pendingCount} href='/catalog?moderation=pending' action='Модерация' icon={SecurityCheckIcon} />
+              <StatCard label='Все объекты' value={allPropertiesCount} href='/objects' action='Открыть объекты' icon={Building03Icon} />
+              <StatCard label='Объекты на модерации' value={pendingCount} href='/objects?moderation=pending' action='Модерация' icon={SecurityCheckIcon} />
             </>
           ) : isDeveloper ? (
             <StatCard label='Мои объекты' value={propertiesCount} href='/properties' action='Все объекты' icon={Building03Icon} />
           ) : (
             <>
-              <StatCard label='Каталог объектов' value={propertiesCount} href='/catalog' action='Открыть каталог' icon={Building03Icon} />
+              <StatCard label='Каталог объектов' value={propertiesCount} href='/objects' action='Открыть каталог' icon={Building03Icon} />
               <StatCard label='Доступные аукционы' value={auctionsCount} href='/auctions' action='Все аукционы' icon={Award01Icon} />
             </>
           )}
