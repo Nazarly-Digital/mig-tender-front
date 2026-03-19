@@ -12,15 +12,13 @@ import {
   RiSearch2Line,
   RiSettings2Line,
 } from '@remixicon/react';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 import { cn } from '@/shared/lib/cn';
 import useBreakpoint from '@/shared/lib/use-breakpoint';
-import { CompanySwitchMobile } from '@/shared/components/company-switch';
-import { MoveMoneyButton } from '@/shared/components/move-money-button';
 import { navigationLinks } from '@/shared/components/sidebar';
 import { useSessionStore } from '@/entities/auth/model/store';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
-import { UserButtonMobile } from '@/shared/components/user-button';
 
 export default function MobileMenu() {
   const { lg } = useBreakpoint();
@@ -28,10 +26,14 @@ export default function MobileMenu() {
   const pathname = usePathname();
   const user = useSessionStore((s) => s.user);
   const isDeveloper = user?.role === 'developer';
+  const isAdmin = user?.role === 'admin';
 
-  const visibleLinks = navigationLinks.filter(
-    (link) => !link.developerOnly || isDeveloper,
-  );
+  const visibleLinks = navigationLinks.filter((link) => {
+    if (link.adminOnly && !isAdmin) return false;
+    if (link.developerOnly && !isDeveloper) return false;
+    if (link.brokerOnly && isDeveloper) return false;
+    return true;
+  });
 
   React.useEffect(() => {
     setOpen(false);
@@ -106,7 +108,7 @@ export default function MobileMenu() {
 
             <div className='flex flex-1 flex-col py-6'>
               <div className='flex flex-col gap-5'>
-                {visibleLinks.map(({ icon: Icon, label, developerLabel, href, developerHref }, i) => {
+                {visibleLinks.map(({ icon, label, developerLabel, href, developerHref }, i) => {
                   const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
                   const displayHref = isDeveloper && developerHref ? developerHref : href;
                   return (
@@ -118,9 +120,13 @@ export default function MobileMenu() {
                         'group relative flex w-full items-center gap-2.5 whitespace-nowrap px-5 text-gray-500',
                       )}
                     >
-                      <Icon
+                      <HugeiconsIcon
+                        icon={icon}
+                        size={22}
+                        color='currentColor'
+                        strokeWidth={1.5}
                         className={cn(
-                          'size-[22px] shrink-0 text-gray-500 transition-colors duration-150',
+                          'shrink-0 text-gray-500 transition-colors duration-150',
                           'group-aria-[current=page]:text-blue-600',
                         )}
                       />

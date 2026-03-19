@@ -8,6 +8,7 @@ import {
   ArrowRight01Icon,
   Building03Icon,
   Award01Icon,
+  SecurityCheckIcon,
 } from '@hugeicons/core-free-icons';
 
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -179,7 +180,7 @@ export default function DashboardPage() {
           {isAdmin ? (
             <>
               <StatCard label='Все объекты' value={allPropertiesCount} href='/catalog' action='Открыть объекты' icon={Building03Icon} />
-              <StatCard label='На модерации' value={pendingCount} href='/catalog' action='Модерация' icon={Award01Icon} />
+              <StatCard label='Объекты на модерации' value={pendingCount} href='/catalog?moderation=pending' action='Модерация' icon={SecurityCheckIcon} />
             </>
           ) : isDeveloper ? (
             <StatCard label='Мои объекты' value={propertiesCount} href='/properties' action='Все объекты' icon={Building03Icon} />

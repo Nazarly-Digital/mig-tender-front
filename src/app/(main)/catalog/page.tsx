@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Search01Icon,
@@ -260,15 +261,39 @@ function CatalogPropertyCard({
   );
 }
 
+function useFilterParams() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const page = Number(searchParams.get('page')) || 1;
+  const pageSize = Number(searchParams.get('page_size')) || 12;
+  const search = searchParams.get('search') ?? '';
+  const typeFilter = searchParams.get('type') ?? 'all';
+  const classFilter = searchParams.get('class') ?? 'all';
+  const moderationFilter = searchParams.get('moderation') ?? 'all';
+
+  const setParam = React.useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null || value === '' || value === 'all' || (key === 'page' && value === '1') || (key === 'page_size' && value === '12')) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      }
+      const qs = params.toString();
+      router.replace(qs ? `?${qs}` : '/catalog', { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  return { page, pageSize, search, typeFilter, classFilter, moderationFilter, setParam };
+}
+
 export default function CatalogPage() {
   const isAdmin = useSessionStore((s) => s.user?.role === 'admin');
-  const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(12);
-  const [search, setSearch] = React.useState('');
-  const [typeFilter, setTypeFilter] = React.useState<string>('all');
-  const [classFilter, setClassFilter] = React.useState<string>('all');
-  // Admin-only: 'all' = /properties/, 'pending' = /admin/properties/pending/
-  const [moderationFilter, setModerationFilter] = React.useState<string>('all');
+  const { page, pageSize, search, typeFilter, classFilter, moderationFilter, setParam } = useFilterParams();
 
   const isPendingMode = isAdmin && moderationFilter === 'pending';
 
@@ -349,13 +374,13 @@ export default function CatalogPage() {
             type='text'
             placeholder='Поиск по адресу...'
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => { setParam({ search: e.target.value, page: null }); }}
             className='h-9 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[13px] placeholder:text-gray-400 focus:border-blue-300 focus:outline-none transition-colors'
           />
         </div>
 
         <div className='w-[140px] shrink-0'>
-          <Select.Root size='small' value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+          <Select.Root size='small' value={typeFilter} onValueChange={(v) => { setParam({ type: v, page: null }); }}>
             <Select.Trigger className='h-9 w-full'>
               <Select.Value placeholder='Тип' />
             </Select.Trigger>
@@ -369,7 +394,7 @@ export default function CatalogPage() {
         </div>
 
         <div className='w-[140px] shrink-0'>
-          <Select.Root size='small' value={classFilter} onValueChange={(v) => { setClassFilter(v); setPage(1); }}>
+          <Select.Root size='small' value={classFilter} onValueChange={(v) => { setParam({ class: v, page: null }); }}>
             <Select.Trigger className='h-9 w-full'>
               <Select.Value placeholder='Класс' />
             </Select.Trigger>
@@ -385,7 +410,7 @@ export default function CatalogPage() {
         {/* Admin-only: moderation filter */}
         {isAdmin && (
           <div className='w-[170px] shrink-0'>
-            <Select.Root size='small' value={moderationFilter} onValueChange={(v) => { setModerationFilter(v); setPage(1); }}>
+            <Select.Root size='small' value={moderationFilter} onValueChange={(v) => { setParam({ moderation: v, page: null }); }}>
               <Select.Trigger className='h-9 w-full'>
                 <Select.Value placeholder='Модерация' />
               </Select.Trigger>
@@ -435,8 +460,8 @@ export default function CatalogPage() {
               page={page}
               totalPages={totalPages}
               pageSize={pageSize}
-              onPageChange={setPage}
-              onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+              onPageChange={(p) => setParam({ page: String(p) })}
+              onPageSizeChange={(size) => { setParam({ page_size: String(size), page: null }); }}
             />
           </div>
         )}
