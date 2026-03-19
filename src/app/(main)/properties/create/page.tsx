@@ -18,6 +18,7 @@ import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
+import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
 import { useCreateProperty } from '@/features/properties';
 import { propertiesService } from '@/entities/properties';
 import {
@@ -241,10 +242,9 @@ export default function CreatePropertyPage() {
                     <Input.Root hasError={!!errors.price}>
                       <Input.Wrapper>
                         <Input.Input
-                          id='property-price' type='text' inputMode='decimal' placeholder='150000'
-                          value={field.value}
-                          onKeyDown={(e) => { if (['+','-','e','E'].includes(e.key)) e.preventDefault(); if (e.key === '.' && field.value.includes('.')) e.preventDefault(); }}
-                          onChange={(e) => { const raw = e.target.value.replace(/[^0-9.]/g, ''); field.onChange(raw.split('.').length > 2 ? raw.slice(0, raw.lastIndexOf('.')) : raw); }}
+                          id='property-price' type='text' inputMode='decimal' placeholder='150 000'
+                          value={formatPriceInput(field.value)}
+                          onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
                           onBlur={field.onBlur}
                         />
                       </Input.Wrapper>

@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
 import { auctionSchema, type AuctionFormData } from '@/shared/lib/validations';
+import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
@@ -37,6 +38,7 @@ export default function CreateAuctionPage() {
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors },
   } = useForm<AuctionFormData>({
     resolver: zodResolver(auctionSchema),
@@ -131,11 +133,21 @@ export default function CreateAuctionPage() {
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='auction-min-price'>Мин. цена <Label.Asterisk /></Label.Root>
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Input id='auction-min-price' type='number' step='0.01' placeholder='10000000' {...register('min_price')} />
-                  </Input.Wrapper>
-                </Input.Root>
+                <Controller control={control} name='min_price' render={({ field }) => (
+                  <Input.Root>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='auction-min-price'
+                        type='text'
+                        inputMode='decimal'
+                        placeholder='10 000 000'
+                        value={formatPriceInput(field.value)}
+                        onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
+                        onBlur={field.onBlur}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                )} />
                 {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
               </div>
             </div>
@@ -158,7 +170,16 @@ export default function CreateAuctionPage() {
               <Label.Root htmlFor='auction-end'>Дата окончания <Label.Asterisk /></Label.Root>
               <Input.Root>
                 <Input.Wrapper>
-                  <Input.Input id='auction-end' type='datetime-local' {...register('end_date')} />
+                  <Input.Input
+                    id='auction-end'
+                    type='datetime-local'
+                    min={watch('start_date') ? (() => {
+                      const d = new Date(watch('start_date'));
+                      d.setHours(d.getHours() + 1);
+                      return d.toISOString().slice(0, 16);
+                    })() : undefined}
+                    {...register('end_date')}
+                  />
                 </Input.Wrapper>
               </Input.Root>
               {errors.end_date && <p className='text-xs text-red-500'>{errors.end_date.message}</p>}

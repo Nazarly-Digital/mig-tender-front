@@ -18,6 +18,7 @@ import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
 import { cn } from '@/shared/lib/cn';
+import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
 import {
   usePropertyImages,
   useAddPropertyImage,
@@ -317,13 +318,17 @@ export function PropertyFormModal({
                 </Label.Root>
                 <Input.Root size='small'>
                   <Input.Wrapper>
-                    <Input.Input
-                      id='property-price'
-                      type='number'
-                      step='0.01'
-                      placeholder='150000'
-                      {...register('price')}
-                    />
+                    <Controller name='price' control={control} render={({ field }) => (
+                      <Input.Input
+                        id='property-price'
+                        type='text'
+                        inputMode='decimal'
+                        placeholder='150 000'
+                        value={formatPriceInput(field.value)}
+                        onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
+                        onBlur={field.onBlur}
+                      />
+                    )} />
                   </Input.Wrapper>
                 </Input.Root>
                 {errors.price && <p className='text-xs text-red-500'>{errors.price.message}</p>}

@@ -25,6 +25,19 @@ export function formatDateShort(dateStr: string | null | undefined): string {
   });
 }
 
+/** Format number string with spaces for display: "10000000" → "10 000 000" */
+export function formatPriceInput(value: string): string {
+  const clean = value.replace(/[^0-9.]/g, '');
+  const [integer, decimal] = clean.split('.');
+  const formatted = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return decimal !== undefined ? `${formatted}.${decimal}` : formatted;
+}
+
+/** Strip spaces from formatted price: "10 000 000" → "10000000" */
+export function stripPriceFormat(value: string): string {
+  return value.replace(/\s/g, '');
+}
+
 export function formatDateLong(dateStr: string | null | undefined): string {
   if (!dateStr) return '—';
   const d = new Date(dateStr);

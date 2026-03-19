@@ -101,6 +101,14 @@ export const auctionSchema = z.object({
     .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
   start_date: z.string().min(1, 'Выберите дату начала'),
   end_date: z.string().min(1, 'Выберите дату окончания'),
-});
+}).refine(
+  (data) => {
+    if (!data.start_date || !data.end_date) return true;
+    const start = new Date(data.start_date).getTime();
+    const end = new Date(data.end_date).getTime();
+    return end >= start + 60 * 60 * 1000; // минимум 1 час разницы
+  },
+  { message: 'Дата окончания должна быть минимум на 1 час позже даты начала', path: ['end_date'] },
+);
 
 export type AuctionFormData = z.infer<typeof auctionSchema>;
