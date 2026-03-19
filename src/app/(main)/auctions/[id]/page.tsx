@@ -300,12 +300,14 @@ function SelectWinnerModal({
 
 function LiveBidInput({
   sendBid,
+  connected,
   currentPrice,
   minPrice,
   bidsCount,
   isHighestBidder,
 }: {
   sendBid: (amount: string) => void;
+  connected: boolean;
   currentPrice: string;
   minPrice: string;
   bidsCount: number;
@@ -358,9 +360,9 @@ function LiveBidInput({
                 : `Минимум: ${formatPrice(String(minBid))}`}
             </p>
           </div>
-          <FancyButton.Root variant='primary' size='small' type='submit' className='w-full'>
+          <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={!connected}>
             <HugeiconsIcon icon={Coins01Icon} size={16} />
-            Поставить
+            {connected ? 'Поставить' : 'Подключение...'}
           </FancyButton.Root>
         </form>
       )}
@@ -670,6 +672,7 @@ export default function AuctionDetailPage() {
           {isActiveOpen && isBroker && isParticipant && (
             <LiveBidInput
               sendBid={ws.sendBid}
+              connected={ws.connected}
               currentPrice={liveCurrentPrice}
               minPrice={auction.min_price}
               bidsCount={liveBidsCount}

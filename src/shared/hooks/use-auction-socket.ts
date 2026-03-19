@@ -155,14 +155,28 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
       wsRef.current = null;
       setState((s) => ({ ...s, connected: false }));
 
+      if (typeof window !== 'undefined') {
+        // eslint-disable-next-line no-console
+        console.log(`[WS] closed: code=${e.code} reason="${e.reason}"`);
+      }
+
       // 4403 = not OPEN auction, don't reconnect
       if (e.code === 4403) {
         setState((s) => ({ ...s, error: 'Аукцион не является открытым' }));
         return;
       }
 
+      // 1000 = normal close, don't reconnect
+      if (e.code === 1000) return;
+
+      // Stop reconnecting after too many attempts
+      if (reconnectCount.current >= RECONNECT_DELAYS.length) {
+        setState((s) => ({ ...s, error: 'Не удалось подключиться к аукциону' }));
+        return;
+      }
+
       // Auto-reconnect with backoff
-      const delay = RECONNECT_DELAYS[Math.min(reconnectCount.current, RECONNECT_DELAYS.length - 1)];
+      const delay = RECONNECT_DELAYS[reconnectCount.current];
       reconnectCount.current += 1;
       reconnectTimer.current = setTimeout(connect, delay);
     };
