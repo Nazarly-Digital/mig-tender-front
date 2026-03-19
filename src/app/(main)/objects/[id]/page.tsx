@@ -10,8 +10,11 @@ import {
   Image01Icon,
   Building03Icon,
   Award01Icon,
+  Tick01Icon,
+  Cancel01Icon,
 } from '@hugeicons/core-free-icons';
 
+import toast from 'react-hot-toast';
 import { PropertyDetailSkeleton } from '@/shared/components/skeletons';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { cn } from '@/shared/lib/cn';
@@ -23,6 +26,8 @@ import {
 } from '@/shared/components/properties-table';
 import { useProperty } from '@/features/properties';
 import { useAuctions } from '@/features/auctions';
+import { useApproveProperty, useRejectProperty } from '@/features/admin';
+import { useSessionStore } from '@/entities/auth/model/store';
 import type { Property } from '@/shared/types/properties';
 
 const STATUS_BADGE_STYLES: Record<string, string> = {
@@ -99,6 +104,7 @@ function DetailImageCarousel({ images }: { images: Property['images'] }) {
 export default function CatalogDetailPage() {
   const params = useParams();
   const propertyId = Number(params.id);
+  const isAdmin = useSessionStore((s) => s.user?.role === 'admin');
 
   const { data: property, isLoading: isPropertyLoading } = useProperty(propertyId);
 
@@ -110,6 +116,22 @@ export default function CatalogDetailPage() {
   });
 
   const activeAuction = auctionsData?.results?.[0] ?? null;
+
+  const approve = useApproveProperty();
+  const reject = useRejectProperty();
+
+  const handleApprove = () => {
+    approve.mutate(propertyId, {
+      onSuccess: () => toast.success('Объект одобрен'),
+    });
+  };
+
+  const handleReject = () => {
+    reject.mutate(
+      { id: propertyId },
+      { onSuccess: () => toast.success('Объект отклонён') },
+    );
+  };
 
   if (isPropertyLoading) {
     return <PropertyDetailSkeleton />;
@@ -156,14 +178,38 @@ export default function CatalogDetailPage() {
             <p className='mt-1 text-sm text-gray-500'>Информация об объекте недвижимости</p>
           </div>
         </div>
-        {activeAuction && (
-          <Link href={`/auctions/${activeAuction.id}`}>
-            <FancyButton.Root variant='primary' size='small'>
-              <HugeiconsIcon icon={Award01Icon} size={16} />
-              Участвовать в аукционе
-            </FancyButton.Root>
-          </Link>
-        )}
+        <div className='flex items-center gap-2'>
+          {isAdmin && (
+            <>
+              <FancyButton.Root
+                variant='primary'
+                size='small'
+                onClick={handleApprove}
+                disabled={approve.isPending || reject.isPending}
+              >
+                <HugeiconsIcon icon={Tick01Icon} size={16} />
+                {approve.isPending ? 'Одобрение...' : 'Одобрить'}
+              </FancyButton.Root>
+              <FancyButton.Root
+                variant='basic'
+                size='small'
+                onClick={handleReject}
+                disabled={approve.isPending || reject.isPending}
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={16} />
+                {reject.isPending ? 'Отклонение...' : 'Отклонить'}
+              </FancyButton.Root>
+            </>
+          )}
+          {activeAuction && (
+            <Link href={`/auctions/${activeAuction.id}`}>
+              <FancyButton.Root variant='primary' size='small'>
+                <HugeiconsIcon icon={Award01Icon} size={16} />
+                Участвовать в аукционе
+              </FancyButton.Root>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Image carousel */}

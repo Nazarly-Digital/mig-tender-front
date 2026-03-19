@@ -24,6 +24,7 @@ import {
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import toast from 'react-hot-toast';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import { CardGridSkeleton } from '@/shared/components/skeletons';
 import { useProperties } from '@/features/properties';
 import { usePendingProperties, useApproveProperty, useRejectProperty } from '@/features/admin';
@@ -241,31 +242,27 @@ function CatalogPropertyCard({
         const isThisCard = isThisApproving || isThisRejecting;
         const isOtherBusy = !isThisCard && (approvingId != null || rejectingId != null);
         return (
-          <div className={cn('flex items-center gap-2 border-t border-blue-50 px-5 py-3', isOtherBusy && 'pointer-events-none')}>
-            <button
-              type='button'
+          <div className={cn('grid grid-cols-2 gap-2 border-t border-blue-50 px-5 py-3', isOtherBusy && 'pointer-events-none')}>
+            <FancyButton.Root
+              variant='primary'
+              size='small'
+              className='w-full'
               onClick={() => onApprove?.(property.id)}
               disabled={isThisRejecting}
-              className={cn(
-                'flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-emerald-700',
-                isThisApproving && 'opacity-70',
-              )}
             >
-              <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+              <HugeiconsIcon icon={Tick01Icon} size={16} />
               {isThisApproving ? 'Одобрение...' : 'Одобрить'}
-            </button>
-            <button
-              type='button'
+            </FancyButton.Root>
+            <FancyButton.Root
+              variant='basic'
+              size='small'
+              className='w-full'
               onClick={() => onReject?.(property.id)}
               disabled={isThisApproving}
-              className={cn(
-                'flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50',
-                isThisRejecting && 'opacity-70',
-              )}
             >
-              <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+              <HugeiconsIcon icon={Cancel01Icon} size={16} />
               {isThisRejecting ? 'Отклонение...' : 'Отклонить'}
-            </button>
+            </FancyButton.Root>
           </div>
         );
       })()}
