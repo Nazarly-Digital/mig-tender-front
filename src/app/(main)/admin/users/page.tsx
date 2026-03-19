@@ -257,9 +257,6 @@ export default function AdminUsersPage() {
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Документы
                 </th>
-                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
-                  Регистрация
-                </th>
                 <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Действия
                 </th>
@@ -343,11 +340,6 @@ export default function AdminUsersPage() {
                         <span className='text-[13px] text-gray-400'>—</span>
                       )}
                     </div>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='text-[13px] text-gray-400 whitespace-nowrap'>
-                      {formatDate(user.created_at)}
-                    </span>
                   </td>
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
