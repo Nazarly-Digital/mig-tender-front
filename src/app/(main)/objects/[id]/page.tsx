@@ -228,7 +228,7 @@ export default function CatalogDetailPage() {
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
             <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</div>
             <div className='mt-2 text-xl font-semibold text-gray-900'>
-              {formatPrice(property.price)} {property.currency}
+              {formatPrice(property.price, property.currency)}
             </div>
           </div>
 

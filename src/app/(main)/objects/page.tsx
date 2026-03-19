@@ -39,7 +39,7 @@ const STATUS_BADGE_STYLES: Record<string, string> = {
   completed: 'bg-emerald-50 text-emerald-700',
   active: 'bg-blue-50 text-blue-700',
   draft: 'bg-gray-100 text-gray-600',
-  published: 'bg-blue-50 text-blue-700',
+  published: 'bg-emerald-50 text-emerald-700',
   archived: 'bg-amber-50 text-amber-700',
   cancelled: 'bg-red-50 text-red-700',
 };
@@ -207,7 +207,7 @@ function CatalogPropertyCard({
             <div>
               <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</div>
               <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {formatPrice(property.price)} {property.currency}
+                {formatPrice(property.price, property.currency)}
               </div>
             </div>
             <div>
@@ -266,7 +266,7 @@ function useFilterParams() {
   const searchParams = useSearchParams();
 
   const page = Number(searchParams.get('page')) || 1;
-  const pageSize = Number(searchParams.get('page_size')) || 12;
+  const pageSize = Number(searchParams.get('page_size')) || 20;
   const search = searchParams.get('search') ?? '';
   const typeFilter = searchParams.get('type') ?? 'all';
   const classFilter = searchParams.get('class') ?? 'all';
@@ -276,7 +276,7 @@ function useFilterParams() {
     (updates: Record<string, string | null>) => {
       const params = new URLSearchParams(searchParams.toString());
       for (const [key, value] of Object.entries(updates)) {
-        if (value === null || value === '' || value === 'all' || (key === 'page' && value === '1') || (key === 'page_size' && value === '12')) {
+        if (value === null || value === '' || value === 'all' || (key === 'page' && value === '1') || (key === 'page_size' && value === '20')) {
           params.delete(key);
         } else {
           params.set(key, value);

@@ -41,10 +41,13 @@ import type {
   PropertyListParams,
 } from '@/shared/types/properties';
 
-function formatPrice(value: string) {
+const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', RUB: '₽', TRY: '₺' };
+
+function formatPrice(value: string, currency?: string) {
   const num = parseFloat(value);
   if (isNaN(num)) return '\u2014';
-  return new Intl.NumberFormat('ru-RU').format(num);
+  const symbol = currency ? (CURRENCY_SYMBOLS[currency] ?? currency) : '';
+  return new Intl.NumberFormat('ru-RU').format(num) + (symbol ? ` ${symbol}` : '');
 }
 
 function formatDate(dateStr: string | null) {
@@ -59,6 +62,7 @@ function formatDate(dateStr: string | null) {
 const STATUS_BADGE_STYLES: Record<string, string> = {
   completed: 'bg-emerald-50 text-emerald-700',
   active: 'bg-blue-50 text-blue-700',
+  published: 'bg-emerald-50 text-emerald-700',
   draft: 'bg-gray-100 text-gray-600',
   archived: 'bg-amber-50 text-amber-700',
   cancelled: 'bg-red-50 text-red-700',
@@ -156,7 +160,7 @@ function PropertyCard({
         </div>
         {/* Price overlay */}
         <div className='absolute left-3 bottom-3 rounded-md bg-black/60 px-2 py-1 text-[13px] font-bold text-white backdrop-blur-sm'>
-          {formatPrice(property.price)} {property.currency}
+          {formatPrice(property.price, property.currency)}
         </div>
         {/* Edit/Delete on hover */}
         <div className='absolute right-3 top-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
@@ -194,7 +198,7 @@ function PropertyCard({
 
 export default function PropertiesPage() {
   const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
+  const [pageSize, setPageSize] = React.useState(20);
   const [search, setSearch] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<string>('all');
   const [classFilter, setClassFilter] = React.useState<string>('all');

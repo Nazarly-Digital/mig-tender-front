@@ -1,9 +1,17 @@
 const ruNumberFormatter = new Intl.NumberFormat('ru-RU');
 
-export function formatPrice(value: string): string {
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: '$',
+  EUR: '€',
+  RUB: '₽',
+  TRY: '₺',
+};
+
+export function formatPrice(value: string, currency?: string): string {
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
-  return ruNumberFormatter.format(num);
+  const symbol = currency ? (CURRENCY_SYMBOLS[currency] ?? currency) : '';
+  return ruNumberFormatter.format(num) + (symbol ? ` ${symbol}` : '');
 }
 
 export function formatDateShort(dateStr: string | null | undefined): string {

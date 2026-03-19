@@ -1,6 +1,6 @@
-export const currencyFormatter = new Intl.NumberFormat('en-US', {
+export const currencyFormatter = new Intl.NumberFormat('ru-RU', {
   style: 'currency',
-  currency: 'USD',
+  currency: 'RUB',
   maximumFractionDigits: 2,
 });
 

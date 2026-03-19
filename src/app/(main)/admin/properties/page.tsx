@@ -108,7 +108,7 @@ function ApproveModal({
             <div>
               <span className='text-gray-400'>Цена: </span>
               <span className='text-gray-900'>
-                {formatPrice(property.price)} {property.currency}
+                {formatPrice(property.price, property.currency)}
               </span>
             </div>
             <div>
@@ -195,7 +195,7 @@ function RejectModal({
               <div>
                 <span className='text-gray-400'>Цена: </span>
                 <span className='text-gray-900'>
-                  {formatPrice(property.price)} {property.currency}
+                  {formatPrice(property.price, property.currency)}
                 </span>
               </div>
             </div>
@@ -245,7 +245,7 @@ export default function AdminPropertiesPage() {
 
   const { data, isLoading } = usePendingProperties({
     ordering: '-created_at',
-    page_size: 50,
+    page_size: 20,
   });
   const properties = Array.isArray(data) ? data : data?.results ?? [];
 
@@ -325,7 +325,7 @@ export default function AdminPropertiesPage() {
                   </td>
                   <td className='px-5 py-3.5'>
                     <span className='text-[13px] font-medium text-gray-900'>
-                      {formatPrice(property.price)} {property.currency}
+                      {formatPrice(property.price, property.currency)}
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>

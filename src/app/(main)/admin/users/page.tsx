@@ -187,7 +187,7 @@ export default function AdminUsersPage() {
   const params = {
     ...(roleFilter !== 'all' && { role: roleFilter }),
     ordering: '-created_at',
-    page_size: 50,
+    page_size: 20,
   };
 
   const { data, isLoading } = useAdminUsers(params);
