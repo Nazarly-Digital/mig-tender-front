@@ -433,7 +433,7 @@ export default function CatalogPage() {
       {/* Content */}
       <div className='mt-6'>
         {isLoading ? (
-          <CardGridSkeleton count={12} />
+          <CardGridSkeleton count={4} />
         ) : properties.length === 0 ? (
           <div className='flex flex-col items-center justify-center gap-3 py-20'>
             <div className='flex size-12 items-center justify-center rounded-xl bg-gray-50'>
