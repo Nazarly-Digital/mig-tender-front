@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Регистрация
                 </th>
-                <th className='sticky right-0 bg-gray-50/50 px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Действия
                 </th>
               </tr>
@@ -349,7 +349,7 @@ export default function AdminUsersPage() {
                       {formatDate(user.created_at)}
                     </span>
                   </td>
-                  <td className='sticky right-0 bg-white px-5 py-3.5'>
+                  <td className='px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
                       {user.role === 'broker' && !user.broker?.is_verified && (
                         <FancyButton.Root variant='basic' size='xsmall' onClick={() => setVerifyTarget(user)}>
