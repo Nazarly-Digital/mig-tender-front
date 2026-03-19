@@ -14,6 +14,7 @@ import type {
   RegisterResponse,
   BrokerVerificationRequest,
   MeResponse,
+  MeApiResponse,
 } from "@/shared/types/auth";
 
 export const authService = {
@@ -59,5 +60,5 @@ export const authService = {
     apiInstance.post("/auth/verification/broker/", data),
 
   getMe: () =>
-    apiInstance.get<MeResponse>("/auth/me/"),
+    apiInstance.get<MeApiResponse>("/auth/me/"),
 };

@@ -25,8 +25,8 @@ export default function MobileMenu() {
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
   const user = useSessionStore((s) => s.user);
-  const isDeveloper = user?.role === 'developer';
-  const isAdmin = user?.role === 'admin';
+  const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
+  const isAdmin = user?.role === 'admin' || user?.is_admin === true;
 
   const visibleLinks = navigationLinks.filter((link) => {
     if (link.adminOnly && !isAdmin) return false;

@@ -104,7 +104,8 @@ function DetailImageCarousel({ images }: { images: Property['images'] }) {
 export default function CatalogDetailPage() {
   const params = useParams();
   const propertyId = Number(params.id);
-  const isAdmin = useSessionStore((s) => s.user?.role === 'admin');
+  const user = useSessionStore((s) => s.user);
+  const isAdmin = user?.role === 'admin' || user?.is_admin === true;
 
   const { data: property, isLoading: isPropertyLoading } = useProperty(propertyId);
 

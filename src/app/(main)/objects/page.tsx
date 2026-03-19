@@ -301,7 +301,8 @@ function useFilterParams() {
 }
 
 export default function CatalogPage() {
-  const isAdmin = useSessionStore((s) => s.user?.role === 'admin');
+  const user = useSessionStore((s) => s.user);
+  const isAdmin = user?.role === 'admin' || user?.is_admin === true;
   const { page, pageSize, search, typeFilter, classFilter, moderationFilter, setParam } = useFilterParams();
 
   const isPendingMode = isAdmin && moderationFilter === 'pending';

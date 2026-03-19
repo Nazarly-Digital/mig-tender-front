@@ -4,6 +4,11 @@ export type TokenUser = {
   first_name: string;
   last_name: string;
   role: string;
+  is_broker?: boolean;
+  is_developer?: boolean;
+  is_admin?: boolean;
+  is_active?: boolean;
+  date_joined?: string;
   broker: {
     is_verified: boolean;
     verification_status: string;
@@ -16,6 +21,21 @@ export type TokenUser = {
   developer: {
     company_name?: string;
   } | null;
+};
+
+// /auth/me/ response (different shape from login response)
+export type MeApiResponse = {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
+  date_joined: string;
+  is_broker: boolean;
+  is_developer: boolean;
+  is_admin: boolean;
+  broker: TokenUser['broker'];
+  developer: TokenUser['developer'];
 };
 
 // Login
@@ -107,5 +127,5 @@ export type BrokerVerificationRequest = {
   action: "accept" | "reject";
 };
 
-// Me (current user profile)
+// Me (current user profile) — kept for backward compat
 export type MeResponse = TokenUser;

@@ -25,7 +25,7 @@ import {
 import { cn } from '@/shared/lib/cn';
 import * as Modal from '@/shared/ui/modal';
 import * as FancyButton from '@/shared/ui/fancy-button';
-import { useSessionStore } from '@/entities/auth/model/store';
+import { useSessionStore, isUserAdmin, isUserDeveloper } from '@/entities/auth/model/store';
 
 type NavigationLink = {
   icon: typeof Home01Icon;
@@ -59,8 +59,8 @@ export default function Sidebar() {
   const router = useRouter();
   const user = useSessionStore((s) => s.user);
   const logout = useSessionStore((s) => s.logout);
-  const isDeveloper = user?.role === 'developer';
-  const isAdmin = user?.role === 'admin';
+  const isDeveloper = isUserDeveloper(user);
+  const isAdmin = isUserAdmin(user);
 
   const adminNavLinks: NavigationLink[] = [
     { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
@@ -88,6 +88,20 @@ export default function Sidebar() {
     : '?';
 
   const roleLabel = isAdmin ? 'Администратор' : isDeveloper ? 'Застройщик' : 'Брокер';
+
+  const verificationStatus = user?.broker?.verification_status;
+  const statusLabel = verificationStatus === 'accepted'
+    ? 'Верифицирован'
+    : verificationStatus === 'rejected'
+      ? 'Отклонён'
+      : verificationStatus === 'pending'
+        ? 'На проверке'
+        : null;
+  const statusColor = verificationStatus === 'accepted'
+    ? 'text-emerald-600'
+    : verificationStatus === 'rejected'
+      ? 'text-red-600'
+      : 'text-amber-600';
   const [logoutOpen, setLogoutOpen] = React.useState(false);
 
   const handleLogout = () => {
@@ -224,9 +238,16 @@ export default function Sidebar() {
               <span className="truncate text-[13px] font-medium text-gray-900">
                 {fullName}
               </span>
-              <span className="truncate text-[11px] text-gray-500">
-                {roleLabel}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="truncate text-[11px] text-gray-500">
+                  {roleLabel}
+                </span>
+                {statusLabel && (
+                  <span className={`text-[10px] font-medium ${statusColor}`}>
+                    · {statusLabel}
+                  </span>
+                )}
+              </div>
             </div>
             <button
               type="button"

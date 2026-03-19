@@ -116,7 +116,7 @@ const TABS: { value: Tab; label: string }[] = [
 export default function AuctionsPage() {
   const [tab, setTab] = React.useState<Tab>('all');
   const user = useSessionStore((s) => s.user);
-  const isDeveloper = user?.role === 'developer';
+  const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
 
   const params = {
     ...(tab !== 'all' && { status: tab as 'active' | 'finished' }),

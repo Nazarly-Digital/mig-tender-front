@@ -23,8 +23,24 @@ export function useMe() {
     queryKey: authKeys.me,
     queryFn: async () => {
       const res = await authService.getMe();
-      setUser(res.data);
-      return res.data;
+      const me = res.data;
+      // Map /auth/me/ response to TokenUser shape
+      const role = me.is_admin ? 'admin' : me.is_developer ? 'developer' : 'broker';
+      setUser({
+        id: me.id,
+        email: me.email,
+        first_name: me.first_name,
+        last_name: me.last_name,
+        role,
+        is_broker: me.is_broker,
+        is_developer: me.is_developer,
+        is_admin: me.is_admin,
+        is_active: me.is_active,
+        date_joined: me.date_joined,
+        broker: me.broker,
+        developer: me.developer,
+      });
+      return me;
     },
     enabled: isAuthenticated,
   });

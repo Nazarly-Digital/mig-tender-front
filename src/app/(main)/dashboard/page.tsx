@@ -15,7 +15,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import { useMyProperties, useProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { usePendingProperties } from '@/features/admin';
-import { useSessionStore } from '@/entities/auth/model/store';
+import { useSessionStore, isUserDeveloper, isUserAdmin } from '@/entities/auth/model/store';
 import {
   TYPE_LABELS,
   STATUS_LABELS,
@@ -146,8 +146,8 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
 
 export default function DashboardPage() {
   const user = useSessionStore((s) => s.user);
-  const isDeveloper = user?.role === 'developer';
-  const isAdmin = user?.role === 'admin';
+  const isDeveloper = isUserDeveloper(user);
+  const isAdmin = isUserAdmin(user);
 
   const { data: propertiesData } = useMyProperties({ page_size: 5, ordering: '-created_at' });
   const { data: allPropertiesData } = useProperties({ page_size: 1 }, { enabled: isAdmin });

@@ -23,6 +23,17 @@ const initialState: SessionState = {
   isAuthenticated: false,
 };
 
+// Role helpers — check both `role` field (from login) and `is_*` flags (from /auth/me/)
+export function isUserAdmin(user: TokenUser | null): boolean {
+  return user?.role === 'admin' || user?.is_admin === true;
+}
+export function isUserDeveloper(user: TokenUser | null): boolean {
+  return user?.role === 'developer' || user?.is_developer === true;
+}
+export function isUserBroker(user: TokenUser | null): boolean {
+  return user?.role === 'broker' || user?.is_broker === true;
+}
+
 export const useSessionStore = create<SessionState & SessionActions>()(
   persist(
     (set) => ({

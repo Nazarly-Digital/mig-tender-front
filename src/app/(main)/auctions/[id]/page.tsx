@@ -377,10 +377,10 @@ export default function AuctionDetailPage() {
   const router = useRouter();
   const auctionId = Number(params.id);
   const user = useSessionStore((s) => s.user);
-  const isDeveloper = user?.role === 'developer';
-  const isBroker = user?.role === 'broker';
+  const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
+  const isBroker = user?.role === 'broker' || user?.is_broker === true;
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.is_admin === true;
   const { data: auction, isLoading } = useAuctionDetail(auctionId);
   const isOpenAuction = auction?.mode === 'open';
   const isOwnerOrAdmin = auction != null && (auction.owner_id === user?.id || isAdmin);
