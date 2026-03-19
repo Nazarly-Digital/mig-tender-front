@@ -9,6 +9,8 @@ import {
   ArrowRight01Icon,
   Image01Icon,
   Building03Icon,
+  Tick01Icon,
+  Cancel01Icon,
 } from '@hugeicons/core-free-icons';
 
 import * as Select from '@/shared/ui/select';
@@ -20,8 +22,11 @@ import {
   CLASS_LABELS,
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
+import toast from 'react-hot-toast';
 import { CardGridSkeleton } from '@/shared/components/skeletons';
 import { useProperties } from '@/features/properties';
+import { usePendingProperties, useApproveProperty, useRejectProperty } from '@/features/admin';
+import { useSessionStore } from '@/entities/auth/model/store';
 import type {
   Property,
   PropertyType,
@@ -33,8 +38,21 @@ const STATUS_BADGE_STYLES: Record<string, string> = {
   completed: 'bg-emerald-50 text-emerald-700',
   active: 'bg-blue-50 text-blue-700',
   draft: 'bg-gray-100 text-gray-600',
+  published: 'bg-blue-50 text-blue-700',
   archived: 'bg-amber-50 text-amber-700',
   cancelled: 'bg-red-50 text-red-700',
+};
+
+const MODERATION_BADGE_STYLES: Record<string, string> = {
+  pending: 'bg-amber-50 text-amber-700',
+  approved: 'bg-emerald-50 text-emerald-700',
+  rejected: 'bg-red-50 text-red-700',
+};
+
+const MODERATION_LABELS: Record<string, string> = {
+  pending: 'На модерации',
+  approved: 'Одобрен',
+  rejected: 'Отклонён',
 };
 
 function PropertyImageCarousel({ images }: { images: Property['images'] }) {
@@ -108,14 +126,47 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
   );
 }
 
-function CatalogPropertyCard({ property }: { property: Property }) {
+type CatalogCardItem = {
+  id: number;
+  address: string;
+  type: string;
+  property_class: string;
+  status: string;
+  price: string;
+  currency: string;
+  area: string;
+  deadline?: string | null;
+  created_at: string;
+  images?: Property['images'];
+  developer_name?: string;
+  moderation_status?: string;
+};
+
+function CatalogPropertyCard({
+  property,
+  showActions,
+  onApprove,
+  onReject,
+  isApproving,
+  isRejecting,
+}: {
+  property: CatalogCardItem;
+  showActions?: boolean;
+  onApprove?: (id: number) => void;
+  onReject?: (id: number) => void;
+  isApproving?: boolean;
+  isRejecting?: boolean;
+}) {
   const badgeStyle = STATUS_BADGE_STYLES[property.status] || STATUS_BADGE_STYLES.draft;
+  const moderationStyle = property.moderation_status
+    ? MODERATION_BADGE_STYLES[property.moderation_status]
+    : undefined;
 
   return (
-    <Link href={`/catalog/${property.id}`} className='block'>
-      <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden transition-all duration-150 hover:border-blue-200 hover:shadow-sm'>
+    <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden transition-all duration-150 hover:border-blue-200 hover:shadow-sm'>
+      <Link href={`/catalog/${property.id}`} className='block'>
         {/* Carousel */}
-        <PropertyImageCarousel images={property.images} />
+        <PropertyImageCarousel images={property.images ?? []} />
 
         <div className='p-5'>
           {/* Header */}
@@ -133,11 +184,21 @@ function CatalogPropertyCard({ property }: { property: Property }) {
             </div>
           </div>
 
-          {/* Status */}
-          <div className='mt-3'>
+          {/* Status badges */}
+          <div className='mt-3 flex items-center gap-2 flex-wrap'>
             <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', badgeStyle)}>
-              {STATUS_LABELS[property.status]}
+              {STATUS_LABELS[property.status] ?? property.status}
             </span>
+            {property.moderation_status && moderationStyle && (
+              <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', moderationStyle)}>
+                {MODERATION_LABELS[property.moderation_status] ?? property.moderation_status}
+              </span>
+            )}
+            {property.developer_name && (
+              <span className='text-[11px] text-gray-400 truncate'>
+                {property.developer_name}
+              </span>
+            )}
           </div>
 
           {/* Details grid */}
@@ -154,12 +215,14 @@ function CatalogPropertyCard({ property }: { property: Property }) {
                 {property.area} м²
               </div>
             </div>
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дедлайн</div>
-              <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {formatDateShort(property.deadline)}
+            {property.deadline && (
+              <div>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дедлайн</div>
+                <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                  {formatDateShort(property.deadline)}
+                </div>
               </div>
-            </div>
+            )}
             <div>
               <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Создан</div>
               <div className='text-[13px] font-medium text-gray-900 mt-1'>
@@ -168,17 +231,46 @@ function CatalogPropertyCard({ property }: { property: Property }) {
             </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+
+      {/* Admin approve/reject actions — only for pending */}
+      {showActions && (
+        <div className='flex items-center gap-2 border-t border-blue-50 px-5 py-3'>
+          <button
+            type='button'
+            onClick={() => onApprove?.(property.id)}
+            disabled={isApproving || isRejecting}
+            className='flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50'
+          >
+            <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+            {isApproving ? 'Одобрение...' : 'Одобрить'}
+          </button>
+          <button
+            type='button'
+            onClick={() => onReject?.(property.id)}
+            disabled={isApproving || isRejecting}
+            className='flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-[13px] font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50'
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+            {isRejecting ? 'Отклонение...' : 'Отклонить'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
 export default function CatalogPage() {
+  const isAdmin = useSessionStore((s) => s.user?.role === 'admin');
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(12);
   const [search, setSearch] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<string>('all');
   const [classFilter, setClassFilter] = React.useState<string>('all');
+  // Admin-only: 'all' = /properties/, 'pending' = /admin/properties/pending/
+  const [moderationFilter, setModerationFilter] = React.useState<string>('all');
+
+  const isPendingMode = isAdmin && moderationFilter === 'pending';
 
   const params: PropertyListParams = {
     page,
@@ -189,17 +281,62 @@ export default function CatalogPage() {
     ordering: '-created_at',
   };
 
-  const { data, isLoading } = useProperties(params);
+  // Default: /properties/ for all users (including admin)
+  // When admin selects "pending" filter: /admin/properties/pending/
+  const propertiesQuery = useProperties(params, { enabled: !isPendingMode });
+  const pendingQuery = usePendingProperties(
+    { ordering: '-created_at', page, page_size: pageSize },
+    { enabled: isPendingMode },
+  );
 
-  const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
-  const properties = data?.results ?? [];
+  const approve = useApproveProperty();
+  const reject = useRejectProperty();
+
+  const handleApprove = (id: number) => {
+    approve.mutate(id, {
+      onSuccess: () => toast.success('Объект одобрен'),
+      onError: () => toast.error('Ошибка при одобрении'),
+    });
+  };
+
+  const handleReject = (id: number) => {
+    reject.mutate(
+      { id },
+      {
+        onSuccess: () => toast.success('Объект отклонён'),
+        onError: () => toast.error('Ошибка при отклонении'),
+      },
+    );
+  };
+
+  const isLoading = isPendingMode ? pendingQuery.isLoading : propertiesQuery.isLoading;
+
+  let properties: CatalogCardItem[];
+  let totalPages: number;
+
+  if (isPendingMode) {
+    const pendingData = pendingQuery.data;
+    properties = Array.isArray(pendingData) ? pendingData : pendingData?.results ?? [];
+    const count = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
+    totalPages = Math.ceil(count / pageSize);
+  } else {
+    const propData = propertiesQuery.data;
+    properties = propData?.results ?? [];
+    totalPages = propData ? Math.ceil(propData.count / pageSize) : 0;
+  }
+
+  // Page title depends on role
+  const pageTitle = isAdmin ? 'Объекты' : 'Каталог объектов';
+  const pageDescription = isAdmin
+    ? 'Все объекты недвижимости в системе'
+    : 'Объекты недвижимости, доступные для аукционов';
 
   return (
     <div className='w-full px-8 py-8'>
       {/* Header */}
       <div>
-        <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>Каталог объектов</h1>
-        <p className='mt-1 text-sm text-gray-500'>Объекты недвижимости, доступные для аукционов</p>
+        <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>{pageTitle}</h1>
+        <p className='mt-1 text-sm text-gray-500'>{pageDescription}</p>
       </div>
 
       {/* Filters */}
@@ -244,6 +381,21 @@ export default function CatalogPage() {
             </Select.Content>
           </Select.Root>
         </div>
+
+        {/* Admin-only: moderation filter */}
+        {isAdmin && (
+          <div className='w-[170px] shrink-0'>
+            <Select.Root size='small' value={moderationFilter} onValueChange={(v) => { setModerationFilter(v); setPage(1); }}>
+              <Select.Trigger className='h-9 w-full'>
+                <Select.Value placeholder='Модерация' />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value='all'>Все объекты</Select.Item>
+                <Select.Item value='pending'>На модерации</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -271,6 +423,11 @@ export default function CatalogPage() {
                 <CatalogPropertyCard
                   key={property.id}
                   property={property}
+                  showActions={isPendingMode}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  isApproving={approve.isPending}
+                  isRejecting={reject.isPending}
                 />
               ))}
             </div>

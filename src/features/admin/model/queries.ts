@@ -47,11 +47,12 @@ export function useAdminVerifyBroker() {
 
 // --- Properties moderation ---
 
-export function usePendingProperties(params?: PendingPropertyListParams) {
+export function usePendingProperties(params?: PendingPropertyListParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: adminKeys.pendingProperties(params),
     queryFn: () =>
       adminService.getPendingProperties(params).then((res) => res.data),
+    enabled: options?.enabled,
   });
 }
 

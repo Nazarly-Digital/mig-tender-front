@@ -25,7 +25,7 @@ export const adminService = {
 
   // Properties moderation
   getPendingProperties: (params?: PendingPropertyListParams) =>
-    apiInstance.get<PaginatedResponse<PendingProperty>>(
+    apiInstance.get<PendingProperty[] | PaginatedResponse<PendingProperty>>(
       "/admin/properties/pending/",
       { params },
     ),

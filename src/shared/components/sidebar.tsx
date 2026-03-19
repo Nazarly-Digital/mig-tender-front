@@ -62,6 +62,7 @@ export default function Sidebar() {
 
   const adminNavLinks: NavigationLink[] = [
     { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
+    { icon: Building03Icon, label: 'Объекты', href: '/catalog' },
     { icon: UserIcon, label: 'Пользователи', href: '/admin/users' },
     { icon: SecurityCheckIcon, label: 'Модерация', href: '/admin/properties' },
     { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics' },

@@ -9,6 +9,7 @@ import {
   SquareLock01Icon,
   SquareUnlock01Icon,
   Cancel01Icon,
+  Download01Icon,
 } from '@hugeicons/core-free-icons';
 
 import { TableSkeleton } from '@/shared/components/skeletons';
@@ -234,8 +235,8 @@ export default function AdminUsersPage() {
           <span className='text-[13px] font-medium text-gray-500'>Нет пользователей</span>
         </div>
       ) : (
-        <div className='mt-6 overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40'>
-          <table className='w-full text-left'>
+        <div className='mt-6 overflow-x-auto rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40'>
+          <table className='min-w-[1100px] w-full text-left'>
             <thead>
               <tr className='bg-gray-50/50'>
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
@@ -251,9 +252,15 @@ export default function AdminUsersPage() {
                   Статус
                 </th>
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  ИНН
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Документы
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Регистрация
                 </th>
-                <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                <th className='sticky right-0 bg-gray-50/50 px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Действия
                 </th>
               </tr>
@@ -265,38 +272,38 @@ export default function AdminUsersPage() {
                   className='border-b border-gray-100 last:border-0 transition-colors hover:bg-blue-50/20'
                 >
                   <td className='px-5 py-3.5'>
-                    <span className='text-[13px] font-medium text-gray-900'>
+                    <span className='text-[13px] font-medium text-gray-900 whitespace-nowrap'>
                       {user.first_name} {user.last_name}
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>
-                    <span className='text-[13px] text-gray-500'>{user.email}</span>
+                    <span className='text-[13px] text-gray-500 whitespace-nowrap'>{user.email}</span>
                   </td>
                   <td className='px-5 py-3.5'>
-                    <span className='rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600'>
+                    <span className='rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600 whitespace-nowrap'>
                       {ROLE_LABELS[user.role] ?? user.role}
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center gap-1.5'>
                       {!user.is_active ? (
-                        <span className='inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700'>
+                        <span className='inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700 whitespace-nowrap'>
                           <span className='inline-block size-1.5 rounded-full bg-red-500 mr-1' />
                           Заблокирован
                         </span>
                       ) : (
-                        <span className='inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700'>
+                        <span className='inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 whitespace-nowrap'>
                           <span className='inline-block size-1.5 rounded-full bg-emerald-500 mr-1' />
                           Активен
                         </span>
                       )}
                       {user.role === 'broker' && (
                         user.broker?.is_verified ? (
-                          <span className='rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700'>
+                          <span className='rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 whitespace-nowrap'>
                             Верифицирован
                           </span>
                         ) : (
-                          <span className='rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700'>
+                          <span className='rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 whitespace-nowrap'>
                             Не верифицирован
                           </span>
                         )
@@ -304,11 +311,45 @@ export default function AdminUsersPage() {
                     </div>
                   </td>
                   <td className='px-5 py-3.5'>
-                    <span className='text-[13px] text-gray-400'>
-                      {formatDate(user.created_at)}
+                    <span className='text-[13px] text-gray-500 whitespace-nowrap'>
+                      {user.broker?.inn_number ?? '—'}
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>
+                    <div className='flex items-center gap-2'>
+                      {user.broker?.inn_url ? (
+                        <a
+                          href={user.broker.inn_url}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap'
+                        >
+                          <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                          ИНН
+                        </a>
+                      ) : null}
+                      {user.broker?.passport_url ? (
+                        <a
+                          href={user.broker.passport_url}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap'
+                        >
+                          <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                          Паспорт
+                        </a>
+                      ) : null}
+                      {!user.broker?.inn_url && !user.broker?.passport_url && (
+                        <span className='text-[13px] text-gray-400'>—</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] text-gray-400 whitespace-nowrap'>
+                      {formatDate(user.created_at)}
+                    </span>
+                  </td>
+                  <td className='sticky right-0 bg-white px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
                       {user.role === 'broker' && !user.broker?.is_verified && (
                         <FancyButton.Root variant='basic' size='xsmall' onClick={() => setVerifyTarget(user)}>

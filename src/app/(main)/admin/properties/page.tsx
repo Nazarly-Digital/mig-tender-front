@@ -247,7 +247,7 @@ export default function AdminPropertiesPage() {
     ordering: '-created_at',
     page_size: 50,
   });
-  const properties = data?.results ?? [];
+  const properties = Array.isArray(data) ? data : data?.results ?? [];
 
   return (
     <div className='w-full px-8 py-8'>

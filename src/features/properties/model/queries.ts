@@ -26,10 +26,11 @@ export const propertyKeys = {
 
 // --- Queries ---
 
-export function useProperties(params?: PropertyListParams) {
+export function useProperties(params?: PropertyListParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: propertyKeys.list(params),
     queryFn: () => propertiesService.getAll(params).then((res) => res.data),
+    enabled: options?.enabled,
   });
 }
 
