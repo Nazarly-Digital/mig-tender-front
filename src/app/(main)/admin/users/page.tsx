@@ -344,12 +344,12 @@ export default function AdminUsersPage() {
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
                       {user.role === 'broker' && !user.broker?.is_verified && (
-                        <FancyButton.Root variant='basic' size='xsmall' onClick={() => setVerifyTarget(user)}>
+                        <FancyButton.Root variant='primary' size='xsmall' onClick={() => setVerifyTarget(user)}>
                           <HugeiconsIcon icon={SecurityCheckIcon} size={16} color='currentColor' strokeWidth={1.5} />
                           Верифицировать
                         </FancyButton.Root>
                       )}
-                      <FancyButton.Root variant='basic' size='xsmall' onClick={() => setBlockTarget(user)}>
+                      <FancyButton.Root variant={!user.is_active ? 'primary' : 'destructive'} size='xsmall' onClick={() => setBlockTarget(user)}>
                         {!user.is_active ? (
                           <HugeiconsIcon icon={SquareUnlock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
                         ) : (
