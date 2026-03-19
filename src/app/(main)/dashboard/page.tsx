@@ -11,8 +11,9 @@ import {
 } from '@hugeicons/core-free-icons';
 
 import * as FancyButton from '@/shared/ui/fancy-button';
-import { useMyProperties } from '@/features/properties';
+import { useMyProperties, useProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
+import { usePendingProperties } from '@/features/admin';
 import { useSessionStore } from '@/entities/auth/model/store';
 import {
   TYPE_LABELS,
@@ -145,13 +146,18 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
 export default function DashboardPage() {
   const user = useSessionStore((s) => s.user);
   const isDeveloper = user?.role === 'developer';
+  const isAdmin = user?.role === 'admin';
 
   const { data: propertiesData } = useMyProperties({ page_size: 5, ordering: '-created_at' });
+  const { data: allPropertiesData } = useProperties({ page_size: 1 }, { enabled: isAdmin });
+  const { data: pendingData } = usePendingProperties({ page_size: 1 }, { enabled: isAdmin });
   const myAuctions = useMyAuctions(isDeveloper ? { page_size: 5, ordering: '-created_at' } : undefined);
   const allAuctions = useAuctions(!isDeveloper ? { page_size: 5, ordering: '-created_at' } : undefined);
 
   const auctionsData = isDeveloper ? myAuctions.data : allAuctions.data;
 
+  const allPropertiesCount = allPropertiesData?.count ?? 0;
+  const pendingCount = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
   const propertiesCount = propertiesData?.count ?? 0;
   const auctionsCount = auctionsData?.count ?? 0;
   const recentProperties = propertiesData?.results ?? [];
@@ -170,7 +176,12 @@ export default function DashboardPage() {
         </div>
 
         <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-          {isDeveloper ? (
+          {isAdmin ? (
+            <>
+              <StatCard label='Все объекты' value={allPropertiesCount} href='/catalog' action='Открыть объекты' icon={Building03Icon} />
+              <StatCard label='На модерации' value={pendingCount} href='/catalog' action='Модерация' icon={Award01Icon} />
+            </>
+          ) : isDeveloper ? (
             <StatCard label='Мои объекты' value={propertiesCount} href='/properties' action='Все объекты' icon={Building03Icon} />
           ) : (
             <>
@@ -181,7 +192,7 @@ export default function DashboardPage() {
           {isDeveloper && (
             <StatCard label='Мои аукционы' value={auctionsCount} href='/auctions' action='Подробнее' icon={Award01Icon} />
           )}
-          <QuickActionCard isDeveloper={isDeveloper} />
+          {!isAdmin && <QuickActionCard isDeveloper={isDeveloper} />}
         </div>
 
         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
