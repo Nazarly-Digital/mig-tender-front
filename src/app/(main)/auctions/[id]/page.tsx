@@ -381,17 +381,25 @@ export default function AuctionDetailPage() {
   const isBroker = user?.role === 'broker' || user?.is_broker === true;
 
   const isAdmin = user?.role === 'admin' || user?.is_admin === true;
-  const { data: auction, isLoading } = useAuctionDetail(auctionId);
+  const { data: auction, isLoading: isAuctionLoading } = useAuctionDetail(auctionId);
   const isOpenAuction = auction?.mode === 'open';
   const isOwnerOrAdmin = auction != null && (auction.owner_id === user?.id || isAdmin);
   // For CLOSED auctions, participants and sealed-bids are owner/admin only
   const canViewClosedData = auction != null && !isOpenAuction && isOwnerOrAdmin;
-  const { data: participants } = useParticipants(auctionId, { enabled: isOpenAuction || isOwnerOrAdmin });
-  const { data: sealedBids } = useSealedBids(auctionId, { enabled: canViewClosedData });
+  const participantsEnabled = isOpenAuction || isOwnerOrAdmin;
+  const { data: participants, isLoading: isParticipantsLoading } = useParticipants(auctionId, { enabled: participantsEnabled });
+  const { data: sealedBids, isLoading: isSealedBidsLoading } = useSealedBids(auctionId, { enabled: canViewClosedData });
+
   const isActiveOpen = isOpenAuction && auction?.status === 'active';
 
   // WebSocket for OPEN auctions
   const ws = useAuctionSocket(auctionId, isActiveOpen === true);
+
+  // Show skeleton until all relevant data is loaded (including WS snapshot for active OPEN)
+  const isLoading = isAuctionLoading
+    || (participantsEnabled && isParticipantsLoading)
+    || (canViewClosedData && isSealedBidsLoading)
+    || (isActiveOpen && !ws.auction);
 
   const joinAuction = useJoinAuction();
   const shortlist = useShortlist();
