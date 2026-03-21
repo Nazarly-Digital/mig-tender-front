@@ -11,7 +11,6 @@ import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
 import { auctionSchema, type AuctionFormData } from '@/shared/lib/validations';
 import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
 import * as FancyButton from '@/shared/ui/fancy-button';
-import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
@@ -161,9 +160,19 @@ export default function CreateAuctionPage() {
               <Label.Root htmlFor='auction-start'>Дата начала <Label.Asterisk /></Label.Root>
               <Input.Root>
                 <Input.Wrapper>
-                  <Input.Input id='auction-start' type='datetime-local' {...register('start_date')} />
+                  <Input.Input
+                    id='auction-start'
+                    type='datetime-local'
+                    min={(() => {
+                      const d = new Date();
+                      d.setHours(d.getHours() + 1);
+                      return d.toISOString().slice(0, 16);
+                    })()}
+                    {...register('start_date')}
+                  />
                 </Input.Wrapper>
               </Input.Root>
+              <p className='text-xs text-gray-400'>Минимум через 1 час от текущего времени</p>
               {errors.start_date && <p className='text-xs text-red-500'>{errors.start_date.message}</p>}
             </div>
             <div className='space-y-1.5'>

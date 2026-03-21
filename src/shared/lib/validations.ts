@@ -99,7 +99,14 @@ export const auctionSchema = z.object({
     .string()
     .min(1, 'Введите минимальную цену')
     .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
-  start_date: z.string().min(1, 'Выберите дату начала'),
+  start_date: z
+    .string()
+    .min(1, 'Выберите дату начала')
+    .refine((v) => {
+      if (!v) return true;
+      const minTime = Date.now() + 60 * 60 * 1000;
+      return new Date(v).getTime() >= minTime;
+    }, 'Дата начала должна быть минимум через 1 час от текущего времени'),
   end_date: z.string().min(1, 'Выберите дату окончания'),
 }).refine(
   (data) => {
