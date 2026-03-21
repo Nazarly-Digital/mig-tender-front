@@ -438,13 +438,14 @@ export default function AuctionDetailPage() {
   const liveBidsCount = isActiveOpen && ws.auction ? ws.auction.bids_count : auction.bids_count;
   const liveCurrentPrice = isActiveOpen && ws.auction ? ws.auction.current_price : auction.current_price;
   const liveHighestBidId = isActiveOpen && ws.auction ? ws.auction.highest_bid_id : auction.highest_bid_id;
-  const liveParticipantsCount = isActiveOpen && ws.participants.length > 0 ? ws.participants.length : 0;
   const isHighestBidder = liveHighestBidId != null && ws.bids.length > 0 && ws.bids[0]?.broker === user?.id;
 
-  const participantIds: number[] = participants?.participants ?? [];
+  const restParticipantIds: number[] = participants?.participants ?? [];
+  const participantIds: number[] = isActiveOpen
+    ? Array.from(new Set([...restParticipantIds, ...ws.participants]))
+    : restParticipantIds;
   const isParticipant = joined
-    || participantIds.includes(user?.id ?? 0)
-    || (isActiveOpen && ws.participants.includes(user?.id ?? 0));
+    || participantIds.includes(user?.id ?? 0);
   const bidsList = Array.isArray(sealedBids) ? sealedBids : [];
   const myBid = bidsList.find((b) => b.user_id === user?.id);
 
@@ -542,7 +543,7 @@ export default function AuctionDetailPage() {
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{isActiveOpen ? Math.max(liveParticipantsCount, participantIds.length) : participantIds.length}</span>
+          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прогресс</span>
