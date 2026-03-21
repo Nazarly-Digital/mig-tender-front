@@ -110,11 +110,13 @@ function PlaceBidModal({
   open,
   onOpenChange,
   existingBid,
+  minPrice,
 }: {
   auctionId: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingBid?: Bid | null;
+  minPrice: string;
 }) {
   const [amount, setAmount] = React.useState(existingBid?.amount ?? '');
   const placeBid = usePlaceBid();
@@ -131,12 +133,27 @@ function PlaceBidModal({
     }
   }, [open, existingBid]);
 
+  const numericAmount = parseFloat(stripPriceFormat(amount)) || 0;
+  const minPriceNum = parseFloat(minPrice) || 0;
+  const isEmpty = !amount.trim();
+  const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
+  const isBelowMin = !isEmpty && !isInvalid && numericAmount < minPriceNum;
+  const isDisabled = mutation.isPending || isEmpty || isInvalid || isBelowMin;
+
+  const getError = (): string | null => {
+    if (isEmpty) return null;
+    if (isInvalid) return 'Введите корректную сумму';
+    if (isBelowMin) return `Ставка должна быть не менее ${formatPrice(minPrice)}`;
+    return null;
+  };
+  const error = getError();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount.trim()) return;
+    if (isDisabled) return;
 
     mutation.mutate(
-      { auctionId, data: { amount } },
+      { auctionId, data: { amount: stripPriceFormat(amount) } },
       {
         onSuccess: () => {
           toast.success(isUpdate ? 'Ставка обновлена' : 'Ставка размещена');
@@ -155,7 +172,7 @@ function PlaceBidModal({
         <Modal.Header
           icon={Coins01Icon}
           title={isUpdate ? 'Обновить ставку' : 'Сделать ставку'}
-          description='Укажите сумму вашей ставки'
+          description={`Минимальная сумма: ${formatPrice(minPrice)}`}
         />
         <form onSubmit={handleSubmit}>
           <Modal.Body className='space-y-4'>
@@ -167,16 +184,15 @@ function PlaceBidModal({
                 <Input.Wrapper>
                   <Input.Input
                     id='bid-amount'
-                    type='number'
-                    step='0.01'
-                    min='0'
-                    placeholder='10 000 000'
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    required
+                    type='text'
+                    inputMode='decimal'
+                    placeholder={formatPriceInput(minPrice)}
+                    value={formatPriceInput(amount)}
+                    onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              {error && <p className='text-[11px] text-red-500'>{error}</p>}
             </div>
           </Modal.Body>
           <Modal.Footer>
@@ -189,7 +205,7 @@ function PlaceBidModal({
               variant='primary'
               size='small'
               type='submit'
-              disabled={mutation.isPending || !amount.trim()}
+              disabled={isDisabled}
             >
               {mutation.isPending
                 ? 'Отправка...'
@@ -320,11 +336,24 @@ function LiveBidInput({
     ? parseFloat(minPrice)
     : parseFloat(currentPrice) + MIN_INCREMENT;
 
+  const numericAmount = parseFloat(amount) || 0;
+  const isEmpty = !amount.trim();
+  const isBelowMin = !isEmpty && numericAmount < minBid;
+  const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
+  const isDisabled = !connected || isEmpty || isBelowMin || isInvalid;
+
+  const getError = (): string | null => {
+    if (isEmpty) return null;
+    if (isInvalid) return 'Введите корректную сумму';
+    if (isBelowMin) return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))}`;
+    return null;
+  };
+  const error = getError();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const raw = stripPriceFormat(amount);
-    if (!raw) return;
-    sendBid(raw);
+    if (isDisabled) return;
+    sendBid(amount);
     setAmount('');
   };
 
@@ -354,13 +383,17 @@ function LiveBidInput({
                 />
               </Input.Wrapper>
             </Input.Root>
-            <p className='text-[11px] text-gray-400'>
-              {bidsCount === 0
-                ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)})`
-                : `Минимум: ${formatPrice(String(minBid))}`}
-            </p>
+            {error ? (
+              <p className='text-[11px] text-red-500'>{error}</p>
+            ) : (
+              <p className='text-[11px] text-gray-400'>
+                {bidsCount === 0
+                  ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)})`
+                  : `Минимум: ${formatPrice(String(Math.ceil(minBid)))}`}
+              </p>
+            )}
           </div>
-          <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={!connected}>
+          <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled}>
             <HugeiconsIcon icon={Coins01Icon} size={16} />
             {connected ? 'Поставить' : 'Подключение...'}
           </FancyButton.Root>
@@ -760,7 +793,7 @@ export default function AuctionDetailPage() {
       </div>
 
       {/* Modals */}
-      <PlaceBidModal auctionId={auctionId} open={bidModalOpen} onOpenChange={setBidModalOpen} existingBid={myBid} />
+      <PlaceBidModal auctionId={auctionId} open={bidModalOpen} onOpenChange={setBidModalOpen} existingBid={myBid} minPrice={auction.min_price} />
       {isOwner && <SelectWinnerModal auctionId={auctionId} bids={bidsList} open={winnerModalOpen} onOpenChange={setWinnerModalOpen} />}
     </div>
   );
