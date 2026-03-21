@@ -193,7 +193,7 @@ export function PropertyFormModal({
   }, [property, open, reset]);
 
   const onFormSubmit = (data: PropertyFormData) => {
-    onSubmit({ ...data, deadline: data.deadline || null });
+    onSubmit({ ...data, type: data.type as PropertyType, property_class: data.property_class as PropertyClass, status: data.status as PropertyStatus, deadline: data.deadline || null } as PropertyCreateRequest | PropertyUpdateRequest);
   };
 
   return (

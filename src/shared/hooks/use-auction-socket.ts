@@ -66,7 +66,7 @@ const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000];
 
 export function useAuctionSocket(auctionId: number, enabled = true) {
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectCount = useRef(0);
 
   const [state, setState] = useState<AuctionSocketState>({
@@ -203,7 +203,7 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
     connect();
 
     return () => {
-      clearTimeout(reconnectTimer.current);
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;

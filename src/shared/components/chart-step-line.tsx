@@ -18,7 +18,11 @@ import {
 import type { AxisDomain } from 'recharts/types/util/types';
 
 import { cn } from '@/shared/lib/cn';
-import { tooltipVariants } from '@/shared/ui/tooltip';
+// tooltipVariants inline replacement (not exported from tooltip module)
+const tooltipVariants = (_opts: { size: string; variant: string }) => ({
+  arrow: () => 'border-[5px] border-transparent border-t-white',
+  content: () => 'rounded px-1.5 py-0.5 text-xs bg-white shadow-lg border border-gray-200',
+});
 
 const TOOLTIP_OFFSET = 4;
 const CORNER_RADIUS = 8;
@@ -110,7 +114,7 @@ function convertPathToCurvedPath(pathData: string) {
   return lineGenerator(points);
 }
 
-function useTooltipPosition(chartRef: React.RefObject<HTMLDivElement>) {
+function useTooltipPosition(chartRef: React.RefObject<HTMLDivElement | null>) {
   const [tooltipPos, setTooltipPos] = React.useState({ x: 0, y: 0 });
 
   React.useEffect(() => {
@@ -157,7 +161,7 @@ function useTooltipPosition(chartRef: React.RefObject<HTMLDivElement>) {
   return tooltipPos;
 }
 
-function useUpdatedPaths(chartRef: React.RefObject<HTMLDivElement>) {
+function useUpdatedPaths(chartRef: React.RefObject<HTMLDivElement | null>) {
   const [newPathsAttrs, setNewPathsAttrs] = React.useState<
     { [k: string]: any }[]
   >([]);
@@ -248,7 +252,7 @@ const ChartStepLine = <T extends string>({
   const newPathsAttrs = useUpdatedPaths(chartRef);
 
   return (
-    <ResponsiveContainer width='100%' height={70} ref={chartRef}>
+    <ResponsiveContainer width='100%' height={70} ref={chartRef as any}>
       <RechartsLineChart
         data={data}
         margin={{ top: 1, right: 0, bottom: 0, left: 0 }}
@@ -324,6 +328,7 @@ const ChartStepLine = <T extends string>({
 
 type CustomTooltipProps = React.ComponentProps<typeof RechartsTooltip> & {
   renderContent: (props: { payload: any }) => React.ReactNode;
+  payload?: any;
 };
 
 const CustomTooltip = ({

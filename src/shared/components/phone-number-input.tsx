@@ -16,7 +16,12 @@ import { selectedCountries } from '@/shared/lib/data/countries';
 import countryNames from '@/shared/lib/data/country-names.json';
 import { cn } from '@/shared/lib/cn';
 import * as Input from '@/shared/ui/input';
-import { selectVariants } from '@/shared/ui/select';
+// selectVariants inline replacement (not exported from select module)
+const selectVariants = (_opts: { variant: string }) => ({
+  triggerRoot: () => 'flex items-center gap-1.5 px-3 text-sm text-text-strong-950 shrink-0 border-r border-stroke-soft-200',
+  triggerIcon: () => 'size-5 shrink-0 rounded-full',
+  triggerArrow: () => 'size-4 shrink-0 text-text-soft-400',
+});
 
 const countriesWithPhoneAndName = selectedCountries.reduce(
   (acc, code) => {

@@ -33,6 +33,7 @@ import type {
   Property,
   PropertyType,
   PropertyClass,
+  PropertyStatus,
   PropertyListParams,
 } from '@/shared/types/properties';
 
@@ -178,10 +179,10 @@ function CatalogPropertyCard({
             </div>
             <div className='flex items-center gap-1.5 mt-2'>
               <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
-                {TYPE_LABELS[property.type]}
+                {TYPE_LABELS[property.type as PropertyType]}
               </span>
               <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
-                {CLASS_LABELS[property.property_class]}
+                {CLASS_LABELS[property.property_class as PropertyClass]}
               </span>
             </div>
           </div>
@@ -189,7 +190,7 @@ function CatalogPropertyCard({
           {/* Status badges */}
           <div className='mt-3 flex items-center gap-2 flex-wrap'>
             <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', badgeStyle)}>
-              {STATUS_LABELS[property.status] ?? property.status}
+              {STATUS_LABELS[property.status as PropertyStatus] ?? property.status}
             </span>
             {property.moderation_status && moderationStyle && (
               <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', moderationStyle)}>

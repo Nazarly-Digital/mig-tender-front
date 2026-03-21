@@ -21,7 +21,11 @@ import {
   compactNumFormatter,
   currencyFormatter,
 } from '@/shared/lib/number-formatter';
-import { tooltipVariants } from '@/shared/ui/tooltip';
+// tooltipVariants inline replacement (not exported from tooltip module)
+const tooltipVariants = (_opts: { size: string; variant: string }) => ({
+  arrow: () => 'border-[5px] border-transparent border-t-gray-900',
+  content: () => 'rounded px-2 py-1 text-xs bg-gray-900 text-white shadow-lg',
+});
 import { type ChartConfig } from '@/shared/components/chart';
 
 const YAxisLeftTick = ({ y, payload: { value } }: any) => (
@@ -49,6 +53,7 @@ const XAxisTick = ({ x, y, payload: { value } }: any) => (
 
 type CustomTooltipProps = React.ComponentProps<typeof RechartsTooltip> & {
   renderContent: (props: { payload: any }) => React.ReactNode;
+  payload?: any;
 };
 
 const CustomTooltip = ({
@@ -153,7 +158,7 @@ export default function VerticalBarChart({
         margin={{ left: 14, right: 10, top: 0, bottom: 0 }}
         barSize={16}
         onMouseMove={(e) => {
-          setHoveredBar(e.activePayload?.[0].payload.id);
+          setHoveredBar((e as any).activePayload?.[0].payload.id);
         }}
         onMouseLeave={() => setHoveredBar('')}
       >

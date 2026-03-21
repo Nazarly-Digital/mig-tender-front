@@ -170,7 +170,7 @@ function PlaceBidModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content>
         <Modal.Header
-          icon={Coins01Icon}
+          icon={Coins01Icon as any}
           title={isUpdate ? 'Обновить ставку' : 'Сделать ставку'}
           description={`Минимальная сумма: ${formatPrice(minPrice)}`}
         />
@@ -256,7 +256,7 @@ function SelectWinnerModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content className='max-w-[500px]'>
         <Modal.Header
-          icon={ChampionIcon}
+          icon={ChampionIcon as any}
           title='Выбор победителя'
           description='Выберите ставку-победителя аукциона'
         />

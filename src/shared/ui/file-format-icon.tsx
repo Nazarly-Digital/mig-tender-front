@@ -58,9 +58,8 @@ function FileFormatIcon({
         strokeWidth="1.5"
       />
       <foreignObject x="0" y="0" width="40" height="40">
-        {/* @ts-ignore */}
         <div
-          xmlns="http://www.w3.org/1999/xhtml"
+          {...{ xmlns: "http://www.w3.org/1999/xhtml" } as any}
           className={cn(
             'absolute bottom-1.5 left-0 flex h-4 items-center rounded px-[3px] py-0.5 text-[11px] font-semibold leading-none text-white',
             colorStyles[color]

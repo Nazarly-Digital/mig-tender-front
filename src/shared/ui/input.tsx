@@ -117,7 +117,7 @@ function InputWrapper({
 }
 InputWrapper.displayName = INPUT_WRAPPER_NAME;
 
-type InputElProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type InputElProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> & {
   asChild?: boolean;
   size?: InputSize;
 };

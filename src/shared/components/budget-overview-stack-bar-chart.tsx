@@ -63,14 +63,15 @@ export function BudgetOverviewChart({ data }: { data: any }) {
               stackId='a'
               fill={chartConfig[dataKey as keyof typeof chartConfig].color}
               dataKey={dataKey}
-              shape={(props: BarProps) => {
+              shape={(props: any) => {
                 let { fill, x, y, width, height } = props;
                 y = Number(y);
+                height = Number(height);
 
                 const isFirst = i === 0;
                 const isLast = i === Object.keys(chartConfig).length - 1;
                 const computedHeight =
-                  isLast || isFirst ? height! - GAP / 2 : height! - GAP;
+                  isLast || isFirst ? height - GAP / 2 : height - GAP;
 
                 return (
                   <>

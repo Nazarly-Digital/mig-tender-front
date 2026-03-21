@@ -126,7 +126,7 @@ export default function CreatePropertyPage() {
 
   const onSubmit = (data: PropertyFormData) => {
     createMutation.mutate(
-      { ...data, deadline: data.deadline || null },
+      { ...data, type: data.type as PropertyType, property_class: data.property_class as PropertyClass, status: data.status as PropertyStatus, deadline: data.deadline || null } as any,
       {
         onSuccess: async (property) => {
           for (let i = 0; i < photos.length; i++) {
