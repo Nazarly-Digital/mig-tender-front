@@ -449,6 +449,8 @@ export default function AuctionDetailPage() {
     if (ws.error) toast.error(ws.error);
   }, [ws.error]);
 
+
+
   if (isLoading) {
     return <DetailPageSkeleton />;
   }
