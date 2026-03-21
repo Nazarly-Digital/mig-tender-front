@@ -117,11 +117,14 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
             break;
 
           case 'bid_created':
-            setState((s) => ({
-              ...s,
-              auction: s.auction ? { ...s.auction, ...msg.auction } : s.auction,
-              bids: [msg.bid, ...s.bids].slice(0, 50),
-            }));
+            setState((s) => {
+              const exists = s.bids.some((b) => b.id === msg.bid.id);
+              return {
+                ...s,
+                auction: s.auction ? { ...s.auction, ...msg.auction } : s.auction,
+                bids: exists ? s.bids : [msg.bid, ...s.bids].slice(0, 50),
+              };
+            });
             break;
 
           case 'participant_joined':
