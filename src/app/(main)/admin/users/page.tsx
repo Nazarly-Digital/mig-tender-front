@@ -214,9 +214,9 @@ export default function AdminUsersPage() {
             type='button'
             onClick={() => setRoleFilter(f.value)}
             className={
-              roleFilter === f.value
+              `cursor-pointer ${roleFilter === f.value
                 ? 'border-b-2 border-blue-600 px-3 pb-2.5 text-[13px] font-medium text-gray-900'
-                : 'border-b-2 border-transparent px-3 pb-2.5 text-[13px] font-medium text-gray-400 transition-colors hover:text-gray-600'
+                : 'border-b-2 border-transparent px-3 pb-2.5 text-[13px] font-medium text-gray-400 transition-colors hover:text-gray-600'}`
             }
           >
             {f.label}

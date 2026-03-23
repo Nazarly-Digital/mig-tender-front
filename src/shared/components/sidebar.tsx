@@ -78,8 +78,8 @@ export default function Sidebar() {
     { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
     { icon: Building03Icon, label: 'Объекты', href: '/objects' },
     { icon: UserIcon, label: 'Пользователи', href: '/admin/users' },
-    { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics' },
-    { icon: File01Icon, label: 'Документы', href: '/documents' },
+    // { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics' },
+    // { icon: File01Icon, label: 'Документы', href: '/documents' },
   ];
 
   const visibleLinks = navigationLinks.filter((link) => {
@@ -266,7 +266,7 @@ export default function Sidebar() {
             <button
               type="button"
               onClick={() => setLogoutOpen(true)}
-              className="shrink-0 rounded-lg p-1.5 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600"
+              className="shrink-0 cursor-pointer rounded-lg p-1.5 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600"
               title="Выйти"
             >
               <HugeiconsIcon icon={Logout01Icon} size={18} color="currentColor" strokeWidth={1.5} />

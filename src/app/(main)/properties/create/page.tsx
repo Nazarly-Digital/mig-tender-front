@@ -186,7 +186,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-type'>Тип <Label.Asterisk /></Label.Root>
                   <Controller name='type' control={control} render={({ field }) => (
                     <Select.Root value={field.value} onValueChange={field.onChange}>
-                      <Select.Trigger id='property-type'><Select.Value /></Select.Trigger>
+                      <Select.Trigger id='property-type' className='cursor-pointer'><Select.Value /></Select.Trigger>
                       <Select.Content>
                         {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(([v, l]) => (
                           <Select.Item key={v} value={v}>{l}</Select.Item>
@@ -200,7 +200,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-class'>Класс <Label.Asterisk /></Label.Root>
                   <Controller name='property_class' control={control} render={({ field }) => (
                     <Select.Root value={field.value} onValueChange={field.onChange}>
-                      <Select.Trigger id='property-class'><Select.Value /></Select.Trigger>
+                      <Select.Trigger id='property-class' className='cursor-pointer'><Select.Value /></Select.Trigger>
                       <Select.Content>
                         {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([v, l]) => (
                           <Select.Item key={v} value={v}>{l}</Select.Item>
@@ -267,7 +267,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
                   <Controller name='currency' control={control} render={({ field }) => (
                     <Select.Root value={field.value} onValueChange={field.onChange}>
-                      <Select.Trigger id='property-currency'><Select.Value /></Select.Trigger>
+                      <Select.Trigger id='property-currency' className='cursor-pointer'><Select.Value /></Select.Trigger>
                       <Select.Content>
                         <Select.Item value='USD'>USD</Select.Item>
                         <Select.Item value='EUR'>EUR</Select.Item>
@@ -291,7 +291,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-status'>Статус</Label.Root>
                   <Controller name='status' control={control} render={({ field }) => (
                     <Select.Root value={field.value} onValueChange={field.onChange}>
-                      <Select.Trigger id='property-status'><Select.Value /></Select.Trigger>
+                      <Select.Trigger id='property-status' className='cursor-pointer'><Select.Value /></Select.Trigger>
                       <Select.Content>
                         {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).map(([v, l]) => (
                           <Select.Item key={v} value={v}>{l}</Select.Item>
@@ -369,7 +369,7 @@ export default function CreatePropertyPage() {
             <button
               type='button'
               onClick={() => inputRef.current?.click()}
-              className='flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/30 px-4 py-8 text-sm text-gray-400 transition-colors hover:border-blue-200 hover:text-gray-600'
+              className='flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/30 px-4 py-8 text-sm text-gray-400 transition-colors hover:border-blue-200 hover:text-gray-600'
             >
               <HugeiconsIcon icon={ImageAdd01Icon} size={16} />
               Добавить фотографии
