@@ -569,9 +569,9 @@ export default function AuctionDetailPage() {
       </div>
 
       {/* KPI Row */}
-      <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'>
+      <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Текущая ставка</span>
+          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
           <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
@@ -585,10 +585,6 @@ export default function AuctionDetailPage() {
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
-        </div>
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прогресс</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{isActive ? `${progress}%` : statusCfg.label}</span>
         </div>
       </div>
 

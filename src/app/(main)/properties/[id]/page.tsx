@@ -220,18 +220,22 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Send all updates sequentially to avoid constraint conflicts
+      // Phase 1: move all to temporary high sort_order to avoid unique constraint conflicts
+      const offset = 10000;
       for (let i = 0; i < localOrder.length; i++) {
-        const img = localOrder[i];
-        const newOrder = i;
-        const needsUpdate = img.sort_order !== newOrder || img.is_primary !== images.find((o) => o.id === img.id)?.is_primary;
-        if (needsUpdate) {
-          await updateImage.mutateAsync({
-            propertyId,
-            imageId: img.id,
-            data: { sort_order: newOrder, is_primary: img.is_primary },
-          });
-        }
+        await updateImage.mutateAsync({
+          propertyId,
+          imageId: localOrder[i].id,
+          data: { sort_order: offset + i },
+        });
+      }
+      // Phase 2: set final sort_order and is_primary
+      for (let i = 0; i < localOrder.length; i++) {
+        await updateImage.mutateAsync({
+          propertyId,
+          imageId: localOrder[i].id,
+          data: { sort_order: i, is_primary: localOrder[i].is_primary },
+        });
       }
       toast.success('Порядок сохранён');
       setIsDirty(false);
