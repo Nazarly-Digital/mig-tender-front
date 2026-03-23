@@ -165,12 +165,34 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
   const [localOrder, setLocalOrder] = React.useState<PropertyImage[]>([]);
   const [isDirty, setIsDirty] = React.useState(false);
 
+  // Flag: after delete, auto-save the remaining order
+  const pendingAutoSave = React.useRef(false);
+
   // Sync from server when images change (stable key to avoid infinite loop)
   const imagesKey = images.map((i) => `${i.id}:${i.sort_order}:${i.is_primary}`).join(',');
   React.useEffect(() => {
     const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
     setLocalOrder(sorted);
     setIsDirty(false);
+    if (pendingAutoSave.current && sorted.length > 0) {
+      pendingAutoSave.current = false;
+      void (async () => {
+        setSaving(true);
+        try {
+          const offset = 10000;
+          for (let i = 0; i < sorted.length; i++) {
+            await updateImage.mutateAsync({ propertyId, imageId: sorted[i].id, data: { sort_order: offset + i } });
+          }
+          for (let i = 0; i < sorted.length; i++) {
+            await updateImage.mutateAsync({ propertyId, imageId: sorted[i].id, data: { sort_order: i, is_primary: sorted[i].is_primary } });
+          }
+          toast.success('Порядок сохранён');
+        } catch {
+          toast.error('Ошибка при сохранении порядка');
+        }
+        setSaving(false);
+      })();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imagesKey]);
 
