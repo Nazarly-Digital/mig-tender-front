@@ -279,7 +279,7 @@ export default function PropertiesPage() {
 
         <div className='w-[140px] shrink-0'>
           <Select.Root size='small' value={typeFilter} onValueChange={setTypeFilter}>
-            <Select.Trigger className='h-9 w-full'>
+            <Select.Trigger className='h-9 w-full cursor-pointer'>
               <Select.Value placeholder='Тип' />
             </Select.Trigger>
             <Select.Content>
@@ -293,7 +293,7 @@ export default function PropertiesPage() {
 
         <div className='w-[140px] shrink-0'>
           <Select.Root size='small' value={classFilter} onValueChange={setClassFilter}>
-            <Select.Trigger className='h-9 w-full'>
+            <Select.Trigger className='h-9 w-full cursor-pointer'>
               <Select.Value placeholder='Класс' />
             </Select.Trigger>
             <Select.Content>
@@ -307,7 +307,7 @@ export default function PropertiesPage() {
 
         <div className='w-[150px] shrink-0'>
           <Select.Root size='small' value={statusFilter} onValueChange={setStatusFilter}>
-            <Select.Trigger className='h-9 w-full'>
+            <Select.Trigger className='h-9 w-full cursor-pointer'>
               <Select.Value placeholder='Статус' />
             </Select.Trigger>
             <Select.Content>

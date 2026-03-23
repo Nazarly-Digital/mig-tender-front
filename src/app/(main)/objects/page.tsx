@@ -418,7 +418,7 @@ export default function CatalogPage() {
 
         <div className='w-[140px] shrink-0'>
           <Select.Root size='small' value={typeFilter} onValueChange={(v) => { setParam({ type: v, page: null }); }}>
-            <Select.Trigger className='h-9 w-full'>
+            <Select.Trigger className='h-9 w-full cursor-pointer'>
               <Select.Value placeholder='Тип' />
             </Select.Trigger>
             <Select.Content>
@@ -432,7 +432,7 @@ export default function CatalogPage() {
 
         <div className='w-[140px] shrink-0'>
           <Select.Root size='small' value={classFilter} onValueChange={(v) => { setParam({ class: v, page: null }); }}>
-            <Select.Trigger className='h-9 w-full'>
+            <Select.Trigger className='h-9 w-full cursor-pointer'>
               <Select.Value placeholder='Класс' />
             </Select.Trigger>
             <Select.Content>
