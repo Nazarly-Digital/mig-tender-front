@@ -9,6 +9,8 @@ import {
   ImageAdd01Icon,
   Cancel01Icon,
   ArrowLeft01Icon,
+  ArrowUp01Icon,
+  ArrowDown01Icon,
 } from '@hugeicons/core-free-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -110,41 +112,50 @@ export default function CreatePropertyPage() {
     const from = dragIndex.current;
     if (from === null || from === dropIndex) return;
     dragIndex.current = null;
+    movePhoto(from, dropIndex);
+  };
+
+  const movePhoto = (from: number, to: number) => {
     setPhotos((prev) => {
       const next = [...prev];
       const [item] = next.splice(from, 1);
-      next.splice(dropIndex, 0, item);
+      next.splice(to, 0, item);
       return next;
     });
     setPreviews((prev) => {
       const next = [...prev];
       const [item] = next.splice(from, 1);
-      next.splice(dropIndex, 0, item);
+      next.splice(to, 0, item);
       return next;
     });
   };
 
-  const onSubmit = (data: PropertyFormData) => {
-    createMutation.mutate(
-      { ...data, type: data.type as PropertyType, property_class: data.property_class as PropertyClass, status: data.status as PropertyStatus, deadline: data.deadline || null } as any,
-      {
-        onSuccess: async (property) => {
-          for (let i = 0; i < photos.length; i++) {
-            try {
-              await propertiesService.addImage(property.id, {
-                image: photos[i],
-                sort_order: i,
-                is_primary: i === 0,
-              });
-            } catch (err) {
-              console.error(`Ошибка загрузки фото ${i + 1}:`, err);
-            }
-          }
-          toast.success('Объект успешно создан');
-          router.push('/properties');
-        },
-      },
-    );
+  const [submitting, setSubmitting] = React.useState(false);
+
+  const onSubmit = async (data: PropertyFormData) => {
+    setSubmitting(true);
+    try {
+      const property = await createMutation.mutateAsync(
+        { ...data, type: data.type as PropertyType, property_class: data.property_class as PropertyClass, status: data.status as PropertyStatus, deadline: data.deadline || null } as any,
+      );
+      for (let i = 0; i < photos.length; i++) {
+        try {
+          await propertiesService.addImage(property.id, {
+            image: photos[i],
+            sort_order: i,
+            is_primary: i === 0,
+          });
+        } catch {
+          toast.error(`Ошибка загрузки фото ${i + 1}`);
+        }
+      }
+      toast.success('Объект успешно создан');
+      router.push('/properties');
+    } catch {
+      toast.error('Ошибка при создании объекта');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -299,11 +310,11 @@ export default function CreatePropertyPage() {
             <div className='text-[14px] font-semibold text-gray-900'>Фотографии</div>
 
             {previews.length > 0 && (
-              <div className='grid grid-cols-3 gap-2'>
+              <div className='space-y-2'>
                 {previews.map((src, i) => (
                   <div
                     key={src}
-                    className='group relative cursor-grab active:cursor-grabbing'
+                    className='group flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5 cursor-grab active:cursor-grabbing'
                     draggable
                     onDragStart={() => handleDragStart(i)}
                     onDragOver={(e) => e.preventDefault()}
@@ -312,31 +323,44 @@ export default function CreatePropertyPage() {
                     <img
                       src={src}
                       alt=''
-                      className={cn(
-                        'aspect-square w-full rounded-lg border object-cover transition-colors',
-                        i === 0 ? 'border-blue-600' : 'border-gray-200',
-                      )}
+                      className='h-14 w-14 flex-shrink-0 rounded-md object-cover'
                     />
-                    {i === 0 ? (
-                      <span className='absolute bottom-1.5 left-1.5 rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-medium text-white'>
-                        Главная
-                      </span>
-                    ) : (
+                    <div className='flex min-w-0 flex-1 flex-col gap-0.5'>
+                      <span className='truncate text-xs text-gray-500'>#{i + 1}</span>
+                      {i === 0 && (
+                        <span className='inline-flex w-fit items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700'>
+                          Главное
+                        </span>
+                      )}
+                    </div>
+                    <div className='flex items-center gap-0.5'>
                       <button
                         type='button'
-                        onClick={() => handleMakePrimary(i)}
-                        className='absolute bottom-1 left-1 rounded bg-white/80 px-1 py-0.5 text-[10px] font-medium text-gray-500 opacity-0 transition-opacity group-hover:opacity-100'
+                        disabled={i === 0}
+                        onClick={() => movePhoto(i, i - 1)}
+                        className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30'
+                        title='Переместить выше'
                       >
-                        Главная
+                        <HugeiconsIcon icon={ArrowUp01Icon} size={14} color='currentColor' strokeWidth={1.5} />
                       </button>
-                    )}
-                    <button
-                      type='button'
-                      onClick={() => handleRemovePhoto(i)}
-                      className='absolute right-1 top-1 flex size-5 items-center justify-center rounded-md bg-white/80 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100 hover:text-gray-900'
-                    >
-                      <HugeiconsIcon icon={Cancel01Icon} size={12} />
-                    </button>
+                      <button
+                        type='button'
+                        disabled={i === previews.length - 1}
+                        onClick={() => movePhoto(i, i + 1)}
+                        className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30'
+                        title='Переместить ниже'
+                      >
+                        <HugeiconsIcon icon={ArrowDown01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                      </button>
+                      <button
+                        type='button'
+                        onClick={() => handleRemovePhoto(i)}
+                        className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600'
+                        title='Удалить'
+                      >
+                        <HugeiconsIcon icon={Cancel01Icon} size={12} color='currentColor' strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -373,9 +397,9 @@ export default function CreatePropertyPage() {
             variant='primary'
             size='small'
             type='submit'
-            disabled={createMutation.isPending}
+            disabled={submitting}
           >
-            {createMutation.isPending ? 'Создание...' : 'Создать объект'}
+            {submitting ? 'Создание...' : 'Создать объект'}
           </FancyButton.Root>
         </div>
       </form>
