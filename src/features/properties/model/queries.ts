@@ -129,6 +129,30 @@ export function useDeleteProperty() {
   });
 }
 
+export function useUpdatePropertyImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      propertyId,
+      imageId,
+      data,
+    }: {
+      propertyId: number;
+      imageId: number;
+      data: { sort_order?: number; is_primary?: boolean };
+    }) => propertiesService.updateImage(propertyId, imageId, data).then((res) => res.data),
+    onSuccess: (_, { propertyId }) => {
+      queryClient.invalidateQueries({
+        queryKey: propertyKeys.images(propertyId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: propertyKeys.detail(propertyId),
+      });
+    },
+  });
+}
+
 export function useDeletePropertyImage() {
   const queryClient = useQueryClient();
 

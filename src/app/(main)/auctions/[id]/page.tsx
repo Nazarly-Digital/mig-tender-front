@@ -43,6 +43,7 @@ const STATUS_CONFIG: Record<AuctionStatus, { label: string; cls: string }> = {
   draft: { label: 'Черновик', cls: 'bg-gray-100 text-gray-600' },
   finished: { label: 'Завершён', cls: 'bg-blue-50 text-blue-700' },
   cancelled: { label: 'Отменён', cls: 'bg-red-50 text-red-700' },
+  scheduled: { 'label': 'Запланирован', cls: 'bg-gray-100 text-gray-600' }
 };
 
 const MODE_LABELS: Record<AuctionMode, string> = {
@@ -269,11 +270,10 @@ function SelectWinnerModal({
                 key={bid.id}
                 type='button'
                 onClick={() => setSelectedBidId(bid.id)}
-                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${
-                  selectedBidId === bid.id
+                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${selectedBidId === bid.id
                     ? 'border-blue-600 bg-blue-50'
                     : 'border-gray-200 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <div>
                   <div className='text-sm font-medium text-gray-900'>

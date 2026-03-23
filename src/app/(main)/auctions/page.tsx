@@ -21,6 +21,7 @@ const STATUS_CONFIG: Record<AuctionStatus, { label: string; cls: string; dot: st
   draft: { label: 'Черновик', cls: 'bg-gray-100 text-gray-600', dot: 'bg-amber-500', text: 'text-amber-600' },
   finished: { label: 'Завершён', cls: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500', text: 'text-blue-600' },
   cancelled: { label: 'Отменён', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-500' },
+  scheduled: { label: 'Запланирован', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-500' },
 };
 
 const MODE_LABELS: Record<AuctionMode, string> = {
@@ -176,11 +177,10 @@ export default function AuctionsPage() {
             key={t.value}
             type='button'
             onClick={() => handleTabChange(t.value)}
-            className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === t.value
+            className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors border-b-2 -mb-px ${tab === t.value
                 ? 'border-blue-600 text-gray-900'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
+              }`}
           >
             {t.label}
           </button>

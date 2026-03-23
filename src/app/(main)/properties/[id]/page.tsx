@@ -35,6 +35,7 @@ import {
   useDeleteProperty,
   usePropertyImages,
   useAddPropertyImage,
+  useUpdatePropertyImage,
   useDeletePropertyImage,
 } from '@/features/properties';
 import type {
@@ -154,20 +155,43 @@ function ImagesGallery({ images }: { images: PropertyImage[] }) {
 function ImageUploadSection({ propertyId }: { propertyId: number }) {
   const { data: images = [] } = usePropertyImages(propertyId);
   const addImage = useAddPropertyImage();
+  const updateImage = useUpdatePropertyImage();
   const deleteImage = useDeletePropertyImage();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+
+  // Local order state — synced from server, edited locally
+  const [localOrder, setLocalOrder] = React.useState<PropertyImage[]>([]);
+  const [isDirty, setIsDirty] = React.useState(false);
+
+  // Sync from server when images change
+  React.useEffect(() => {
+    const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
+    setLocalOrder(sorted);
+    setIsDirty(false);
+  }, [images]);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || uploading) return;
     setUploading(true);
-    for (const file of Array.from(files)) {
+    const startOrder = localOrder.length > 0 ? Math.max(...localOrder.map((i) => i.sort_order)) + 1 : 0;
+    const fileArr = Array.from(files);
+    for (let i = 0; i < fileArr.length; i++) {
+      const file = fileArr[i];
       if (file.size > 5 * 1024 * 1024) {
         toast.error(`Файл «${file.name}» превышает 5MB`);
         continue;
       }
       try {
-        await addImage.mutateAsync({ propertyId, data: { image: file } });
+        await addImage.mutateAsync({
+          propertyId,
+          data: {
+            image: file,
+            sort_order: startOrder + i,
+            is_primary: localOrder.length === 0 && i === 0,
+          },
+        });
       } catch {
         toast.error(`Ошибка загрузки «${file.name}»`);
       }
@@ -176,33 +200,118 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
     if (inputRef.current) inputRef.current.value = '';
   };
 
+  const moveImage = (fromIdx: number, toIdx: number) => {
+    const next = [...localOrder];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    setLocalOrder(next);
+    setIsDirty(true);
+  };
+
+  const togglePrimary = (imageId: number) => {
+    setLocalOrder((prev) =>
+      prev.map((img) => ({ ...img, is_primary: img.id === imageId })),
+    );
+    setIsDirty(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Send all updates sequentially to avoid constraint conflicts
+      for (let i = 0; i < localOrder.length; i++) {
+        const img = localOrder[i];
+        const newOrder = i;
+        const needsUpdate = img.sort_order !== newOrder || img.is_primary !== images.find((o) => o.id === img.id)?.is_primary;
+        if (needsUpdate) {
+          await updateImage.mutateAsync({
+            propertyId,
+            imageId: img.id,
+            data: { sort_order: newOrder, is_primary: img.is_primary },
+          });
+        }
+      }
+      toast.success('Порядок сохранён');
+      setIsDirty(false);
+    } catch {
+      toast.error('Ошибка при сохранении порядка');
+    }
+    setSaving(false);
+  };
+
   return (
     <div className='space-y-3'>
-      {images.length > 0 && (
-        <div className='flex flex-wrap gap-2'>
-          {images.map((img) => (
-            <div key={img.id} className='group relative'>
+      {localOrder.length > 0 && (
+        <div className='space-y-2'>
+          {localOrder.map((img, idx) => (
+            <div key={img.id} className='group flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5'>
               <img
                 src={img.url || img.external_url || ''}
                 alt=''
-                className='h-20 w-20 rounded-lg border border-gray-200 object-cover'
+                className='h-14 w-14 flex-shrink-0 rounded-md object-cover'
               />
-              {img.is_primary && (
-                <span className='absolute bottom-1 left-1 flex size-4 items-center justify-center rounded-full bg-blue-600'>
-                  <RiCheckLine className='size-2.5 text-white' />
-                </span>
-              )}
-              <button
-                type='button'
-                onClick={() => deleteImage.mutate({ propertyId, imageId: img.id })}
-                className='absolute right-1 top-1 flex size-5 items-center justify-center rounded-md bg-white/80 opacity-0 transition-opacity group-hover:opacity-100'
-              >
-                <RiCloseLine className='size-3 text-gray-900' />
-              </button>
+              <div className='flex min-w-0 flex-1 flex-col gap-0.5'>
+                <span className='truncate text-xs text-gray-500'>#{idx + 1}</span>
+                {img.is_primary && (
+                  <span className='inline-flex w-fit items-center gap-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700'>
+                    Главное
+                  </span>
+                )}
+              </div>
+              <div className='flex items-center gap-0.5'>
+                <button
+                  type='button'
+                  disabled={idx === 0}
+                  onClick={() => moveImage(idx, idx - 1)}
+                  className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30'
+                  title='Переместить выше'
+                >
+                  <HugeiconsIcon icon={ArrowLeft01Icon} size={14} color='currentColor' strokeWidth={1.5} className='rotate-90' />
+                </button>
+                <button
+                  type='button'
+                  disabled={idx === localOrder.length - 1}
+                  onClick={() => moveImage(idx, idx + 1)}
+                  className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30'
+                  title='Переместить ниже'
+                >
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} color='currentColor' strokeWidth={1.5} className='rotate-90' />
+                </button>
+                {!img.is_primary && (
+                  <button
+                    type='button'
+                    onClick={() => togglePrimary(img.id)}
+                    className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600'
+                    title='Сделать главным'
+                  >
+                    <RiCheckLine className='size-3.5' />
+                  </button>
+                )}
+                <button
+                  type='button'
+                  onClick={() => deleteImage.mutate({ propertyId, imageId: img.id })}
+                  className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600'
+                  title='Удалить'
+                >
+                  <RiCloseLine className='size-3.5' />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
+
+      {isDirty && (
+        <button
+          type='button'
+          disabled={saving}
+          onClick={handleSave}
+          className='flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:opacity-60'
+        >
+          {saving ? 'Сохранение...' : 'Сохранить порядок'}
+        </button>
+      )}
+
       <button
         type='button'
         disabled={uploading}

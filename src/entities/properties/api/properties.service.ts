@@ -42,6 +42,10 @@ export const propertiesService = {
   deleteImage: (propertyId: number, imageId: number) =>
     apiInstance.delete(`/properties/${propertyId}/images/${imageId}/`),
 
+  // Update image (sort_order / is_primary)
+  updateImage: (propertyId: number, imageId: number, data: { sort_order?: number; is_primary?: boolean }) =>
+    apiInstance.patch<PropertyImage>(`/properties/${propertyId}/images/${imageId}/`, data),
+
   // Upload image for a property
   addImage: (propertyId: number, data: PropertyImageCreateRequest) => {
     const formData = new FormData();

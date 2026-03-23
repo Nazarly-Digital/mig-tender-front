@@ -1,8 +1,13 @@
-import type { PaginatedResponse } from './properties';
+import type { PaginatedResponse } from "./properties";
 
-export type AuctionMode = 'open' | 'closed';
+export type AuctionMode = "open" | "closed";
 
-export type AuctionStatus = 'draft' | 'active' | 'finished' | 'cancelled';
+export type AuctionStatus =
+  | "draft"
+  | "active"
+  | "finished"
+  | "cancelled"
+  | "scheduled";
 
 export type Auction = {
   id: number;
