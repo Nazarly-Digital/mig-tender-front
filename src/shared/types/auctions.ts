@@ -26,8 +26,16 @@ export type Auction = {
   updated_at: string;
 };
 
+export type AuctionDetailBid = {
+  id: number;
+  auction_id: number;
+  broker_id: number;
+  amount: string;
+  created_at: string;
+};
+
 export type AuctionDetail = Auction & {
-  bids: unknown;
+  bids: AuctionDetailBid[];
 };
 
 export type AuctionCreateRequest = {

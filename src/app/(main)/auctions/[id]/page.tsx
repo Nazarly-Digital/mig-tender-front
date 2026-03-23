@@ -271,8 +271,8 @@ function SelectWinnerModal({
                 type='button'
                 onClick={() => setSelectedBidId(bid.id)}
                 className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${selectedBidId === bid.id
-                    ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:bg-gray-50'
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-200 hover:bg-gray-50'
                   }`}
               >
                 <div>
@@ -488,7 +488,15 @@ export default function AuctionDetailPage() {
   const isParticipant = joined
     || participantIds.includes(user?.id ?? 0);
   const bidsList = Array.isArray(sealedBids) ? sealedBids : [];
-  const myBid = bidsList.find((b) => b.user_id === user?.id);
+  const mySealedBid = bidsList.find((b) => b.user_id === user?.id);
+  // For open auctions: check bids from auction detail REST response (broker_id)
+  const auctionBids = Array.isArray(auction.bids) ? auction.bids : [];
+  const myRestBid = auctionBids.find((b) => b.broker_id === user?.id);
+  // Also check WS bids (broker)
+  const myWsBid = ws.bids.find((b) => b.broker === user?.id);
+  const myBid = mySealedBid
+    ?? (myRestBid ? { id: myRestBid.id, amount: myRestBid.amount, created_at: myRestBid.created_at, updated_at: myRestBid.created_at } : undefined)
+    ?? (myWsBid ? { id: myWsBid.id, amount: myWsBid.amount, created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined);
 
   const handleJoin = () => {
     joinAuction.mutate(auctionId, {
@@ -569,7 +577,7 @@ export default function AuctionDetailPage() {
       </div>
 
       {/* KPI Row */}
-      <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
+      <div className={`grid grid-cols-2 gap-3 ${isOpenAuction ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
           <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)}</span>
@@ -582,10 +590,12 @@ export default function AuctionDetailPage() {
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
         </div>
+        {isOpenAuction && (
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
         </div>
+        )}
       </div>
 
       {/* Main 2/3 + 1/3 */}
@@ -724,39 +734,39 @@ export default function AuctionDetailPage() {
 
           {/* Participants — only for open auctions */}
           {isOpenAuction && (
-          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
-            <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
-              <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
-            </h3>
-            {participantIds.length === 0 ? (
-              <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
-            ) : (
-              <div className='mt-3 space-y-1.5'>
-                {participantIds.map((pid) => (
-                  <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                    {isOwner && isActive && (
-                      <button type='button' onClick={() => toggleShortlist(pid)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(pid) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
-                        {shortlistIds.has(pid) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
-                      </button>
-                    )}
-                    <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                      #{pid}
+            <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
+              <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
+                <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
+              </h3>
+              {participantIds.length === 0 ? (
+                <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
+              ) : (
+                <div className='mt-3 space-y-1.5'>
+                  {participantIds.map((pid) => (
+                    <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                      {isOwner && isActive && (
+                        <button type='button' onClick={() => toggleShortlist(pid)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(pid) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
+                          {shortlistIds.has(pid) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
+                        </button>
+                      )}
+                      <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                        #{pid}
+                      </div>
+                      <span className='text-[13px] font-medium text-gray-900'>Участник #{pid}</span>
                     </div>
-                    <span className='text-[13px] font-medium text-gray-900'>Участник #{pid}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {isOwner && isActive && shortlistIds.size > 0 && (
-              <>
-                <div className='my-3 border-t border-blue-50' />
-                <FancyButton.Root variant='primary' size='small' className='w-full' onClick={handleShortlist} disabled={shortlist.isPending}>
-                  <HugeiconsIcon icon={CheckListIcon} size={16} color='currentColor' strokeWidth={1.5} />
-                  {shortlist.isPending ? 'Формирование...' : `В шорт-лист (${shortlistIds.size})`}
-                </FancyButton.Root>
-              </>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+              {isOwner && isActive && shortlistIds.size > 0 && (
+                <>
+                  <div className='my-3 border-t border-blue-50' />
+                  <FancyButton.Root variant='primary' size='small' className='w-full' onClick={handleShortlist} disabled={shortlist.isPending}>
+                    <HugeiconsIcon icon={CheckListIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                    {shortlist.isPending ? 'Формирование...' : `В шорт-лист (${shortlistIds.size})`}
+                  </FancyButton.Root>
+                </>
+              )}
+            </div>
           )}
 
           {/* Broker status */}
@@ -772,7 +782,7 @@ export default function AuctionDetailPage() {
                   }
                 </div>
                 <div className='flex justify-between'>
-                  <span className='text-gray-500'>Ставка</span>
+                  <span className='text-gray-500'>Ваша ставка</span>
                   {myBid ? <span className='font-semibold text-gray-900'>{formatPrice(myBid.amount)}</span> : <span className='text-gray-400'>—</span>}
                 </div>
                 {auction.winner_bid_id && myBid && (
