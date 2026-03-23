@@ -307,6 +307,7 @@ export default function CatalogPage() {
   const { page, pageSize, search, typeFilter, classFilter, moderationFilter, setParam } = useFilterParams();
 
   const isPendingMode = isAdmin && moderationFilter === 'pending';
+  const isAllMode = isAdmin && moderationFilter === 'all';
 
   const params: PropertyListParams = {
     page,
@@ -317,20 +318,19 @@ export default function CatalogPage() {
     ordering: '-created_at',
   };
 
-  // Default: /properties/ for all users (including admin)
-  // When admin selects "pending" filter: /admin/properties/pending/
+  const pendingParams = {
+    page,
+    page_size: pageSize,
+    ...(search && { address: search }),
+    ...(typeFilter !== 'all' && { type: typeFilter }),
+    ...(classFilter !== 'all' && { property_class: classFilter }),
+    ordering: '-created_at',
+  };
+
+  // Fetch published properties (always except pending-only mode)
   const propertiesQuery = useProperties(params, { enabled: !isPendingMode });
-  const pendingQuery = usePendingProperties(
-    {
-      page,
-      page_size: pageSize,
-      ...(search && { address: search }),
-      ...(typeFilter !== 'all' && { type: typeFilter }),
-      ...(classFilter !== 'all' && { property_class: classFilter }),
-      ordering: '-created_at',
-    },
-    { enabled: isPendingMode },
-  );
+  // Fetch pending properties (for admin: pending mode OR all mode)
+  const pendingQuery = usePendingProperties(pendingParams, { enabled: isPendingMode || isAllMode });
 
   const approve = useApproveProperty();
   const reject = useRejectProperty();
@@ -356,7 +356,11 @@ export default function CatalogPage() {
     );
   };
 
-  const isLoading = isPendingMode ? pendingQuery.isLoading : propertiesQuery.isLoading;
+  const isLoading = isPendingMode
+    ? pendingQuery.isLoading
+    : isAllMode
+      ? propertiesQuery.isLoading || pendingQuery.isLoading
+      : propertiesQuery.isLoading;
 
   let properties: CatalogCardItem[];
   let totalPages: number;
@@ -366,6 +370,17 @@ export default function CatalogPage() {
     properties = Array.isArray(pendingData) ? pendingData : pendingData?.results ?? [];
     const count = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
     totalPages = Math.ceil(count / pageSize);
+  } else if (isAllMode) {
+    // Merge published + pending, deduplicate by id
+    const published = propertiesQuery.data?.results ?? [];
+    const pendingData = pendingQuery.data;
+    const pending: CatalogCardItem[] = Array.isArray(pendingData) ? pendingData : pendingData?.results ?? [];
+    const publishedIds = new Set(published.map((p) => p.id));
+    const merged = [...published, ...pending.filter((p) => !publishedIds.has(p.id))];
+    properties = merged;
+    const publishedCount = propertiesQuery.data?.count ?? 0;
+    const pendingCount = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
+    totalPages = Math.ceil((publishedCount + pendingCount) / pageSize);
   } else {
     const propData = propertiesQuery.data;
     properties = propData?.results ?? [];
