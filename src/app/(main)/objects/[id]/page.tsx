@@ -180,7 +180,7 @@ export default function CatalogDetailPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {isAdmin && (
+          {isAdmin && property.moderation_status === 'pending' && (
             <>
               <FancyButton.Root
                 variant='primary'
@@ -201,14 +201,6 @@ export default function CatalogDetailPage() {
                 {reject.isPending ? 'Отклонение...' : 'Отклонить'}
               </FancyButton.Root>
             </>
-          )}
-          {activeAuction && (
-            <Link href={`/auctions/${activeAuction.id}`}>
-              <FancyButton.Root variant='primary' size='small'>
-                <HugeiconsIcon icon={Award01Icon} size={16} />
-                Участвовать в аукционе
-              </FancyButton.Root>
-            </Link>
           )}
         </div>
       </div>

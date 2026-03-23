@@ -78,6 +78,7 @@ export default function Sidebar() {
     { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
     { icon: Building03Icon, label: 'Объекты', href: '/objects' },
     { icon: UserIcon, label: 'Пользователи', href: '/admin/users' },
+    { icon: Award01Icon, label: 'Аукционы', href: '/auctions' },
     // { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics' },
     // { icon: File01Icon, label: 'Документы', href: '/documents' },
   ];
