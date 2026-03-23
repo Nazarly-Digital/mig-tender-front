@@ -494,9 +494,9 @@ export default function AuctionDetailPage() {
   const myRestBid = auctionBids.find((b) => b.broker_id === user?.id);
   // Also check WS bids (broker)
   const myWsBid = ws.bids.find((b) => b.broker === user?.id);
-  const myBid = mySealedBid
-    ?? (myRestBid ? { id: myRestBid.id, amount: myRestBid.amount, created_at: myRestBid.created_at, updated_at: myRestBid.created_at } : undefined)
-    ?? (myWsBid ? { id: myWsBid.id, amount: myWsBid.amount, created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined);
+  const myBid: Bid | undefined = mySealedBid
+    ?? (myRestBid ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at } : undefined)
+    ?? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined);
 
   const handleJoin = () => {
     joinAuction.mutate(auctionId, {
