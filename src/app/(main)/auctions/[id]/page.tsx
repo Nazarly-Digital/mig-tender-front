@@ -744,11 +744,6 @@ export default function AuctionDetailPage() {
                 <div className='mt-3 space-y-1.5'>
                   {participantIds.map((pid) => (
                     <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                      {isOwner && isActive && (
-                        <button type='button' onClick={() => toggleShortlist(pid)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(pid) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
-                          {shortlistIds.has(pid) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
-                        </button>
-                      )}
                       <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
                         #{pid}
                       </div>
@@ -756,15 +751,6 @@ export default function AuctionDetailPage() {
                     </div>
                   ))}
                 </div>
-              )}
-              {isOwner && isActive && shortlistIds.size > 0 && (
-                <>
-                  <div className='my-3 border-t border-blue-50' />
-                  <FancyButton.Root variant='primary' size='small' className='w-full' onClick={handleShortlist} disabled={shortlist.isPending}>
-                    <HugeiconsIcon icon={CheckListIcon} size={16} color='currentColor' strokeWidth={1.5} />
-                    {shortlist.isPending ? 'Формирование...' : `В шорт-лист (${shortlistIds.size})`}
-                  </FancyButton.Root>
-                </>
               )}
             </div>
           )}
