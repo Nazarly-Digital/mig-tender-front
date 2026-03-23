@@ -295,7 +295,10 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
                 )}
                 <button
                   type='button'
-                  onClick={() => deleteImage.mutate({ propertyId, imageId: img.id })}
+                  onClick={() => toast.promise(
+                    deleteImage.mutateAsync({ propertyId, imageId: img.id }),
+                    { loading: 'Удаление...', success: 'Фото удалено', error: 'Ошибка при удалении' },
+                  )}
                   className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600'
                   title='Удалить'
                 >
