@@ -19,9 +19,9 @@ import type {
 const STATUS_CONFIG: Record<AuctionStatus, { label: string; cls: string; dot: string; text: string }> = {
   active: { label: 'Активный', cls: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500', text: 'text-emerald-600' },
   draft: { label: 'Черновик', cls: 'bg-gray-100 text-gray-600', dot: 'bg-amber-500', text: 'text-amber-600' },
-  finished: { label: 'Завершён', cls: 'bg-blue-50 text-blue-700', dot: 'bg-blue-500', text: 'text-blue-600' },
+  finished: { label: 'Завершён', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-600' },
   cancelled: { label: 'Отменён', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-500' },
-  scheduled: { label: 'Запланирован', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-500' },
+  scheduled: { label: 'Запланирован', cls: 'bg-red-50 text-red-700', dot: 'bg-blue-500', text: 'text-blue-500' },
 };
 
 const MODE_LABELS: Record<AuctionMode, string> = {

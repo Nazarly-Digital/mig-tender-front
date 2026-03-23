@@ -25,9 +25,11 @@ import {
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import { useProperty } from '@/features/properties';
+import { propertyKeys } from '@/features/properties/model/queries';
 import { useAuctions } from '@/features/auctions';
 import { useApproveProperty, useRejectProperty } from '@/features/admin';
 import { useSessionStore } from '@/entities/auth/model/store';
+import { useQueryClient } from '@tanstack/react-query';
 import type { Property } from '@/shared/types/properties';
 
 const STATUS_BADGE_STYLES: Record<string, string> = {
@@ -118,19 +120,34 @@ export default function CatalogDetailPage() {
 
   const activeAuction = auctionsData?.results?.[0] ?? null;
 
+  const queryClient = useQueryClient();
   const approve = useApproveProperty();
   const reject = useRejectProperty();
 
   const handleApprove = () => {
     approve.mutate(propertyId, {
-      onSuccess: () => toast.success('Объект одобрен'),
+      onSuccess: () => {
+        toast.success('Объект одобрен');
+        queryClient.setQueryData(
+          propertyKeys.detail(propertyId),
+          (old: Property | undefined) => old ? { ...old, moderation_status: 'approved' as const } : old,
+        );
+      },
     });
   };
 
   const handleReject = () => {
     reject.mutate(
       { id: propertyId },
-      { onSuccess: () => toast.success('Объект отклонён') },
+      {
+        onSuccess: () => {
+          toast.success('Объект отклонён');
+          queryClient.setQueryData(
+            propertyKeys.detail(propertyId),
+            (old: Property | undefined) => old ? { ...old, moderation_status: 'rejected' as const } : old,
+          );
+        },
+      },
     );
   };
 
@@ -180,7 +197,7 @@ export default function CatalogDetailPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {isAdmin && (
+          {isAdmin && property.moderation_status === 'pending' && (
             <>
               <FancyButton.Root
                 variant='primary'

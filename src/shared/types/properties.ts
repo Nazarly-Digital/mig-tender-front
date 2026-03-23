@@ -32,6 +32,7 @@ export type Property = {
   currency: string;
   deadline: string | null;
   status: PropertyStatus;
+  moderation_status: 'pending' | 'approved' | 'rejected';
   images: PropertyImage[];
   created_at: string;
   updated_at: string;
