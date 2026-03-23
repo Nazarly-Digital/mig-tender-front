@@ -68,7 +68,7 @@ export default function PageLogin() {
     setError('');
     login.mutate(data, {
       onSuccess: () => {
-        router.push('/dashboard');
+        router.replace('/dashboard');
       },
       onError: (err) => {
         if (err instanceof AxiosError) {

@@ -124,7 +124,7 @@ export function useLogout() {
       logout();
     },
     onSuccess: () => {
-      router.push("/login");
+      router.replace("/login");
     },
   });
 }

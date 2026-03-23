@@ -2,6 +2,18 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { TokenUser } from "@/shared/types/auth";
 
+const COOKIE = 'has_session';
+
+function setAuthCookie() {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${COOKIE}=1; path=/; max-age=604800; SameSite=Lax`;
+}
+
+function clearAuthCookie() {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+}
+
 type SessionState = {
   accessToken: string | null;
   refreshToken: string | null;
@@ -39,21 +51,29 @@ export const useSessionStore = create<SessionState & SessionActions>()(
     (set) => ({
       ...initialState,
 
-      setTokens: (access, refresh) =>
-        set({
-          accessToken: access,
-          refreshToken: refresh,
-          isAuthenticated: true,
-        }),
+      setTokens: (access, refresh) => {
+        setAuthCookie();
+        set({ accessToken: access, refreshToken: refresh, isAuthenticated: true });
+      },
 
       setUser: (user) => set({ user }),
 
-      logout: () => set({ ...initialState }),
+      logout: () => {
+        clearAuthCookie();
+        set({ ...initialState });
+      },
 
-      reset: () => set({ ...initialState }),
+      reset: () => {
+        clearAuthCookie();
+        set({ ...initialState });
+      },
     }),
     {
       name: "session-storage",
+      // После восстановления из localStorage — синхронизируем cookie
+      onRehydrateStorage: () => (state) => {
+        if (state?.isAuthenticated) setAuthCookie();
+      },
       partialize: (state) => ({
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,

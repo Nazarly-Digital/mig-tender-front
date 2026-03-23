@@ -62,7 +62,7 @@ export function useDeveloperRegistration() {
           if (err instanceof AxiosError) {
             if (err.response?.status === 409 || err.response?.data?.error === 'User already exists.') {
               toast.error('Аккаунт с таким email уже существует');
-              router.push('/login');
+              router.replace('/login');
               return;
             } else if (err.response?.status === 429) {
               const data = err.response.data as GetCodeError429;
@@ -136,7 +136,7 @@ export function useDeveloperRegistration() {
       },
       {
         onSuccess: () => {
-          router.push('/dashboard');
+          router.replace('/dashboard');
         },
         onError: (err) => {
           if (err instanceof AxiosError) {

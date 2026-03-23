@@ -64,7 +64,7 @@ export default function MainLayout({
   useEffect(() => {
     if (!isInited) return;
     if (!isAuthenticated) {
-      router.replace('/select-role');
+      router.replace('/login');
     }
   }, [isAuthenticated, router, isInited]);
 
