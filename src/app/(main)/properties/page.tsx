@@ -10,7 +10,6 @@ import {
   ArrowRight01Icon,
   Image01Icon,
   Delete01Icon,
-  Edit01Icon,
   Building03Icon,
 } from '@hugeicons/core-free-icons';
 
@@ -25,11 +24,9 @@ import {
   STATUS_LABELS,
   STATUS_MAP,
 } from '@/shared/components/properties-table';
-import { PropertyFormModal } from '@/shared/components/property-form-modal';
 import { CardGridSkeleton } from '@/shared/components/skeletons';
 import {
   useMyProperties,
-  useUpdateProperty,
   useDeleteProperty,
 } from '@/features/properties';
 import type {
@@ -37,7 +34,6 @@ import type {
   PropertyType,
   PropertyClass,
   PropertyStatus,
-  PropertyUpdateRequest,
   PropertyListParams,
 } from '@/shared/types/properties';
 
@@ -135,17 +131,18 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
 
 function PropertyCard({
   property,
-  onEdit,
   onDelete,
 }: {
   property: Property;
-  onEdit: (p: Property) => void;
   onDelete: (p: Property) => void;
 }) {
   const badgeStyle = STATUS_BADGE_STYLES[property.status] || STATUS_BADGE_STYLES.draft;
 
   return (
-    <div className='group overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
+    <Link
+      href={`/properties/${property.id}`}
+      className='group block overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'
+    >
       {/* Image with overlays */}
       <div className='relative'>
         <PropertyImageCarousel images={property.images} />
@@ -162,18 +159,11 @@ function PropertyCard({
         <div className='absolute left-3 bottom-3 rounded-md bg-black/60 px-2 py-1 text-[13px] font-bold text-white backdrop-blur-sm'>
           {formatPrice(property.price, property.currency)}
         </div>
-        {/* Edit/Delete on hover */}
-        <div className='absolute right-3 top-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+        {/* Delete on hover */}
+        <div className='absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity'>
           <button
             type='button'
-            onClick={() => onEdit(property)}
-            className='size-7 rounded-md bg-white/80 flex items-center justify-center text-gray-600 backdrop-blur-sm hover:bg-white transition-colors'
-          >
-            <HugeiconsIcon icon={Edit01Icon} size={14} />
-          </button>
-          <button
-            type='button'
-            onClick={() => onDelete(property)}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(property); }}
             className='size-7 rounded-md bg-white/80 flex items-center justify-center text-gray-600 backdrop-blur-sm hover:bg-white hover:text-red-500 transition-colors'
           >
             <HugeiconsIcon icon={Delete01Icon} size={14} />
@@ -192,7 +182,7 @@ function PropertyCard({
           {property.area} м² · до {formatDate(property.deadline)}
         </span>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -203,9 +193,6 @@ export default function PropertiesPage() {
   const [typeFilter, setTypeFilter] = React.useState<string>('all');
   const [classFilter, setClassFilter] = React.useState<string>('all');
   const [statusFilter, setStatusFilter] = React.useState<string>('all');
-
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [editingProperty, setEditingProperty] = React.useState<Property | null>(null);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [deletingProperty, setDeletingProperty] = React.useState<Property | null>(null);
@@ -220,15 +207,9 @@ export default function PropertiesPage() {
   };
 
   const { data, isLoading } = useMyProperties(params);
-  const updateMutation = useUpdateProperty();
   const deleteMutation = useDeleteProperty();
 
   const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
-
-  const handleEdit = (property: Property) => {
-    setEditingProperty(property);
-    setModalOpen(true);
-  };
 
   const handleDeleteClick = (property: Property) => {
     setDeletingProperty(property);
@@ -243,17 +224,6 @@ export default function PropertiesPage() {
         setDeletingProperty(null);
       },
     });
-  };
-
-  const handleSubmit = (formData: PropertyUpdateRequest) => {
-    if (editingProperty) {
-      updateMutation.mutate(
-        { id: editingProperty.id, data: formData },
-        {
-          onSuccess: () => setModalOpen(false),
-        },
-      );
-    }
   };
 
   const handlePageChange = (newPage: number) => {
@@ -375,7 +345,6 @@ export default function PropertiesPage() {
                 <PropertyCard
                   key={property.id}
                   property={property}
-                  onEdit={handleEdit}
                   onDelete={handleDeleteClick}
                 />
               ))}
@@ -390,15 +359,6 @@ export default function PropertiesPage() {
           </div>
         )}
       </div>
-
-      {/* Edit Modal */}
-      <PropertyFormModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        property={editingProperty}
-        onSubmit={handleSubmit}
-        isPending={updateMutation.isPending}
-      />
 
       {/* Delete confirmation dialog */}
       <Modal.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -27,6 +27,18 @@ import * as Modal from '@/shared/ui/modal';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { useSessionStore, isUserAdmin, isUserDeveloper } from '@/entities/auth/model/store';
 
+// Returns true only for the most specific matching link.
+// e.g. on /properties/create: '/properties/create' wins over '/properties'
+function isActivePath(pathname: string, href: string, allHrefs: string[]): boolean {
+  if (pathname !== href && !pathname.startsWith(href + '/')) return false;
+  return !allHrefs.some(
+    (other) =>
+      other !== href &&
+      other.startsWith(href + '/') &&
+      (pathname === other || pathname.startsWith(other + '/')),
+  );
+}
+
 type NavigationLink = {
   icon: typeof Home01Icon;
   label: string;
@@ -129,7 +141,8 @@ export default function Sidebar() {
             {mainLinks.map(({ icon, label, developerLabel, href, developerHref, disabled }, i) => {
               const displayLabel = isDeveloper && developerLabel ? developerLabel : label;
               const displayHref = isDeveloper && developerHref ? developerHref : href;
-              const isActive = pathname === displayHref;
+              const allHrefs = mainLinks.map((l) => isDeveloper && l.developerHref ? l.developerHref : l.href);
+              const isActive = isActivePath(pathname, displayHref, allHrefs);
 
               return (
                 <Link
@@ -168,7 +181,8 @@ export default function Sidebar() {
               </div>
               <div className="flex flex-col gap-0.5 px-3">
                 {adminLinks.map(({ icon, label, href, disabled }, i) => {
-                  const isActive = pathname === href;
+                  const allAdminHrefs = adminLinks.map((l) => l.href);
+                  const isActive = isActivePath(pathname, href, allAdminHrefs);
 
                   return (
                     <Link

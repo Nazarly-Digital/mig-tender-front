@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Award01Icon, Clock01Icon, Add01Icon } from '@hugeicons/core-free-icons';
 
@@ -113,9 +114,27 @@ const TABS: { value: Tab; label: string }[] = [
   { value: 'finished', label: 'Завершённые' },
 ];
 
+const VALID_TABS = new Set<Tab>(['all', 'active', 'finished']);
+
+function parseTab(raw: string | null): Tab {
+  return raw && VALID_TABS.has(raw as Tab) ? (raw as Tab) : 'all';
+}
+
 export default function AuctionsPage() {
-  const [tab, setTab] = React.useState<Tab>('all');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = parseTab(searchParams.get('tab'));
   const user = useSessionStore((s) => s.user);
+
+  function handleTabChange(next: Tab) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === 'all') {
+      params.delete('tab');
+    } else {
+      params.set('tab', next);
+    }
+    router.replace(`/auctions?${params.toString()}`);
+  }
   const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
 
   const params = {
@@ -156,8 +175,8 @@ export default function AuctionsPage() {
           <button
             key={t.value}
             type='button'
-            onClick={() => setTab(t.value)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+            onClick={() => handleTabChange(t.value)}
+            className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors border-b-2 -mb-px ${
               tab === t.value
                 ? 'border-blue-600 text-gray-900'
                 : 'border-transparent text-gray-500 hover:text-gray-700'

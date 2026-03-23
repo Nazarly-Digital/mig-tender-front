@@ -67,10 +67,10 @@ function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
       <div>
         <span className='text-[14px] font-semibold text-gray-900'>Быстрое действие</span>
         <p className='mt-1 text-[13px] text-gray-400'>
-          {isDeveloper ? 'Создайте новый объект или аукцион' : 'Просмотрите доступные аукционы'}
+          {isDeveloper ? 'Создайте новый объект' : 'Просмотрите доступные аукционы'}
         </p>
       </div>
-      <Link href={isDeveloper ? '/properties/create' : '/auctions'} className='mt-4'>
+      <Link href={isDeveloper ? '/properties/create' : '/auctions?tab=active'} className='mt-4'>
         <FancyButton.Root variant='primary' size='small'>
           <HugeiconsIcon
             icon={isDeveloper ? Add01Icon : EyeIcon}
@@ -92,7 +92,7 @@ function RecentPropertyItem({ property }: { property: Property }) {
   };
 
   return (
-    <div className='flex items-center gap-3 px-5 py-3 border-b border-blue-50 last:border-0 transition-colors hover:bg-blue-50/20'>
+    <Link href={`/properties/${property.id}`} className='flex items-center gap-3 px-5 py-3 border-b border-blue-50 last:border-0 transition-colors hover:bg-blue-50/20'>
       <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50'>
         <HugeiconsIcon icon={Building03Icon} size={15} color='currentColor' strokeWidth={1.5} className='text-blue-500' />
       </div>
@@ -109,7 +109,7 @@ function RecentPropertyItem({ property }: { property: Property }) {
       <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${statusStyles[property.status] ?? 'bg-gray-100 text-gray-500'}`}>
         {STATUS_LABELS[property.status]}
       </span>
-    </div>
+    </Link>
   );
 }
 
@@ -123,7 +123,7 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
   const status = statusMap[auction.status] ?? { label: auction.status, style: 'bg-gray-100 text-gray-500' };
 
   return (
-    <div className='flex items-center gap-3 px-5 py-3 border-b border-blue-50 last:border-0 transition-colors hover:bg-blue-50/20'>
+    <Link href={`/auctions/${auction.id}`} className='flex items-center gap-3 px-5 py-3 border-b border-blue-50 last:border-0 transition-colors hover:bg-blue-50/20'>
       <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50'>
         <HugeiconsIcon icon={Award01Icon} size={15} color='currentColor' strokeWidth={1.5} className='text-blue-500' />
       </div>
@@ -140,7 +140,7 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
       <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${status.style}`}>
         {status.label}
       </span>
-    </div>
+    </Link>
   );
 }
 
