@@ -19,7 +19,7 @@ import type {
 const STATUS_CONFIG: Record<AuctionStatus, { label: string; cls: string; dot: string; text: string }> = {
   active: { label: 'Активный', cls: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500', text: 'text-emerald-600' },
   draft: { label: 'Черновик', cls: 'bg-gray-100 text-gray-600', dot: 'bg-amber-500', text: 'text-amber-600' },
-  finished: { label: 'Завершён', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-600' },
+  finished: { label: 'Завершён', cls: 'bg-gray-50 text-gray-700', dot: 'bg-gray-500', text: 'text-gray-600' },
   cancelled: { label: 'Отменён', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-500' },
   scheduled: { label: 'Запланирован', cls: 'bg-red-50 text-red-700', dot: 'bg-blue-500', text: 'text-blue-500' },
 };
@@ -78,7 +78,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
             <span className='text-[11px] text-gray-400'>{MODE_LABELS[auction.mode]}</span>
           </div>
         </div>
-        <span className='text-[17px] font-bold text-gray-900 shrink-0'>{formatPrice(auction.current_price)}</span>
+        <span className='text-[17px] font-bold text-gray-900 shrink-0'>{formatPrice(auction.current_price)} ₽</span>
       </div>
 
       {/* Progress */}

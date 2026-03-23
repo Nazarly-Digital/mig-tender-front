@@ -306,6 +306,27 @@ export default function CatalogPage() {
   const isAdmin = user?.role === 'admin' || user?.is_admin === true;
   const { page, pageSize, search, typeFilter, classFilter, moderationFilter, setParam } = useFilterParams();
 
+  // Debounced search input — local state for display, URL updated after 400ms idle
+  const [searchInput, setSearchInput] = React.useState(search);
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync input if URL changes externally (e.g. browser back/forward)
+  React.useEffect(() => { setSearchInput(search); }, [search]);
+
+  React.useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setParam({ search: value, page: null }), 400);
+  };
+
+  // Unified handler for the 3 select filters
+  const handleSelectChange = (key: 'type' | 'class' | 'moderation', value: string) => {
+    setParam({ [key]: value, page: null });
+  };
+
   const isPendingMode = isAdmin && moderationFilter === 'pending';
   const isAllMode = isAdmin && moderationFilter === 'all';
 
@@ -410,14 +431,14 @@ export default function CatalogPage() {
           <input
             type='text'
             placeholder='Поиск по адресу...'
-            value={search}
-            onChange={(e) => { setParam({ search: e.target.value, page: null }); }}
+            value={searchInput}
+            onChange={handleSearchChange}
             className='h-9 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[13px] placeholder:text-gray-400 focus:border-blue-300 focus:outline-none transition-colors'
           />
         </div>
 
         <div className='w-[140px] shrink-0'>
-          <Select.Root size='small' value={typeFilter} onValueChange={(v) => { setParam({ type: v, page: null }); }}>
+          <Select.Root size='small' value={typeFilter} onValueChange={(v) => handleSelectChange('type', v)}>
             <Select.Trigger className='h-9 w-full cursor-pointer'>
               <Select.Value placeholder='Тип' />
             </Select.Trigger>
@@ -431,7 +452,7 @@ export default function CatalogPage() {
         </div>
 
         <div className='w-[140px] shrink-0'>
-          <Select.Root size='small' value={classFilter} onValueChange={(v) => { setParam({ class: v, page: null }); }}>
+          <Select.Root size='small' value={classFilter} onValueChange={(v) => handleSelectChange('class', v)}>
             <Select.Trigger className='h-9 w-full cursor-pointer'>
               <Select.Value placeholder='Класс' />
             </Select.Trigger>
@@ -447,7 +468,7 @@ export default function CatalogPage() {
         {/* Admin-only: moderation filter */}
         {isAdmin && (
           <div className='w-[170px] shrink-0'>
-            <Select.Root size='small' value={moderationFilter} onValueChange={(v) => { setParam({ moderation: v, page: null }); }}>
+            <Select.Root size='small' value={moderationFilter} onValueChange={(v) => handleSelectChange('moderation', v)}>
               <Select.Trigger className='h-9 w-full'>
                 <Select.Value placeholder='Модерация' />
               </Select.Trigger>

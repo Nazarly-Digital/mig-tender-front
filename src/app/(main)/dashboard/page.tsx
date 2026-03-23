@@ -116,9 +116,9 @@ function RecentPropertyItem({ property }: { property: Property }) {
 function RecentAuctionItem({ auction }: { auction: Auction }) {
   const statusMap: Record<string, { label: string; style: string }> = {
     active: { label: 'Активный', style: 'bg-emerald-50 text-emerald-700' },
-    finished: { label: 'Завершён', style: 'bg-red-50 text-red-600' },
+    finished: { label: 'Завершён', style: 'bg-gray-50 text-gray-600' },
     draft: { label: 'Черновик', style: 'bg-amber-50 text-amber-700' },
-    cancelled: { label: 'Отменён', style: 'bg-gray-100 text-gray-500' },
+    cancelled: { label: 'Отменён', style: 'bg-red-100 text-red-500' },
     scheduled: { label: 'запланировано', style: 'bg-blue-100 text-blue-500' },
 
 

@@ -20,6 +20,8 @@ export type PropertyImage = {
   created_at: string;
 };
 
+export type ModerationStatus = 'pending' | 'approved' | 'rejected';
+
 // Property
 export type Property = {
   id: number;
@@ -32,7 +34,7 @@ export type Property = {
   currency: string;
   deadline: string | null;
   status: PropertyStatus;
-  moderation_status: 'pending' | 'approved' | 'rejected';
+  moderation_status?: ModerationStatus;
   images: PropertyImage[];
   created_at: string;
   updated_at: string;
