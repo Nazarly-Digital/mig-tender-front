@@ -38,6 +38,7 @@ import {
   useDeletePropertyImage,
 } from '@/features/properties';
 import type {
+  Property,
   PropertyType,
   PropertyClass,
   PropertyStatus,
@@ -87,6 +88,13 @@ function formatDateTime(dateStr: string | null | undefined) {
 
 function ImagesGallery({ images }: { images: PropertyImage[] }) {
   const [current, setCurrent] = React.useState(0);
+
+  // Clamp index when images are removed (e.g. delete last image while viewing it)
+  React.useEffect(() => {
+    if (images.length > 0 && current >= images.length) {
+      setCurrent(images.length - 1);
+    }
+  }, [images.length, current]);
 
   if (images.length === 0) {
     return (
@@ -161,7 +169,7 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
       try {
         await addImage.mutateAsync({ propertyId, data: { image: file } });
       } catch {
-        // continue uploading remaining files
+        toast.error(`Ошибка загрузки «${file.name}»`);
       }
     }
     setUploading(false);
@@ -220,53 +228,202 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
   );
 }
 
+// --- Edit Form ---
+
+function PropertyEditForm({
+  property,
+  onSubmit,
+  isSubmitting,
+}: {
+  property: Property;
+  onSubmit: (data: PropertyFormData) => void;
+  isSubmitting: boolean;
+}) {
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isDirty },
+  } = useForm<PropertyFormData>({
+    resolver: zodResolver(propertySchema),
+    defaultValues: {
+      type: property.type,
+      address: property.address,
+      area: property.area,
+      property_class: property.property_class,
+      price: property.price,
+      currency: property.currency,
+      deadline: property.deadline ?? '',
+      status: property.status,
+    },
+  });
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+      {/* Type */}
+      <div className='space-y-1.5'>
+        <Label.Root htmlFor='p-type'>Тип <Label.Asterisk /></Label.Root>
+        <Controller
+          name='type'
+          control={control}
+          render={({ field }) => (
+            <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
+              <Select.Trigger id='p-type'><Select.Value /></Select.Trigger>
+              <Select.Content>
+                {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(([v, l]) => (
+                  <Select.Item key={v} value={v}>{l}</Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Root>
+          )}
+        />
+        {errors.type && <p className='text-[11px] text-red-500'>{errors.type.message}</p>}
+      </div>
+
+      {/* Address */}
+      <div className='space-y-1.5'>
+        <Label.Root htmlFor='p-address'>Адрес <Label.Asterisk /></Label.Root>
+        <Input.Root size='small'>
+          <Input.Wrapper>
+            <Input.Input id='p-address' placeholder='ул. Примерная, д. 1' {...register('address')} />
+          </Input.Wrapper>
+        </Input.Root>
+        {errors.address && <p className='text-[11px] text-red-500'>{errors.address.message}</p>}
+      </div>
+
+      {/* Area + Class */}
+      <div className='grid grid-cols-2 gap-3'>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-area'>Площадь (м²) <Label.Asterisk /></Label.Root>
+          <Input.Root size='small'>
+            <Input.Wrapper>
+              <Input.Input id='p-area' type='number' step='0.01' placeholder='120.5' {...register('area')} />
+            </Input.Wrapper>
+          </Input.Root>
+          {errors.area && <p className='text-[11px] text-red-500'>{errors.area.message}</p>}
+        </div>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-class'>Класс <Label.Asterisk /></Label.Root>
+          <Controller
+            name='property_class'
+            control={control}
+            render={({ field }) => (
+              <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
+                <Select.Trigger id='p-class'><Select.Value /></Select.Trigger>
+                <Select.Content>
+                  {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([v, l]) => (
+                    <Select.Item key={v} value={v}>{l}</Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            )}
+          />
+          {errors.property_class && <p className='text-[11px] text-red-500'>{errors.property_class.message}</p>}
+        </div>
+      </div>
+
+      {/* Price + Currency */}
+      <div className='grid grid-cols-2 gap-3'>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-price'>Цена <Label.Asterisk /></Label.Root>
+          <Input.Root size='small'>
+            <Input.Wrapper>
+              <Controller
+                name='price'
+                control={control}
+                render={({ field }) => (
+                  <Input.Input
+                    id='p-price'
+                    type='text'
+                    inputMode='decimal'
+                    placeholder='150 000'
+                    value={formatPriceInput(field.value)}
+                    onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
+            </Input.Wrapper>
+          </Input.Root>
+          {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
+        </div>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-currency'>Валюта</Label.Root>
+          <Controller
+            name='currency'
+            control={control}
+            render={({ field }) => (
+              <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
+                <Select.Trigger id='p-currency'><Select.Value /></Select.Trigger>
+                <Select.Content>
+                  <Select.Item value='USD'>USD</Select.Item>
+                  <Select.Item value='EUR'>EUR</Select.Item>
+                  <Select.Item value='RUB'>RUB</Select.Item>
+                  <Select.Item value='TRY'>TRY</Select.Item>
+                </Select.Content>
+              </Select.Root>
+            )}
+          />
+        </div>
+      </div>
+
+      {/* Deadline + Status */}
+      <div className='grid grid-cols-2 gap-3'>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-deadline'>Срок сдачи</Label.Root>
+          <Input.Root size='small'>
+            <Input.Wrapper>
+              <Input.Input id='p-deadline' type='date' {...register('deadline')} />
+            </Input.Wrapper>
+          </Input.Root>
+        </div>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-status'>Статус</Label.Root>
+          <Controller
+            name='status'
+            control={control}
+            render={({ field }) => (
+              <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
+                <Select.Trigger id='p-status'><Select.Value /></Select.Trigger>
+                <Select.Content>
+                  {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).map(([v, l]) => (
+                    <Select.Item key={v} value={v}>{l}</Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            )}
+          />
+          {errors.status && <p className='text-[11px] text-red-500'>{errors.status.message}</p>}
+        </div>
+      </div>
+
+      <div className='pt-2'>
+        <FancyButton.Root
+          variant='primary'
+          size='small'
+          type='submit'
+          disabled={isSubmitting || !isDirty}
+        >
+          {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
+        </FancyButton.Root>
+      </div>
+    </form>
+  );
+}
+
 // --- Main Page ---
 
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const propertyId = Number(params.id);
+  const isValidId = Number.isFinite(propertyId) && propertyId > 0;
 
-  const { data: property, isLoading } = useProperty(propertyId);
+  const { data: property, isLoading } = useProperty(isValidId ? propertyId : 0);
   const updateMutation = useUpdateProperty();
   const deleteMutation = useDeleteProperty();
 
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-
-  const {
-    register,
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors, isDirty },
-  } = useForm<PropertyFormData>({
-    resolver: zodResolver(propertySchema),
-    defaultValues: {
-      type: 'apartment',
-      address: '',
-      area: '',
-      property_class: 'comfort',
-      price: '',
-      currency: 'USD',
-      deadline: '',
-      status: 'draft',
-    },
-  });
-
-  React.useEffect(() => {
-    if (property) {
-      reset({
-        type: property.type,
-        address: property.address,
-        area: property.area,
-        property_class: property.property_class,
-        price: property.price,
-        currency: property.currency,
-        deadline: property.deadline ?? '',
-        status: property.status,
-      });
-    }
-  }, [property, reset]);
 
   const onSubmit = (data: PropertyFormData) => {
     updateMutation.mutate(
@@ -296,6 +453,20 @@ export default function PropertyDetailPage() {
       onError: () => toast.error('Ошибка при удалении'),
     });
   };
+
+  if (!isValidId) {
+    return (
+      <div className='flex flex-col items-center justify-center gap-3 py-20'>
+        <div className='flex size-11 items-center justify-center rounded-xl bg-gray-50'>
+          <HugeiconsIcon icon={Building03Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+        </div>
+        <div className='text-base font-semibold text-gray-900'>Объект не найден</div>
+        <Link href='/properties'>
+          <FancyButton.Root variant='basic' size='small'>Назад к объектам</FancyButton.Root>
+        </Link>
+      </div>
+    );
+  }
 
   if (isLoading) return <DetailPageSkeleton />;
 
@@ -348,15 +519,15 @@ export default function PropertyDetailPage() {
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</span>
           <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(property.price, property.currency)}</span>
         </div>
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+        <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{property.area} м²</span>
         </div>
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+        <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{TYPE_LABELS[property.type]}</span>
         </div>
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+        <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{CLASS_LABELS[property.property_class]}</span>
         </div>
@@ -369,173 +540,29 @@ export default function PropertyDetailPage() {
           <ImagesGallery images={property.images} />
 
           {/* Edit Form */}
-          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
+          <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-6'>
             <h3 className='mb-5 flex items-center gap-2 text-[14px] font-semibold text-gray-900'>
               <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
               Редактировать объект
             </h3>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-              {/* Type */}
-              <div className='space-y-1.5'>
-                <Label.Root htmlFor='p-type'>Тип <Label.Asterisk /></Label.Root>
-                <Controller
-                  name='type'
-                  control={control}
-                  render={({ field }) => (
-                    <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
-                      <Select.Trigger id='p-type'><Select.Value /></Select.Trigger>
-                      <Select.Content>
-                        {(Object.entries(TYPE_LABELS) as [PropertyType, string][]).map(([v, l]) => (
-                          <Select.Item key={v} value={v}>{l}</Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Root>
-                  )}
-                />
-                {errors.type && <p className='text-[11px] text-red-500'>{errors.type.message}</p>}
-              </div>
-
-              {/* Address */}
-              <div className='space-y-1.5'>
-                <Label.Root htmlFor='p-address'>Адрес <Label.Asterisk /></Label.Root>
-                <Input.Root size='small'>
-                  <Input.Wrapper>
-                    <Input.Input id='p-address' placeholder='ул. Примерная, д. 1' {...register('address')} />
-                  </Input.Wrapper>
-                </Input.Root>
-                {errors.address && <p className='text-[11px] text-red-500'>{errors.address.message}</p>}
-              </div>
-
-              {/* Area + Class */}
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1.5'>
-                  <Label.Root htmlFor='p-area'>Площадь (м²) <Label.Asterisk /></Label.Root>
-                  <Input.Root size='small'>
-                    <Input.Wrapper>
-                      <Input.Input id='p-area' type='number' step='0.01' placeholder='120.5' {...register('area')} />
-                    </Input.Wrapper>
-                  </Input.Root>
-                  {errors.area && <p className='text-[11px] text-red-500'>{errors.area.message}</p>}
-                </div>
-                <div className='space-y-1.5'>
-                  <Label.Root htmlFor='p-class'>Класс <Label.Asterisk /></Label.Root>
-                  <Controller
-                    name='property_class'
-                    control={control}
-                    render={({ field }) => (
-                      <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
-                        <Select.Trigger id='p-class'><Select.Value /></Select.Trigger>
-                        <Select.Content>
-                          {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([v, l]) => (
-                            <Select.Item key={v} value={v}>{l}</Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Root>
-                    )}
-                  />
-                  {errors.property_class && <p className='text-[11px] text-red-500'>{errors.property_class.message}</p>}
-                </div>
-              </div>
-
-              {/* Price + Currency */}
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1.5'>
-                  <Label.Root htmlFor='p-price'>Цена <Label.Asterisk /></Label.Root>
-                  <Input.Root size='small'>
-                    <Input.Wrapper>
-                      <Controller
-                        name='price'
-                        control={control}
-                        render={({ field }) => (
-                          <Input.Input
-                            id='p-price'
-                            type='text'
-                            inputMode='decimal'
-                            placeholder='150 000'
-                            value={formatPriceInput(field.value)}
-                            onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
-                            onBlur={field.onBlur}
-                          />
-                        )}
-                      />
-                    </Input.Wrapper>
-                  </Input.Root>
-                  {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
-                </div>
-                <div className='space-y-1.5'>
-                  <Label.Root htmlFor='p-currency'>Валюта</Label.Root>
-                  <Controller
-                    name='currency'
-                    control={control}
-                    render={({ field }) => (
-                      <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
-                        <Select.Trigger id='p-currency'><Select.Value /></Select.Trigger>
-                        <Select.Content>
-                          <Select.Item value='USD'>USD</Select.Item>
-                          <Select.Item value='EUR'>EUR</Select.Item>
-                          <Select.Item value='RUB'>RUB</Select.Item>
-                          <Select.Item value='TRY'>TRY</Select.Item>
-                        </Select.Content>
-                      </Select.Root>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* Deadline + Status */}
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1.5'>
-                  <Label.Root htmlFor='p-deadline'>Срок сдачи</Label.Root>
-                  <Input.Root size='small'>
-                    <Input.Wrapper>
-                      <Input.Input id='p-deadline' type='date' {...register('deadline')} />
-                    </Input.Wrapper>
-                  </Input.Root>
-                </div>
-                <div className='space-y-1.5'>
-                  <Label.Root htmlFor='p-status'>Статус</Label.Root>
-                  <Controller
-                    name='status'
-                    control={control}
-                    render={({ field }) => (
-                      <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
-                        <Select.Trigger id='p-status'><Select.Value /></Select.Trigger>
-                        <Select.Content>
-                          {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).map(([v, l]) => (
-                            <Select.Item key={v} value={v}>{l}</Select.Item>
-                          ))}
-                        </Select.Content>
-                      </Select.Root>
-                    )}
-                  />
-                  {errors.status && <p className='text-[11px] text-red-500'>{errors.status.message}</p>}
-                </div>
-              </div>
-
-              <div className='pt-2'>
-                <FancyButton.Root
-                  variant='primary'
-                  size='small'
-                  type='submit'
-                  disabled={updateMutation.isPending || !isDirty}
-                >
-                  {updateMutation.isPending ? 'Сохранение...' : 'Сохранить изменения'}
-                </FancyButton.Root>
-              </div>
-            </form>
+            <PropertyEditForm
+              property={property}
+              onSubmit={onSubmit}
+              isSubmitting={updateMutation.isPending}
+            />
           </div>
         </div>
 
         {/* Right 1/3 */}
         <div className='space-y-4'>
           {/* Image Upload */}
-          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
+          <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Фотографии</h3>
             <ImageUploadSection propertyId={property.id} />
           </div>
 
           {/* Metadata */}
-          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
+          <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Информация</h3>
             <div className='space-y-3'>
               <div>
