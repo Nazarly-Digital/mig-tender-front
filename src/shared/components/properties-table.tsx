@@ -464,7 +464,7 @@ export function PropertiesTablePagination({
           </Pagination.NavButton>
         </Pagination.Root>
 
-        <div className='flex flex-1 justify-end'>
+        {/* <div className='flex flex-1 justify-end'>
           <Select.Root
             size='xsmall'
             value={String(pageSize)}
@@ -479,7 +479,7 @@ export function PropertiesTablePagination({
               <Select.Item value='50'>50 / стр</Select.Item>
             </Select.Content>
           </Select.Root>
-        </div>
+        </div> */}
       </div>
     </div>
   );
