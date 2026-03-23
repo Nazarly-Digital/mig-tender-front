@@ -165,12 +165,14 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
   const [localOrder, setLocalOrder] = React.useState<PropertyImage[]>([]);
   const [isDirty, setIsDirty] = React.useState(false);
 
-  // Sync from server when images change
+  // Sync from server when images change (stable key to avoid infinite loop)
+  const imagesKey = images.map((i) => `${i.id}:${i.sort_order}:${i.is_primary}`).join(',');
   React.useEffect(() => {
     const sorted = [...images].sort((a, b) => a.sort_order - b.sort_order);
     setLocalOrder(sorted);
     setIsDirty(false);
-  }, [images]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imagesKey]);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || uploading) return;
