@@ -139,7 +139,7 @@ export default function CreateAuctionPage() {
                         id='auction-min-price'
                         type='text'
                         inputMode='decimal'
-                        placeholder='10 000 000'
+                        placeholder='10 000 000 ₽'
                         value={formatPriceInput(field.value)}
                         onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
                         onBlur={field.onBlur}

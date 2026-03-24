@@ -180,7 +180,7 @@ export default function CatalogDetailPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {isAdmin && property.moderation_status === 'pending' && (
+          {isAdmin && property.moderation_status === 'pending' && !approve.isSuccess && !reject.isSuccess && (
             <>
               <FancyButton.Root
                 variant='primary'
