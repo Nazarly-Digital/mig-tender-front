@@ -580,15 +580,15 @@ export default function AuctionDetailPage() {
       <div className={`grid grid-cols-2 gap-3 ${isOpenAuction ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
-          <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)}</span>
+          <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)} ₽</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Мин. цена</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_price)}</span>
+          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_price)} ₽</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
+          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount} ₽</span>
         </div>
         {isOpenAuction && (
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>

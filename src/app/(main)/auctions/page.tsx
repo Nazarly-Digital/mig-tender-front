@@ -68,22 +68,20 @@ function AuctionCard({ auction }: { auction: Auction }) {
       className='group flex flex-col rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 hover:border-blue-200 hover:shadow-sm transition-all duration-200'
     >
       {/* Header: title + price */}
-      <div className='flex items-start justify-between'>
-        <div>
-          <h3 className='text-[14px] font-semibold text-gray-900'>Аукцион #{auction.id}</h3>
-          <div className='mt-1 flex items-center gap-1.5'>
-            <span className={`size-1.5 rounded-full ${statusCfg.dot}`} />
-            <span className={`text-[11px] font-medium ${statusCfg.text}`}>{statusCfg.label}</span>
-            <span className='text-[11px] text-gray-300'>·</span>
-            <span className='text-[11px] text-gray-400'>{MODE_LABELS[auction.mode]}</span>
-          </div>
-        </div>
+      <div className='flex flex-col gap-1'>
+        <h3 className='text-[14px] font-semibold text-gray-900'>Аукцион #{auction.id}</h3>
         <span className='text-[17px] font-bold text-gray-900 shrink-0'>{formatPrice(auction.current_price)} ₽</span>
+        <div className='flex items-center gap-1.5'>
+          <span className={`size-1.5 rounded-full ${statusCfg.dot}`} />
+          <span className={`text-[11px] font-medium ${statusCfg.text}`}>{statusCfg.label}</span>
+          <span className='text-[11px] text-gray-300'>·</span>
+          <span className='text-[11px] text-gray-400'>{MODE_LABELS[auction.mode]}</span>
+        </div>
       </div>
 
       {/* Progress */}
-      <div className='mt-4'>
-        <div className='mb-1 flex justify-between text-[11px]'>
+      <div className='mt-3 pt-3 border-t border-blue-50'>
+        <div className='flex justify-between text-[11px]'>
           <span className='text-gray-400'>{auction.bids_count} ставок · мин. {formatPrice(auction.min_price)}</span>
           {isActive && <span className='font-semibold text-gray-500'>{progress}%</span>}
         </div>
@@ -93,7 +91,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
       </div>
 
       {/* Footer */}
-      <div className='mt-3 flex items-center gap-3 border-t border-blue-50 pt-3 text-[12px] text-gray-400'>
+      <div className='mt-3 flex flex-col gap-2 border-t border-blue-50 pt-3 text-[12px] text-gray-400'>
         <span className='flex items-center gap-1'>
           <HugeiconsIcon icon={Award01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
           {auction.bids_count} ставок
@@ -178,8 +176,8 @@ export default function AuctionsPage() {
             type='button'
             onClick={() => handleTabChange(t.value)}
             className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors border-b-2 -mb-px ${tab === t.value
-                ? 'border-blue-600 text-gray-900'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-blue-600 text-gray-900'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
           >
             {t.label}
