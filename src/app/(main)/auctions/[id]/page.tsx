@@ -186,7 +186,7 @@ function PlaceBidModal({
                     id='bid-amount'
                     type='text'
                     inputMode='decimal'
-                    placeholder={formatPriceInput(minPrice)}
+                    placeholder={formatPriceInput(minPrice) + ' ₽'}
                     value={formatPriceInput(amount)}
                     onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
                   />
@@ -343,7 +343,7 @@ function LiveBidInput({
   const getError = (): string | null => {
     if (isEmpty) return null;
     if (isInvalid) return 'Введите корректную сумму';
-    if (isBelowMin) return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))}`;
+    if (isBelowMin) return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))} ₽`;
     return null;
   };
   const error = getError();
@@ -375,7 +375,7 @@ function LiveBidInput({
                   id='live-bid-amount'
                   type='text'
                   inputMode='decimal'
-                  placeholder={formatPriceInput(String(Math.ceil(minBid)))}
+                  placeholder={formatPriceInput(String(Math.ceil(minBid))) + ' ₽'}
                   value={formatPriceInput(amount)}
                   onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
                 />
@@ -386,8 +386,8 @@ function LiveBidInput({
             ) : (
               <p className='text-[11px] text-gray-400'>
                 {bidsCount === 0
-                  ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)})`
-                  : `Минимум: ${formatPrice(String(Math.ceil(minBid)))}`}
+                  ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)} ₽)`
+                  : `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽`}
               </p>
             )}
           </div>
@@ -692,7 +692,7 @@ export default function AuctionDetailPage() {
                       <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
                         #{bid.broker}
                       </div>
-                      <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)}</span>
+                      <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>
                     </div>
                     <span className='text-[11px] text-gray-400'>
                       {new Date(bid.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -710,7 +710,7 @@ export default function AuctionDetailPage() {
                 <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Моя ставка
               </h3>
               <div className='grid grid-cols-3 gap-4'>
-                <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Сумма</span><span className='mt-1 block text-base font-semibold text-gray-900'>{formatPrice(myBid.amount)}</span></div>
+                <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Сумма</span><span className='mt-1 block text-base font-semibold text-gray-900'>{formatPrice(myBid.amount)} ₽</span></div>
                 <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дата</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(myBid.created_at)}</span></div>
                 <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Обновлена</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(myBid.updated_at)}</span></div>
               </div>
@@ -769,7 +769,7 @@ export default function AuctionDetailPage() {
                 </div>
                 <div className='flex justify-between'>
                   <span className='text-gray-500'>Ваша ставка</span>
-                  {myBid ? <span className='font-semibold text-gray-900'>{formatPrice(myBid.amount)}</span> : <span className='text-gray-400'>—</span>}
+                  {myBid ? <span className='font-semibold text-gray-900'>{formatPrice(myBid.amount)} ₽</span> : <span className='text-gray-400'>—</span>}
                 </div>
                 {auction.winner_bid_id && myBid && (
                   <div className='flex justify-between'>

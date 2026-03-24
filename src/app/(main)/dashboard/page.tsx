@@ -135,7 +135,7 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
           Аукцион #{auction.id}
         </span>
         <span className='mt-0.5 flex items-center gap-1.5 text-[12px] text-gray-400'>
-          <span>от {formatPrice(auction.min_price)}</span>
+          <span>от {formatPrice(auction.min_price, 'RUB')}</span>
           <span className='text-gray-300'>·</span>
           <span>{formatDateShort(auction.end_date)}</span>
         </span>
