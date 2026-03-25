@@ -551,7 +551,7 @@ export default function AuctionDetailPage() {
           </Link>
           <div>
             <h1 className='text-xl font-bold tracking-tight text-gray-900'>Аукцион #{auction.id}</h1>
-            <span className='text-[13px] text-gray-400'>Объект #{auction.property_id}</span>
+            <span className='text-[13px] text-gray-400'>{auction.real_property.address}</span>
           </div>
         </div>
         <div className='flex items-center gap-2'>

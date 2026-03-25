@@ -11,7 +11,10 @@ export type AuctionStatus =
 
 export type Auction = {
   id: number;
-  property_id: number;
+  real_property: {
+    id: number;
+    address: string;
+  };
   owner_id: number;
   mode: AuctionMode;
   min_price: string;
