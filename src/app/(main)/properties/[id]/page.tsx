@@ -38,6 +38,7 @@ import {
   useUpdatePropertyImage,
   useDeletePropertyImage,
 } from '@/features/properties';
+import { useSessionStore } from '@/entities/auth/model/store';
 import type {
   Property,
   PropertyType,
@@ -551,6 +552,9 @@ export default function PropertyDetailPage() {
   const propertyId = Number(params.id);
   const isValidId = Number.isFinite(propertyId) && propertyId > 0;
 
+  const user = useSessionStore((s) => s.user);
+  const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
+
   const { data: property, isLoading } = useProperty(isValidId ? propertyId : 0);
   const updateMutation = useUpdateProperty();
   const deleteMutation = useDeleteProperty();
@@ -570,7 +574,7 @@ export default function PropertyDetailPage() {
         },
       },
       {
-        onSuccess: () => toast.success('Объект сохранён'),
+        onSuccess: () => toast.success(isDeveloper ? 'Объект изменён и отправлен на модерацию' : 'Объект сохранён'),
         onError: () => toast.error('Ошибка при сохранении'),
       },
     );
