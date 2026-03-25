@@ -10,7 +10,7 @@ import {
   Award01Icon,
   Building03Icon,
   PlusSignSquareIcon,
-  AnalyticsUpIcon,
+
   File01Icon,
   UserIcon,
   SecurityCheckIcon,
@@ -60,7 +60,6 @@ export const navigationLinks: NavigationLink[] = [
   { icon: UserIcon, label: 'Личный кабинет', href: '/cabinet', brokerOnly: true },
   { icon: Coins01Icon, label: 'Сделки', developerLabel: 'Фиксация сделки', href: '/deals' },
   { icon: Wallet01Icon, label: 'Выплаты / история', href: '/payments', brokerOnly: true },
-  { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics', developerOnly: true },
   { icon: File01Icon, label: 'Документы', href: '/documents' },
   { icon: UserIcon, label: 'Пользователи', href: '/admin/users', adminOnly: true },
   { icon: SecurityCheckIcon, label: 'Модерация', href: '/admin/properties', adminOnly: true },
@@ -79,7 +78,6 @@ export default function Sidebar() {
     { icon: Building03Icon, label: 'Объекты', href: '/objects' },
     { icon: UserIcon, label: 'Пользователи', href: '/admin/users' },
     { icon: Award01Icon, label: 'Аукционы', href: '/auctions' },
-    // { icon: AnalyticsUpIcon, label: 'Аналитика', href: '/analytics' },
     // { icon: File01Icon, label: 'Документы', href: '/documents' },
   ];
 
