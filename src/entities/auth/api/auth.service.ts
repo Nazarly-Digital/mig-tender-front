@@ -15,6 +15,9 @@ import type {
   BrokerVerificationRequest,
   MeResponse,
   MeApiResponse,
+  BrokerDocumentsResponse,
+  UploadBrokerDocumentsRequest,
+  UpdateDocumentNamesRequest,
 } from "@/shared/types/auth";
 
 export const authService = {
@@ -61,4 +64,21 @@ export const authService = {
 
   getMe: () =>
     apiInstance.get<MeApiResponse>("/auth/me/"),
+
+  uploadBrokerDocuments: (data: UploadBrokerDocumentsRequest) => {
+    const formData = new FormData();
+    if (data.inn) formData.append("inn", data.inn, data.inn.name);
+    if (data.inn_name) formData.append("inn_name", data.inn_name);
+    if (data.passport) formData.append("passport", data.passport, data.passport.name);
+    if (data.passport_name) formData.append("passport_name", data.passport_name);
+
+    return apiInstance.post<BrokerDocumentsResponse>(
+      "/auth/broker/upload-documents/",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+  },
+
+  updateDocumentNames: (data: UpdateDocumentNamesRequest) =>
+    apiInstance.patch<BrokerDocumentsResponse>("/auth/broker/update-document-names/", data),
 };

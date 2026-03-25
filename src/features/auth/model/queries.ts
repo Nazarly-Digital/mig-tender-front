@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authService } from "@/entities/auth/api/auth.service";
 import { useSessionStore } from "@/entities/auth/model/store";
@@ -10,6 +10,8 @@ import type {
   RegisterDeveloperRequest,
   RegisterBrokerRequest,
   BrokerVerificationRequest,
+  UploadBrokerDocumentsRequest,
+  UpdateDocumentNamesRequest,
 } from "@/shared/types/auth";
 
 export const authKeys = {
@@ -125,6 +127,30 @@ export function useLogout() {
     },
     onSuccess: () => {
       router.replace("/login");
+    },
+  });
+}
+
+export function useUploadBrokerDocuments() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UploadBrokerDocumentsRequest) =>
+      authService.uploadBrokerDocuments(data).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.me });
+    },
+  });
+}
+
+export function useUpdateDocumentNames() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateDocumentNamesRequest) =>
+      authService.updateDocumentNames(data).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.me });
     },
   });
 }

@@ -13,7 +13,9 @@ export type TokenUser = {
     is_verified: boolean;
     verification_status: string;
     inn_number?: string;
+    inn_name?: string;
     inn_url?: string;
+    passport_name?: string;
     passport_url?: string;
     verified_at?: string | null;
     rejected_at?: string | null;
@@ -129,3 +131,28 @@ export type BrokerVerificationRequest = {
 
 // Me (current user profile) — kept for backward compat
 export type MeResponse = TokenUser;
+
+// Broker Documents
+export type BrokerDocumentsResponse = {
+  is_verified: boolean;
+  verification_status: string;
+  rejected_at: string | null;
+  verified_at: string | null;
+  inn_number: string;
+  inn_name: string;
+  inn_url: string;
+  passport_name: string;
+  passport_url: string;
+};
+
+export type UploadBrokerDocumentsRequest = {
+  inn?: File;
+  inn_name?: string;
+  passport?: File;
+  passport_name?: string;
+};
+
+export type UpdateDocumentNamesRequest = {
+  inn_name?: string;
+  passport_name?: string;
+};

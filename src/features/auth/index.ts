@@ -9,6 +9,8 @@ export {
   useRegisterBroker,
   useVerifyBroker,
   useLogout,
+  useUploadBrokerDocuments,
+  useUpdateDocumentNames,
 } from "./model/queries";
 
 export { useDeveloperRegistration } from "./model/use-developer-registration";
