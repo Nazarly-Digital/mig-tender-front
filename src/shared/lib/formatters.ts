@@ -30,12 +30,25 @@ export function formatPriceInput(value: string): string {
   const clean = value.replace(/[^0-9.]/g, '');
   const [integer, decimal] = clean.split('.');
   const formatted = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-  return decimal !== undefined ? `${formatted}.${decimal}` : formatted;
+  if (decimal !== undefined) {
+    return `${formatted}.${decimal.slice(0, 2)}`;
+  }
+  return formatted;
 }
 
 /** Strip spaces from formatted price: "10 000 000" → "10000000" */
 export function stripPriceFormat(value: string): string {
   return value.replace(/\s/g, '');
+}
+
+/** Limit decimal input to max 2 digits after dot/comma */
+export function limitDecimal(value: string): string {
+  const clean = value.replace(/[^0-9.]/g, '');
+  const [integer, decimal] = clean.split('.');
+  if (decimal !== undefined) {
+    return `${integer}.${decimal.slice(0, 2)}`;
+  }
+  return clean;
 }
 
 export function formatDateLong(dateStr: string | null | undefined): string {
