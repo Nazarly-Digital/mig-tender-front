@@ -48,6 +48,7 @@ export function useAuctionDetail(id: number) {
     queryKey: auctionKeys.detail(id),
     queryFn: () => auctionsService.getById(id).then((res) => res.data),
     enabled: id > 0,
+    refetchInterval: 15_000,
   });
 }
 

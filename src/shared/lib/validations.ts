@@ -104,18 +104,26 @@ export const auctionSchema = z.object({
     .min(1, 'Выберите дату начала')
     .refine((v) => {
       if (!v) return true;
-      const minTime = Date.now() + 60 * 60 * 1000;
+      const isDev = process.env.NODE_ENV === 'development';
+      const minTime = isDev ? Date.now() : Date.now() + 60 * 60 * 1000;
       return new Date(v).getTime() >= minTime;
-    }, 'Дата начала должна быть минимум через 1 час от текущего времени'),
+    }, process.env.NODE_ENV === 'development'
+      ? 'Дата начала должна быть в будущем'
+      : 'Дата начала должна быть минимум через 1 час от текущего времени'),
   end_date: z.string().min(1, 'Выберите дату окончания'),
 }).refine(
   (data) => {
     if (!data.start_date || !data.end_date) return true;
+    const isDev = process.env.NODE_ENV === 'development';
     const start = new Date(data.start_date).getTime();
     const end = new Date(data.end_date).getTime();
-    return end >= start + 60 * 60 * 1000; // минимум 1 час разницы
+    const minDiff = isDev ? 0 : 60 * 60 * 1000;
+    return end >= start + minDiff;
   },
-  { message: 'Дата окончания должна быть минимум на 1 час позже даты начала', path: ['end_date'] },
+  { message: process.env.NODE_ENV === 'development'
+    ? 'Дата окончания должна быть позже даты начала'
+    : 'Дата окончания должна быть минимум на 1 час позже даты начала',
+    path: ['end_date'] },
 );
 
 export type AuctionFormData = z.infer<typeof auctionSchema>;
