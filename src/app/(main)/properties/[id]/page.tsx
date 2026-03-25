@@ -28,7 +28,7 @@ import {
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
-import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
+import { AreaField, PriceField } from '@/shared/components/property-fields';
 import {
   useProperty,
   useUpdateProperty,
@@ -436,11 +436,7 @@ function PropertyEditForm({
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
           <Label.Root htmlFor='p-area'>Площадь (м²) <Label.Asterisk /></Label.Root>
-          <Input.Root size='small'>
-            <Input.Wrapper>
-              <Input.Input id='p-area' type='number' step='0.01' placeholder='120.5' {...register('area')} />
-            </Input.Wrapper>
-          </Input.Root>
+          <AreaField control={control} id='p-area' size='small' />
           {errors.area && <p className='text-[11px] text-red-500'>{errors.area.message}</p>}
         </div>
         <div className='space-y-1.5'>
@@ -467,25 +463,7 @@ function PropertyEditForm({
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
           <Label.Root htmlFor='p-price'>Цена <Label.Asterisk /></Label.Root>
-          <Input.Root size='small'>
-            <Input.Wrapper>
-              <Controller
-                name='price'
-                control={control}
-                render={({ field }) => (
-                  <Input.Input
-                    id='p-price'
-                    type='text'
-                    inputMode='decimal'
-                    placeholder='150 000'
-                    value={formatPriceInput(field.value)}
-                    onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
-                    onBlur={field.onBlur}
-                  />
-                )}
-              />
-            </Input.Wrapper>
-          </Input.Root>
+          <PriceField control={control} id='p-price' size='small' />
           {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
         </div>
         <div className='space-y-1.5'>

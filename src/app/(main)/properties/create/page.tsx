@@ -20,7 +20,7 @@ import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
-import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
+import { AreaField, PriceField } from '@/shared/components/property-fields';
 import { useCreateProperty } from '@/features/properties';
 import { propertiesService } from '@/entities/properties';
 import {
@@ -226,19 +226,7 @@ export default function CreatePropertyPage() {
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-area'>Площадь (м²) <Label.Asterisk /></Label.Root>
-                <Controller name='area' control={control} render={({ field }) => (
-                  <Input.Root hasError={!!errors.area}>
-                    <Input.Wrapper>
-                      <Input.Input
-                        id='property-area' type='text' inputMode='decimal' placeholder='120.5'
-                        value={field.value}
-                        onKeyDown={(e) => { if (['+','-','e','E'].includes(e.key)) e.preventDefault(); if (e.key === '.' && field.value.includes('.')) e.preventDefault(); }}
-                        onChange={(e) => { const raw = e.target.value.replace(/[^0-9.]/g, ''); field.onChange(raw.split('.').length > 2 ? raw.slice(0, raw.lastIndexOf('.')) : raw); }}
-                        onBlur={field.onBlur}
-                      />
-                    </Input.Wrapper>
-                  </Input.Root>
-                )} />
+                <AreaField control={control} hasError={!!errors.area} />
                 {errors.area && <p className='text-xs text-red-500'>{errors.area.message}</p>}
               </div>
             </div>
@@ -249,18 +237,7 @@ export default function CreatePropertyPage() {
               <div className='grid grid-cols-2 gap-3'>
                 <div className='space-y-1.5'>
                   <Label.Root htmlFor='property-price'>Цена <Label.Asterisk /></Label.Root>
-                  <Controller name='price' control={control} render={({ field }) => (
-                    <Input.Root hasError={!!errors.price}>
-                      <Input.Wrapper>
-                        <Input.Input
-                          id='property-price' type='text' inputMode='decimal' placeholder='150 000'
-                          value={formatPriceInput(field.value)}
-                          onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
-                          onBlur={field.onBlur}
-                        />
-                      </Input.Wrapper>
-                    </Input.Root>
-                  )} />
+                  <PriceField control={control} hasError={!!errors.price} />
                   {errors.price && <p className='text-xs text-red-500'>{errors.price.message}</p>}
                 </div>
                 <div className='space-y-1.5'>
