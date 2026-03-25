@@ -35,9 +35,22 @@ import type {
   PropertyClass,
   PropertyStatus,
   PropertyListParams,
+  ModerationStatus,
 } from '@/shared/types/properties';
 
 const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', RUB: '₽', TRY: '₺' };
+
+const MODERATION_LABELS: Record<ModerationStatus, string> = {
+  pending: 'На модерации',
+  approved: 'Одобрен',
+  rejected: 'Отклонён',
+};
+
+const MODERATION_STYLES: Record<ModerationStatus, string> = {
+  pending: 'bg-amber-50 text-amber-700',
+  approved: 'bg-emerald-50 text-emerald-700',
+  rejected: 'bg-red-50 text-red-700',
+};
 
 function formatPrice(value: string, currency?: string) {
   const num = parseFloat(value);
@@ -175,9 +188,16 @@ function PropertyCard({
       <div className='px-4 py-3'>
         <div className='flex items-center justify-between'>
           <h3 className='text-[14px] font-semibold text-gray-900 truncate'>{property.address}</h3>
-          <span className={cn('inline-flex items-center gap-1 shrink-0 ml-2 rounded-full px-2 py-0.5 text-[10px] font-medium', badgeStyle)}>
-            {STATUS_LABELS[property.status]}
-          </span>
+          <div className='flex items-center gap-1.5 shrink-0 ml-2'>
+            {property.moderation_status && (
+              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', MODERATION_STYLES[property.moderation_status])}>
+                {MODERATION_LABELS[property.moderation_status]}
+              </span>
+            )}
+            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', badgeStyle)}>
+              {STATUS_LABELS[property.status]}
+            </span>
+          </div>
         </div>
         <span className='mt-1 block text-[12px] text-gray-400'>
           {property.area} м² · до {formatDate(property.deadline)}

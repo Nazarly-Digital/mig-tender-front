@@ -44,6 +44,7 @@ import type {
   PropertyClass,
   PropertyStatus,
   PropertyImage,
+  ModerationStatus,
 } from '@/shared/types/properties';
 
 // --- Constants ---
@@ -55,6 +56,18 @@ const STATUS_BADGE: Record<PropertyStatus, string> = {
   draft: 'bg-gray-100 text-gray-600',
   archived: 'bg-amber-50 text-amber-700',
   sold: 'bg-blue-50 text-blue-700',
+};
+
+const MODERATION_LABELS: Record<ModerationStatus, string> = {
+  pending: 'На модерации',
+  approved: 'Одобрен',
+  rejected: 'Отклонён',
+};
+
+const MODERATION_STYLES: Record<ModerationStatus, string> = {
+  pending: 'bg-amber-50 text-amber-700',
+  approved: 'bg-emerald-50 text-emerald-700',
+  rejected: 'bg-red-50 text-red-700',
 };
 
 // --- Helpers ---
@@ -622,6 +635,11 @@ export default function PropertyDetailPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
+          {property.moderation_status && (
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${MODERATION_STYLES[property.moderation_status]}`}>
+              {MODERATION_LABELS[property.moderation_status]}
+            </span>
+          )}
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusCls}`}>
             {STATUS_LABELS[property.status]}
           </span>
