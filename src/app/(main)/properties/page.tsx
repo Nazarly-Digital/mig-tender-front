@@ -62,6 +62,7 @@ const STATUS_BADGE_STYLES: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-600',
   archived: 'bg-amber-50 text-amber-700',
   cancelled: 'bg-red-50 text-red-700',
+  sold: 'bg-blue-50 text-blue-700',
 };
 
 function PropertyImageCarousel({ images }: { images: Property['images'] }) {
@@ -203,6 +204,7 @@ export default function PropertiesPage() {
     ...(search && { address: search }),
     ...(typeFilter !== 'all' && { type: typeFilter as PropertyType }),
     ...(classFilter !== 'all' && { property_class: classFilter as PropertyClass }),
+    ...(statusFilter !== 'all' && { status: statusFilter as PropertyStatus }),
     ordering: '-created_at',
   };
 
@@ -240,11 +242,7 @@ export default function PropertiesPage() {
     setPage(1);
   }, [search, typeFilter, classFilter, statusFilter]);
 
-  const allProperties = data?.results ?? [];
-  const properties =
-    statusFilter === 'all'
-      ? allProperties
-      : allProperties.filter((p) => p.status === statusFilter);
+  const properties = data?.results ?? [];
 
   return (
     <div className='w-full px-8 py-8'>

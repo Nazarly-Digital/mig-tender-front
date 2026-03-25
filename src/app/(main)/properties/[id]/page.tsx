@@ -54,6 +54,7 @@ const STATUS_BADGE: Record<PropertyStatus, string> = {
   published: 'bg-emerald-50 text-emerald-700',
   draft: 'bg-gray-100 text-gray-600',
   archived: 'bg-amber-50 text-amber-700',
+  sold: 'bg-blue-50 text-blue-700',
 };
 
 // --- Helpers ---

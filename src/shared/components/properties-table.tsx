@@ -79,12 +79,14 @@ const STATUS_LABELS: Record<PropertyStatus, string> = {
   draft: 'Черновик',
   published: 'Опубликован',
   archived: 'Архив',
+  sold: 'Продан',
 };
 
 const STATUS_MAP: Record<PropertyStatus, 'pending' | 'completed' | 'disabled'> = {
   draft: 'pending',
   published: 'completed',
   archived: 'disabled',
+  sold: 'completed',
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', RUB: '₽', TRY: '₺' };

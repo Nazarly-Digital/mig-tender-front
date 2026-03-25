@@ -8,7 +8,7 @@ export type PropertyType =
 
 export type PropertyClass = "economy" | "comfort" | "business" | "premium";
 
-export type PropertyStatus = "draft" | "published" | "archived";
+export type PropertyStatus = "draft" | "published" | "archived" | "sold";
 
 // Property Image
 export type PropertyImage = {
