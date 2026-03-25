@@ -37,7 +37,6 @@ export default function CreateAuctionPage() {
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors },
   } = useForm<AuctionFormData>({
     resolver: zodResolver(auctionSchema),
@@ -158,40 +157,37 @@ export default function CreateAuctionPage() {
 
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-start'>Дата начала <Label.Asterisk /></Label.Root>
-              <Input.Root>
+              <Input.Root hasError={!!errors.start_date}>
                 <Input.Wrapper>
                   <Input.Input
                     id='auction-start'
                     type='datetime-local'
-                    min={(() => {
-                      const d = new Date();
-                      d.setHours(d.getHours() + 1);
-                      return d.toISOString().slice(0, 16);
-                    })()}
                     {...register('start_date')}
                   />
                 </Input.Wrapper>
               </Input.Root>
-              <p className='text-xs text-gray-400'>Минимум через 1 час от текущего времени</p>
-              {errors.start_date && <p className='text-xs text-red-500'>{errors.start_date.message}</p>}
+              {errors.start_date ? (
+                <p className='text-xs text-red-500'>{errors.start_date.message}</p>
+              ) : (
+                <p className='text-xs text-gray-400'>Минимум через 1 час от текущего времени</p>
+              )}
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-end'>Дата окончания <Label.Asterisk /></Label.Root>
-              <Input.Root>
+              <Input.Root hasError={!!errors.end_date}>
                 <Input.Wrapper>
                   <Input.Input
                     id='auction-end'
                     type='datetime-local'
-                    min={watch('start_date') ? (() => {
-                      const d = new Date(watch('start_date'));
-                      d.setHours(d.getHours() + 1);
-                      return d.toISOString().slice(0, 16);
-                    })() : undefined}
                     {...register('end_date')}
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {errors.end_date && <p className='text-xs text-red-500'>{errors.end_date.message}</p>}
+              {errors.end_date ? (
+                <p className='text-xs text-red-500'>{errors.end_date.message}</p>
+              ) : (
+                <p className='text-xs text-gray-400'>Минимум на 1 час позже даты начала</p>
+              )}
             </div>
           </div>
         </div>
