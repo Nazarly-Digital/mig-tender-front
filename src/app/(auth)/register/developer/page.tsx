@@ -9,7 +9,6 @@ import {
   RiMailLine,
   RiUserLine,
   RiUserAddFill,
-  RiUploadCloud2Line,
 } from '@remixicon/react';
 
 import { cn } from '@/shared/lib/cn';
@@ -57,23 +56,16 @@ export default function PageRegisterDeveloper() {
     setCode,
     error,
     timer,
-    inn,
-    setInn,
-    passport,
-    setPassport,
     emailForm,
     registerForm,
     handleGetCode,
     handleVerifyEmail,
     handleResendCode,
     handleRegister,
-    handleUploadDocuments,
-    handleSkipDocuments,
     isGetCodePending,
     isVerifyPending,
     isResendPending,
     isRegisterPending,
-    isUploadingDocs,
   } = useDeveloperRegistration();
 
   return (
@@ -98,7 +90,6 @@ export default function PageRegisterDeveloper() {
               {step === 1 && 'Регистрация девелопера'}
               {step === 2 && 'Подтверждение email'}
               {step === 3 && 'Данные аккаунта'}
-              {step === 4 && 'Загрузка документов'}
             </div>
             <div className='text-paragraph-sm text-text-sub-600 lg:text-paragraph-md'>
               {step === 1 && 'Введите ваш email для начала регистрации'}
@@ -106,7 +97,6 @@ export default function PageRegisterDeveloper() {
                 <>Введите код, отправленный на <span className='font-medium text-text-strong-950'>{emailForm.getValues('email')}</span></>
               )}
               {step === 3 && 'Заполните данные для завершения регистрации'}
-              {step === 4 && 'Загрузите ИНН и паспорт для верификации'}
             </div>
           </div>
         </div>
@@ -305,72 +295,6 @@ export default function PageRegisterDeveloper() {
               {isRegisterPending ? 'Регистрация...' : 'Зарегистрироваться'}
             </FancyButton.Root>
           </form>
-        )}
-
-        {/* Step 4: Documents */}
-        {step === 4 && (
-          <div className='flex flex-col gap-6'>
-            <div className='flex flex-col gap-3'>
-              {/* INN */}
-              <div className='flex flex-col gap-1'>
-                <Label.Root>
-                  Документ ИНН <Label.Asterisk />
-                </Label.Root>
-                <label className='flex cursor-pointer items-center gap-2 rounded-10 border border-stroke-soft-200 px-3 py-2.5 transition-colors hover:bg-bg-weak-50'>
-                  <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
-                  <span className='truncate text-paragraph-sm text-text-soft-400'>
-                    {inn ? inn.name : 'Выберите файл'}
-                  </span>
-                  <input
-                    type='file'
-                    className='hidden'
-                    accept='image/*,.pdf'
-                    onChange={(e) => setInn(e.target.files?.[0] ?? null)}
-                  />
-                </label>
-              </div>
-
-              {/* Passport */}
-              <div className='flex flex-col gap-1'>
-                <Label.Root>
-                  Паспорт <Label.Asterisk />
-                </Label.Root>
-                <label className='flex cursor-pointer items-center gap-2 rounded-10 border border-stroke-soft-200 px-3 py-2.5 transition-colors hover:bg-bg-weak-50'>
-                  <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
-                  <span className='truncate text-paragraph-sm text-text-soft-400'>
-                    {passport ? passport.name : 'Выберите файл'}
-                  </span>
-                  <input
-                    type='file'
-                    className='hidden'
-                    accept='image/*,.pdf'
-                    onChange={(e) => setPassport(e.target.files?.[0] ?? null)}
-                  />
-                </label>
-              </div>
-            </div>
-
-            <div className='flex flex-col gap-3'>
-              <FancyButton.Root
-                variant='primary'
-                size='medium'
-                className='w-full'
-                disabled={isUploadingDocs || (!inn && !passport)}
-                onClick={handleUploadDocuments}
-              >
-                {isUploadingDocs ? 'Загрузка...' : 'Загрузить документы'}
-              </FancyButton.Root>
-              <FancyButton.Root
-                variant='basic'
-                size='medium'
-                className='w-full'
-                disabled={isUploadingDocs}
-                onClick={handleSkipDocuments}
-              >
-                Пропустить
-              </FancyButton.Root>
-            </div>
-          </div>
         )}
       </div>
     </div>

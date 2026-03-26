@@ -91,7 +91,7 @@ apiInstance.interceptors.response.use(
     if (!refreshToken) {
       logout();
       if (typeof window !== "undefined") {
-        window.location.href = "/login";
+        window.location.href = "/select-role";
       }
       return Promise.reject(error);
     }
@@ -111,7 +111,7 @@ apiInstance.interceptors.response.use(
       processQueue(refreshError, null);
       logout();
       if (typeof window !== "undefined") {
-        window.location.href = "/login";
+        window.location.href = "/select-role";
       }
       return Promise.reject(refreshError);
     } finally {

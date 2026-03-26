@@ -27,7 +27,7 @@ export function UserButton({ className }: { className?: string }) {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push('/select-role');
   };
 
   return (

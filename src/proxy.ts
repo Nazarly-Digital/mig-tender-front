@@ -26,7 +26,7 @@ export default function proxy(request: NextRequest) {
 
   // Не авторизован + пытается зайти на защищённую страницу → на login
   if (!hasSession && !isAuthOnlyPath(pathname)) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/select-role', request.url));
   }
 
   return NextResponse.next();

@@ -21,6 +21,7 @@ import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as FileFormatIcon from '@/shared/ui/file-format-icon';
 import { useMe, useUploadDocument, useUpdateDocumentName } from '@/features/auth';
+import { useSessionStore, isUserBroker } from '@/entities/auth/model/store';
 import type { UserDocument } from '@/shared/types/auth';
 
 // --- Helpers ---
@@ -351,6 +352,8 @@ function RenameDocumentModal({
 
 export default function DocumentsPage() {
   const { data: me, isLoading } = useMe();
+  const user = useSessionStore((s) => s.user);
+  const isBroker = isUserBroker(user);
   const documents = me?.documents ?? [];
 
   const innDoc = documents.find((d) => d.doc_type === 'inn');
@@ -375,24 +378,26 @@ export default function DocumentsPage() {
     <div className='w-full px-8 py-8'>
       <PageHeader title='Документы' description='Управляйте вашими документами' />
 
-      {/* Required Documents — INN & Passport */}
-      <div className='mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2'>
-        <RequiredDocCard
-          title='ИНН'
-          description='Свидетельство о регистрации ИНН'
-          docType='inn'
-          document={innDoc}
-        />
-        <RequiredDocCard
-          title='Паспорт'
-          description='Копия паспорта (главная страница)'
-          docType='passport'
-          document={passportDoc}
-        />
-      </div>
+      {/* Required Documents — INN & Passport (broker only) */}
+      {isBroker && (
+        <div className='mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2'>
+          <RequiredDocCard
+            title='ИНН'
+            description='Свидетельство о регистрации ИНН'
+            docType='inn'
+            document={innDoc}
+          />
+          <RequiredDocCard
+            title='Паспорт'
+            description='Копия паспорта (главная страница)'
+            docType='passport'
+            document={passportDoc}
+          />
+        </div>
+      )}
 
       {/* Other Documents */}
-      <div className='mt-8'>
+      <div className={isBroker ? 'mt-8' : 'mt-6'}>
         <div className='flex items-center justify-between'>
           <h2 className='text-lg font-semibold text-gray-900'>Другие документы</h2>
           <FancyButton.Root variant='primary' size='small' onClick={() => setUploadOpen(true)}>

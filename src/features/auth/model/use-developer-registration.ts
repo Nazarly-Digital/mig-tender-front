@@ -10,7 +10,6 @@ import {
   useVerifyEmail,
   useResendCode,
   useRegisterDeveloper,
-  useUploadDocument,
 } from './queries';
 import type { GetCodeError429 } from '@/shared/types/auth';
 import {
@@ -36,15 +35,10 @@ export function useDeveloperRegistration() {
     resolver: zodResolver(developerRegisterSchema),
   });
 
-  const [inn, setInn] = React.useState<File | null>(null);
-  const [passport, setPassport] = React.useState<File | null>(null);
-  const [uploadingDocs, setUploadingDocs] = React.useState(false);
-
   const getCode = useGetCode();
   const verifyEmail = useVerifyEmail();
   const resendCode = useResendCode();
   const registerDeveloper = useRegisterDeveloper();
-  const uploadDocument = useUploadDocument();
 
   // Countdown timer
   React.useEffect(() => {
@@ -142,7 +136,7 @@ export function useDeveloperRegistration() {
       },
       {
         onSuccess: () => {
-          setStep(4);
+          router.replace('/dashboard');
         },
         onError: (err) => {
           if (err instanceof AxiosError) {
@@ -159,36 +153,6 @@ export function useDeveloperRegistration() {
     );
   });
 
-  const handleUploadDocuments = async () => {
-    setError('');
-    setUploadingDocs(true);
-    try {
-      if (inn) {
-        await uploadDocument.mutateAsync({ doc_type: 'inn', document: inn });
-      }
-      if (passport) {
-        await uploadDocument.mutateAsync({ doc_type: 'passport', document: passport });
-      }
-      router.replace('/dashboard');
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        const data = err.response?.data;
-        if (typeof data === 'object' && data !== null) {
-          const messages = Object.values(data).flat();
-          setError(messages.join('. ') || 'Ошибка загрузки документов');
-        } else {
-          setError('Ошибка загрузки документов');
-        }
-      }
-    } finally {
-      setUploadingDocs(false);
-    }
-  };
-
-  const handleSkipDocuments = () => {
-    router.replace('/dashboard');
-  };
-
   return {
     // state
     step,
@@ -196,10 +160,6 @@ export function useDeveloperRegistration() {
     setCode,
     error,
     timer,
-    inn,
-    setInn,
-    passport,
-    setPassport,
 
     // forms
     emailForm,
@@ -210,14 +170,11 @@ export function useDeveloperRegistration() {
     handleVerifyEmail,
     handleResendCode,
     handleRegister,
-    handleUploadDocuments,
-    handleSkipDocuments,
 
     // loading states
     isGetCodePending: getCode.isPending,
     isVerifyPending: verifyEmail.isPending,
     isResendPending: resendCode.isPending,
     isRegisterPending: registerDeveloper.isPending,
-    isUploadingDocs: uploadingDocs,
   };
 }
