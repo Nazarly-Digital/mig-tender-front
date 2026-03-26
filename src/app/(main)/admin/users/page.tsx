@@ -314,29 +314,20 @@ export default function AdminUsersPage() {
                   </td>
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center gap-2'>
-                      {user.broker?.inn_url ? (
-                        <a
-                          href={user.broker.inn_url}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap'
-                        >
-                          <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
-                          ИНН
-                        </a>
-                      ) : null}
-                      {user.broker?.passport_url ? (
-                        <a
-                          href={user.broker.passport_url}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap'
-                        >
-                          <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
-                          Паспорт
-                        </a>
-                      ) : null}
-                      {!user.broker?.inn_url && !user.broker?.passport_url && (
+                      {user.documents?.length > 0 ? (
+                        user.documents.map((doc) => (
+                          <a
+                            key={doc.id}
+                            href={doc.url}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap'
+                          >
+                            <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                            {doc.document_name || doc.doc_type}
+                          </a>
+                        ))
+                      ) : (
                         <span className='text-[13px] text-gray-400'>—</span>
                       )}
                     </div>

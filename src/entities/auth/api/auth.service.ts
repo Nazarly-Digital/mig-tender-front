@@ -15,9 +15,10 @@ import type {
   BrokerVerificationRequest,
   MeResponse,
   MeApiResponse,
-  BrokerDocumentsResponse,
-  UploadBrokerDocumentsRequest,
-  UpdateDocumentNamesRequest,
+  UploadDocumentRequest,
+  UploadDocumentResponse,
+  UpdateDocumentNameRequest,
+  UpdateDocumentNameResponse,
 } from "@/shared/types/auth";
 
 export const authService = {
@@ -65,20 +66,19 @@ export const authService = {
   getMe: () =>
     apiInstance.get<MeApiResponse>("/auth/me/"),
 
-  uploadBrokerDocuments: (data: UploadBrokerDocumentsRequest) => {
+  uploadDocument: (data: UploadDocumentRequest) => {
     const formData = new FormData();
-    if (data.inn) formData.append("inn", data.inn, data.inn.name);
-    if (data.inn_name) formData.append("inn_name", data.inn_name);
-    if (data.passport) formData.append("passport", data.passport, data.passport.name);
-    if (data.passport_name) formData.append("passport_name", data.passport_name);
+    formData.append("doc_type", data.doc_type);
+    formData.append("document", data.document, data.document.name);
+    if (data.document_name) formData.append("document_name", data.document_name);
 
-    return apiInstance.post<BrokerDocumentsResponse>(
-      "/auth/broker/upload-documents/",
+    return apiInstance.post<UploadDocumentResponse>(
+      "/auth/documents/upload/",
       formData,
       { headers: { "Content-Type": "multipart/form-data" } },
     );
   },
 
-  updateDocumentNames: (data: UpdateDocumentNamesRequest) =>
-    apiInstance.patch<BrokerDocumentsResponse>("/auth/broker/update-document-names/", data),
+  updateDocumentName: (data: UpdateDocumentNameRequest) =>
+    apiInstance.patch<UpdateDocumentNameResponse>("/auth/documents/update-name/", data),
 };

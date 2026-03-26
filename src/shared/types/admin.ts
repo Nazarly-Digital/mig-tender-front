@@ -1,4 +1,5 @@
 import type { PaginatedResponse } from './properties';
+import type { UserDocument } from './auth';
 
 export type AdminUser = {
   id: number;
@@ -10,12 +11,11 @@ export type AdminUser = {
     is_verified: boolean;
     verification_status: string;
     inn_number?: string;
-    inn_url?: string;
-    passport_url?: string;
     verified_at?: string | null;
     rejected_at?: string | null;
   } | null;
   developer: { company_name?: string } | null;
+  documents: UserDocument[];
   is_active?: boolean;
   created_at?: string;
 };

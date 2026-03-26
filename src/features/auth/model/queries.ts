@@ -10,8 +10,8 @@ import type {
   RegisterDeveloperRequest,
   RegisterBrokerRequest,
   BrokerVerificationRequest,
-  UploadBrokerDocumentsRequest,
-  UpdateDocumentNamesRequest,
+  UploadDocumentRequest,
+  UpdateDocumentNameRequest,
 } from "@/shared/types/auth";
 
 export const authKeys = {
@@ -41,6 +41,7 @@ export function useMe() {
         date_joined: me.date_joined,
         broker: me.broker,
         developer: me.developer,
+        documents: me.documents ?? [],
       });
       return me;
     },
@@ -131,24 +132,24 @@ export function useLogout() {
   });
 }
 
-export function useUploadBrokerDocuments() {
+export function useUploadDocument() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UploadBrokerDocumentsRequest) =>
-      authService.uploadBrokerDocuments(data).then((res) => res.data),
+    mutationFn: (data: UploadDocumentRequest) =>
+      authService.uploadDocument(data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.me });
     },
   });
 }
 
-export function useUpdateDocumentNames() {
+export function useUpdateDocumentName() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateDocumentNamesRequest) =>
-      authService.updateDocumentNames(data).then((res) => res.data),
+    mutationFn: (data: UpdateDocumentNameRequest) =>
+      authService.updateDocumentName(data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.me });
     },

@@ -1,3 +1,14 @@
+export type UserDocument = {
+  id: number;
+  doc_type: 'inn' | 'passport' | 'others';
+  document_name: string;
+  url: string;
+  filename: string;
+  extension: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type TokenUser = {
   id: number;
   email: string;
@@ -13,16 +24,13 @@ export type TokenUser = {
     is_verified: boolean;
     verification_status: string;
     inn_number?: string;
-    inn_name?: string;
-    inn_url?: string;
-    passport_name?: string;
-    passport_url?: string;
     verified_at?: string | null;
     rejected_at?: string | null;
   } | null;
   developer: {
     company_name?: string;
   } | null;
+  documents: UserDocument[];
 };
 
 // /auth/me/ response (different shape from login response)
@@ -38,6 +46,7 @@ export type MeApiResponse = {
   is_admin: boolean;
   broker: TokenUser['broker'];
   developer: TokenUser['developer'];
+  documents: UserDocument[];
 };
 
 // Login
@@ -132,27 +141,24 @@ export type BrokerVerificationRequest = {
 // Me (current user profile) — kept for backward compat
 export type MeResponse = TokenUser;
 
-// Broker Documents
-export type BrokerDocumentsResponse = {
-  is_verified: boolean;
-  verification_status: string;
-  rejected_at: string | null;
-  verified_at: string | null;
-  inn_number: string;
-  inn_name: string;
-  inn_url: string;
-  passport_name: string;
-  passport_url: string;
+// User Documents
+export type UploadDocumentRequest = {
+  doc_type: 'inn' | 'passport' | 'others';
+  document: File;
+  document_name?: string;
 };
 
-export type UploadBrokerDocumentsRequest = {
-  inn?: File;
-  inn_name?: string;
-  passport?: File;
-  passport_name?: string;
+export type UploadDocumentResponse = {
+  message: string;
+  document: UserDocument;
 };
 
-export type UpdateDocumentNamesRequest = {
-  inn_name?: string;
-  passport_name?: string;
+export type UpdateDocumentNameRequest = {
+  document_id: number;
+  document_name: string;
+};
+
+export type UpdateDocumentNameResponse = {
+  message: string;
+  document: UserDocument;
 };
