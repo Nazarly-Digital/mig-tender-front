@@ -8,6 +8,8 @@ import {
   Upload04Icon,
   PencilEdit01Icon,
   Download01Icon,
+  InformationCircleIcon,
+  CheckmarkCircle02Icon,
 } from '@hugeicons/core-free-icons';
 
 import { PageHeader } from '@/shared/components/page-header';
@@ -52,7 +54,99 @@ function getApiError(error: unknown): string {
   return err.response?.data?.error ?? err.response?.data?.detail ?? err.response?.data?.message ?? 'Произошла ошибка';
 }
 
-// --- Upload Modal ---
+// --- Required Document Card (INN / Passport) ---
+
+function RequiredDocCard({
+  title,
+  description,
+  docType,
+  document,
+}: {
+  title: string;
+  description: string;
+  docType: 'inn' | 'passport';
+  document: UserDocument | undefined;
+}) {
+  const uploadDocument = useUploadDocument();
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFile = (file: File) => {
+    uploadDocument.mutate(
+      { doc_type: docType, document: file },
+      {
+        onSuccess: () => toast.success(`${title} загружен`),
+        onError: (error) => toast.error(getApiError(error)),
+      },
+    );
+  };
+
+  const isUploaded = !!document;
+
+  return (
+    <div className='rounded-xl border border-gray-200 bg-white'>
+      {/* Header */}
+      <div className='flex items-start justify-between p-5'>
+        <div className='flex items-start gap-3'>
+          <div className='flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50'>
+            <HugeiconsIcon icon={File01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-blue-600' />
+          </div>
+          <div>
+            <p className='text-sm font-semibold text-gray-900'>{title}</p>
+            <p className='mt-0.5 text-[12px] text-gray-500'>{description}</p>
+          </div>
+        </div>
+        {isUploaded ? (
+          <span className='inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700'>
+            <HugeiconsIcon icon={CheckmarkCircle02Icon} size={12} color='currentColor' strokeWidth={2} />
+            Загружен
+          </span>
+        ) : (
+          <span className='inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-500'>
+            <HugeiconsIcon icon={InformationCircleIcon} size={12} color='currentColor' strokeWidth={2} />
+            Не загружен
+          </span>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className='flex items-center justify-between border-t border-gray-100 px-5 py-3'>
+        <span className='text-[13px] font-medium text-gray-700'>{title}</span>
+        <div className='flex items-center gap-2'>
+          {isUploaded && (
+            <a href={document.url} target='_blank' rel='noopener noreferrer'>
+              <FancyButton.Root variant='basic' size='xsmall'>
+                <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                Скачать
+              </FancyButton.Root>
+            </a>
+          )}
+          <FancyButton.Root
+            variant='basic'
+            size='xsmall'
+            onClick={() => inputRef.current?.click()}
+            disabled={uploadDocument.isPending}
+          >
+            <HugeiconsIcon icon={isUploaded ? PencilEdit01Icon : Upload04Icon} size={14} color='currentColor' strokeWidth={1.5} />
+            {uploadDocument.isPending ? 'Загрузка...' : isUploaded ? 'Заменить' : 'Загрузить'}
+          </FancyButton.Root>
+          <input
+            ref={inputRef}
+            type='file'
+            className='hidden'
+            accept='.pdf,.jpg,.jpeg,.png,.webp,image/*'
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFile(f);
+              if (inputRef.current) inputRef.current.value = '';
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Upload Modal (for "others" docs only) ---
 
 function UploadDocumentModal({
   open,
@@ -62,13 +156,11 @@ function UploadDocumentModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const uploadDocument = useUploadDocument();
-  const [docType, setDocType] = React.useState<'inn' | 'passport' | 'others'>('others');
   const [documentName, setDocumentName] = React.useState('');
   const [file, setFile] = React.useState<File | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const resetForm = () => {
-    setDocType('others');
     setDocumentName('');
     setFile(null);
     if (inputRef.current) inputRef.current.value = '';
@@ -82,7 +174,7 @@ function UploadDocumentModal({
 
     uploadDocument.mutate(
       {
-        doc_type: docType,
+        doc_type: 'others',
         document: file,
         ...(documentName.trim() && { document_name: documentName.trim() }),
       },
@@ -108,27 +200,9 @@ function UploadDocumentModal({
       }}
     >
       <Modal.Content>
-        <Modal.Header title='Загрузить документ' description='Выберите тип и файл документа' />
+        <Modal.Header title='Загрузить документ' description='Загрузите дополнительный документ' />
         <Modal.Body>
           <div className='space-y-4'>
-            {/* Doc Type */}
-            <div className='space-y-1.5'>
-              <Label.Root>
-                Тип документа
-                <Label.Asterisk />
-              </Label.Root>
-              <Select.Root value={docType} onValueChange={(v) => setDocType(v as typeof docType)}>
-                <Select.Trigger>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  <Select.Item value='inn'>ИНН</Select.Item>
-                  <Select.Item value='passport'>Паспорт</Select.Item>
-                  <Select.Item value='others'>Другое</Select.Item>
-                </Select.Content>
-              </Select.Root>
-            </div>
-
             {/* Document Name */}
             <div className='space-y-1.5'>
               <Label.Root>Название документа</Label.Root>
@@ -276,106 +350,127 @@ export default function DocumentsPage() {
   const { data: me, isLoading } = useMe();
   const documents = me?.documents ?? [];
 
+  const innDoc = documents.find((d) => d.doc_type === 'inn');
+  const passportDoc = documents.find((d) => d.doc_type === 'passport');
+  const otherDocs = documents.filter((d) => d.doc_type === 'others');
+
   const [uploadOpen, setUploadOpen] = React.useState(false);
   const [renameTarget, setRenameTarget] = React.useState<UserDocument | null>(null);
 
+  if (isLoading) {
+    return (
+      <div className='w-full px-8 py-8'>
+        <PageHeader title='Документы' description='Управляйте вашими документами' />
+        <div className='mt-6'>
+          <TableSkeleton rows={4} cols={4} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className='w-full px-8 py-8'>
-      <div className='flex items-center justify-between'>
-        <PageHeader
-          title='Документы'
-          description='Управляйте вашими документами'
+      <PageHeader title='Документы' description='Управляйте вашими документами' />
+
+      {/* Required Documents — INN & Passport */}
+      <div className='mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2'>
+        <RequiredDocCard
+          title='ИНН'
+          description='Свидетельство о регистрации ИНН'
+          docType='inn'
+          document={innDoc}
         />
-        <FancyButton.Root variant='primary' size='small' onClick={() => setUploadOpen(true)}>
-          <HugeiconsIcon icon={Upload04Icon} size={16} color='currentColor' strokeWidth={1.5} />
-          Загрузить
-        </FancyButton.Root>
+        <RequiredDocCard
+          title='Паспорт'
+          description='Копия паспорта (главная страница)'
+          docType='passport'
+          document={passportDoc}
+        />
       </div>
 
-      {isLoading ? (
-        <div className='mt-6'>
-          <TableSkeleton rows={4} cols={5} />
+      {/* Other Documents */}
+      <div className='mt-8'>
+        <div className='flex items-center justify-between'>
+          <h2 className='text-lg font-semibold text-gray-900'>Другие документы</h2>
+          <FancyButton.Root variant='primary' size='small' onClick={() => setUploadOpen(true)}>
+            <HugeiconsIcon icon={Upload04Icon} size={16} color='currentColor' strokeWidth={1.5} />
+            Загрузить
+          </FancyButton.Root>
         </div>
-      ) : documents.length === 0 ? (
-        <div className='flex flex-col items-center justify-center gap-2 py-20'>
-          <div className='flex size-11 items-center justify-center rounded-xl bg-gray-50'>
-            <HugeiconsIcon icon={File01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+
+        {otherDocs.length === 0 ? (
+          <div className='flex flex-col items-center justify-center gap-2 py-16'>
+            <div className='flex size-11 items-center justify-center rounded-xl bg-gray-50'>
+              <HugeiconsIcon icon={File01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+            </div>
+            <p className='mt-1 text-sm font-medium text-gray-900'>Нет дополнительных документов</p>
+            <p className='text-[13px] text-gray-500'>Загрузите документ при необходимости</p>
           </div>
-          <p className='mt-1 text-sm font-medium text-gray-900'>Нет документов</p>
-          <p className='text-[13px] text-gray-500'>Загрузите первый документ</p>
-        </div>
-      ) : (
-        <div className='mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white'>
-          <table className='w-full text-left'>
-            <thead>
-              <tr className='bg-gray-50/50'>
-                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
-                  Документ
-                </th>
-                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
-                  Тип
-                </th>
-                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
-                  Дата загрузки
-                </th>
-                <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
-                  Действия
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {documents.map((doc) => (
-                <tr
-                  key={doc.id}
-                  className='border-b border-gray-100 last:border-0 transition-colors hover:bg-gray-50/50'
-                >
-                  <td className='px-5 py-3.5'>
-                    <div className='flex items-center gap-3'>
-                      <FileFormatIcon.Root
-                        format={doc.extension.replace('.', '').toUpperCase()}
-                        color={getExtensionColor(doc.extension)}
-                        size='small'
-                      />
-                      <div className='min-w-0'>
-                        <p className='truncate text-[13px] font-medium text-gray-900'>
-                          {doc.document_name || doc.filename}
-                        </p>
-                        <p className='truncate text-[12px] text-gray-400'>
-                          {doc.filename}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600'>
-                      {DOC_TYPE_LABELS[doc.doc_type] ?? doc.doc_type}
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='text-[13px] text-gray-500'>
-                      {formatDate(doc.created_at)}
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <div className='flex items-center justify-end gap-1.5'>
-                      <FancyButton.Root variant='basic' size='xsmall' onClick={() => setRenameTarget(doc)}>
-                        <HugeiconsIcon icon={PencilEdit01Icon} size={14} color='currentColor' strokeWidth={1.5} />
-                        Переименовать
-                      </FancyButton.Root>
-                      <a href={doc.url} target='_blank' rel='noopener noreferrer'>
-                        <FancyButton.Root variant='basic' size='xsmall'>
-                          <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
-                          Скачать
-                        </FancyButton.Root>
-                      </a>
-                    </div>
-                  </td>
+        ) : (
+          <div className='mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white'>
+            <table className='w-full text-left'>
+              <thead>
+                <tr className='bg-gray-50/50'>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                    Документ
+                  </th>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                    Дата загрузки
+                  </th>
+                  <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                    Действия
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {otherDocs.map((doc) => (
+                  <tr
+                    key={doc.id}
+                    className='border-b border-gray-100 last:border-0 transition-colors hover:bg-gray-50/50'
+                  >
+                    <td className='px-5 py-3.5'>
+                      <div className='flex items-center gap-3'>
+                        <FileFormatIcon.Root
+                          format={doc.extension.replace('.', '').toUpperCase()}
+                          color={getExtensionColor(doc.extension)}
+                          size='small'
+                        />
+                        <div className='min-w-0'>
+                          <p className='truncate text-[13px] font-medium text-gray-900'>
+                            {doc.document_name || doc.filename}
+                          </p>
+                          <p className='truncate text-[12px] text-gray-400'>
+                            {doc.filename}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='text-[13px] text-gray-500'>
+                        {formatDate(doc.created_at)}
+                      </span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <div className='flex items-center justify-end gap-1.5'>
+                        <FancyButton.Root variant='basic' size='xsmall' onClick={() => setRenameTarget(doc)}>
+                          <HugeiconsIcon icon={PencilEdit01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                          Переименовать
+                        </FancyButton.Root>
+                        <a href={doc.url} target='_blank' rel='noopener noreferrer'>
+                          <FancyButton.Root variant='basic' size='xsmall'>
+                            <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                            Скачать
+                          </FancyButton.Root>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Modals */}
       <UploadDocumentModal open={uploadOpen} onOpenChange={setUploadOpen} />
