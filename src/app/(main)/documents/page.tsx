@@ -112,34 +112,37 @@ function RequiredDocCard({
       <div className='flex items-center justify-between border-t border-gray-100 px-5 py-3'>
         <span className='text-[13px] font-medium text-gray-700'>{title}</span>
         <div className='flex items-center gap-2'>
-          {isUploaded && (
+          {isUploaded ? (
             <a href={document.url} target='_blank' rel='noopener noreferrer'>
               <FancyButton.Root variant='basic' size='xsmall'>
                 <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
                 Скачать
               </FancyButton.Root>
             </a>
+          ) : (
+            <>
+              <FancyButton.Root
+                variant='basic'
+                size='xsmall'
+                onClick={() => inputRef.current?.click()}
+                disabled={uploadDocument.isPending}
+              >
+                <HugeiconsIcon icon={Upload04Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                {uploadDocument.isPending ? 'Загрузка...' : 'Загрузить'}
+              </FancyButton.Root>
+              <input
+                ref={inputRef}
+                type='file'
+                className='hidden'
+                accept='.pdf,.jpg,.jpeg,.png,.webp,image/*'
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleFile(f);
+                  if (inputRef.current) inputRef.current.value = '';
+                }}
+              />
+            </>
           )}
-          <FancyButton.Root
-            variant='basic'
-            size='xsmall'
-            onClick={() => inputRef.current?.click()}
-            disabled={uploadDocument.isPending}
-          >
-            <HugeiconsIcon icon={isUploaded ? PencilEdit01Icon : Upload04Icon} size={14} color='currentColor' strokeWidth={1.5} />
-            {uploadDocument.isPending ? 'Загрузка...' : isUploaded ? 'Заменить' : 'Загрузить'}
-          </FancyButton.Root>
-          <input
-            ref={inputRef}
-            type='file'
-            className='hidden'
-            accept='.pdf,.jpg,.jpeg,.png,.webp,image/*'
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFile(f);
-              if (inputRef.current) inputRef.current.value = '';
-            }}
-          />
         </div>
       </div>
     </div>
