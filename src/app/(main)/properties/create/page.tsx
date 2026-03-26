@@ -43,6 +43,7 @@ export default function CreatePropertyPage() {
     register,
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -225,7 +226,7 @@ export default function CreatePropertyPage() {
                 )}
               </div>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-area'>Площадь (м²) <Label.Asterisk /></Label.Root>
+                <Label.Root htmlFor='property-area'>Площадь ({watch('type') === 'land' ? 'соток' : 'м²'}) <Label.Asterisk /></Label.Root>
                 <AreaField control={control} hasError={!!errors.area} />
                 {errors.area && <p className='text-xs text-red-500'>{errors.area.message}</p>}
               </div>

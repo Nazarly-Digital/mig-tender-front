@@ -151,6 +151,7 @@ export function PropertyFormModal({
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -263,7 +264,7 @@ export function PropertyFormModal({
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-area'>
-                  Площадь (м²) <Label.Asterisk />
+                  Площадь ({watch('type') === 'land' ? 'соток' : 'м²'}) <Label.Asterisk />
                 </Label.Root>
                 <AreaField control={control} size='small' />
                 {errors.area && <p className='text-xs text-red-500'>{errors.area.message}</p>}

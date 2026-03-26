@@ -398,6 +398,7 @@ function PropertyEditForm({
     register,
     control,
     handleSubmit,
+    watch,
     formState: { errors, isDirty },
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -449,7 +450,7 @@ function PropertyEditForm({
       {/* Area + Class */}
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
-          <Label.Root htmlFor='p-area'>Площадь (м²) <Label.Asterisk /></Label.Root>
+          <Label.Root htmlFor='p-area'>Площадь ({watch('type') === 'land' ? 'соток' : 'м²'}) <Label.Asterisk /></Label.Root>
           <AreaField control={control} id='p-area' size='small' />
           {errors.area && <p className='text-[11px] text-red-500'>{errors.area.message}</p>}
         </div>
