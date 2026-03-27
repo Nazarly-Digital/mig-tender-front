@@ -82,7 +82,10 @@ function AuctionCard({ auction }: { auction: Auction }) {
       {/* Progress */}
       <div className='mt-3 pt-3 border-t border-blue-50'>
         <div className='flex justify-between text-[11px]'>
-          <span className='text-gray-400'>{auction.bids_count} ставок · мин. {formatPrice(auction.min_price)}</span>
+          <span className='text-gray-400'>
+            {auction.bids_count} ставок · мин. {formatPrice(auction.min_price)}
+            {auction.mode === 'open' && auction.min_bid_increment && ` · шаг ${formatPrice(auction.min_bid_increment)}`}
+          </span>
           {isActive && <span className='font-semibold text-gray-500'>{progress}%</span>}
         </div>
         <div className='h-1 overflow-hidden rounded-full bg-gray-100'>

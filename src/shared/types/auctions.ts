@@ -18,6 +18,7 @@ export type Auction = {
   owner_id: number;
   mode: AuctionMode;
   min_price: string;
+  min_bid_increment: string | null;
   start_date: string;
   end_date: string;
   status: AuctionStatus;
@@ -45,6 +46,7 @@ export type AuctionCreateRequest = {
   property_id: number;
   mode: AuctionMode;
   min_price: string;
+  min_bid_increment?: string;
   start_date: string;
   end_date: string;
 };

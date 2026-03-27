@@ -99,6 +99,7 @@ export const auctionSchema = z.object({
     .string()
     .min(1, 'Введите минимальную цену')
     .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
+  min_bid_increment: z.string().optional(),
   start_date: z
     .string()
     .min(1, 'Выберите дату начала')
@@ -124,6 +125,14 @@ export const auctionSchema = z.object({
     ? 'Дата окончания должна быть позже даты начала'
     : 'Дата окончания должна быть минимум на 1 час позже даты начала',
     path: ['end_date'] },
+).refine(
+  (data) => {
+    if (data.mode !== 'open') return true;
+    if (!data.min_bid_increment || !data.min_bid_increment.trim()) return false;
+    return parseFloat(data.min_bid_increment) >= 1;
+  },
+  { message: 'Введите шаг ставки (минимум 1)',
+    path: ['min_bid_increment'] },
 );
 
 export type AuctionFormData = z.infer<typeof auctionSchema>;

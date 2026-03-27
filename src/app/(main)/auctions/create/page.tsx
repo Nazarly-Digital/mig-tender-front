@@ -37,6 +37,8 @@ export default function CreateAuctionPage() {
     register,
     handleSubmit,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<AuctionFormData>({
     resolver: zodResolver(auctionSchema),
@@ -44,17 +46,22 @@ export default function CreateAuctionPage() {
       property_id: '',
       mode: 'closed',
       min_price: '',
+      min_bid_increment: '',
       start_date: '',
       end_date: '',
     },
   });
 
+  const selectedMode = watch('mode');
+
   const onSubmit = (data: AuctionFormData) => {
+    const isOpen = data.mode === 'open';
     createMutation.mutate(
       {
         property_id: Number(data.property_id),
         mode: data.mode as AuctionMode,
         min_price: data.min_price,
+        ...(isOpen && data.min_bid_increment ? { min_bid_increment: data.min_bid_increment } : {}),
         start_date: new Date(data.start_date).toISOString(),
         end_date: new Date(data.end_date).toISOString(),
       },
@@ -118,7 +125,10 @@ export default function CreateAuctionPage() {
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='auction-mode'>Тип <Label.Asterisk /></Label.Root>
                 <Controller control={control} name='mode' render={({ field }) => (
-                  <Select.Root value={field.value} onValueChange={field.onChange}>
+                  <Select.Root value={field.value} onValueChange={(v) => {
+                    field.onChange(v);
+                    if (v === 'closed') setValue('min_bid_increment', '');
+                  }}>
                     <Select.Trigger id='auction-mode'><Select.Value /></Select.Trigger>
                     <Select.Content>
                       {(Object.entries(MODE_LABELS) as [AuctionMode, string][]).map(([v, l]) => (
@@ -149,6 +159,32 @@ export default function CreateAuctionPage() {
                 {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
               </div>
             </div>
+
+            {selectedMode === 'open' && (
+              <div className='space-y-1.5'>
+                <Label.Root htmlFor='auction-min-bid-increment'>Мин. шаг ставки <Label.Asterisk /></Label.Root>
+                <Controller control={control} name='min_bid_increment' render={({ field }) => (
+                  <Input.Root hasError={!!errors.min_bid_increment}>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='auction-min-bid-increment'
+                        type='text'
+                        inputMode='decimal'
+                        placeholder='150 000 ₽'
+                        value={formatPriceInput(field.value ?? '')}
+                        onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
+                        onBlur={field.onBlur}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                )} />
+                {errors.min_bid_increment ? (
+                  <p className='text-xs text-red-500'>{errors.min_bid_increment.message}</p>
+                ) : (
+                  <p className='text-xs text-gray-400'>Минимальная сумма повышения ставки</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right — Dates */}

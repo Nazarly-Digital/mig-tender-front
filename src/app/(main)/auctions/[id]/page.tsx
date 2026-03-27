@@ -317,6 +317,7 @@ function LiveBidInput({
   connected,
   currentPrice,
   minPrice,
+  minBidIncrement,
   bidsCount,
   isHighestBidder,
 }: {
@@ -324,15 +325,15 @@ function LiveBidInput({
   connected: boolean;
   currentPrice: string;
   minPrice: string;
+  minBidIncrement: string;
   bidsCount: number;
   isHighestBidder: boolean;
 }) {
   const [amount, setAmount] = React.useState('');
-  const MIN_INCREMENT = 150000;
 
   const minBid = bidsCount === 0 || parseFloat(currentPrice) <= 0
     ? parseFloat(minPrice)
-    : parseFloat(currentPrice) + MIN_INCREMENT;
+    : parseFloat(currentPrice) + (parseFloat(minBidIncrement) || 0);
 
   const numericAmount = parseFloat(amount) || 0;
   const isEmpty = !amount.trim();
@@ -361,12 +362,7 @@ function LiveBidInput({
         <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
         Сделать ставку
       </h3>
-      {isHighestBidder ? (
-        <div className='rounded-lg bg-emerald-50 p-3 text-[13px] text-emerald-700 font-medium'>
-          Вы лидер торгов. Ожидайте новых ставок.
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className='space-y-3'>
+      <form onSubmit={handleSubmit} className='space-y-3'>
           <div className='space-y-1.5'>
             <Label.Root htmlFor='live-bid-amount'>Сумма ставки</Label.Root>
             <Input.Root>
@@ -378,10 +374,13 @@ function LiveBidInput({
                   placeholder={formatPriceInput(String(Math.ceil(minBid))) + ' ₽'}
                   value={formatPriceInput(amount)}
                   onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
+                  disabled={isHighestBidder}
                 />
               </Input.Wrapper>
             </Input.Root>
-            {error ? (
+            {isHighestBidder ? (
+              <p className='text-[11px] text-emerald-600 font-medium'>Вы лидер торгов. Ожидайте новых ставок.</p>
+            ) : error ? (
               <p className='text-[11px] text-red-500'>{error}</p>
             ) : (
               <p className='text-[11px] text-gray-400'>
@@ -391,12 +390,11 @@ function LiveBidInput({
               </p>
             )}
           </div>
-          <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled}>
+          <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled || isHighestBidder}>
             <HugeiconsIcon icon={Coins01Icon} size={16} />
             {connected ? 'Поставить' : 'Подключение...'}
           </FancyButton.Root>
         </form>
-      )}
     </div>
   );
 }
@@ -577,7 +575,7 @@ export default function AuctionDetailPage() {
       </div>
 
       {/* KPI Row */}
-      <div className={`grid grid-cols-2 gap-3 ${isOpenAuction ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
+      <div className={`grid grid-cols-2 gap-3 ${isOpenAuction ? 'sm:grid-cols-5' : 'sm:grid-cols-3'}`}>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
           <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)} ₽</span>
@@ -590,6 +588,12 @@ export default function AuctionDetailPage() {
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount} ₽</span>
         </div>
+        {isOpenAuction && auction.min_bid_increment && (
+        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
+          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
+        </div>
+        )}
         {isOpenAuction && (
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
@@ -727,6 +731,7 @@ export default function AuctionDetailPage() {
               connected={ws.connected}
               currentPrice={liveCurrentPrice}
               minPrice={auction.min_price}
+              minBidIncrement={auction.min_bid_increment ?? '0'}
               bidsCount={liveBidsCount}
               isHighestBidder={isHighestBidder}
             />
