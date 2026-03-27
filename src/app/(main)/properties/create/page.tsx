@@ -50,7 +50,7 @@ export default function CreatePropertyPage() {
     defaultValues: {
       type: 'apartment',
       property_class: 'comfort',
-      currency: 'USD',
+      currency: 'RUB',
       status: 'draft',
       address: '',
       area: '',
@@ -237,24 +237,9 @@ export default function CreatePropertyPage() {
               <div className='text-[14px] font-semibold text-gray-900'>Стоимость и сроки</div>
               <div className='grid grid-cols-2 gap-3'>
                 <div className='space-y-1.5'>
-                  <Label.Root htmlFor='property-price'>Цена <Label.Asterisk /></Label.Root>
+                  <Label.Root htmlFor='property-price'>Цена (₽) <Label.Asterisk /></Label.Root>
                   <PriceField control={control} hasError={!!errors.price} />
                   {errors.price && <p className='text-xs text-red-500'>{errors.price.message}</p>}
-                </div>
-                <div className='space-y-1.5'>
-                  <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
-                  <Controller name='currency' control={control} render={({ field }) => (
-                    <Select.Root value={field.value} onValueChange={field.onChange}>
-                      <Select.Trigger id='property-currency' className='cursor-pointer'><Select.Value /></Select.Trigger>
-                      <Select.Content>
-                        <Select.Item value='USD'>USD</Select.Item>
-                        <Select.Item value='EUR'>EUR</Select.Item>
-                        <Select.Item value='RUB'>RUB</Select.Item>
-                        <Select.Item value='TRY'>TRY</Select.Item>
-                      </Select.Content>
-                    </Select.Root>
-                  )} />
-                  {errors.currency && <p className='text-xs text-red-500'>{errors.currency.message}</p>}
                 </div>
                 <div className='space-y-1.5'>
                   <Label.Root htmlFor='property-deadline'>Срок сдачи</Label.Root>
