@@ -575,7 +575,7 @@ export default function AuctionDetailPage() {
               Сделать ставку
             </FancyButton.Root>
           )}
-          {isOwner && isActive && bidsList.length > 0 && (
+          {isOwner && isFinished && !auction.winner_bid_id && bidsList.length > 0 && (
             <FancyButton.Root variant='primary' size='small' onClick={() => setWinnerModalOpen(true)}>
               <HugeiconsIcon icon={ChampionIcon} size={16} color='currentColor' strokeWidth={1.5} />
               Выбрать победителя
