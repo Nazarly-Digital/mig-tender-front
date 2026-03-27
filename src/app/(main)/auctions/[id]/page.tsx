@@ -497,11 +497,14 @@ export default function AuctionDetailPage() {
   // For open auctions: check bids from auction detail REST response (broker_id)
   const auctionBids = Array.isArray(auction.bids) ? auction.bids : [];
   const myRestBid = auctionBids.find((b) => b.broker_id === user?.id);
-  // Also check WS bids (broker)
+  // Also check WS bids (broker) — first match is the latest bid
   const myWsBid = ws.bids.find((b) => b.broker === user?.id);
-  const myBid: Bid | undefined = mySealedBid
-    ?? (myRestBid ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at } : undefined)
-    ?? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined);
+
+  // For open auctions, prioritize WS data (instant) over REST data (delayed)
+  const myBid: Bid | undefined = isOpenAuction
+    ? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined)
+      ?? (myRestBid ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at } : undefined)
+    : mySealedBid;
 
   const handleJoin = () => {
     joinAuction.mutate(auctionId, {
