@@ -293,7 +293,7 @@ export default function PageRegisterDeveloper() {
                 <span className='text-paragraph-sm font-medium text-text-strong-950'>
                   Соглашаюсь с условиями{' '}
                   <a
-                    href='/offer'
+                    href='/offer.pdf'
                     target='_blank'
                     rel='noopener noreferrer'
                     className='text-primary-base underline'
