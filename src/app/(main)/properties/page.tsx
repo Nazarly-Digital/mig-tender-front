@@ -90,11 +90,13 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
   }
 
   const prev = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setCurrent((c) => (c - 1 + images.length) % images.length);
   };
 
   const next = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     setCurrent((c) => (c + 1) % images.length);
   };
@@ -129,7 +131,7 @@ function PropertyImageCarousel({ images }: { images: Property['images'] }) {
               <button
                 key={i}
                 type='button'
-                onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrent(i); }}
                 className={cn(
                   'h-1.5 rounded-full transition-all',
                   i === current ? 'w-4 bg-white' : 'w-1.5 bg-white/50',

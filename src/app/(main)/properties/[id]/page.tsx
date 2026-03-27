@@ -123,10 +123,13 @@ function ImagesGallery({ images }: { images: PropertyImage[] }) {
     );
   }
 
+  const safeIndex = Math.min(current, images.length - 1);
+  const activeImage = images[safeIndex];
+
   return (
     <div className='relative overflow-hidden rounded-xl border border-blue-100/80 bg-gray-50'>
       <img
-        src={images[current].url || images[current].external_url || ''}
+        src={activeImage.url || activeImage.external_url || ''}
         alt=''
         className='h-64 w-full object-cover sm:h-80'
       />
@@ -687,11 +690,15 @@ export default function PropertyDetailPage() {
               <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
               Редактировать объект
             </h3>
-            <PropertyEditForm
-              property={property}
-              onSubmit={onSubmit}
-              isSubmitting={updateMutation.isPending}
-            />
+            {property.is_editable === false ? (
+              <p className='text-sm text-amber-600 font-medium'>Редактирование этого объекта недоступно. Объект привязан к аукциону.</p>
+            ) : (
+              <PropertyEditForm
+                property={property}
+                onSubmit={onSubmit}
+                isSubmitting={updateMutation.isPending}
+              />
+            )}
           </div>
         </div>
 

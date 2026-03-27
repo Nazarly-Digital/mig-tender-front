@@ -38,6 +38,7 @@ export type Property = {
   images: PropertyImage[];
   created_at: string;
   updated_at: string;
+  is_editable?: boolean;
 };
 
 // List / filters
