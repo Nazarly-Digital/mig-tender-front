@@ -563,13 +563,13 @@ export default function AuctionDetailPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {!isDeveloper && isActive && !isParticipant && (
+          {!isDeveloper && !isAdmin && isActive && !isParticipant && (
             <FancyButton.Root variant='primary' size='small' onClick={handleJoin} disabled={joinAuction.isPending}>
               <HugeiconsIcon icon={UserIcon} size={16} color='currentColor' strokeWidth={1.5} />
               {joinAuction.isPending ? 'Присоединение...' : 'Участвовать'}
             </FancyButton.Root>
           )}
-          {!isDeveloper && isActive && isParticipant && !isOpenAuction && (
+          {!isDeveloper && !isAdmin && isActive && isParticipant && !isOpenAuction && (
             <FancyButton.Root variant='primary' size='small' onClick={() => setBidModalOpen(true)}>
               <HugeiconsIcon icon={Coins01Icon} size={16} color='currentColor' strokeWidth={1.5} />
               {myBid ? 'Обновить ставку' : 'Сделать ставку'}
@@ -771,7 +771,7 @@ export default function AuctionDetailPage() {
           )}
 
           {/* Broker status */}
-          {!isDeveloper && (
+          {!isDeveloper && !isAdmin && (
             <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
               <h3 className='text-[14px] font-semibold text-gray-900 mb-3'>Ваш статус</h3>
               <div className='space-y-2.5 text-[13px]'>
