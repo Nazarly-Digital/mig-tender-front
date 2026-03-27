@@ -428,7 +428,9 @@ export default function AuctionDetailPage() {
   const isBroker = user?.role === 'broker' || user?.is_broker === true;
 
   const isAdmin = user?.role === 'admin' || user?.is_admin === true;
-  const { data: auction, isLoading: isAuctionLoading, refetch: refetchAuction } = useAuctionDetail(auctionId);
+  const { data: auction, isLoading: isAuctionLoading, refetch } = useAuctionDetail(auctionId);
+  const refetchRef = React.useRef(refetch);
+  refetchRef.current = refetch;
   const isOpenAuction = auction?.mode === 'open';
   const isOwnerOrAdmin = auction != null && (auction.owner_id === user?.id || isAdmin);
   // For CLOSED auctions, participants and sealed-bids are owner/admin only
@@ -476,23 +478,19 @@ export default function AuctionDetailPage() {
   // Countdown for scheduled auctions — auto-refetch when start_date is reached
   const [scheduledRemaining, setScheduledRemaining] = React.useState<number>(0);
   React.useEffect(() => {
-    if (!auction || auction.status !== 'scheduled') {
-      setScheduledRemaining(0);
-      return;
-    }
+    if (!auction || auction.status !== 'scheduled') return;
+    const startMs = new Date(auction.start_date).getTime();
     const update = () => {
-      const remaining = new Date(auction.start_date).getTime() - Date.now();
+      const remaining = startMs - Date.now();
       setScheduledRemaining(Math.max(0, remaining));
       if (remaining <= 0) {
-        refetchAuction();
+        refetchRef.current();
       }
     };
     update();
-    if (scheduledRemaining <= 0) return;
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auction?.status, auction?.start_date, refetchAuction]);
+  }, [auction?.status, auction?.start_date]);
 
   // Show WS errors as toast (except bid-related ones shown inline)
   React.useEffect(() => {
@@ -581,9 +579,10 @@ export default function AuctionDetailPage() {
   // Use optimistic bid until real data arrives (for closed auctions)
   const myBid: Bid | undefined = realMyBid ?? optimisticBid ?? undefined;
   // Clear optimistic bid once real data is available
+  const hasRealBid = !!realMyBid;
   React.useEffect(() => {
-    if (realMyBid && optimisticBid) setOptimisticBid(null);
-  }, [realMyBid, optimisticBid]);
+    if (hasRealBid) setOptimisticBid(null);
+  }, [hasRealBid]);
 
   const handleJoin = () => {
     joinAuction.mutate(auctionId, {

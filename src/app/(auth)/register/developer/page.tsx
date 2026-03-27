@@ -18,6 +18,7 @@ import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
+import * as Checkbox from '@/shared/ui/checkbox';
 import * as LinkButton from '@/shared/ui/link-button';
 import { useDeveloperRegistration } from '@/features/auth';
 
@@ -67,6 +68,8 @@ export default function PageRegisterDeveloper() {
     isResendPending,
     isRegisterPending,
   } = useDeveloperRegistration();
+
+  const [offerAccepted, setOfferAccepted] = React.useState(false);
 
   return (
     <div className='w-full max-w-[472px] px-4'>
@@ -285,12 +288,36 @@ export default function PageRegisterDeveloper() {
               </div>
             </div>
 
+            <label className='flex cursor-pointer items-start gap-3 rounded-xl bg-bg-weak-50 p-4'>
+              <div className='flex-1'>
+                <span className='text-paragraph-sm font-medium text-text-strong-950'>
+                  Соглашаюсь с условиями{' '}
+                  <a
+                    href='/offer'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-primary-base underline'
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    оферты
+                  </a>
+                </span>
+                <p className='mt-0.5 text-paragraph-xs text-text-sub-600'>
+                  Это нужно для обработки и хранения документов. Одно согласие — для всех типов.
+                </p>
+              </div>
+              <Checkbox.Root
+                checked={offerAccepted}
+                onCheckedChange={(v) => setOfferAccepted(v === true)}
+              />
+            </label>
+
             <FancyButton.Root
               type='submit'
               variant='primary'
               size='medium'
               className='w-full'
-              disabled={isRegisterPending}
+              disabled={isRegisterPending || !offerAccepted}
             >
               {isRegisterPending ? 'Регистрация...' : 'Зарегистрироваться'}
             </FancyButton.Root>
