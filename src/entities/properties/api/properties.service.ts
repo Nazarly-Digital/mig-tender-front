@@ -18,6 +18,10 @@ export const propertiesService = {
   getMy: (params?: PropertyListParams) =>
     apiInstance.get<PaginatedResponse<Property>>("/properties/my/", { params }),
 
+  // Get my available properties (approved, published, not assigned to auction)
+  getMyAvailable: (params?: PropertyListParams) =>
+    apiInstance.get<PaginatedResponse<Property>>("/properties/my/available/", { params }),
+
   // Get single property
   getById: (id: number) =>
     apiInstance.get<Property>(`/properties/${id}/`),

@@ -14,7 +14,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
-import { useMyProperties } from '@/features/properties';
+import { useMyAvailableProperties } from '@/features/properties';
 import { useCreateAuction } from '@/features/auctions';
 import type { AuctionMode } from '@/shared/types/auctions';
 
@@ -27,7 +27,7 @@ export default function CreateAuctionPage() {
   const router = useRouter();
   const createMutation = useCreateAuction();
 
-  const { data: propertiesData, isLoading: propertiesLoading } = useMyProperties({
+  const { data: propertiesData, isLoading: propertiesLoading } = useMyAvailableProperties({
     ordering: '-created_at',
     page_size: 100,
   });

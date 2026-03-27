@@ -2,6 +2,7 @@ export {
   propertyKeys,
   useProperties,
   useMyProperties,
+  useMyAvailableProperties,
   useProperty,
   usePropertyImages,
   useCreateProperty,

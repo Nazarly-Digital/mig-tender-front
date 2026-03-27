@@ -44,6 +44,16 @@ export function useMyProperties(params?: PropertyListParams) {
   });
 }
 
+export function useMyAvailableProperties(params?: PropertyListParams) {
+  const isDeveloper = useSessionStore((s) => s.user?.role === "developer");
+
+  return useQuery({
+    queryKey: [...propertyKeys.all, "my-available", params] as const,
+    queryFn: () => propertiesService.getMyAvailable(params).then((res) => res.data),
+    enabled: isDeveloper,
+  });
+}
+
 export function useProperty(id: number) {
   return useQuery({
     queryKey: propertyKeys.detail(id),
