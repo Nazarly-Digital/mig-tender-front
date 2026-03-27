@@ -225,6 +225,7 @@ export default function CatalogDetailPage() {
                 </span>
               </div>
             </div>
+            {property.type !== 'land' && (
             <div>
               <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</div>
               <div className='mt-1'>
@@ -233,6 +234,7 @@ export default function CatalogDetailPage() {
                 </span>
               </div>
             </div>
+            )}
             <div>
               <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Статус</div>
               <div className='mt-1'>
@@ -250,7 +252,7 @@ export default function CatalogDetailPage() {
             <div>
               <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</div>
               <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {property.area} м²
+                {property.area} {property.type === 'land' ? 'соток' : 'м²'}
               </div>
             </div>
             <div>

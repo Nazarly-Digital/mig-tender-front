@@ -44,6 +44,7 @@ export default function CreatePropertyPage() {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -58,6 +59,13 @@ export default function CreatePropertyPage() {
       deadline: '',
     },
   });
+
+  const isLand = watch('type') === 'land';
+
+  // Clear property_class when switching to land
+  React.useEffect(() => {
+    if (isLand) setValue('property_class', '', { shouldValidate: false });
+  }, [isLand, setValue]);
 
   // Photo-related state
   const [photos, setPhotos] = React.useState<File[]>([]);
@@ -198,10 +206,10 @@ export default function CreatePropertyPage() {
                   {errors.type && <p className='text-xs text-red-500'>{errors.type.message}</p>}
                 </div>
                 <div className='space-y-1.5'>
-                  <Label.Root htmlFor='property-class'>Класс <Label.Asterisk /></Label.Root>
+                  <Label.Root htmlFor='property-class'>Класс {!isLand && <Label.Asterisk />}</Label.Root>
                   <Controller name='property_class' control={control} render={({ field }) => (
-                    <Select.Root value={field.value} onValueChange={field.onChange}>
-                      <Select.Trigger id='property-class' className='cursor-pointer'><Select.Value /></Select.Trigger>
+                    <Select.Root value={field.value} onValueChange={field.onChange} disabled={isLand}>
+                      <Select.Trigger id='property-class' className='cursor-pointer'><Select.Value placeholder={isLand ? '—' : undefined} /></Select.Trigger>
                       <Select.Content>
                         {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([v, l]) => (
                           <Select.Item key={v} value={v}>{l}</Select.Item>

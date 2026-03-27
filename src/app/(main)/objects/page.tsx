@@ -181,9 +181,11 @@ function CatalogPropertyCard({
               <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
                 {TYPE_LABELS[property.type as PropertyType]}
               </span>
+              {property.type !== 'land' && (
               <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
                 {CLASS_LABELS[property.property_class as PropertyClass]}
               </span>
+              )}
             </div>
           </div>
 
@@ -215,7 +217,7 @@ function CatalogPropertyCard({
             <div>
               <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</div>
               <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {property.area} м²
+                {property.area} {property.type === 'land' ? 'соток' : 'м²'}
               </div>
             </div>
             {property.deadline && (

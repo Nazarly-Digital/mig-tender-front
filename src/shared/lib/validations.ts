@@ -77,7 +77,7 @@ export const propertySchema = z.object({
     .string()
     .min(1, 'Введите площадь')
     .refine((v) => parseFloat(v) > 0, 'Площадь должна быть больше 0'),
-  property_class: z.string().min(1, 'Выберите класс'),
+  property_class: z.string().optional(),
   price: z
     .string()
     .min(1, 'Введите цену')
@@ -85,7 +85,10 @@ export const propertySchema = z.object({
   currency: z.string().min(1),
   deadline: z.string().optional(),
   status: z.string().min(1, 'Выберите статус'),
-});
+}).refine(
+  (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),
+  { message: 'Выберите класс', path: ['property_class'] },
+);
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
 

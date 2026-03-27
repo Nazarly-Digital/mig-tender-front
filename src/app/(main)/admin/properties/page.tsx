@@ -103,7 +103,7 @@ function ApproveModal({
             </div>
             <div>
               <span className='text-gray-400'>Площадь: </span>
-              <span className='text-gray-900'>{property.area} м²</span>
+              <span className='text-gray-900'>{property.area} {property.type === 'land' ? 'соток' : 'м²'}</span>
             </div>
             <div>
               <span className='text-gray-400'>Цена: </span>

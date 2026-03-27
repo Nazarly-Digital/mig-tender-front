@@ -70,7 +70,7 @@ export type PropertyCreateRequest = {
   type: PropertyType;
   address: string;
   area: string;
-  property_class: PropertyClass;
+  property_class?: PropertyClass;
   price: string;
   currency?: string;
   deadline?: string | null;

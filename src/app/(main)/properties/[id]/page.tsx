@@ -399,6 +399,7 @@ function PropertyEditForm({
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<PropertyFormData>({
     resolver: zodResolver(propertySchema),
@@ -413,6 +414,12 @@ function PropertyEditForm({
       status: property.status,
     },
   });
+
+  const isLand = watch('type') === 'land';
+
+  React.useEffect(() => {
+    if (isLand) setValue('property_class', '', { shouldValidate: false });
+  }, [isLand, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
@@ -455,13 +462,13 @@ function PropertyEditForm({
           {errors.area && <p className='text-[11px] text-red-500'>{errors.area.message}</p>}
         </div>
         <div className='space-y-1.5'>
-          <Label.Root htmlFor='p-class'>Класс <Label.Asterisk /></Label.Root>
+          <Label.Root htmlFor='p-class'>Класс {!isLand && <Label.Asterisk />}</Label.Root>
           <Controller
             name='property_class'
             control={control}
             render={({ field }) => (
-              <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
-                <Select.Trigger id='p-class'><Select.Value /></Select.Trigger>
+              <Select.Root size='small' value={field.value} onValueChange={field.onChange} disabled={isLand}>
+                <Select.Trigger id='p-class'><Select.Value placeholder={isLand ? '—' : undefined} /></Select.Trigger>
                 <Select.Content>
                   {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([v, l]) => (
                     <Select.Item key={v} value={v}>{l}</Select.Item>
@@ -643,16 +650,18 @@ export default function PropertyDetailPage() {
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{property.area} м²</span>
+          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{property.area} {property.type === 'land' ? 'соток' : 'м²'}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{TYPE_LABELS[property.type]}</span>
         </div>
+        {property.type !== 'land' && (
         <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{CLASS_LABELS[property.property_class]}</span>
         </div>
+        )}
       </div>
 
       {/* Main Grid */}

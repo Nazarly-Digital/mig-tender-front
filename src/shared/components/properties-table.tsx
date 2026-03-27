@@ -95,10 +95,11 @@ function formatPrice(price: string, _currency?: string) {
   return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(num) + ' ₽';
 }
 
-function formatArea(area: string) {
+function formatArea(area: string, type?: string) {
   const num = parseFloat(area);
   if (isNaN(num)) return area;
-  return `${new Intl.NumberFormat('ru-RU').format(num)} м²`;
+  const unit = type === 'land' ? 'соток' : 'м²';
+  return `${new Intl.NumberFormat('ru-RU').format(num)} ${unit}`;
 }
 
 function formatDate(dateStr: string | null) {
@@ -192,7 +193,9 @@ const columns: ColumnDef<Property>[] = [
     header: ({ column }) => (
       <SortableHeader column={column}>Класс</SortableHeader>
     ),
-    cell: ({ row }) => (
+    cell: ({ row }) => row.original.type === 'land' ? (
+      <span className='text-[13px] text-gray-400'>—</span>
+    ) : (
       <Badge.Root
         variant='lighter'
         size='medium'
@@ -222,7 +225,7 @@ const columns: ColumnDef<Property>[] = [
     ),
     cell: ({ row }) => (
       <div className='text-[13px] text-gray-500'>
-        {formatArea(row.original.area)}
+        {formatArea(row.original.area, row.original.type)}
       </div>
     ),
   },

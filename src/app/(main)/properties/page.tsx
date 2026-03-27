@@ -164,9 +164,11 @@ function PropertyCard({
           <span className='rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 backdrop-blur-sm shadow-sm'>
             {TYPE_LABELS[property.type]}
           </span>
+          {property.type !== 'land' && (
           <span className='rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 backdrop-blur-sm shadow-sm'>
             {CLASS_LABELS[property.property_class]}
           </span>
+          )}
         </div>
         {/* Price overlay */}
         <div className='absolute left-3 bottom-3 rounded-md bg-black/60 px-2 py-1 text-[13px] font-bold text-white backdrop-blur-sm'>
@@ -199,7 +201,7 @@ function PropertyCard({
           </div>
         </div>
         <span className='mt-1 block text-[12px] text-gray-400'>
-          {property.area} м² · до {formatDate(property.deadline)}
+          {property.area} {property.type === 'land' ? 'соток' : 'м²'} · до {formatDate(property.deadline)}
         </span>
       </div>
     </Link>
