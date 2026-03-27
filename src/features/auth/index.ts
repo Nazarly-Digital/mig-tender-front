@@ -11,6 +11,7 @@ export {
   useLogout,
   useUploadDocument,
   useUpdateDocumentName,
+  useDeleteDocument,
 } from "./model/queries";
 
 export { useDeveloperRegistration } from "./model/use-developer-registration";

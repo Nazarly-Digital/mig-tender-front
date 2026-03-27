@@ -81,4 +81,7 @@ export const authService = {
 
   updateDocumentName: (data: UpdateDocumentNameRequest) =>
     apiInstance.patch<UpdateDocumentNameResponse>("/auth/documents/update-name/", data),
+
+  deleteDocument: (documentId: number) =>
+    apiInstance.delete<{ message: string }>(`/auth/documents/${documentId}/`),
 };

@@ -8,6 +8,7 @@ import {
   Upload04Icon,
   PencilEdit01Icon,
   Download01Icon,
+  Delete02Icon,
   InformationCircleIcon,
   CheckmarkCircle02Icon,
 } from '@hugeicons/core-free-icons';
@@ -20,7 +21,7 @@ import * as Select from '@/shared/ui/select';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as FileFormatIcon from '@/shared/ui/file-format-icon';
-import { useMe, useUploadDocument, useUpdateDocumentName } from '@/features/auth';
+import { useMe, useUploadDocument, useUpdateDocumentName, useDeleteDocument } from '@/features/auth';
 import { useSessionStore, isUserBroker } from '@/entities/auth/model/store';
 import type { UserDocument } from '@/shared/types/auth';
 
@@ -360,8 +361,10 @@ export default function DocumentsPage() {
   const passportDoc = documents.find((d) => d.doc_type === 'passport');
   const otherDocs = documents.filter((d) => d.doc_type === 'others');
 
+  const deleteDocument = useDeleteDocument();
   const [uploadOpen, setUploadOpen] = React.useState(false);
   const [renameTarget, setRenameTarget] = React.useState<UserDocument | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<UserDocument | null>(null);
 
   if (isLoading) {
     return (
@@ -470,6 +473,14 @@ export default function DocumentsPage() {
                             Скачать
                           </FancyButton.Root>
                         </a>
+                        <FancyButton.Root
+                          variant='basic'
+                          size='xsmall'
+                          onClick={() => setDeleteTarget(doc)}
+                        >
+                          <HugeiconsIcon icon={Delete02Icon} size={14} color='currentColor' strokeWidth={1.5} className='text-red-500' />
+                          Удалить
+                        </FancyButton.Root>
                       </div>
                     </td>
                   </tr>
@@ -489,6 +500,40 @@ export default function DocumentsPage() {
           if (!open) setRenameTarget(null);
         }}
       />
+
+      {/* Delete confirmation modal */}
+      <Modal.Root open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <Modal.Content>
+          <Modal.Header
+            title='Удалить документ'
+            description={`Вы уверены, что хотите удалить «${deleteTarget?.document_name || deleteTarget?.filename}»?`}
+          />
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>
+                Отмена
+              </FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='destructive'
+              size='small'
+              disabled={deleteDocument.isPending}
+              onClick={() => {
+                if (!deleteTarget) return;
+                deleteDocument.mutate(deleteTarget.id, {
+                  onSuccess: () => {
+                    toast.success('Документ удалён');
+                    setDeleteTarget(null);
+                  },
+                  onError: () => toast.error('Ошибка при удалении'),
+                });
+              }}
+            >
+              {deleteDocument.isPending ? 'Удаление...' : 'Удалить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
     </div>
   );
 }

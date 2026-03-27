@@ -155,3 +155,15 @@ export function useUpdateDocumentName() {
     },
   });
 }
+
+export function useDeleteDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (documentId: number) =>
+      authService.deleteDocument(documentId).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.me });
+    },
+  });
+}
