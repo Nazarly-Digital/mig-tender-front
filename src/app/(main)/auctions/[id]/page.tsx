@@ -569,10 +569,10 @@ export default function AuctionDetailPage() {
               {joinAuction.isPending ? 'Присоединение...' : 'Участвовать'}
             </FancyButton.Root>
           )}
-          {!isDeveloper && !isAdmin && isActive && isParticipant && !isOpenAuction && (
+          {!isDeveloper && !isAdmin && isActive && isParticipant && !isOpenAuction && !myBid && (
             <FancyButton.Root variant='primary' size='small' onClick={() => setBidModalOpen(true)}>
               <HugeiconsIcon icon={Coins01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-              {myBid ? 'Обновить ставку' : 'Сделать ставку'}
+              Сделать ставку
             </FancyButton.Root>
           )}
           {isOwner && isActive && bidsList.length > 0 && (
@@ -728,6 +728,9 @@ export default function AuctionDetailPage() {
                 <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дата</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(myBid.created_at)}</span></div>
                 <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Обновлена</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(myBid.updated_at)}</span></div>
               </div>
+              {!isOpenAuction && (
+                <p className='mt-3 text-[12px] text-amber-600 font-medium'>В закрытом аукционе можно сделать только 1 ставку.</p>
+              )}
             </div>
           )}
         </div>
