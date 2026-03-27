@@ -156,8 +156,12 @@ function RejectModal({
   if (!property) return null;
 
   const handleConfirm = () => {
+    if (!reason.trim()) {
+      toast.error('Укажите причину отклонения');
+      return;
+    }
     reject.mutate(
-      { id: property.id, data: reason.trim() ? { reason } : undefined },
+      { id: property.id, data: { reason: reason.trim() } },
       {
         onSuccess: () => {
           toast.success(`Объект "${property.address}" отклонён`);
@@ -202,12 +206,13 @@ function RejectModal({
 
             <div className='space-y-1.5'>
               <label htmlFor='reject-reason' className='block text-[13px] font-medium text-gray-700'>
-                Причина отклонения
+                Причина отклонения <span className='text-red-500'>*</span>
               </label>
               <input
                 id='reject-reason'
                 type='text'
-                placeholder='Укажите причину (необязательно)'
+                required
+                placeholder='Укажите причину отклонения'
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className='w-full h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors'

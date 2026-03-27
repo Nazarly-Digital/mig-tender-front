@@ -75,7 +75,7 @@ export function useRejectProperty() {
       data,
     }: {
       id: number;
-      data?: RejectPropertyRequest;
+      data: RejectPropertyRequest;
     }) => adminService.rejectProperty(id, data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.all });

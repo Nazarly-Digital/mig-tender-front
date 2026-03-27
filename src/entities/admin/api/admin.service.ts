@@ -35,7 +35,7 @@ export const adminService = {
       `/admin/properties/${id}/approve/`,
     ),
 
-  rejectProperty: (id: number, data?: RejectPropertyRequest) =>
+  rejectProperty: (id: number, data: RejectPropertyRequest) =>
     apiInstance.patch<PropertyActionResponse>(
       `/admin/properties/${id}/reject/`,
       data,

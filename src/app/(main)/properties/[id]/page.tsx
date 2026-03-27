@@ -13,6 +13,7 @@ import {
   Building03Icon,
   Delete01Icon,
   Image01Icon,
+  InformationCircleIcon,
 } from '@hugeicons/core-free-icons';
 import { RiImageAddLine, RiCloseLine, RiCheckLine } from '@remixicon/react';
 
@@ -641,6 +642,17 @@ export default function PropertyDetailPage() {
           </FancyButton.Root>
         </div>
       </div>
+
+      {/* Rejection reason */}
+      {property.moderation_status === 'rejected' && property.moderation_rejection_reason && (
+        <div className='flex items-start gap-3 rounded-xl border border-red-200 bg-red-50/60 p-4'>
+          <HugeiconsIcon icon={InformationCircleIcon} size={18} color='currentColor' strokeWidth={1.5} className='mt-0.5 shrink-0 text-red-500' />
+          <div>
+            <div className='text-[13px] font-semibold text-red-700'>Объект отклонён</div>
+            <div className='mt-0.5 text-[13px] text-red-600'>{property.moderation_rejection_reason}</div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Row */}
       <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>

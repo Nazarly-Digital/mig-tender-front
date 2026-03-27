@@ -120,6 +120,8 @@ export default function CatalogDetailPage() {
 
   const approve = useApproveProperty();
   const reject = useRejectProperty();
+  const [rejectOpen, setRejectOpen] = React.useState(false);
+  const [rejectReason, setRejectReason] = React.useState('');
 
   const handleApprove = () => {
     approve.mutate(propertyId, {
@@ -128,9 +130,19 @@ export default function CatalogDetailPage() {
   };
 
   const handleReject = () => {
+    if (!rejectReason.trim()) {
+      toast.error('Укажите причину отклонения');
+      return;
+    }
     reject.mutate(
-      { id: propertyId },
-      { onSuccess: () => toast.success('Объект отклонён') },
+      { id: propertyId, data: { reason: rejectReason.trim() } },
+      {
+        onSuccess: () => {
+          toast.success('Объект отклонён');
+          setRejectOpen(false);
+          setRejectReason('');
+        },
+      },
     );
   };
 
@@ -194,16 +206,50 @@ export default function CatalogDetailPage() {
               <FancyButton.Root
                 variant='basic'
                 size='small'
-                onClick={handleReject}
+                onClick={() => setRejectOpen(true)}
                 disabled={approve.isPending || reject.isPending}
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                {reject.isPending ? 'Отклонение...' : 'Отклонить'}
+                Отклонить
               </FancyButton.Root>
             </>
           )}
         </div>
       </div>
+
+      {/* Reject reason form */}
+      {rejectOpen && (
+        <div className='mt-4 rounded-xl border border-red-200 bg-red-50/60 p-4'>
+          <div className='text-[13px] font-semibold text-red-700 mb-2'>Причина отклонения</div>
+          <input
+            type='text'
+            placeholder='Укажите причину отклонения'
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            className='w-full h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 placeholder:text-gray-400 transition-colors'
+            autoFocus
+          />
+          <div className='mt-3 flex gap-2'>
+            <FancyButton.Root variant='destructive' size='small' onClick={handleReject} disabled={reject.isPending}>
+              {reject.isPending ? 'Отклонение...' : 'Подтвердить отклонение'}
+            </FancyButton.Root>
+            <FancyButton.Root variant='basic' size='small' onClick={() => { setRejectOpen(false); setRejectReason(''); }}>
+              Отмена
+            </FancyButton.Root>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection reason display */}
+      {property.moderation_status === 'rejected' && property.moderation_rejection_reason && (
+        <div className='mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50/60 p-4'>
+          <HugeiconsIcon icon={Cancel01Icon} size={18} color='currentColor' strokeWidth={1.5} className='mt-0.5 shrink-0 text-red-500' />
+          <div>
+            <div className='text-[13px] font-semibold text-red-700'>Объект отклонён</div>
+            <div className='mt-0.5 text-[13px] text-red-600'>{property.moderation_rejection_reason}</div>
+          </div>
+        </div>
+      )}
 
       {/* Image carousel */}
       <div className='mt-6'>

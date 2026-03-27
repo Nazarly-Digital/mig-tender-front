@@ -152,8 +152,10 @@ export default function DashboardPage() {
   const isDeveloper = isUserDeveloper(user);
   const isAdmin = isUserAdmin(user);
 
+  const isBroker = !isDeveloper && !isAdmin;
   const { data: propertiesData } = useMyProperties({ page_size: 5, ordering: '-created_at' });
   const { data: allPropertiesData } = useProperties({ page_size: 1 }, { enabled: isAdmin });
+  const { data: catalogData } = useProperties({ page_size: 1 }, { enabled: isBroker });
   const { data: pendingData } = usePendingProperties({ page_size: 1 }, { enabled: isAdmin });
   const myAuctions = useMyAuctions(isDeveloper ? { page_size: 5, ordering: '-created_at' } : undefined);
   const allAuctions = useAuctions(!isDeveloper ? { page_size: 5, ordering: '-created_at' } : undefined);
@@ -162,7 +164,7 @@ export default function DashboardPage() {
 
   const allPropertiesCount = allPropertiesData?.count ?? 0;
   const pendingCount = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
-  const propertiesCount = propertiesData?.count ?? 0;
+  const propertiesCount = isBroker ? (catalogData?.count ?? 0) : (propertiesData?.count ?? 0);
   const auctionsCount = auctionsData?.count ?? 0;
   const recentProperties = propertiesData?.results ?? [];
   const recentAuctions = auctionsData?.results ?? [];

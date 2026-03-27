@@ -35,6 +35,7 @@ export type Property = {
   deadline: string | null;
   status: PropertyStatus;
   moderation_status?: ModerationStatus;
+  moderation_rejection_reason?: string | null;
   images: PropertyImage[];
   created_at: string;
   updated_at: string;

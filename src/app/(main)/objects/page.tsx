@@ -359,6 +359,8 @@ export default function CatalogPage() {
   const reject = useRejectProperty();
   const [approvingId, setApprovingId] = React.useState<number | null>(null);
   const [rejectingId, setRejectingId] = React.useState<number | null>(null);
+  const [rejectModalId, setRejectModalId] = React.useState<number | null>(null);
+  const [rejectReason, setRejectReason] = React.useState('');
 
   const handleApprove = (id: number) => {
     setApprovingId(id);
@@ -369,11 +371,24 @@ export default function CatalogPage() {
   };
 
   const handleReject = (id: number) => {
-    setRejectingId(id);
+    setRejectModalId(id);
+  };
+
+  const confirmReject = () => {
+    if (!rejectModalId) return;
+    if (!rejectReason.trim()) {
+      toast.error('Укажите причину отклонения');
+      return;
+    }
+    setRejectingId(rejectModalId);
     reject.mutate(
-      { id },
+      { id: rejectModalId, data: { reason: rejectReason.trim() } },
       {
-        onSuccess: () => toast.success('Объект отклонён'),
+        onSuccess: () => {
+          toast.success('Объект отклонён');
+          setRejectModalId(null);
+          setRejectReason('');
+        },
         onSettled: () => setRejectingId(null),
       },
     );
@@ -526,6 +541,41 @@ export default function CatalogPage() {
           </div>
         )}
       </div>
+
+      {/* Reject reason modal */}
+      {rejectModalId !== null && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+          <div className='w-full max-w-md rounded-xl bg-white p-6 shadow-lg'>
+            <h3 className='text-base font-semibold text-gray-900'>Причина отклонения</h3>
+            <p className='mt-1 text-sm text-gray-500'>Укажите причину отклонения объекта</p>
+            <input
+              type='text'
+              placeholder='Причина отклонения'
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              className='mt-4 w-full h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 placeholder:text-gray-400 transition-colors'
+              autoFocus
+            />
+            <div className='mt-4 flex justify-end gap-2'>
+              <button
+                type='button'
+                onClick={() => { setRejectModalId(null); setRejectReason(''); }}
+                className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors'
+              >
+                Отмена
+              </button>
+              <button
+                type='button'
+                onClick={confirmReject}
+                disabled={reject.isPending}
+                className='px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors'
+              >
+                {reject.isPending ? 'Отклонение...' : 'Отклонить'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -435,7 +435,7 @@ export default function AuctionDetailPage() {
   const isOwnerOrAdmin = auction != null && (auction.owner_id === user?.id || isAdmin);
   // For CLOSED auctions, participants and sealed-bids are owner/admin only
   const canViewClosedData = auction != null && !isOpenAuction && isOwnerOrAdmin;
-  const participantsEnabled = auction != null;
+  const participantsEnabled = auction != null && (isOpenAuction || isOwnerOrAdmin);
   const { data: participants, isLoading: isParticipantsLoading } = useParticipants(auctionId, { enabled: participantsEnabled });
   const { data: sealedBids, isLoading: isSealedBidsLoading } = useSealedBids(auctionId, { enabled: canViewClosedData });
 
@@ -498,6 +498,22 @@ export default function AuctionDetailPage() {
       toast.error(ws.error);
     }
   }, [ws.error]);
+
+  // Clear optimistic bid once real data is available (must be before early returns for hooks consistency)
+  const hasRealBid = React.useMemo(() => {
+    if (!auction) return false;
+    const isOpen = auction.mode === 'open';
+    const bids = Array.isArray(auction.bids) ? auction.bids : [];
+    if (isOpen) {
+      return ws.bids.some((b) => b.broker === user?.id) || bids.some((b) => b.broker_id === user?.id);
+    }
+    const sealed = Array.isArray(sealedBids) ? sealedBids : [];
+    return sealed.some((b) => b.user_id === user?.id);
+  }, [auction, ws.bids, sealedBids, user?.id]);
+
+  React.useEffect(() => {
+    if (hasRealBid) setOptimisticBid(null);
+  }, [hasRealBid]);
 
   if (isLoading) {
     return <DetailPageSkeleton />;
@@ -578,11 +594,6 @@ export default function AuctionDetailPage() {
     : mySealedBid;
   // Use optimistic bid until real data arrives (for closed auctions)
   const myBid: Bid | undefined = realMyBid ?? optimisticBid ?? undefined;
-  // Clear optimistic bid once real data is available
-  const hasRealBid = !!realMyBid;
-  React.useEffect(() => {
-    if (hasRealBid) setOptimisticBid(null);
-  }, [hasRealBid]);
 
   const handleJoin = () => {
     joinAuction.mutate(auctionId, {

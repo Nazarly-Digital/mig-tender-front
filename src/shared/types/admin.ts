@@ -71,7 +71,7 @@ export type PropertyActionResponse = {
 };
 
 export type RejectPropertyRequest = {
-  reason?: string;
+  reason: string;
 };
 
 export type { PaginatedResponse };
