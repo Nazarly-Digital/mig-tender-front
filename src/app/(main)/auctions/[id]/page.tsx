@@ -91,6 +91,19 @@ function getTimeProgress(startDate: string, endDate: string): number {
   return Math.round(((now - start) / (end - start)) * 100);
 }
 
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return '0с';
+  const totalSec = Math.ceil(ms / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (d > 0) return `${d}д ${h}ч ${m}м`;
+  if (h > 0) return `${h}ч ${m}м ${s}с`;
+  if (m > 0) return `${m}м ${s}с`;
+  return `${s}с`;
+}
+
 function getProgressColor(progress: number): 'blue' | 'orange' | 'red' {
   if (progress >= 80) return 'red';
   if (progress >= 50) return 'orange';
@@ -110,12 +123,14 @@ function PlaceBidModal({
   onOpenChange,
   existingBid,
   minPrice,
+  onBidPlaced,
 }: {
   auctionId: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingBid?: Bid | null;
   minPrice: string;
+  onBidPlaced?: (amount: string) => void;
 }) {
   const [amount, setAmount] = React.useState(existingBid?.amount ?? '');
   const placeBid = usePlaceBid();
@@ -156,6 +171,7 @@ function PlaceBidModal({
       {
         onSuccess: () => {
           toast.success(isUpdate ? 'Ставка обновлена' : 'Ставка размещена');
+          onBidPlaced?.(stripPriceFormat(amount));
           onOpenChange(false);
         },
         onError: (error) => {
@@ -318,6 +334,7 @@ function LiveBidInput({
   minBidIncrement,
   bidsCount,
   isHighestBidder,
+  wsError,
 }: {
   sendBid: (amount: string) => void;
   connected: boolean;
@@ -326,6 +343,7 @@ function LiveBidInput({
   minBidIncrement: string;
   bidsCount: number;
   isHighestBidder: boolean;
+  wsError: string | null;
 }) {
   const [amount, setAmount] = React.useState('');
 
@@ -376,8 +394,10 @@ function LiveBidInput({
               />
             </Input.Wrapper>
           </Input.Root>
-          {isHighestBidder ? (
-            <p className='text-[11px] text-emerald-600 font-medium'>Вы лидер торгов. Ожидайте новых ставок.</p>
+          {isHighestBidder || wsError ? (
+            <p className='text-[11px] text-emerald-600 font-medium'>
+              {wsError || 'Вы лидер торгов. Ожидайте новых ставок.'}
+            </p>
           ) : error ? (
             <p className='text-[11px] text-red-500'>{error}</p>
           ) : (
@@ -388,7 +408,7 @@ function LiveBidInput({
             </p>
           )}
         </div>
-        <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled || isHighestBidder}>
+        <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled || isHighestBidder || !!wsError}>
           <HugeiconsIcon icon={Coins01Icon} size={16} />
           {connected ? 'Поставить' : 'Подключение...'}
         </FancyButton.Root>
@@ -408,7 +428,7 @@ export default function AuctionDetailPage() {
   const isBroker = user?.role === 'broker' || user?.is_broker === true;
 
   const isAdmin = user?.role === 'admin' || user?.is_admin === true;
-  const { data: auction, isLoading: isAuctionLoading } = useAuctionDetail(auctionId);
+  const { data: auction, isLoading: isAuctionLoading, refetch: refetchAuction } = useAuctionDetail(auctionId);
   const isOpenAuction = auction?.mode === 'open';
   const isOwnerOrAdmin = auction != null && (auction.owner_id === user?.id || isAdmin);
   // For CLOSED auctions, participants and sealed-bids are owner/admin only
@@ -436,6 +456,7 @@ export default function AuctionDetailPage() {
   const shortlist = useShortlist();
 
   const [joined, setJoined] = React.useState(false);
+  const [optimisticBid, setOptimisticBid] = React.useState<Bid | null>(null);
   const [bidModalOpen, setBidModalOpen] = React.useState(false);
   const [winnerModalOpen, setWinnerModalOpen] = React.useState(false);
   const [shortlistIds, setShortlistIds] = React.useState<Set<number>>(
@@ -452,9 +473,32 @@ export default function AuctionDetailPage() {
     return () => clearInterval(id);
   }, [auction?.status, auction?.start_date, auction?.end_date]);
 
-  // Show WS errors as toast
+  // Countdown for scheduled auctions — auto-refetch when start_date is reached
+  const [scheduledRemaining, setScheduledRemaining] = React.useState<number>(0);
   React.useEffect(() => {
-    if (ws.error) toast.error(ws.error);
+    if (!auction || auction.status !== 'scheduled') {
+      setScheduledRemaining(0);
+      return;
+    }
+    const update = () => {
+      const remaining = new Date(auction.start_date).getTime() - Date.now();
+      setScheduledRemaining(Math.max(0, remaining));
+      if (remaining <= 0) {
+        refetchAuction();
+      }
+    };
+    update();
+    if (scheduledRemaining <= 0) return;
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auction?.status, auction?.start_date, refetchAuction]);
+
+  // Show WS errors as toast (except bid-related ones shown inline)
+  React.useEffect(() => {
+    if (ws.error && !ws.error.includes('лидер') && !ws.error.includes('lowest') && !ws.error.includes('leading')) {
+      toast.error(ws.error);
+    }
   }, [ws.error]);
 
   if (isLoading) {
@@ -498,7 +542,12 @@ export default function AuctionDetailPage() {
     : sealedWs.auction
       ? sealedWs.auction.highest_bid_id
       : auction.highest_bid_id;
-  const isHighestBidder = liveHighestBidId != null && ws.bids.length > 0 && ws.bids[0]?.broker === user?.id;
+  // For open auctions: check bids from auction detail REST response (broker_id)
+  const auctionBids = Array.isArray(auction.bids) ? auction.bids : [];
+  const isHighestBidder = liveHighestBidId != null && (
+    ws.bids.some((b) => b.id === liveHighestBidId && b.broker === user?.id)
+    || auctionBids.some((b) => b.id === liveHighestBidId && b.broker_id === user?.id)
+  );
 
   const restParticipantIds: number[] = participants?.participants ?? [];
   const participantIds: number[] = isActiveOpen
@@ -520,17 +569,21 @@ export default function AuctionDetailPage() {
   }));
   const bidsList = sealedWs.bids.length > 0 ? wsSealedBidsList : restBidsList;
   const mySealedBid = bidsList.find((b) => b.user_id === user?.id);
-  // For open auctions: check bids from auction detail REST response (broker_id)
-  const auctionBids = Array.isArray(auction.bids) ? auction.bids : [];
   const myRestBid = auctionBids.find((b) => b.broker_id === user?.id);
   // Also check WS bids (broker) — first match is the latest bid
   const myWsBid = ws.bids.find((b) => b.broker === user?.id);
 
   // For open auctions, prioritize WS data (instant) over REST data (delayed)
-  const myBid: Bid | undefined = isOpenAuction
+  const realMyBid: Bid | undefined = isOpenAuction
     ? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined)
       ?? (myRestBid ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at } : undefined)
     : mySealedBid;
+  // Use optimistic bid until real data arrives (for closed auctions)
+  const myBid: Bid | undefined = realMyBid ?? optimisticBid ?? undefined;
+  // Clear optimistic bid once real data is available
+  React.useEffect(() => {
+    if (realMyBid && optimisticBid) setOptimisticBid(null);
+  }, [realMyBid, optimisticBid]);
 
   const handleJoin = () => {
     joinAuction.mutate(auctionId, {
@@ -664,9 +717,26 @@ export default function AuctionDetailPage() {
             )}
 
             {!isActive && (
-              <div className='mt-4 grid grid-cols-2 gap-4'>
-                <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Начало</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(auction.start_date)}</span></div>
-                <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Окончание</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(auction.end_date)}</span></div>
+              <div className='mt-4 space-y-3'>
+                {auction.status === 'scheduled' && scheduledRemaining > 0 && (
+                  <div className='flex items-center gap-3 rounded-lg bg-blue-50 p-3'>
+                    <HugeiconsIcon icon={Clock01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-blue-500' />
+                    <div>
+                      <div className='text-sm font-medium text-gray-900'>До начала аукциона</div>
+                      <div className='text-lg font-bold text-blue-700'>{formatCountdown(scheduledRemaining)}</div>
+                    </div>
+                  </div>
+                )}
+                {auction.status === 'scheduled' && scheduledRemaining <= 0 && (
+                  <div className='flex items-center gap-3 rounded-lg bg-emerald-50 p-3'>
+                    <HugeiconsIcon icon={Clock01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
+                    <span className='text-sm font-medium text-emerald-700'>Аукцион начинается...</span>
+                  </div>
+                )}
+                <div className='grid grid-cols-2 gap-4'>
+                  <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Начало</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(auction.start_date)}</span></div>
+                  <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Окончание</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(auction.end_date)}</span></div>
+                </div>
               </div>
             )}
 
@@ -773,6 +843,7 @@ export default function AuctionDetailPage() {
               minBidIncrement={auction.min_bid_increment ?? '0'}
               bidsCount={liveBidsCount}
               isHighestBidder={isHighestBidder}
+              wsError={ws.error}
             />
           )}
 
@@ -831,7 +902,26 @@ export default function AuctionDetailPage() {
       </div>
 
       {/* Modals */}
-      <PlaceBidModal auctionId={auctionId} open={bidModalOpen} onOpenChange={setBidModalOpen} existingBid={myBid} minPrice={auction.min_price} />
+      <PlaceBidModal
+        auctionId={auctionId}
+        open={bidModalOpen}
+        onOpenChange={setBidModalOpen}
+        existingBid={myBid}
+        minPrice={auction.min_price}
+        onBidPlaced={(amount) => {
+          const now = new Date().toISOString();
+          setOptimisticBid({
+            id: -1,
+            auction_id: auctionId,
+            user_id: user?.id ?? 0,
+            amount,
+            first_name: '',
+            last_name: '',
+            created_at: now,
+            updated_at: now,
+          });
+        }}
+      />
       {isOwner && <SelectWinnerModal auctionId={auctionId} bids={bidsList} open={winnerModalOpen} onOpenChange={setWinnerModalOpen} />}
     </div>
   );
