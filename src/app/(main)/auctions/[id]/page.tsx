@@ -363,38 +363,38 @@ function LiveBidInput({
         Сделать ставку
       </h3>
       <form onSubmit={handleSubmit} className='space-y-3'>
-          <div className='space-y-1.5'>
-            <Label.Root htmlFor='live-bid-amount'>Сумма ставки</Label.Root>
-            <Input.Root>
-              <Input.Wrapper>
-                <Input.Input
-                  id='live-bid-amount'
-                  type='text'
-                  inputMode='decimal'
-                  placeholder={formatPriceInput(String(Math.ceil(minBid))) + ' ₽'}
-                  value={formatPriceInput(amount)}
-                  onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
-                  disabled={isHighestBidder}
-                />
-              </Input.Wrapper>
-            </Input.Root>
-            {isHighestBidder ? (
-              <p className='text-[11px] text-emerald-600 font-medium'>Вы лидер торгов. Ожидайте новых ставок.</p>
-            ) : error ? (
-              <p className='text-[11px] text-red-500'>{error}</p>
-            ) : (
-              <p className='text-[11px] text-gray-400'>
-                {bidsCount === 0
-                  ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)} ₽)`
-                  : `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽`}
-              </p>
-            )}
-          </div>
-          <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled || isHighestBidder}>
-            <HugeiconsIcon icon={Coins01Icon} size={16} />
-            {connected ? 'Поставить' : 'Подключение...'}
-          </FancyButton.Root>
-        </form>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='live-bid-amount'>Сумма ставки</Label.Root>
+          <Input.Root>
+            <Input.Wrapper>
+              <Input.Input
+                id='live-bid-amount'
+                type='text'
+                inputMode='decimal'
+                placeholder={formatPriceInput(String(Math.ceil(minBid))) + ' ₽'}
+                value={formatPriceInput(amount)}
+                onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
+                disabled={isHighestBidder}
+              />
+            </Input.Wrapper>
+          </Input.Root>
+          {isHighestBidder ? (
+            <p className='text-[11px] text-emerald-600 font-medium'>Вы лидер торгов. Ожидайте новых ставок.</p>
+          ) : error ? (
+            <p className='text-[11px] text-red-500'>{error}</p>
+          ) : (
+            <p className='text-[11px] text-gray-400'>
+              {bidsCount === 0
+                ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)} ₽)`
+                : `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽`}
+            </p>
+          )}
+        </div>
+        <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled || isHighestBidder}>
+          <HugeiconsIcon icon={Coins01Icon} size={16} />
+          {connected ? 'Поставить' : 'Подключение...'}
+        </FancyButton.Root>
+      </form>
     </div>
   );
 }
@@ -440,12 +440,20 @@ export default function AuctionDetailPage() {
     new Set(),
   );
 
+  const [progress, setProgress] = React.useState(0);
+  React.useEffect(() => {
+    if (!auction) return;
+    const update = () => setProgress(getTimeProgress(auction.start_date, auction.end_date));
+    update();
+    if (auction.status !== 'active') return;
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [auction?.status, auction?.start_date, auction?.end_date]);
+
   // Show WS errors as toast
   React.useEffect(() => {
     if (ws.error) toast.error(ws.error);
   }, [ws.error]);
-
-
 
   if (isLoading) {
     return <DetailPageSkeleton />;
@@ -470,7 +478,6 @@ export default function AuctionDetailPage() {
   const isActive = auction.status === 'active';
   const isFinished = auction.status === 'finished';
   const isOwner = auction.owner_id === user?.id;
-  const progress = getTimeProgress(auction.start_date, auction.end_date);
 
   // For OPEN active auctions, merge WS data with REST data
   const liveAuction = isActiveOpen && ws.auction ? ws.auction : auction;
@@ -586,19 +593,19 @@ export default function AuctionDetailPage() {
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount} ₽</span>
+          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
         </div>
         {isOpenAuction && auction.min_bid_increment && (
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
-        </div>
+          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+            <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
+            <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
+          </div>
         )}
         {isOpenAuction && (
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
-        </div>
+          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+            <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
+            <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
+          </div>
         )}
       </div>
 
