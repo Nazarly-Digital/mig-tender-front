@@ -70,7 +70,7 @@ export type PropertyCreateRequest = {
   type: PropertyType;
   address: string;
   area: string;
-  property_class?: PropertyClass;
+  property_class?: PropertyClass | null;
   price: string;
   currency?: string;
   deadline?: string | null;
@@ -82,7 +82,7 @@ export type PropertyUpdateRequest = {
   type?: PropertyType;
   address?: string;
   area?: string;
-  property_class?: PropertyClass;
+  property_class?: PropertyClass | null;
   price?: string;
   currency?: string;
   deadline?: string | null;

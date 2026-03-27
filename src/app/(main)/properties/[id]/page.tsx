@@ -556,7 +556,7 @@ export default function PropertyDetailPage() {
         data: {
           ...data,
           type: data.type as PropertyType,
-          property_class: data.property_class as PropertyClass,
+          property_class: data.property_class ? data.property_class as PropertyClass : null,
           status: data.status as PropertyStatus,
           deadline: data.deadline || null,
         },

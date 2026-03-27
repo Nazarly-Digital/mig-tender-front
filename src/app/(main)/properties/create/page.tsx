@@ -145,7 +145,7 @@ export default function CreatePropertyPage() {
     setSubmitting(true);
     try {
       const property = await createMutation.mutateAsync(
-        { ...data, type: data.type as PropertyType, property_class: data.property_class as PropertyClass, status: data.status as PropertyStatus, deadline: data.deadline || null } as any,
+        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null } as any,
       );
       for (let i = 0; i < photos.length; i++) {
         try {
