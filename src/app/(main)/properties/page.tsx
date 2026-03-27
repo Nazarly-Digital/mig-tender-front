@@ -38,8 +38,6 @@ import type {
   ModerationStatus,
 } from '@/shared/types/properties';
 
-const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', RUB: '₽', TRY: '₺' };
-
 const MODERATION_LABELS: Record<ModerationStatus, string> = {
   pending: 'На модерации',
   approved: 'Одобрен',
@@ -52,11 +50,10 @@ const MODERATION_STYLES: Record<ModerationStatus, string> = {
   rejected: 'bg-red-50 text-red-700',
 };
 
-function formatPrice(value: string, currency?: string) {
+function formatPrice(value: string, _currency?: string) {
   const num = parseFloat(value);
   if (isNaN(num)) return '\u2014';
-  const symbol = currency ? (CURRENCY_SYMBOLS[currency] ?? currency) : '';
-  return new Intl.NumberFormat('ru-RU').format(num) + (symbol ? ` ${symbol}` : '');
+  return new Intl.NumberFormat('ru-RU').format(num) + ' ₽';
 }
 
 function formatDate(dateStr: string | null) {

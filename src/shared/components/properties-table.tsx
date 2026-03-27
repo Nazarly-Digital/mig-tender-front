@@ -89,13 +89,10 @@ const STATUS_MAP: Record<PropertyStatus, 'pending' | 'completed' | 'disabled'> =
   sold: 'completed',
 };
 
-const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', RUB: '₽', TRY: '₺' };
-
-function formatPrice(price: string, currency?: string) {
+function formatPrice(price: string, _currency?: string) {
   const num = parseFloat(price);
   if (isNaN(num)) return price;
-  const symbol = currency ? (CURRENCY_SYMBOLS[currency] ?? currency) : '';
-  return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(num) + (symbol ? ` ${symbol}` : '');
+  return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(num) + ' ₽';
 }
 
 function formatArea(area: string) {

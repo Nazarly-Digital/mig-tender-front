@@ -50,8 +50,6 @@ import type {
 
 // --- Constants ---
 
-const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', RUB: '₽', TRY: '₺' };
-
 const STATUS_BADGE: Record<PropertyStatus, string> = {
   published: 'bg-emerald-50 text-emerald-700',
   draft: 'bg-gray-100 text-gray-600',
@@ -73,11 +71,10 @@ const MODERATION_STYLES: Record<ModerationStatus, string> = {
 
 // --- Helpers ---
 
-function formatPrice(value: string, currency?: string) {
+function formatPrice(value: string, _currency?: string) {
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
-  const symbol = currency ? (CURRENCY_SYMBOLS[currency] ?? currency) : '';
-  return new Intl.NumberFormat('ru-RU').format(num) + (symbol ? ` ${symbol}` : '');
+  return new Intl.NumberFormat('ru-RU').format(num) + ' ₽';
 }
 
 function formatDate(dateStr: string | null | undefined) {
@@ -411,7 +408,7 @@ function PropertyEditForm({
       area: property.area,
       property_class: property.property_class,
       price: property.price,
-      currency: property.currency,
+      currency: 'RUB',
       deadline: property.deadline ?? '',
       status: property.status,
     },
@@ -477,31 +474,11 @@ function PropertyEditForm({
         </div>
       </div>
 
-      {/* Price + Currency */}
-      <div className='grid grid-cols-2 gap-3'>
-        <div className='space-y-1.5'>
-          <Label.Root htmlFor='p-price'>Цена <Label.Asterisk /></Label.Root>
-          <PriceField control={control} id='p-price' size='small' />
-          {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
-        </div>
-        <div className='space-y-1.5'>
-          <Label.Root htmlFor='p-currency'>Валюта</Label.Root>
-          <Controller
-            name='currency'
-            control={control}
-            render={({ field }) => (
-              <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
-                <Select.Trigger id='p-currency'><Select.Value /></Select.Trigger>
-                <Select.Content>
-                  <Select.Item value='USD'>USD</Select.Item>
-                  <Select.Item value='EUR'>EUR</Select.Item>
-                  <Select.Item value='RUB'>RUB</Select.Item>
-                  <Select.Item value='TRY'>TRY</Select.Item>
-                </Select.Content>
-              </Select.Root>
-            )}
-          />
-        </div>
+      {/* Price */}
+      <div className='space-y-1.5'>
+        <Label.Root htmlFor='p-price'>Цена (₽) <Label.Asterisk /></Label.Root>
+        <PriceField control={control} id='p-price' size='small' />
+        {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
       </div>
 
       {/* Deadline + Status */}

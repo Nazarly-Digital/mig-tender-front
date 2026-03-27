@@ -52,13 +52,10 @@ const MODE_LABELS: Record<AuctionMode, string> = {
   closed: 'Закрытый',
 };
 
-const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', RUB: '₽', TRY: '₺' };
-
-function formatPrice(value: string, currency?: string) {
+function formatPrice(value: string) {
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
-  const symbol = currency ? (CURRENCY_SYMBOLS[currency] ?? currency) : '';
-  return new Intl.NumberFormat('ru-RU').format(num) + (symbol ? ` ${symbol}` : '');
+  return new Intl.NumberFormat('ru-RU').format(num);
 }
 
 function formatDate(dateStr: string | null | undefined) {

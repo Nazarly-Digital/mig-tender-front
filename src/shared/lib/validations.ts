@@ -82,7 +82,7 @@ export const propertySchema = z.object({
     .string()
     .min(1, 'Введите цену')
     .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
-  currency: z.string().min(1, 'Выберите валюту'),
+  currency: z.string().min(1),
   deadline: z.string().optional(),
   status: z.string().min(1, 'Выберите статус'),
 });

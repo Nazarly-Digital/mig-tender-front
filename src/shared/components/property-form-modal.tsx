@@ -161,7 +161,7 @@ export function PropertyFormModal({
       area: '',
       property_class: 'comfort',
       price: '',
-      currency: 'USD',
+      currency: 'RUB',
       deadline: '',
       status: 'draft',
     },
@@ -186,7 +186,7 @@ export function PropertyFormModal({
         area: '',
         property_class: 'comfort',
         price: '',
-        currency: 'USD',
+        currency: 'RUB',
         deadline: '',
         status: 'draft',
       });
@@ -301,40 +301,13 @@ export function PropertyFormModal({
               </div>
             </div>
 
-            {/* Price + Currency */}
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-price'>
-                  Цена <Label.Asterisk />
-                </Label.Root>
-                <PriceField control={control} size='small' />
-                {errors.price && <p className='text-xs text-red-500'>{errors.price.message}</p>}
-              </div>
-              <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-currency'>Валюта</Label.Root>
-                <Controller
-                  name='currency'
-                  control={control}
-                  render={({ field }) => (
-                    <Select.Root
-                      size='small'
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <Select.Trigger id='property-currency'>
-                        <Select.Value />
-                      </Select.Trigger>
-                      <Select.Content>
-                        <Select.Item value='USD'>USD</Select.Item>
-                        <Select.Item value='EUR'>EUR</Select.Item>
-                        <Select.Item value='RUB'>RUB</Select.Item>
-                        <Select.Item value='TRY'>TRY</Select.Item>
-                      </Select.Content>
-                    </Select.Root>
-                  )}
-                />
-                {errors.currency && <p className='text-xs text-red-500'>{errors.currency.message}</p>}
-              </div>
+            {/* Price */}
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='property-price'>
+                Цена (₽) <Label.Asterisk />
+              </Label.Root>
+              <PriceField control={control} size='small' />
+              {errors.price && <p className='text-xs text-red-500'>{errors.price.message}</p>}
             </div>
 
             {/* Deadline + Status */}

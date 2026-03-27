@@ -37,12 +37,10 @@ const CLASS_LABELS: Record<string, string> = {
   premium: 'Премиум',
 };
 
-function formatPrice(value: string, currency?: string) {
+function formatPrice(value: string, _currency?: string) {
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
-  const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', RUB: '₽', TRY: '₺' };
-  const symbol = currency ? (CURRENCY_SYMBOLS[currency] ?? currency) : '';
-  return new Intl.NumberFormat('ru-RU').format(num) + (symbol ? ` ${symbol}` : '');
+  return new Intl.NumberFormat('ru-RU').format(num) + ' ₽';
 }
 
 function formatDate(dateStr: string | null | undefined) {

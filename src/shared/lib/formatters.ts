@@ -7,11 +7,10 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   TRY: '₺',
 };
 
-export function formatPrice(value: string, currency?: string): string {
+export function formatPrice(value: string, _currency?: string): string {
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
-  const symbol = currency ? (CURRENCY_SYMBOLS[currency] ?? currency) : '';
-  return ruNumberFormatter.format(num) + (symbol ? ` ${symbol}` : '');
+  return ruNumberFormatter.format(num) + ' ₽';
 }
 
 export function formatDateShort(dateStr: string | null | undefined): string {
