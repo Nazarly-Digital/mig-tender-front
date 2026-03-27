@@ -33,6 +33,7 @@ import {
   useSelectWinner,
 } from '@/features/auctions';
 import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
+import { useSealedBidsSocket } from '@/shared/hooks/use-sealed-bids-socket';
 import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
 import type { AuctionStatus, AuctionMode, Bid } from '@/shared/types/auctions';
 
@@ -420,9 +421,13 @@ export default function AuctionDetailPage() {
   const { data: sealedBids, isLoading: isSealedBidsLoading } = useSealedBids(auctionId, { enabled: canViewClosedData });
 
   const isActiveOpen = isOpenAuction && auction?.status === 'active';
+  const isActiveClosed = !isOpenAuction && auction?.status === 'active';
 
   // WebSocket for OPEN auctions
   const ws = useAuctionSocket(auctionId, isActiveOpen === true);
+
+  // WebSocket for CLOSED auctions (owner/admin only, read-only)
+  const sealedWs = useSealedBidsSocket(auctionId, isActiveClosed === true && isOwnerOrAdmin);
 
   // Show skeleton until all relevant data is loaded (including WS snapshot for active OPEN)
   const isLoading = isAuctionLoading
@@ -479,11 +484,23 @@ export default function AuctionDetailPage() {
   const isFinished = auction.status === 'finished';
   const isOwner = auction.owner_id === user?.id;
 
-  // For OPEN active auctions, merge WS data with REST data
+  // Merge WS data with REST data for live updates
   const liveAuction = isActiveOpen && ws.auction ? ws.auction : auction;
-  const liveBidsCount = isActiveOpen && ws.auction ? ws.auction.bids_count : auction.bids_count;
-  const liveCurrentPrice = isActiveOpen && ws.auction ? ws.auction.current_price : auction.current_price;
-  const liveHighestBidId = isActiveOpen && ws.auction ? ws.auction.highest_bid_id : auction.highest_bid_id;
+  const liveBidsCount = isActiveOpen && ws.auction
+    ? ws.auction.bids_count
+    : sealedWs.auction
+      ? sealedWs.auction.bids_count
+      : auction.bids_count;
+  const liveCurrentPrice = isActiveOpen && ws.auction
+    ? ws.auction.current_price
+    : sealedWs.auction
+      ? sealedWs.auction.current_price
+      : auction.current_price;
+  const liveHighestBidId = isActiveOpen && ws.auction
+    ? ws.auction.highest_bid_id
+    : sealedWs.auction
+      ? sealedWs.auction.highest_bid_id
+      : auction.highest_bid_id;
   const isHighestBidder = liveHighestBidId != null && ws.bids.length > 0 && ws.bids[0]?.broker === user?.id;
 
   const restParticipantIds: number[] = participants?.participants ?? [];
@@ -492,7 +509,19 @@ export default function AuctionDetailPage() {
     : restParticipantIds;
   const isParticipant = joined
     || participantIds.includes(user?.id ?? 0);
-  const bidsList = Array.isArray(sealedBids) ? sealedBids : [];
+  // For closed auctions, prefer WS sealed bids over REST when available
+  const restBidsList = Array.isArray(sealedBids) ? sealedBids : [];
+  const wsSealedBidsList: typeof restBidsList = sealedWs.bids.map((b) => ({
+    id: b.id,
+    auction_id: b.auction_id,
+    user_id: b.broker_id,
+    amount: b.amount,
+    first_name: '',
+    last_name: '',
+    created_at: b.created_at,
+    updated_at: b.created_at,
+  }));
+  const bidsList = sealedWs.bids.length > 0 ? wsSealedBidsList : restBidsList;
   const mySealedBid = bidsList.find((b) => b.user_id === user?.id);
   // For open auctions: check bids from auction detail REST response (broker_id)
   const auctionBids = Array.isArray(auction.bids) ? auction.bids : [];

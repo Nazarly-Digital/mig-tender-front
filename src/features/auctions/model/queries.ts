@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { auctionsService } from "@/entities/auctions";
+import { propertyKeys } from "@/features/properties";
 import { useSessionStore } from "@/entities/auth/model/store";
 import type {
   AuctionListParams,
@@ -59,6 +60,7 @@ export function useCreateAuction() {
       auctionsService.create(data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+      queryClient.invalidateQueries({ queryKey: propertyKeys.all });
     },
   });
 }
