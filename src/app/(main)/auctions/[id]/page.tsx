@@ -416,7 +416,7 @@ export default function AuctionDetailPage() {
   const isOwnerOrAdmin = auction != null && (auction.owner_id === user?.id || isAdmin);
   // For CLOSED auctions, participants and sealed-bids are owner/admin only
   const canViewClosedData = auction != null && !isOpenAuction && isOwnerOrAdmin;
-  const participantsEnabled = isOpenAuction || isOwnerOrAdmin;
+  const participantsEnabled = auction != null;
   const { data: participants, isLoading: isParticipantsLoading } = useParticipants(auctionId, { enabled: participantsEnabled });
   const { data: sealedBids, isLoading: isSealedBidsLoading } = useSealedBids(auctionId, { enabled: canViewClosedData });
 
