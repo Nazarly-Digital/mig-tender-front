@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/shared/lib/cn';
+import type { DealStatus } from '@/shared/types/deals';
 
 type Step = {
   label: string;
@@ -8,16 +9,15 @@ type Step = {
 };
 
 const DEAL_STEPS: Step[] = [
-  { label: 'Документы', key: 'awaiting_documents' },
+  { label: 'Документы', key: 'pending_documents' },
   { label: 'Проверка админа', key: 'admin_review' },
-  { label: 'ОК девелопера', key: 'developer_review' },
+  { label: 'ОК девелопера', key: 'developer_confirm' },
   { label: 'Подтверждена', key: 'confirmed' },
 ];
 
 type DealProgressBarProps = {
-  currentStep: string;
+  currentStep: DealStatus;
   isOverdue?: boolean;
-  // Allow customizing step labels per role
   stepLabels?: Partial<Record<string, string>>;
 };
 
@@ -36,11 +36,9 @@ export function DealProgressBar({ currentStep, isOverdue, stepLabels }: DealProg
         {DEAL_STEPS.map((step, i) => {
           const isCompleted = i < activeIndex;
           const isActive = i === activeIndex;
-          const isLast = i === DEAL_STEPS.length - 1;
 
           return (
             <div key={step.key} className="flex items-center flex-1">
-              {/* Segment line */}
               <div className="relative flex-1 h-1 rounded-full">
                 <div
                   className={cn(

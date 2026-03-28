@@ -1,7 +1,5 @@
 export {
   paymentKeys,
-  useBrokerPayments,
-  useBrokerPaymentSummary,
-  useDeveloperPayments,
-  useDeveloperPaymentSummary,
+  usePayments,
+  usePaymentSummary,
 } from "./model/queries";

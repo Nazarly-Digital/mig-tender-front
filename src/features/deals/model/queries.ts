@@ -1,35 +1,63 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { dealsService } from "@/entities/deals";
-import { useSessionStore } from "@/entities/auth/model/store";
 import type {
   DealListParams,
-  UploadDealDocumentRequest,
+  UploadDDURequest,
+  UploadPaymentProofRequest,
   UpdateDealCommentRequest,
-  AdminDealActionRequest,
-  DeveloperDealActionRequest,
+  RejectReasonRequest,
 } from "@/shared/types/deals";
 
 export const dealKeys = {
   all: ["deals"] as const,
-  myDeals: (params?: DealListParams) => [...dealKeys.all, "my", params] as const,
-  developerDeals: (params?: DealListParams) => [...dealKeys.all, "developer", params] as const,
-  adminDeals: (params?: DealListParams) => [...dealKeys.all, "admin", params] as const,
+  list: (params?: DealListParams) => [...dealKeys.all, "list", params] as const,
+  detail: (id: number) => [...dealKeys.all, "detail", id] as const,
+  logs: (id: number) => [...dealKeys.all, "logs", id] as const,
 };
 
-// --- Broker ---
+// --- List & Detail ---
 
-export function useMyDeals(params?: DealListParams) {
+export function useDeals(params?: DealListParams) {
   return useQuery({
-    queryKey: dealKeys.myDeals(params),
-    queryFn: () => dealsService.getMyDeals(params).then((res) => res.data),
+    queryKey: dealKeys.list(params),
+    queryFn: () => dealsService.getAll(params).then((res) => res.data),
   });
 }
 
-export function useUploadDealDocument() {
+export function useDealDetail(id: number) {
+  return useQuery({
+    queryKey: dealKeys.detail(id),
+    queryFn: () => dealsService.getById(id).then((res) => res.data),
+    enabled: id > 0,
+  });
+}
+
+export function useDealLogs(id: number) {
+  return useQuery({
+    queryKey: dealKeys.logs(id),
+    queryFn: () => dealsService.getLogs(id).then((res) => res.data),
+    enabled: id > 0,
+  });
+}
+
+// --- Broker mutations ---
+
+export function useUploadDDU() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: UploadDealDocumentRequest) =>
-      dealsService.uploadDocument(data).then((res) => res.data),
+    mutationFn: (data: UploadDDURequest) =>
+      dealsService.uploadDDU(data).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dealKeys.all });
+    },
+  });
+}
+
+export function useUploadPaymentProof() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UploadPaymentProofRequest) =>
+      dealsService.uploadPaymentProof(data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: dealKeys.all });
     },
@@ -47,40 +75,48 @@ export function useUpdateDealComment() {
   });
 }
 
-// --- Developer ---
+// --- Admin mutations ---
 
-export function useDeveloperDeals(params?: DealListParams) {
-  return useQuery({
-    queryKey: dealKeys.developerDeals(params),
-    queryFn: () => dealsService.getDeveloperDeals(params).then((res) => res.data),
-  });
-}
-
-export function useDeveloperDealAction() {
+export function useAdminApproveDeal() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: DeveloperDealActionRequest) =>
-      dealsService.developerAction(data).then((res) => res.data),
+    mutationFn: (deal_id: number) =>
+      dealsService.adminApprove(deal_id).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: dealKeys.all });
     },
   });
 }
 
-// --- Admin ---
-
-export function useAdminDeals(params?: DealListParams) {
-  return useQuery({
-    queryKey: dealKeys.adminDeals(params),
-    queryFn: () => dealsService.getAdminDeals(params).then((res) => res.data),
+export function useAdminRejectDeal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: RejectReasonRequest) =>
+      dealsService.adminReject(data).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dealKeys.all });
+    },
   });
 }
 
-export function useAdminDealAction() {
+// --- Developer mutations ---
+
+export function useDeveloperConfirmDeal() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: AdminDealActionRequest) =>
-      dealsService.adminAction(data).then((res) => res.data),
+    mutationFn: (deal_id: number) =>
+      dealsService.developerConfirm(deal_id).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dealKeys.all });
+    },
+  });
+}
+
+export function useDeveloperRejectDeal() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: RejectReasonRequest) =>
+      dealsService.developerReject(data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: dealKeys.all });
     },

@@ -4,40 +4,20 @@ import type { PaymentListParams } from "@/shared/types/payments";
 
 export const paymentKeys = {
   all: ["payments"] as const,
-  brokerPayments: (params?: PaymentListParams) => [...paymentKeys.all, "broker", params] as const,
-  brokerSummary: () => [...paymentKeys.all, "broker-summary"] as const,
-  developerPayments: (params?: PaymentListParams) => [...paymentKeys.all, "developer", params] as const,
-  developerSummary: () => [...paymentKeys.all, "developer-summary"] as const,
+  list: (params?: PaymentListParams) => [...paymentKeys.all, "list", params] as const,
+  summary: () => [...paymentKeys.all, "summary"] as const,
 };
 
-// --- Broker ---
-
-export function useBrokerPayments(params?: PaymentListParams) {
+export function usePayments(params?: PaymentListParams) {
   return useQuery({
-    queryKey: paymentKeys.brokerPayments(params),
-    queryFn: () => paymentsService.getBrokerPayments(params).then((res) => res.data),
+    queryKey: paymentKeys.list(params),
+    queryFn: () => paymentsService.getAll(params).then((res) => res.data),
   });
 }
 
-export function useBrokerPaymentSummary() {
+export function usePaymentSummary() {
   return useQuery({
-    queryKey: paymentKeys.brokerSummary(),
-    queryFn: () => paymentsService.getBrokerSummary().then((res) => res.data),
-  });
-}
-
-// --- Developer ---
-
-export function useDeveloperPayments(params?: PaymentListParams) {
-  return useQuery({
-    queryKey: paymentKeys.developerPayments(params),
-    queryFn: () => paymentsService.getDeveloperPayments(params).then((res) => res.data),
-  });
-}
-
-export function useDeveloperPaymentSummary() {
-  return useQuery({
-    queryKey: paymentKeys.developerSummary(),
-    queryFn: () => paymentsService.getDeveloperSummary().then((res) => res.data),
+    queryKey: paymentKeys.summary(),
+    queryFn: () => paymentsService.getSummary().then((res) => res.data),
   });
 }

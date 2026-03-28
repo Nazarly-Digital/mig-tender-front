@@ -1,26 +1,37 @@
 import { apiInstance } from "@/shared/api";
 import type {
-  BrokerDeal,
-  DeveloperDeal,
-  AdminDeal,
+  Deal,
+  DealDetail,
   DealListParams,
-  UploadDealDocumentRequest,
+  DealLogEntry,
+  UploadDDURequest,
+  UploadPaymentProofRequest,
   UpdateDealCommentRequest,
-  AdminDealActionRequest,
-  DeveloperDealActionRequest,
+  RejectReasonRequest,
   PaginatedResponse,
 } from "@/shared/types/deals";
 
 export const dealsService = {
-  // Broker
-  getMyDeals: (params?: DealListParams) =>
-    apiInstance.get<PaginatedResponse<BrokerDeal>>("/deals/my/", { params }),
+  // List (role-scoped on backend)
+  getAll: (params?: DealListParams) =>
+    apiInstance.get<PaginatedResponse<Deal>>("/deals/", { params }),
 
-  uploadDocument: ({ deal_id, doc_type, file }: UploadDealDocumentRequest) => {
+  getById: (id: number) =>
+    apiInstance.get<DealDetail>(`/deals/${id}/`),
+
+  // Broker: upload documents
+  uploadDDU: ({ deal_id, ddu_document }: UploadDDURequest) => {
     const formData = new FormData();
-    formData.append("doc_type", doc_type);
-    formData.append("file", file);
-    return apiInstance.post(`/deals/${deal_id}/documents/`, formData, {
+    formData.append("ddu_document", ddu_document);
+    return apiInstance.post(`/deals/${deal_id}/upload-ddu/`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  uploadPaymentProof: ({ deal_id, payment_proof_document }: UploadPaymentProofRequest) => {
+    const formData = new FormData();
+    formData.append("payment_proof_document", payment_proof_document);
+    return apiInstance.post(`/deals/${deal_id}/upload-payment-proof/`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
@@ -28,17 +39,21 @@ export const dealsService = {
   updateComment: ({ deal_id, comment }: UpdateDealCommentRequest) =>
     apiInstance.patch(`/deals/${deal_id}/comment/`, { comment }),
 
-  // Developer
-  getDeveloperDeals: (params?: DealListParams) =>
-    apiInstance.get<PaginatedResponse<DeveloperDeal>>("/deals/developer/", { params }),
+  // Admin actions
+  adminApprove: (deal_id: number) =>
+    apiInstance.post(`/deals/${deal_id}/admin-approve/`),
 
-  developerAction: ({ deal_id, action, reason }: DeveloperDealActionRequest) =>
-    apiInstance.post(`/deals/${deal_id}/developer-action/`, { action, reason }),
+  adminReject: ({ deal_id, reason }: RejectReasonRequest) =>
+    apiInstance.post(`/deals/${deal_id}/admin-reject/`, { reason }),
 
-  // Admin
-  getAdminDeals: (params?: DealListParams) =>
-    apiInstance.get<PaginatedResponse<AdminDeal>>("/deals/admin/", { params }),
+  // Developer actions
+  developerConfirm: (deal_id: number) =>
+    apiInstance.post(`/deals/${deal_id}/developer-confirm/`),
 
-  adminAction: ({ deal_id, action, reason }: AdminDealActionRequest) =>
-    apiInstance.post(`/deals/${deal_id}/admin-action/`, { action, reason }),
+  developerReject: ({ deal_id, reason }: RejectReasonRequest) =>
+    apiInstance.post(`/deals/${deal_id}/developer-reject/`, { reason }),
+
+  // Logs
+  getLogs: (deal_id: number) =>
+    apiInstance.get<DealLogEntry[]>(`/deals/${deal_id}/logs/`),
 };

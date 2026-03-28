@@ -2,118 +2,31 @@
 
 import * as React from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { File01Icon, Upload04Icon, AlertCircleIcon } from '@hugeicons/core-free-icons';
+import { File01Icon, Upload04Icon } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
-import { PageHeader } from '@/shared/components/page-header';
 import { DealProgressBar } from './deal-progress-bar';
-import type { BrokerDeal, DealStatus, ObligationStatus, DealDocument } from '@/shared/types/deals';
-
-// --- Mock data (will be replaced with API) ---
-const MOCK_BROKER_DEALS: BrokerDeal[] = [
-  {
-    id: 1,
-    property_name: 'ЖК «Солнечный», корп. 2, кв. 48',
-    developer_company: 'ООО «СтройИнвест»',
-    auction_id: 1103,
-    auction_mode: 'open',
-    bid_amount: '4200000',
-    obligation_status: 'active',
-    status: 'awaiting_documents',
-    deadline: '2026-04-15',
-    uploaded_at: null,
-    closed_at: null,
-    documents: [],
-    comment: null,
-  },
-  {
-    id: 2,
-    property_name: 'ЖК «Парковый», секция А, кв. 112',
-    developer_company: 'ГК «Базис»',
-    auction_id: 1089,
-    auction_mode: 'closed',
-    bid_amount: '7800000',
-    obligation_status: 'active',
-    status: 'admin_review',
-    deadline: null,
-    uploaded_at: '2026-03-12',
-    closed_at: null,
-    documents: [
-      { id: 1, filename: 'ДДУ_112.pdf', url: '#', size: 1258291, uploaded_at: '2026-03-12' },
-      { id: 2, filename: 'Оплата_подтверждение.pdf', url: '#', size: 839680, uploaded_at: '2026-03-12' },
-    ],
-    comment: null,
-  },
-  {
-    id: 3,
-    property_name: 'ЖК «Невский», корп. 1, кв. 25',
-    developer_company: 'ООО «ПетроСтрой»',
-    auction_id: 1076,
-    auction_mode: 'closed',
-    bid_amount: '6100000',
-    obligation_status: 'active',
-    status: 'developer_review',
-    deadline: null,
-    uploaded_at: '2026-03-20',
-    closed_at: null,
-    documents: [
-      { id: 3, filename: 'ДДУ_25.pdf', url: '#', size: 1048576, uploaded_at: '2026-03-15' },
-      { id: 4, filename: 'Чек_оплата.pdf', url: '#', size: 524288, uploaded_at: '2026-03-15' },
-    ],
-    comment: null,
-  },
-  {
-    id: 4,
-    property_name: 'ЖК «Ривьера», блок В, кв. 7',
-    developer_company: 'АО «МегаСтрой»',
-    auction_id: 1042,
-    auction_mode: 'closed',
-    bid_amount: '5500000',
-    obligation_status: 'fulfilled',
-    status: 'confirmed',
-    deadline: null,
-    uploaded_at: null,
-    closed_at: '2026-03-03',
-    documents: [
-      { id: 5, filename: 'ДДУ_7.pdf', url: '#', size: 1048576, uploaded_at: '2026-02-20' },
-      { id: 6, filename: 'Оплата_чек.pdf', url: '#', size: 524288, uploaded_at: '2026-02-20' },
-    ],
-    comment: null,
-  },
-  {
-    id: 5,
-    property_name: 'ЖК «Центральный», кв. 34',
-    developer_company: 'ООО «ГрадСтрой»',
-    auction_id: 1021,
-    auction_mode: 'open',
-    bid_amount: '3100000',
-    obligation_status: 'overdue',
-    status: 'overdue',
-    deadline: '2026-02-01',
-    uploaded_at: null,
-    closed_at: null,
-    documents: [],
-    comment: null,
-  },
-];
+import { useDeals, useUploadDDU, useUploadPaymentProof, useUpdateDealComment } from '@/features/deals';
+import type { Deal, DealStatus, ObligationStatus } from '@/shared/types/deals';
 
 type TabFilter = 'all' | DealStatus;
 
 const BROKER_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Все', value: 'all' },
-  { label: 'Ожидает документов', value: 'awaiting_documents' },
+  { label: 'Ожидает документов', value: 'pending_documents' },
   { label: 'На проверке', value: 'admin_review' },
   { label: 'Подтверждена', value: 'confirmed' },
-  { label: 'Просрочено', value: 'overdue' },
 ];
 
-function getStatusBadge(status: DealStatus) {
+function getStatusBadge(status: DealStatus, obligationStatus?: ObligationStatus) {
+  if (obligationStatus === 'overdue') {
+    return { label: 'Просрочено', className: 'bg-red-50 text-red-700' };
+  }
   const map: Record<DealStatus, { label: string; className: string }> = {
-    awaiting_documents: { label: 'Ожидает документов', className: 'bg-amber-50 text-amber-700' },
+    pending_documents: { label: 'Ожидает документов', className: 'bg-amber-50 text-amber-700' },
     admin_review: { label: 'На проверке', className: 'bg-gray-100 text-gray-600' },
-    developer_review: { label: 'Ожидает девелопера', className: 'bg-blue-50 text-blue-700' },
+    developer_confirm: { label: 'Ожидает девелопера', className: 'bg-blue-50 text-blue-700' },
     confirmed: { label: 'Подтверждена', className: 'bg-emerald-50 text-emerald-700' },
-    overdue: { label: 'Просрочено', className: 'bg-red-50 text-red-700' },
   };
   return map[status];
 }
@@ -127,42 +40,48 @@ function getObligationLabel(status: ObligationStatus) {
   return map[status];
 }
 
-function getInfoMessage(deal: BrokerDeal): { text: string; color: string } | null {
+function getInfoMessage(deal: Deal): { text: string; color: string } | null {
+  if (deal.obligation_status === 'overdue') {
+    return { text: `Дедлайн загрузки документов был ${formatDateShort(deal.document_deadline)}. Обязательство просрочено.`, color: 'text-red-600' };
+  }
   switch (deal.status) {
     case 'admin_review':
       return { text: 'Документы на проверке у администратора. Ожидаем подтверждения.', color: 'text-blue-600' };
-    case 'developer_review':
+    case 'developer_confirm':
       return { text: 'Админ проверил документы. Ожидаем подтверждения от девелопера.', color: 'text-blue-600' };
     case 'confirmed':
       return { text: 'Сделка закрыта. Выплата комиссии оформляется на странице «Мои выплаты».', color: 'text-emerald-600' };
-    case 'overdue':
-      return { text: `Дедлайн загрузки документов был ${formatDateShort(deal.deadline)}. Обязательство просрочено.`, color: 'text-red-600' };
     default:
       return null;
   }
 }
 
-function BrokerDealCard({ deal }: { deal: BrokerDeal }) {
-  const badge = getStatusBadge(deal.status);
+function BrokerDealCard({ deal }: { deal: Deal }) {
+  const badge = getStatusBadge(deal.status, deal.obligation_status);
   const obligation = getObligationLabel(deal.obligation_status);
   const info = getInfoMessage(deal);
-  const isOverdue = deal.status === 'overdue';
+  const isOverdue = deal.obligation_status === 'overdue';
 
-  const thirdColumnLabel = deal.status === 'awaiting_documents'
-    ? 'Дедлайн загрузки'
-    : deal.status === 'admin_review'
-      ? 'Загружено'
-      : deal.status === 'confirmed'
-        ? 'Закрыта'
-        : deal.status === 'developer_review'
-          ? 'Проверено'
-          : 'Дедлайн был';
+  const uploadDDU = useUploadDDU();
+  const uploadPaymentProof = useUploadPaymentProof();
+  const updateComment = useUpdateDealComment();
+  const [comment, setComment] = React.useState('');
 
-  const thirdColumnValue = deal.status === 'confirmed'
-    ? formatDateShort(deal.closed_at)
-    : deal.status === 'admin_review' || deal.status === 'developer_review'
-      ? formatDateShort(deal.uploaded_at)
-      : formatDateShort(deal.deadline);
+  const handleDDUUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadDDU.mutate({ deal_id: deal.id, ddu_document: file });
+  };
+
+  const handlePaymentProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadPaymentProof.mutate({ deal_id: deal.id, payment_proof_document: file });
+  };
+
+  const handleCommentSubmit = () => {
+    if (comment.trim()) {
+      updateComment.mutate({ deal_id: deal.id, comment: comment.trim() });
+    }
+  };
 
   return (
     <div className={cn(
@@ -172,9 +91,9 @@ function BrokerDealCard({ deal }: { deal: BrokerDeal }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{deal.property_name}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">{deal.property_address}</h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {deal.developer_company} · {deal.auction_mode === 'open' ? 'Открытый' : 'Закрытый'} аукцион #{deal.auction_id}
+            {deal.developer_name} · {deal.auction_mode === 'open' ? 'Открытый' : 'Закрытый'} аукцион #{deal.auction_id}
           </p>
         </div>
         <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap', badge.className)}>
@@ -186,60 +105,57 @@ function BrokerDealCard({ deal }: { deal: BrokerDeal }) {
       <div className="grid grid-cols-3 gap-4 mt-4">
         <div>
           <p className="text-xs text-gray-500">Ставка</p>
-          <p className="text-sm font-semibold text-gray-900 mt-0.5">{formatPrice(deal.bid_amount)}</p>
+          <p className="text-sm font-semibold text-gray-900 mt-0.5">{formatPrice(deal.amount)}</p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Обязательство</p>
           <p className={cn('text-sm font-semibold mt-0.5', obligation.className)}>{obligation.label}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">{thirdColumnLabel}</p>
-          <p className="text-sm font-semibold text-gray-900 mt-0.5">{thirdColumnValue}</p>
+          <p className="text-xs text-gray-500">Дедлайн загрузки</p>
+          <p className="text-sm font-semibold text-gray-900 mt-0.5">{formatDateShort(deal.document_deadline)}</p>
         </div>
       </div>
 
       {/* Progress */}
       <DealProgressBar currentStep={deal.status} isOverdue={isOverdue} />
 
-      {/* Documents section */}
-      {deal.status === 'awaiting_documents' && (
+      {/* Upload section */}
+      {deal.status === 'pending_documents' && deal.obligation_status !== 'overdue' && (
         <div className="mt-4 space-y-3">
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <label className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
               <HugeiconsIcon icon={Upload04Icon} size={16} color="currentColor" strokeWidth={1.5} />
               Загрузить ДДУ
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+              <input type="file" className="hidden" onChange={handleDDUUpload} accept=".pdf,.doc,.docx" />
+            </label>
+            <label className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
               <HugeiconsIcon icon={Upload04Icon} size={16} color="currentColor" strokeWidth={1.5} />
               Загрузить подтверждение оплаты
-            </button>
+              <input type="file" className="hidden" onChange={handlePaymentProofUpload} accept=".pdf,.jpg,.jpeg,.png" />
+            </label>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1.5">Комментарий (если документы переданы вне платформы)</p>
-            <input
-              type="text"
-              placeholder="Ссылка или описание, где находятся документы"
-              className="w-full h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Ссылка или описание, где находятся документы"
+                className="flex-1 h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors"
+              />
+              {comment.trim() && (
+                <button
+                  onClick={handleCommentSubmit}
+                  disabled={updateComment.isPending}
+                  className="px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                >
+                  Отправить
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Uploaded documents */}
-      {deal.documents.length > 0 && deal.status !== 'awaiting_documents' && (
-        <div className="flex gap-2 mt-4">
-          {deal.documents.map((doc) => (
-            <a
-              key={doc.id}
-              href={doc.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <HugeiconsIcon icon={File01Icon} size={14} color="currentColor" strokeWidth={1.5} />
-              {doc.filename}
-            </a>
-          ))}
         </div>
       )}
 
@@ -263,9 +179,14 @@ function BrokerDealCard({ deal }: { deal: BrokerDeal }) {
 export function BrokerDealsView() {
   const [activeTab, setActiveTab] = React.useState<TabFilter>('all');
 
-  // TODO: Replace with useMyDeals(params) when API is ready
-  const deals = MOCK_BROKER_DEALS;
-  const filtered = activeTab === 'all' ? deals : deals.filter((d) => d.status === activeTab);
+  const { data, isLoading } = useDeals(
+    activeTab === 'all' ? undefined : { status: activeTab as DealStatus }
+  );
+  const deals = data?.results ?? [];
+
+  // For tab counts, fetch all deals
+  const { data: allData } = useDeals();
+  const allDeals = allData?.results ?? [];
 
   return (
     <div className="w-full px-8 py-8">
@@ -280,7 +201,9 @@ export function BrokerDealsView() {
         {/* Tabs */}
         <div className="flex flex-wrap gap-2 mt-5">
           {BROKER_TABS.map((tab) => {
-            const count = tab.value === 'all' ? deals.length : deals.filter((d) => d.status === tab.value).length;
+            const count = tab.value === 'all'
+              ? allDeals.length
+              : allDeals.filter((d) => d.status === tab.value).length;
             return (
               <button
                 key={tab.value}
@@ -300,13 +223,17 @@ export function BrokerDealsView() {
 
         {/* Cards */}
         <div className="space-y-4 mt-6">
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <p className="text-sm text-gray-400">Загрузка...</p>
+            </div>
+          ) : deals.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <p className="text-sm font-medium text-gray-900">Нет сделок</p>
               <p className="text-xs text-gray-400 mt-1">Сделки появятся после победы в аукционах</p>
             </div>
           ) : (
-            filtered.map((deal) => <BrokerDealCard key={deal.id} deal={deal} />)
+            deals.map((deal) => <BrokerDealCard key={deal.id} deal={deal} />)
           )}
         </div>
       </div>

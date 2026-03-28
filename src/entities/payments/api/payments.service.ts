@@ -1,25 +1,18 @@
 import { apiInstance } from "@/shared/api";
 import type {
-  BrokerPayment,
+  Payment,
   BrokerPaymentSummary,
-  DeveloperPayment,
   DeveloperPaymentSummary,
   PaymentListParams,
   PaginatedResponse,
 } from "@/shared/types/payments";
 
 export const paymentsService = {
-  // Broker
-  getBrokerPayments: (params?: PaymentListParams) =>
-    apiInstance.get<PaginatedResponse<BrokerPayment>>("/payments/my/", { params }),
+  // List (role-scoped on backend)
+  getAll: (params?: PaymentListParams) =>
+    apiInstance.get<PaginatedResponse<Payment>>("/payments/", { params }),
 
-  getBrokerSummary: () =>
-    apiInstance.get<BrokerPaymentSummary>("/payments/my/summary/"),
-
-  // Developer
-  getDeveloperPayments: (params?: PaymentListParams) =>
-    apiInstance.get<PaginatedResponse<DeveloperPayment>>("/payments/developer/", { params }),
-
-  getDeveloperSummary: () =>
-    apiInstance.get<DeveloperPaymentSummary>("/payments/developer/summary/"),
+  // Summary (role-scoped on backend — returns different shape per role)
+  getSummary: () =>
+    apiInstance.get<BrokerPaymentSummary | DeveloperPaymentSummary>("/payments/summary/"),
 };
