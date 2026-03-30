@@ -459,6 +459,7 @@ export default function AuctionDetailPage() {
 
   const [joined, setJoined] = React.useState(false);
   const [optimisticBid, setOptimisticBid] = React.useState<Bid | null>(null);
+  const [pendingOpenBid, setPendingOpenBid] = React.useState<Bid | null>(null);
   const [bidModalOpen, setBidModalOpen] = React.useState(false);
   const [winnerModalOpen, setWinnerModalOpen] = React.useState(false);
   const [shortlistIds, setShortlistIds] = React.useState<Set<number>>(
@@ -498,6 +499,14 @@ export default function AuctionDetailPage() {
       toast.error(ws.error);
     }
   }, [ws.error]);
+
+  // Clear pending open bid once WS confirms it
+  React.useEffect(() => {
+    if (!pendingOpenBid) return;
+    if (ws.bids.some((b) => b.broker === user?.id)) {
+      setPendingOpenBid(null);
+    }
+  }, [ws.bids, pendingOpenBid, user?.id]);
 
   // Clear optimistic bid once real data is available (must be before early returns for hooks consistency)
   const hasRealBid = React.useMemo(() => {
@@ -587,13 +596,29 @@ export default function AuctionDetailPage() {
   // Also check WS bids (broker) — first match is the latest bid
   const myWsBid = ws.bids.find((b) => b.broker === user?.id);
 
-  // For open auctions, prioritize WS data (instant) over REST data (delayed)
+  // For open auctions: WS bid → optimistic (pending send) → REST bid
   const realMyBid: Bid | undefined = isOpenAuction
     ? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined)
+      ?? pendingOpenBid 
       ?? (myRestBid ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at } : undefined)
     : mySealedBid;
   // Use optimistic bid until real data arrives (for closed auctions)
   const myBid: Bid | undefined = realMyBid ?? optimisticBid ?? undefined;
+
+  const handleSendBid = (amount: string) => {
+    const now = new Date().toISOString();
+    setPendingOpenBid({
+      id: -1,
+      auction_id: auctionId,
+      user_id: user?.id ?? 0,
+      amount,
+      first_name: '',
+      last_name: '',
+      created_at: now,
+      updated_at: now,
+    });
+    ws.sendBid(amount);
+  };
 
   const handleJoin = () => {
     joinAuction.mutate(auctionId, {
@@ -857,28 +882,40 @@ export default function AuctionDetailPage() {
             />
           )}
 
-          {/* Participants — only for open auctions */}
-          {isOpenAuction && (
-            <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
-              <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
-                <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
-              </h3>
-              {participantIds.length === 0 ? (
-                <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
-              ) : (
-                <div className='mt-3 space-y-1.5'>
-                  {participantIds.map((pid) => (
-                    <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                      <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                        #{pid}
-                      </div>
-                      <span className='text-[13px] font-medium text-gray-900'>Участник #{pid}</span>
+          {/* Participants */}
+          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
+            <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
+              <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
+            </h3>
+            {participantIds.length === 0 ? (
+              <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
+            ) : (
+              <div className='mt-3 space-y-1.5'>
+                {participantIds.map((pid) => (
+                  <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                    {isOwner && !isOpenAuction && (
+                      <button type='button' onClick={() => toggleShortlist(pid)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(pid) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
+                        {shortlistIds.has(pid) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
+                      </button>
+                    )}
+                    <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                      #{pid}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                    <span className='text-[13px] font-medium text-gray-900'>Участник #{pid}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {isOwner && !isOpenAuction && shortlistIds.size > 0 && (
+              <>
+                <div className='my-3 border-t border-blue-50' />
+                <FancyButton.Root variant='primary' size='small' className='w-full' onClick={handleShortlist} disabled={shortlist.isPending}>
+                  <HugeiconsIcon icon={CheckListIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                  {shortlist.isPending ? 'Формирование...' : `В шорт-лист (${shortlistIds.size})`}
+                </FancyButton.Root>
+              </>
+            )}
+          </div>
 
           {/* Broker status */}
           {!isDeveloper && !isAdmin && (
