@@ -792,7 +792,7 @@ export default function AuctionDetailPage() {
 
           {/* Live bids feed — OPEN auction */}
           {isActiveOpen && ws.bids.length > 0 && (
-            <div className='rounded-xl  border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
+            <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
               <div className='flex items-center justify-between mb-4'>
                 <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
                   <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
