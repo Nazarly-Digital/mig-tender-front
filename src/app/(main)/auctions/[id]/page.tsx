@@ -427,6 +427,7 @@ export default function AuctionDetailPage() {
   const user = useSessionStore((s) => s.user);
   const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
   const isBroker = user?.role === 'broker' || user?.is_broker === true;
+  const isBrokerVerified = user?.broker?.verification_status === 'accepted';
 
   const isAdmin = user?.role === 'admin' || user?.is_admin === true;
   const { data: auction, isLoading: isAuctionLoading, refetch } = useAuctionDetail(auctionId);
@@ -700,10 +701,17 @@ export default function AuctionDetailPage() {
         </div>
         <div className='flex items-center gap-2'>
           {!isDeveloper && !isAdmin && isActive && !isParticipant && (
-            <FancyButton.Root variant='primary' size='small' onClick={handleJoin} disabled={joinAuction.isPending}>
-              <HugeiconsIcon icon={UserIcon} size={16} color='currentColor' strokeWidth={1.5} />
-              {joinAuction.isPending ? 'Присоединение...' : 'Участвовать'}
-            </FancyButton.Root>
+            <div className='relative group'>
+              <FancyButton.Root variant='primary' size='small' onClick={handleJoin} disabled={joinAuction.isPending || !isBrokerVerified}>
+                <HugeiconsIcon icon={UserIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                {joinAuction.isPending ? 'Присоединение...' : 'Участвовать'}
+              </FancyButton.Root>
+              {!isBrokerVerified && (
+                <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
+                  Для участия необходимо пройти верификацию
+                </div>
+              )}
+            </div>
           )}
           {!isDeveloper && !isAdmin && isActive && isParticipant && !isOpenAuction && !myBid && (
             <FancyButton.Root variant='primary' size='small' onClick={() => setBidModalOpen(true)}>
