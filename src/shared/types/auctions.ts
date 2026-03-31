@@ -25,7 +25,13 @@ export type Auction = {
   bids_count: number;
   current_price: string;
   highest_bid_id: number | null;
-  winner_bid_id: number | null;
+  winner_bid_id: number | null; // deprecated: use winner_bid
+  winner_bid: {
+    id: number;
+    broker: { id: number; fullname: string };
+    amount: string;
+    is_sealed: boolean;
+  } | null;
   created_at: string;
   updated_at: string;
 };

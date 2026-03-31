@@ -597,11 +597,15 @@ export default function AuctionDetailPage() {
   const myWsBid = ws.bids.find((b) => b.broker === user?.id);
 
   // For open auctions: WS bid → optimistic (pending send) → REST bid
+  // For closed auctions: sealedBids (owner/admin) → auction.bids fallback (broker's own bid)
+  const myRestBidObj: Bid | undefined = myRestBid
+    ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at }
+    : undefined;
   const realMyBid: Bid | undefined = isOpenAuction
     ? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined)
-      ?? pendingOpenBid 
-      ?? (myRestBid ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at } : undefined)
-    : mySealedBid;
+      ?? pendingOpenBid
+      ?? myRestBidObj
+    : mySealedBid ?? myRestBidObj;
   // Use optimistic bid until real data arrives (for closed auctions)
   const myBid: Bid | undefined = realMyBid ?? optimisticBid ?? undefined;
 
@@ -689,7 +693,7 @@ export default function AuctionDetailPage() {
               Сделать ставку
             </FancyButton.Root>
           )}
-          {isOwner && isFinished && !auction.winner_bid_id && bidsList.length > 0 && (
+          {isOwner && isFinished && !auction.winner_bid && bidsList.length > 0 && (
             <FancyButton.Root variant='primary' size='small' onClick={() => setWinnerModalOpen(true)}>
               <HugeiconsIcon icon={ChampionIcon} size={16} color='currentColor' strokeWidth={1.5} />
               Выбрать победителя
@@ -775,12 +779,12 @@ export default function AuctionDetailPage() {
               </div>
             )}
 
-            {auction.winner_bid_id && (
+            {auction.winner_bid && (
               <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
                 <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
                 <div>
                   <div className='text-sm font-medium text-gray-900'>Победитель определён</div>
-                  <div className='text-xs text-gray-500'>Ставка #{auction.winner_bid_id}</div>
+                  <div className='text-xs text-gray-500'>{auction.winner_bid.broker.fullname} — {formatPrice(auction.winner_bid.amount)} ₽</div>
                 </div>
               </div>
             )}
@@ -807,7 +811,7 @@ export default function AuctionDetailPage() {
                       <td className='py-3 font-medium text-gray-900'>{bid.first_name} {bid.last_name}</td>
                       <td className='py-3 font-semibold text-gray-900'>{formatPrice(bid.amount)}</td>
                       <td className='py-3 text-gray-400'>{formatDateTime(bid.created_at)}</td>
-                      <td className='py-3'>{auction.winner_bid_id === bid.id && <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>}</td>
+                      <td className='py-3'>{auction.winner_bid?.id === bid.id && <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -871,7 +875,7 @@ export default function AuctionDetailPage() {
           {/* Live bid input — OPEN auction, broker participant */}
           {isActiveOpen && isBroker && isParticipant && (
             <LiveBidInput
-              sendBid={ws.sendBid}
+              sendBid={handleSendBid}
               connected={ws.connected}
               currentPrice={liveCurrentPrice}
               minPrice={auction.min_price}
@@ -933,10 +937,10 @@ export default function AuctionDetailPage() {
                   <span className='text-gray-500'>Ваша ставка</span>
                   {myBid ? <span className='font-semibold text-gray-900'>{formatPrice(myBid.amount)} ₽</span> : <span className='text-gray-400'>—</span>}
                 </div>
-                {auction.winner_bid_id && myBid && (
+                {auction.winner_bid && myBid && (
                   <div className='flex justify-between'>
                     <span className='text-gray-500'>Результат</span>
-                    {auction.winner_bid_id === myBid.id
+                    {auction.winner_bid.id === myBid.id
                       ? <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700'>Победа</span>
                       : <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'>Не выиграли</span>
                     }
