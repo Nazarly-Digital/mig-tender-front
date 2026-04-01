@@ -10,6 +10,7 @@ import {
   RiUploadCloud2Line,
   RiUserLine,
   RiUserAddFill,
+  RiAlertLine,
 } from '@remixicon/react';
 
 import { cn } from '@/shared/lib/cn';
@@ -21,6 +22,7 @@ import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Checkbox from '@/shared/ui/checkbox';
 import * as LinkButton from '@/shared/ui/link-button';
+import * as Modal from '@/shared/ui/modal';
 import { useBrokerRegistration } from '@/features/auth';
 
 const PasswordInput = React.forwardRef<
@@ -69,6 +71,8 @@ export default function PageRegisterBroker() {
     handleVerifyEmail,
     handleResendCode,
     handleRegister,
+    onAcceptObligation,
+    showObligationModal,
     isGetCodePending,
     isVerifyPending,
     isResendPending,
@@ -76,10 +80,12 @@ export default function PageRegisterBroker() {
   } = useBrokerRegistration();
 
   const [offerAccepted, setOfferAccepted] = React.useState(false);
+  const [obligationChecked, setObligationChecked] = React.useState(false);
   const emailErrors = emailForm.formState.errors;
   const regErrors = registerForm.formState.errors;
 
   return (
+    <>
     <div className='w-full max-w-[472px] px-4'>
       <div className='flex w-full flex-col gap-6 rounded-20 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
         <div className='flex flex-col items-center gap-2'>
@@ -361,5 +367,63 @@ export default function PageRegisterBroker() {
         )}
       </div>
     </div>
+
+    {/* Obligation modal — shown once after registration, cannot be dismissed */}
+    <Modal.Root open={showObligationModal}>
+      <Modal.Content
+        showClose={false}
+        className='bg-bg-strong-950 ring-stroke-soft-200/10 shadow-regular-md'
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
+        <Modal.Body className='flex flex-col gap-5 p-6'>
+          {/* Icon */}
+          <div className='flex justify-center'>
+            <div className='flex size-14 items-center justify-center rounded-2xl bg-warning-lighter'>
+              <RiAlertLine className='size-7 text-warning-base' />
+            </div>
+          </div>
+
+          {/* Texts */}
+          <div className='space-y-1.5 text-center'>
+            <Modal.Title className='text-label-md text-static-white'>
+              Обязательство при участии в аукционе
+            </Modal.Title>
+            <p className='text-paragraph-sm text-text-soft-400'>
+              Участвуя в аукционах на платформе MIG Tender, вы соглашаетесь с тем, что:
+            </p>
+          </div>
+
+          {/* Obligation text box */}
+          <div className='rounded-xl bg-bg-surface-800 p-4 ring-1 ring-inset ring-stroke-soft-200/10'>
+            <p className='text-paragraph-sm leading-relaxed text-text-soft-400'>
+              Каждая ваша ставка является обязательством приобрести объект на указанных условиях.
+              Если ваша ставка выигрывает — вы обязаны завершить сделку: загрузить ДДУ и
+              подтверждение оплаты в установленный срок.
+            </p>
+          </div>
+
+          {/* Checkbox */}
+          <label className='flex cursor-pointer items-center gap-3'>
+            <Checkbox.Root
+              checked={obligationChecked}
+              onCheckedChange={(v) => setObligationChecked(v === true)}
+            />
+            <span className='text-paragraph-sm text-text-soft-400'>Я понимаю и принимаю условия</span>
+          </label>
+
+          {/* Accept button */}
+          <button
+            type='button'
+            onClick={onAcceptObligation}
+            disabled={!obligationChecked}
+            className='h-10 w-full cursor-pointer rounded-lg bg-static-white text-paragraph-sm font-semibold text-static-black transition-opacity disabled:cursor-not-allowed disabled:opacity-40'
+          >
+            Принимаю
+          </button>
+        </Modal.Body>
+      </Modal.Content>
+    </Modal.Root>
+    </>
   );
 }
