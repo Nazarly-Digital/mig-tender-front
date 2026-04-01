@@ -36,6 +36,7 @@ export function useBrokerRegistration() {
   const [passport, setPassport] = React.useState<File | null>(null);
   const [error, setError] = React.useState('');
   const [timer, setTimer] = React.useState(0);
+  const [showObligationModal, setShowObligationModal] = React.useState(false);
 
   const getCode = useGetCode();
   const verifyEmail = useVerifyEmail();
@@ -124,13 +125,21 @@ export function useBrokerRegistration() {
     );
   };
 
-  const handleRegister = registerForm.handleSubmit((data) => {
+  const handleRegister = registerForm.handleSubmit(() => {
     setError('');
 
     if (!inn || !passport) {
       setError('Необходимо загрузить документ ИНН и паспорт');
       return;
     }
+
+    setShowObligationModal(true);
+  });
+
+  const onAcceptObligation = () => {
+    setShowObligationModal(false);
+
+    const data = registerForm.getValues();
 
     registerBroker.mutate(
       {
@@ -140,8 +149,8 @@ export function useBrokerRegistration() {
         first_name: data.firstName || undefined,
         last_name: data.lastName || undefined,
         inn_number: data.innNumber,
-        inn,
-        passport,
+        inn: inn!,
+        passport: passport!,
       },
       {
         onSuccess: () => {
@@ -149,9 +158,9 @@ export function useBrokerRegistration() {
         },
         onError: (err) => {
           if (err instanceof AxiosError) {
-            const data = err.response?.data;
-            if (typeof data === 'object' && data !== null) {
-              const messages = Object.values(data).flat();
+            const errData = err.response?.data;
+            if (typeof errData === 'object' && errData !== null) {
+              const messages = Object.values(errData).flat();
               setError(messages.join('. ') || 'Произошла ошибка');
             } else {
               setError('Произошла ошибка. Попробуйте позже');
@@ -160,7 +169,7 @@ export function useBrokerRegistration() {
         },
       },
     );
-  });
+  };
 
   return {
     // forms
@@ -183,6 +192,10 @@ export function useBrokerRegistration() {
     handleVerifyEmail,
     handleResendCode,
     handleRegister,
+    onAcceptObligation,
+
+    // modal
+    showObligationModal,
 
     // loading states
     isGetCodePending: getCode.isPending,
