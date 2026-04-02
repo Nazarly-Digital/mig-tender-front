@@ -745,7 +745,8 @@ export default function AuctionDetailPage() {
     ? Array.from(new Set([...restParticipantIds, ...ws.participants]))
     : restParticipantIds;
   const isParticipant = joined
-    || participantIds.includes(user?.id ?? 0);
+    || participantIds.includes(user?.id ?? 0)
+    || !!auction.myBid;
   // For closed auctions, prefer WS sealed bids over REST when available
   const restBidsList = Array.isArray(sealedBids) ? sealedBids : [];
   const wsSealedBidsList: typeof restBidsList = sealedWs.bids.map((b) => ({
