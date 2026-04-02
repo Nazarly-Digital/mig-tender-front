@@ -32,7 +32,7 @@ export const auctionsService = {
     apiInstance.post<AuctionDetail>("/auctions/", data),
 
   cancel: (auctionId: number) =>
-    apiInstance.post(`/auctions/${auctionId}/cancel/`),
+    apiInstance.delete(`/auctions/${auctionId}/cancel/`),
 
   // Participants
   join: (auctionId: number) =>

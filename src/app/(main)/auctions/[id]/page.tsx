@@ -899,7 +899,7 @@ export default function AuctionDetailPage() {
               Распределить объекты
             </FancyButton.Root>
           )}
-          {isOwnerOrAdmin && (isActive || auction.status === 'scheduled') && (
+          {isOwnerOrAdmin && auction.status === 'scheduled' && (
             <FancyButton.Root variant='destructive' size='small' onClick={() => setCancelConfirmOpen(true)} disabled={cancelAuction.isPending}>
               <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
               {cancelAuction.isPending ? 'Отмена...' : 'Отменить'}
@@ -1020,8 +1020,8 @@ export default function AuctionDetailPage() {
                 </thead>
                 <tbody className='text-[13px]'>
                   {auction.properties.map((prop) => (
-                    <tr key={prop.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors'>
-                      <td className='py-3 font-medium text-gray-900'>{prop.address}</td>
+                    <tr key={prop.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors cursor-pointer' onClick={() => router.push(`/objects/${prop.id}`)}>
+                      <td className='py-3 font-medium text-blue-600 hover:text-blue-800'>{prop.address}</td>
                       <td className='py-3 text-gray-600'>{prop.type}</td>
                       <td className='py-3 text-gray-600'>{prop.area} м²</td>
                       <td className='py-3 font-semibold text-gray-900'>{formatPrice(prop.price)} ₽</td>
