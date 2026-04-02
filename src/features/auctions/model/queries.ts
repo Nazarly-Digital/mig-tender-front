@@ -9,6 +9,7 @@ import type {
   BidUpdateRequest,
   ShortlistRequest,
   SelectWinnerRequest,
+  AssignRequest,
 } from "@/shared/types/auctions";
 
 export const auctionKeys = {
@@ -23,6 +24,8 @@ export const auctionKeys = {
     [...auctionKeys.all, "participants", id] as const,
   sealedBids: (id: number) =>
     [...auctionKeys.all, "sealed-bids", id] as const,
+  compatibleProperties: (referenceId: number) =>
+    [...auctionKeys.all, "compatible-properties", referenceId] as const,
 };
 
 // --- Auction CRUD ---
@@ -182,5 +185,33 @@ export function useSelectWinner() {
       });
       queryClient.invalidateQueries({ queryKey: auctionKeys.all });
     },
+  });
+}
+
+export function useAssign() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      auctionId,
+      data,
+    }: {
+      auctionId: number;
+      data: AssignRequest;
+    }) => auctionsService.assign(auctionId, data).then((res) => res.data),
+    onSuccess: (_data, { auctionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: auctionKeys.detail(auctionId),
+      });
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
+  });
+}
+
+export function useCompatibleProperties(referenceId: number, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: auctionKeys.compatibleProperties(referenceId),
+    queryFn: () =>
+      auctionsService.getCompatibleProperties(referenceId).then((res) => res.data),
+    enabled: (options?.enabled ?? true) && referenceId > 0,
   });
 }

@@ -23,7 +23,8 @@ export type WsSealedAuction = {
 
 type WsSealedMessage =
   | { type: 'sealed_bids_snapshot'; auction: WsSealedAuction; bids: WsSealedBid[] }
-  | { type: 'sealed_bid_changed'; action: 'created' | 'updated'; auction: WsSealedAuction; bid: WsSealedBid };
+  | { type: 'sealed_bid_changed'; action: 'created' | 'updated'; auction: WsSealedAuction; bid: WsSealedBid }
+  | { type: 'auction_updated'; [key: string]: unknown };
 
 export type SealedBidsSocketState = {
   connected: boolean;
@@ -111,6 +112,15 @@ export function useSealedBidsSocket(auctionId: number, enabled = true) {
                 bids: updatedBids,
               };
             });
+            break;
+          }
+
+          case 'auction_updated': {
+            const { type: _type, ...payload } = msg;
+            setState((s) => ({
+              ...s,
+              auction: s.auction ? { ...s.auction, ...payload } as WsSealedAuction : s.auction,
+            }));
             break;
           }
         }

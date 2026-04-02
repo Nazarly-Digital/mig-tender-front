@@ -9,12 +9,27 @@ export type AuctionStatus =
   | "cancelled"
   | "scheduled";
 
+export type AuctionLotProperty = {
+  id: number;
+  reference_id: string;
+  type: string;
+  address: string;
+  area: string;
+  property_class: string;
+  price: string;
+  commission_rate: string;
+  deadline: string;
+  status: string;
+  moderation_status: string;
+};
+
 export type Auction = {
   id: number;
   real_property: {
     id: number;
     address: string;
   };
+  properties: AuctionLotProperty[];
   owner_id: number;
   mode: AuctionMode;
   min_price: string;
@@ -25,13 +40,13 @@ export type Auction = {
   bids_count: number;
   current_price: string;
   highest_bid_id: number | null;
-  winner_bid_id: number | null; // deprecated: use winner_bid
   winner_bid: {
     id: number;
     broker: { id: number; fullname: string };
     amount: string;
     is_sealed: boolean;
   } | null;
+  lot_total_price: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -46,10 +61,11 @@ export type AuctionDetailBid = {
 
 export type AuctionDetail = Auction & {
   bids: AuctionDetailBid[];
+  myBid: AuctionDetailBid | null;
 };
 
 export type AuctionCreateRequest = {
-  property_id: number;
+  propertyIds: number[];
   mode: AuctionMode;
   min_price: string;
   min_bid_increment?: string;
@@ -109,11 +125,36 @@ export type BidUpdateRequest = {
 
 // Closed flow
 export type ShortlistRequest = {
-  participant_ids: number[];
+  bid_ids: number[];
+};
+
+export type ShortlistResponse = {
+  shortlistedBidIds: number[];
 };
 
 export type SelectWinnerRequest = {
-  bid_id: number;
+  brokerIds: number[];
+};
+
+export type SelectWinnerResponse = {
+  auctionId: number;
+  selectedBrokerIds: number[];
+  selectedBidIds: number[];
+};
+
+export type AssignmentItem = {
+  brokerId: number;
+  propertyIds: number[];
+};
+
+export type AssignRequest = {
+  assignments: AssignmentItem[];
+};
+
+export type AssignResponse = {
+  auctionId: number;
+  dealsCount: number;
+  dealIds: number[];
 };
 
 export type { PaginatedResponse };

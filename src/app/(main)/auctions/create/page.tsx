@@ -7,15 +7,15 @@ import toast from 'react-hot-toast';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
+import { ArrowLeft01Icon, CheckmarkCircle02Icon } from '@hugeicons/core-free-icons';
 import { auctionSchema, type AuctionFormData } from '@/shared/lib/validations';
-import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
+import { formatPriceInput, stripPriceFormat, formatPrice } from '@/shared/lib/formatters';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
 import { useMyAvailableProperties } from '@/features/properties';
-import { useCreateAuction } from '@/features/auctions';
+import { useCreateAuction, useCompatibleProperties } from '@/features/auctions';
 import type { AuctionMode } from '@/shared/types/auctions';
 
 const MODE_LABELS: Record<AuctionMode, string> = {
@@ -43,7 +43,7 @@ export default function CreateAuctionPage() {
   } = useForm<AuctionFormData>({
     resolver: zodResolver(auctionSchema),
     defaultValues: {
-      property_id: '',
+      propertyIds: [],
       mode: 'closed',
       min_price: '',
       min_bid_increment: '',
@@ -53,12 +53,41 @@ export default function CreateAuctionPage() {
   });
 
   const selectedMode = watch('mode');
+  const selectedPropertyIds = watch('propertyIds');
+
+  // For CLOSED mode: load compatible properties based on first selected property
+  const referencePropertyId = selectedMode === 'closed' && selectedPropertyIds.length > 0
+    ? Number(selectedPropertyIds[0])
+    : 0;
+  const { data: compatibleProperties } = useCompatibleProperties(referencePropertyId, {
+    enabled: selectedMode === 'closed' && referencePropertyId > 0,
+  });
+
+  // Properties available for selection in CLOSED mode
+  const closedAvailableProperties = React.useMemo(() => {
+    if (selectedMode !== 'closed') return properties;
+    // No reference selected yet — show all properties
+    if (!compatibleProperties || selectedPropertyIds.length === 0) return properties;
+    // Show compatible properties
+    const compatibleIds = new Set(compatibleProperties.map((p) => p.id));
+    return properties.filter((p) => compatibleIds.has(p.id));
+  }, [selectedMode, properties, compatibleProperties, selectedPropertyIds]);
+
+  const handlePropertyToggle = (propertyId: string) => {
+    const current = selectedPropertyIds;
+    if (current.includes(propertyId)) {
+      const next = current.filter((id) => id !== propertyId);
+      setValue('propertyIds', next, { shouldValidate: true });
+    } else {
+      setValue('propertyIds', [...current, propertyId], { shouldValidate: true });
+    }
+  };
 
   const onSubmit = (data: AuctionFormData) => {
     const isOpen = data.mode === 'open';
     createMutation.mutate(
       {
-        property_id: Number(data.property_id),
+        propertyIds: data.propertyIds.map(Number),
         mode: data.mode as AuctionMode,
         min_price: data.min_price,
         ...(isOpen && data.min_bid_increment ? { min_bid_increment: data.min_bid_increment } : {}),
@@ -71,8 +100,8 @@ export default function CreateAuctionPage() {
           router.push('/auctions');
         },
         onError: (error: unknown) => {
-          const err = error as { response?: { data?: { error?: string } } };
-          toast.error(err.response?.data?.error ?? 'Ошибка при создании аукциона');
+          const err = error as { response?: { data?: { error?: string; propertyIds?: string } } };
+          toast.error(err.response?.data?.propertyIds ?? err.response?.data?.error ?? 'Ошибка при создании аукциона');
         },
       },
     );
@@ -100,27 +129,6 @@ export default function CreateAuctionPage() {
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 space-y-4'>
             <div className='text-[14px] font-semibold text-gray-900'>Объект и параметры</div>
 
-            <div className='space-y-1.5'>
-              <Label.Root htmlFor='auction-property'>Объект <Label.Asterisk /></Label.Root>
-              {propertiesLoading ? (
-                <div className='text-sm text-gray-400'>Загрузка...</div>
-              ) : properties.length === 0 ? (
-                <div className='text-sm text-gray-400'>Нет объектов. Сначала создайте объект.</div>
-              ) : (
-                <Controller control={control} name='property_id' render={({ field }) => (
-                  <Select.Root value={field.value} onValueChange={field.onChange}>
-                    <Select.Trigger id='auction-property'><Select.Value placeholder='Выберите объект' /></Select.Trigger>
-                    <Select.Content>
-                      {properties.map((p) => (
-                        <Select.Item key={p.id} value={String(p.id)}>{p.address} ({p.area} м²)</Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Root>
-                )} />
-              )}
-              {errors.property_id && <p className='text-xs text-red-500'>{errors.property_id.message}</p>}
-            </div>
-
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='auction-mode'>Тип <Label.Asterisk /></Label.Root>
@@ -128,6 +136,8 @@ export default function CreateAuctionPage() {
                   <Select.Root value={field.value} onValueChange={(v) => {
                     field.onChange(v);
                     if (v === 'closed') setValue('min_bid_increment', '');
+                    // Reset property selection when switching modes
+                    setValue('propertyIds', [], { shouldValidate: true });
                   }}>
                     <Select.Trigger id='auction-mode'><Select.Value /></Select.Trigger>
                     <Select.Content>
@@ -158,6 +168,78 @@ export default function CreateAuctionPage() {
                 )} />
                 {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
               </div>
+            </div>
+
+            {/* Property selection */}
+            <div className='space-y-1.5'>
+              <Label.Root>
+                {selectedMode === 'open' ? 'Объект' : 'Объекты лота'} <Label.Asterisk />
+              </Label.Root>
+              {propertiesLoading ? (
+                <div className='text-sm text-gray-400'>Загрузка...</div>
+              ) : properties.length === 0 ? (
+                <div className='text-sm text-gray-400'>Нет объектов. Сначала создайте объект.</div>
+              ) : selectedMode === 'open' ? (
+                /* OPEN mode: single select */
+                <Controller control={control} name='propertyIds' render={({ field }) => (
+                  <Select.Root
+                    value={field.value[0] ?? ''}
+                    onValueChange={(v) => field.onChange([v])}
+                  >
+                    <Select.Trigger id='auction-property'><Select.Value placeholder='Выберите объект' /></Select.Trigger>
+                    <Select.Content>
+                      {properties.map((p) => (
+                        <Select.Item key={p.id} value={String(p.id)}>{p.address} ({p.area} м²)</Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Root>
+                )} />
+              ) : (
+                /* CLOSED mode: checkbox list */
+                <div className='max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white divide-y divide-gray-100'>
+                  {closedAvailableProperties.length === 0 ? (
+                    <div className='px-3 py-4 text-sm text-gray-400 text-center'>
+                      Нет совместимых объектов
+                    </div>
+                  ) : (
+                    closedAvailableProperties.map((p) => {
+                      const isSelected = selectedPropertyIds.includes(String(p.id));
+                      return (
+                        <label
+                          key={p.id}
+                          className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors ${
+                            isSelected ? 'bg-blue-50/60' : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className={`flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+                            isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-300 bg-white'
+                          }`}>
+                            {isSelected && (
+                              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color='white' strokeWidth={2} />
+                            )}
+                          </div>
+                          <div className='flex-1 min-w-0'>
+                            <div className='text-sm text-gray-900 truncate'>{p.address}</div>
+                            <div className='text-xs text-gray-500'>{p.area} м² &middot; {formatPrice(p.price)}</div>
+                          </div>
+                          <input
+                            type='checkbox'
+                            className='sr-only'
+                            checked={isSelected}
+                            onChange={() => handlePropertyToggle(String(p.id))}
+                          />
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+              {selectedMode === 'closed' && selectedPropertyIds.length > 0 && (
+                <p className='text-xs text-gray-500'>
+                  Выбрано: {selectedPropertyIds.length} {selectedPropertyIds.length === 1 ? 'объект' : selectedPropertyIds.length < 5 ? 'объекта' : 'объектов'}
+                </p>
+              )}
+              {errors.propertyIds && <p className='text-xs text-red-500'>{errors.propertyIds.message}</p>}
             </div>
 
             {selectedMode === 'open' && (

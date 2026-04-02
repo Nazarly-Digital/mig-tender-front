@@ -70,12 +70,25 @@ function AuctionCard({ auction }: { auction: Auction }) {
       {/* Header: title + price */}
       <div className='flex flex-col gap-1'>
         <h3 className='text-[14px] font-semibold text-gray-900'>Аукцион #{auction.id}</h3>
-        <span className='text-[17px] font-bold text-gray-900 shrink-0'>{formatPrice(auction.current_price)} ₽</span>
+        <span className='text-[12px] text-gray-500 truncate'>
+          {auction.properties?.length > 0
+            ? auction.properties[0].address + (auction.properties.length > 1 ? ` (+${auction.properties.length - 1})` : '')
+            : auction.real_property?.address}
+        </span>
+        <span className='text-[17px] font-bold text-gray-900 shrink-0'>
+          {formatPrice(auction.lot_total_price ?? auction.current_price)} ₽
+        </span>
         <div className='flex items-center gap-1.5'>
           <span className={`size-1.5 rounded-full ${statusCfg.dot}`} />
           <span className={`text-[11px] font-medium ${statusCfg.text}`}>{statusCfg.label}</span>
           <span className='text-[11px] text-gray-300'>·</span>
           <span className='text-[11px] text-gray-400'>{MODE_LABELS[auction.mode]}</span>
+          {auction.properties?.length > 1 && (
+            <>
+              <span className='text-[11px] text-gray-300'>·</span>
+              <span className='text-[11px] text-gray-400'>{auction.properties.length} объектов</span>
+            </>
+          )}
         </div>
       </div>
 

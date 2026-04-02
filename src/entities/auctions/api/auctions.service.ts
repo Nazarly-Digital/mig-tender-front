@@ -5,13 +5,17 @@ import type {
   AuctionCreateRequest,
   AuctionListParams,
   PaginatedResponse,
-  Participant,
   JoinAuctionResponse,
   Bid,
   BidCreateRequest,
   BidUpdateRequest,
   ShortlistRequest,
+  ShortlistResponse,
   SelectWinnerRequest,
+  SelectWinnerResponse,
+  AssignRequest,
+  AssignResponse,
+  AuctionLotProperty,
 } from "@/shared/types/auctions";
 
 export const auctionsService = {
@@ -26,6 +30,9 @@ export const auctionsService = {
 
   create: (data: AuctionCreateRequest) =>
     apiInstance.post<AuctionDetail>("/auctions/", data),
+
+  cancel: (auctionId: number) =>
+    apiInstance.post(`/auctions/${auctionId}/cancel/`),
 
   // Participants
   join: (auctionId: number) =>
@@ -46,8 +53,17 @@ export const auctionsService = {
 
   // Closed flow
   shortlist: (auctionId: number, data: ShortlistRequest) =>
-    apiInstance.post(`/auctions/${auctionId}/shortlist/`, data),
+    apiInstance.post<ShortlistResponse>(`/auctions/${auctionId}/shortlist/`, data),
 
   selectWinner: (auctionId: number, data: SelectWinnerRequest) =>
-    apiInstance.post(`/auctions/${auctionId}/select-winner/`, data),
+    apiInstance.post<SelectWinnerResponse>(`/auctions/${auctionId}/select-winner/`, data),
+
+  assign: (auctionId: number, data: AssignRequest) =>
+    apiInstance.post<AssignResponse>(`/auctions/${auctionId}/assign/`, data),
+
+  // Compatible properties for lot
+  getCompatibleProperties: (referenceId: number) =>
+    apiInstance.get<AuctionLotProperty[]>("/properties/compatible/", {
+      params: { reference_id: referenceId },
+    }),
 };

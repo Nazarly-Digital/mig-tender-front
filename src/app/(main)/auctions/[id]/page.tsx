@@ -31,12 +31,13 @@ import {
   useUpdateBid,
   useShortlist,
   useSelectWinner,
+  useAssign,
 } from '@/features/auctions';
 import { useUpdateProperty } from '@/features/properties';
 import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
 import { useSealedBidsSocket } from '@/shared/hooks/use-sealed-bids-socket';
 import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
-import type { AuctionStatus, AuctionMode, Bid } from '@/shared/types/auctions';
+import type { AuctionStatus, AuctionMode, Bid, AuctionLotProperty } from '@/shared/types/auctions';
 
 // --- Helpers ---
 
@@ -248,16 +249,26 @@ function SelectWinnerModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [selectedBidId, setSelectedBidId] = React.useState<number | null>(null);
+  const [selectedBrokerIds, setSelectedBrokerIds] = React.useState<Set<number>>(new Set());
   const selectWinner = useSelectWinner();
 
+  const toggleBroker = (brokerId: number) => {
+    setSelectedBrokerIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(brokerId)) next.delete(brokerId);
+      else next.add(brokerId);
+      return next;
+    });
+  };
+
   const handleSubmit = () => {
-    if (!selectedBidId) return;
+    if (selectedBrokerIds.size === 0) return;
     selectWinner.mutate(
-      { auctionId, data: { bid_id: selectedBidId } },
+      { auctionId, data: { brokerIds: Array.from(selectedBrokerIds) } },
       {
         onSuccess: () => {
-          toast.success('Победитель выбран');
+          toast.success(selectedBrokerIds.size > 1 ? 'Победители выбраны' : 'Победитель выбран');
+          setSelectedBrokerIds(new Set());
           onOpenChange(false);
         },
         onError: (error) => {
@@ -271,8 +282,8 @@ function SelectWinnerModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content className='max-w-[500px]'>
         <Modal.Header
-          title='Выбор победителя'
-          description='Выберите ставку-победителя аукциона'
+          title='Выбор победителей'
+          description='Выберите брокеров-победителей аукциона'
         />
         <Modal.Body className='max-h-[320px] space-y-2 overflow-y-auto'>
           {bids.length === 0 ? (
@@ -280,29 +291,37 @@ function SelectWinnerModal({
               Нет ставок
             </div>
           ) : (
-            bids.map((bid) => (
-              <button
-                key={bid.id}
-                type='button'
-                onClick={() => setSelectedBidId(bid.id)}
-                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${selectedBidId === bid.id
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-              >
-                <div>
-                  <div className='text-sm font-medium text-gray-900'>
-                    {bid.first_name} {bid.last_name}
+            bids.map((bid) => {
+              const isSelected = selectedBrokerIds.has(bid.user_id);
+              return (
+                <button
+                  key={bid.id}
+                  type='button'
+                  onClick={() => toggleBroker(bid.user_id)}
+                  className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${isSelected
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:bg-gray-50'
+                    }`}
+                >
+                  <div className='flex items-center gap-2.5'>
+                    <div className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
+                      {isSelected && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
+                    </div>
+                    <div>
+                      <div className='text-sm font-medium text-gray-900'>
+                        {bid.first_name} {bid.last_name}
+                      </div>
+                      <div className='text-xs text-gray-500'>
+                        {formatDateTime(bid.created_at)}
+                      </div>
+                    </div>
                   </div>
-                  <div className='text-xs text-gray-500'>
-                    {formatDateTime(bid.created_at)}
+                  <div className='text-base font-semibold text-gray-900'>
+                    {formatPrice(bid.amount)}
                   </div>
-                </div>
-                <div className='text-base font-semibold text-gray-900'>
-                  {formatPrice(bid.amount)}
-                </div>
-              </button>
-            ))
+                </button>
+              );
+            })
           )}
         </Modal.Body>
         <Modal.Footer>
@@ -314,10 +333,10 @@ function SelectWinnerModal({
           <FancyButton.Root
             variant='primary'
             size='small'
-            disabled={!selectedBidId || selectWinner.isPending}
+            disabled={selectedBrokerIds.size === 0 || selectWinner.isPending}
             onClick={handleSubmit}
           >
-            {selectWinner.isPending ? 'Выбор...' : 'Подтвердить'}
+            {selectWinner.isPending ? 'Выбор...' : `Подтвердить (${selectedBrokerIds.size})`}
           </FancyButton.Root>
         </Modal.Footer>
       </Modal.Content>
@@ -471,7 +490,8 @@ export default function AuctionDetailPage() {
       auction?.winner_bid != null
     ) {
       markedAsSoldRef.current = true;
-      updateProperty.mutate({ id: auction.real_property.id, data: { status: 'sold' } });
+      const propId = auction.real_property?.id ?? auction.properties?.[0]?.id;
+      if (propId) updateProperty.mutate({ id: propId, data: { status: 'sold' } });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auction?.status, auction?.winner_bid, auction?.owner_id, user?.id]);
@@ -616,15 +636,18 @@ export default function AuctionDetailPage() {
   const myWsBid = ws.bids.find((b) => b.broker === user?.id);
 
   // For open auctions: WS bid → optimistic (pending send) → REST bid
-  // For closed auctions: sealedBids (owner/admin) → auction.bids fallback (broker's own bid)
+  // For closed auctions: use auction.myBid from API, fallback to sealed bids lookup
   const myRestBidObj: Bid | undefined = myRestBid
     ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at }
+    : undefined;
+  const apiMyBid: Bid | undefined = auction.myBid
+    ? { id: auction.myBid.id, auction_id: auctionId, user_id: auction.myBid.broker_id, amount: auction.myBid.amount, first_name: '', last_name: '', created_at: auction.myBid.created_at, updated_at: auction.myBid.created_at }
     : undefined;
   const realMyBid: Bid | undefined = isOpenAuction
     ? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined)
       ?? pendingOpenBid
       ?? myRestBidObj
-    : mySealedBid ?? myRestBidObj;
+    : apiMyBid ?? mySealedBid ?? myRestBidObj;
   // Use optimistic bid until real data arrives (for closed auctions)
   const myBid: Bid | undefined = realMyBid ?? optimisticBid ?? undefined;
 
@@ -672,7 +695,7 @@ export default function AuctionDetailPage() {
     shortlist.mutate(
       {
         auctionId,
-        data: { participant_ids: Array.from(shortlistIds) },
+        data: { bid_ids: Array.from(shortlistIds) },
       },
       {
         onSuccess: () => {
@@ -696,7 +719,11 @@ export default function AuctionDetailPage() {
           </Link>
           <div>
             <h1 className='text-xl font-bold tracking-tight text-gray-900'>Аукцион #{auction.id}</h1>
-            <span className='text-[13px] text-gray-400'>{auction.real_property.address}</span>
+            <span className='text-[13px] text-gray-400'>
+              {auction.properties?.length > 0
+                ? auction.properties[0].address + (auction.properties.length > 1 ? ` (+${auction.properties.length - 1})` : '')
+                : auction.real_property?.address}
+            </span>
           </div>
         </div>
         <div className='flex items-center gap-2'>
@@ -729,7 +756,7 @@ export default function AuctionDetailPage() {
       </div>
 
       {/* KPI Row */}
-      <div className={`grid grid-cols-2 gap-3 ${isOpenAuction ? 'sm:grid-cols-5' : 'sm:grid-cols-3'}`}>
+      <div className={`grid grid-cols-2 gap-3 ${isOpenAuction ? 'sm:grid-cols-5' : auction.lot_total_price ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
           <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)} ₽</span>
@@ -742,6 +769,12 @@ export default function AuctionDetailPage() {
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
         </div>
+        {auction.lot_total_price && (
+          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+            <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Сумма лота</span>
+            <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.lot_total_price)} ₽</span>
+          </div>
+        )}
         {isOpenAuction && auction.min_bid_increment && (
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
             <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
@@ -816,6 +849,36 @@ export default function AuctionDetailPage() {
             )}
           </div>
 
+          {/* Lot Properties — for multi-property CLOSED auctions */}
+          {auction.properties?.length > 1 && (
+            <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
+              <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2 mb-4'>
+                <HugeiconsIcon icon={CheckListIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+                Объекты лота ({auction.properties.length})
+              </h3>
+              <table className='w-full text-left'>
+                <thead>
+                  <tr className='border-b border-gray-100'>
+                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</th>
+                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</th>
+                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</th>
+                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</th>
+                  </tr>
+                </thead>
+                <tbody className='text-[13px]'>
+                  {auction.properties.map((prop) => (
+                    <tr key={prop.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors'>
+                      <td className='py-3 font-medium text-gray-900'>{prop.address}</td>
+                      <td className='py-3 text-gray-600'>{prop.type}</td>
+                      <td className='py-3 text-gray-600'>{prop.area} м²</td>
+                      <td className='py-3 font-semibold text-gray-900'>{formatPrice(prop.price)} ₽</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {/* Sealed Bids — owner */}
           {isOwner && bidsList.length > 0 && (
             <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
@@ -834,7 +897,16 @@ export default function AuctionDetailPage() {
                 <tbody className='text-[13px]'>
                   {bidsList.map((bid) => (
                     <tr key={bid.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors'>
-                      <td className='py-3 font-medium text-gray-900'>{bid.first_name} {bid.last_name}</td>
+                      <td className='py-3 font-medium text-gray-900'>
+                        <div className='flex items-center gap-2'>
+                          {isOwner && isFinished && !auction.winner_bid && (
+                            <button type='button' onClick={() => toggleShortlist(bid.id)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(bid.id) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
+                              {shortlistIds.has(bid.id) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
+                            </button>
+                          )}
+                          {bid.first_name} {bid.last_name}
+                        </div>
+                      </td>
                       <td className='py-3 font-semibold text-gray-900'>{formatPrice(bid.amount)}</td>
                       <td className='py-3 text-gray-400'>{formatDateTime(bid.created_at)}</td>
                       <td className='py-3'>{auction.winner_bid?.id === bid.id && <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>}</td>
@@ -842,6 +914,14 @@ export default function AuctionDetailPage() {
                   ))}
                 </tbody>
               </table>
+              {isOwner && isFinished && !auction.winner_bid && shortlistIds.size > 0 && (
+                <div className='mt-4'>
+                  <FancyButton.Root variant='primary' size='small' className='w-full' onClick={handleShortlist} disabled={shortlist.isPending}>
+                    <HugeiconsIcon icon={CheckListIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                    {shortlist.isPending ? 'Формирование...' : `В шорт-лист (${shortlistIds.size})`}
+                  </FancyButton.Root>
+                </div>
+              )}
             </div>
           )}
 
@@ -923,11 +1003,6 @@ export default function AuctionDetailPage() {
               <div className='mt-3 space-y-1.5'>
                 {participantIds.map((pid) => (
                   <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                    {isOwner && !isOpenAuction && (
-                      <button type='button' onClick={() => toggleShortlist(pid)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(pid) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
-                        {shortlistIds.has(pid) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
-                      </button>
-                    )}
                     <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
                       #{pid}
                     </div>
@@ -935,15 +1010,6 @@ export default function AuctionDetailPage() {
                   </div>
                 ))}
               </div>
-            )}
-            {isOwner && !isOpenAuction && shortlistIds.size > 0 && (
-              <>
-                <div className='my-3 border-t border-blue-50' />
-                <FancyButton.Root variant='primary' size='small' className='w-full' onClick={handleShortlist} disabled={shortlist.isPending}>
-                  <HugeiconsIcon icon={CheckListIcon} size={16} color='currentColor' strokeWidth={1.5} />
-                  {shortlist.isPending ? 'Формирование...' : `В шорт-лист (${shortlistIds.size})`}
-                </FancyButton.Root>
-              </>
             )}
           </div>
 

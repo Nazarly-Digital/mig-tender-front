@@ -11,4 +11,6 @@ export {
   useUpdateBid,
   useShortlist,
   useSelectWinner,
+  useAssign,
+  useCompatibleProperties,
 } from "./model/queries";

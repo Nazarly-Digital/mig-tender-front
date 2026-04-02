@@ -95,9 +95,9 @@ export type PropertyFormData = z.infer<typeof propertySchema>;
 // === Auctions ===
 
 export const auctionSchema = z.object({
-  property_id: z
-    .string()
-    .min(1, 'Выберите объект'),
+  propertyIds: z
+    .array(z.string())
+    .min(1, 'Выберите хотя бы один объект'),
   mode: z.string().min(1, 'Выберите тип аукциона'),
   min_price: z
     .string()
@@ -117,6 +117,13 @@ export const auctionSchema = z.object({
       : 'Дата начала должна быть минимум через 1 час от текущего времени'),
   end_date: z.string().min(1, 'Выберите дату окончания'),
 }).refine(
+  (data) => {
+    if (data.mode === 'open' && data.propertyIds.length !== 1) return false;
+    return true;
+  },
+  { message: 'Для открытого аукциона нужно выбрать ровно один объект',
+    path: ['propertyIds'] },
+).refine(
   (data) => {
     if (!data.start_date || !data.end_date) return true;
     const isDev = process.env.NODE_ENV === 'development';
