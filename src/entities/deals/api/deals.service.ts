@@ -39,6 +39,10 @@ export const dealsService = {
   updateComment: ({ deal_id, comment }: UpdateDealCommentRequest) =>
     apiInstance.patch(`/deals/${deal_id}/comment/`, { comment }),
 
+  // Broker: submit for review
+  submitForReview: (deal_id: number) =>
+    apiInstance.post(`/deals/${deal_id}/submit-for-review/`),
+
   // Admin actions
   adminApprove: (deal_id: number) =>
     apiInstance.post(`/deals/${deal_id}/admin-approve/`),

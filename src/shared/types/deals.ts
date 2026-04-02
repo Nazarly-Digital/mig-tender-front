@@ -34,6 +34,8 @@ export type Deal = {
   amount: string;
   status: DealStatus;
   obligation_status: ObligationStatus;
+  has_ddu: boolean;
+  has_payment_proof: boolean;
   document_deadline: string;
   created_at: string;
   updated_at: string;

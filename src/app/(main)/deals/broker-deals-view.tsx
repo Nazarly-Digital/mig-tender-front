@@ -6,7 +6,7 @@ import { File01Icon, Upload04Icon } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import { DealProgressBar } from './deal-progress-bar';
-import { useDeals, useUploadDDU, useUploadPaymentProof, useUpdateDealComment } from '@/features/deals';
+import { useDeals, useUploadDDU, useUploadPaymentProof, useUpdateDealComment, useSubmitForReview } from '@/features/deals';
 import type { Deal, DealStatus, ObligationStatus } from '@/shared/types/deals';
 
 type TabFilter = 'all' | DealStatus;
@@ -65,7 +65,10 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
   const uploadDDU = useUploadDDU();
   const uploadPaymentProof = useUploadPaymentProof();
   const updateComment = useUpdateDealComment();
+  const submitForReview = useSubmitForReview();
   const [comment, setComment] = React.useState('');
+
+  const canSubmit = deal.has_ddu && deal.has_payment_proof && deal.status === 'pending_documents';
 
   const handleDDUUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -156,6 +159,19 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Submit for review */}
+      {canSubmit && (
+        <div className="mt-4">
+          <button
+            onClick={() => submitForReview.mutate(deal.id)}
+            disabled={submitForReview.isPending}
+            className="px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+          >
+            {submitForReview.isPending ? 'Отправка...' : 'Отправить на проверку'}
+          </button>
         </div>
       )}
 

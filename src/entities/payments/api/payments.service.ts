@@ -10,7 +10,7 @@ import type {
 export const paymentsService = {
   // List (role-scoped on backend)
   getAll: (params?: PaymentListParams) =>
-    apiInstance.get<PaginatedResponse<Payment>>("/payments/", { params }),
+    apiInstance.get<Payment[]>("/payments/", { params }),
 
   // Summary (role-scoped on backend — returns different shape per role)
   getSummary: () =>

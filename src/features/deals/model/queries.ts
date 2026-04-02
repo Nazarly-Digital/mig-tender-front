@@ -75,6 +75,17 @@ export function useUpdateDealComment() {
   });
 }
 
+export function useSubmitForReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (deal_id: number) =>
+      dealsService.submitForReview(deal_id).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: dealKeys.all });
+    },
+  });
+}
+
 // --- Admin mutations ---
 
 export function useAdminApproveDeal() {

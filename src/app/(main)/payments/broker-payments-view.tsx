@@ -91,7 +91,7 @@ export function BrokerPaymentsView() {
   const { data, isLoading } = usePayments(
     activeTab === 'all' ? undefined : { status: activeTab as PaymentStatus }
   );
-  const payments = data?.results ?? [];
+  const payments = data ?? [];
 
   const summaryCards = summary ? [
     { label: 'Всего начислено', value: summary.total, color: 'text-gray-900' },

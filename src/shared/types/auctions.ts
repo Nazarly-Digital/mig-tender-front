@@ -107,7 +107,7 @@ export type JoinAuctionResponse = {
 export type Bid = {
   id: number;
   auction_id: number;
-  user_id: number;
+  broker_id: number;
   amount: string;
   first_name: string;
   last_name: string;

@@ -6,6 +6,7 @@ export {
   useUploadDDU,
   useUploadPaymentProof,
   useUpdateDealComment,
+  useSubmitForReview,
   useAdminApproveDeal,
   useAdminRejectDeal,
   useDeveloperConfirmDeal,

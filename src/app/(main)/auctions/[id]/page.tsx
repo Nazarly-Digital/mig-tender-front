@@ -294,12 +294,12 @@ function SelectWinnerModal({
             </div>
           ) : (
             bids.map((bid) => {
-              const isSelected = selectedBrokerIds.has(bid.user_id);
+              const isSelected = selectedBrokerIds.has(bid.broker_id);
               return (
                 <button
                   key={bid.id}
                   type='button'
-                  onClick={() => toggleBroker(bid.user_id)}
+                  onClick={() => toggleBroker(bid.broker_id)}
                   className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${isSelected
                     ? 'border-blue-600 bg-blue-50'
                     : 'border-gray-200 hover:bg-gray-50'
@@ -685,7 +685,7 @@ export default function AuctionDetailPage() {
       return ws.bids.some((b) => b.broker === user?.id) || bids.some((b) => b.broker_id === user?.id);
     }
     const sealed = Array.isArray(sealedBids) ? sealedBids : [];
-    return sealed.some((b) => b.user_id === user?.id);
+    return sealed.some((b) => b.broker_id === user?.id);
   }, [auction, ws.bids, sealedBids, user?.id]);
 
   React.useEffect(() => {
@@ -752,7 +752,7 @@ export default function AuctionDetailPage() {
   const wsSealedBidsList: typeof restBidsList = sealedWs.bids.map((b) => ({
     id: b.id,
     auction_id: b.auction_id,
-    user_id: b.broker_id,
+    broker_id: b.broker_id,
     amount: b.amount,
     first_name: '',
     last_name: '',
@@ -760,7 +760,7 @@ export default function AuctionDetailPage() {
     updated_at: b.created_at,
   }));
   const bidsList = sealedWs.bids.length > 0 ? wsSealedBidsList : restBidsList;
-  const mySealedBid = bidsList.find((b) => b.user_id === user?.id);
+  const mySealedBid = bidsList.find((b) => b.broker_id === user?.id);
   const myRestBid = auctionBids.find((b) => b.broker_id === user?.id);
   // Also check WS bids (broker) — first match is the latest bid
   const myWsBid = ws.bids.find((b) => b.broker === user?.id);
@@ -768,13 +768,13 @@ export default function AuctionDetailPage() {
   // For open auctions: WS bid → optimistic (pending send) → REST bid
   // For closed auctions: use auction.myBid from API, fallback to sealed bids lookup
   const myRestBidObj: Bid | undefined = myRestBid
-    ? { id: myRestBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at }
+    ? { id: myRestBid.id, auction_id: auctionId, broker_id: user?.id ?? 0, amount: myRestBid.amount, first_name: '', last_name: '', created_at: myRestBid.created_at, updated_at: myRestBid.created_at }
     : undefined;
   const apiMyBid: Bid | undefined = auction.myBid
-    ? { id: auction.myBid.id, auction_id: auctionId, user_id: auction.myBid.broker_id, amount: auction.myBid.amount, first_name: '', last_name: '', created_at: auction.myBid.created_at, updated_at: auction.myBid.created_at }
+    ? { id: auction.myBid.id, auction_id: auctionId, broker_id: auction.myBid.broker_id, amount: auction.myBid.amount, first_name: '', last_name: '', created_at: auction.myBid.created_at, updated_at: auction.myBid.created_at }
     : undefined;
   const realMyBid: Bid | undefined = isOpenAuction
-    ? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, user_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined)
+    ? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, broker_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined)
       ?? pendingOpenBid
       ?? myRestBidObj
     : apiMyBid ?? mySealedBid ?? myRestBidObj;
@@ -786,7 +786,7 @@ export default function AuctionDetailPage() {
     setPendingOpenBid({
       id: -1,
       auction_id: auctionId,
-      user_id: user?.id ?? 0,
+      broker_id: user?.id ?? 0,
       amount,
       first_name: '',
       last_name: '',
@@ -1210,7 +1210,7 @@ export default function AuctionDetailPage() {
           setOptimisticBid({
             id: -1,
             auction_id: auctionId,
-            user_id: user?.id ?? 0,
+            broker_id: user?.id ?? 0,
             amount,
             first_name: '',
             last_name: '',
