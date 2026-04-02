@@ -207,6 +207,20 @@ export function useAssign() {
   });
 }
 
+export function useCancelAuction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (auctionId: number) =>
+      auctionsService.cancel(auctionId).then((res) => res.data),
+    onSuccess: (_data, auctionId) => {
+      queryClient.invalidateQueries({
+        queryKey: auctionKeys.detail(auctionId),
+      });
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
+  });
+}
+
 export function useCompatibleProperties(referenceId: number, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: auctionKeys.compatibleProperties(referenceId),

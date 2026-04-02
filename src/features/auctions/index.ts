@@ -12,5 +12,6 @@ export {
   useShortlist,
   useSelectWinner,
   useAssign,
+  useCancelAuction,
   useCompatibleProperties,
 } from "./model/queries";
