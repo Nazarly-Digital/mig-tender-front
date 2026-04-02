@@ -51,6 +51,15 @@ function getTimeProgress(startDate: string, endDate: string): number {
   return Math.round(((now - start) / (end - start)) * 100);
 }
 
+function pluralize(n: number, one: string, few: string, many: string): string {
+  const abs = Math.abs(n) % 100;
+  const lastDigit = abs % 10;
+  if (abs >= 11 && abs <= 19) return many;
+  if (lastDigit === 1) return one;
+  if (lastDigit >= 2 && lastDigit <= 4) return few;
+  return many;
+}
+
 function getProgressColor(progress: number): 'blue' | 'orange' | 'red' {
   if (progress >= 80) return 'red';
   if (progress >= 50) return 'orange';
@@ -96,7 +105,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
       <div className='mt-3 pt-3 border-t border-blue-50'>
         <div className='flex justify-between text-[11px]'>
           <span className='text-gray-400'>
-            {auction.bids_count} ставок · мин. {formatPrice(auction.min_price)}
+            {auction.bids_count} {pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')} · мин. {formatPrice(auction.min_price)}
             {auction.mode === 'open' && auction.min_bid_increment && ` · шаг ${formatPrice(auction.min_bid_increment)}`}
           </span>
           {isActive && <span className='font-semibold text-gray-500'>{progress}%</span>}
@@ -110,7 +119,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
       <div className='mt-3 flex flex-col gap-2 border-t border-blue-50 pt-3 text-[12px] text-gray-400'>
         <span className='flex items-center gap-1'>
           <HugeiconsIcon icon={Award01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
-          {auction.bids_count} ставок
+          {auction.bids_count} {pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')}
         </span>
         <span className='flex items-center gap-1'>
           <HugeiconsIcon icon={Clock01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />

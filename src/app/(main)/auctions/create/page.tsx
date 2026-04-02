@@ -42,6 +42,7 @@ export default function CreateAuctionPage() {
     formState: { errors },
   } = useForm<AuctionFormData>({
     resolver: zodResolver(auctionSchema),
+    mode: 'onSubmit',
     defaultValues: {
       propertyIds: [],
       mode: 'closed',
