@@ -36,7 +36,6 @@ import {
   useAssign,
   useCancelAuction,
 } from '@/features/auctions';
-import { useUpdateProperty } from '@/features/properties';
 import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
 import { useSealedBidsSocket } from '@/shared/hooks/use-sealed-bids-socket';
 import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
@@ -623,24 +622,6 @@ export default function AuctionDetailPage() {
   const joinAuction = useJoinAuction();
   const cancelAuction = useCancelAuction();
   const shortlist = useShortlist();
-  const updateProperty = useUpdateProperty();
-
-  // Auto-mark property as "sold" when auction finishes with a winner (owner only)
-  const markedAsSoldRef = React.useRef(false);
-  React.useEffect(() => {
-    const isAuctionOwner = auction?.owner_id === user?.id;
-    if (
-      !markedAsSoldRef.current &&
-      isAuctionOwner &&
-      auction?.status === 'finished' &&
-      auction?.winner_bid != null
-    ) {
-      markedAsSoldRef.current = true;
-      const propId = auction.real_property?.id ?? auction.properties?.[0]?.id;
-      if (propId) updateProperty.mutate({ id: propId, data: { status: 'sold' } });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auction?.status, auction?.winner_bid, auction?.owner_id, user?.id]);
 
   const [joined, setJoined] = React.useState(false);
   const [optimisticBid, setOptimisticBid] = React.useState<Bid | null>(null);
