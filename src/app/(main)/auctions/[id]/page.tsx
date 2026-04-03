@@ -36,6 +36,8 @@ import {
   useAssign,
   useCancelAuction,
 } from '@/features/auctions';
+import { useQueryClient } from '@tanstack/react-query';
+import { dealKeys } from '@/features/deals';
 import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
 import { useSealedBidsSocket } from '@/shared/hooks/use-sealed-bids-socket';
 import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
@@ -593,6 +595,7 @@ export default function AuctionDetailPage() {
   const isBrokerVerified = user?.broker?.verification_status === 'accepted';
 
   const isAdmin = user?.role === 'admin' || user?.is_admin === true;
+  const queryClient = useQueryClient();
   const { data: auction, isLoading: isAuctionLoading, refetch } = useAuctionDetail(auctionId);
   const refetchRef = React.useRef(refetch);
   refetchRef.current = refetch;
@@ -612,6 +615,29 @@ export default function AuctionDetailPage() {
 
   // WebSocket for CLOSED auctions (owner/admin only, read-only)
   const sealedWs = useSealedBidsSocket(auctionId, isActiveClosed === true && isOwnerOrAdmin);
+
+  // Refetch auction detail when WS reports auction finished (to get winner_bid data)
+  // Also invalidate deals cache so /deals page shows new deal without reload
+  const wsStatus = ws.auction?.status;
+  React.useEffect(() => {
+    if (wsStatus === 'finished' && auction?.status !== 'finished') {
+      refetchRef.current();
+      queryClient.invalidateQueries({ queryKey: dealKeys.all });
+    }
+  }, [wsStatus, auction?.status, queryClient]);
+
+  // Auto-refetch when auction end_date passes (for all auction types, including closed for brokers)
+  React.useEffect(() => {
+    if (!auction || auction.status !== 'active') return;
+    const endMs = new Date(auction.end_date).getTime();
+    const remaining = endMs - Date.now();
+    if (remaining <= 0) return;
+    const timer = setTimeout(() => {
+      refetchRef.current();
+      queryClient.invalidateQueries({ queryKey: dealKeys.all });
+    }, remaining + 2000);
+    return () => clearTimeout(timer);
+  }, [auction?.status, auction?.end_date, queryClient]);
 
   // Show skeleton until all relevant data is loaded (including WS snapshot for active OPEN)
   const isLoading = isAuctionLoading
