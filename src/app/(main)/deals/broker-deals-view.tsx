@@ -127,16 +127,32 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
       {deal.status === 'pending_documents' && deal.obligation_status !== 'overdue' && (
         <div className="mt-4 space-y-3">
           <div className="flex gap-2">
-            <label className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-              <HugeiconsIcon icon={Upload04Icon} size={16} color="currentColor" strokeWidth={1.5} />
-              Загрузить ДДУ
-              <input type="file" className="hidden" onChange={handleDDUUpload} accept=".pdf,.doc,.docx" />
-            </label>
-            <label className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-              <HugeiconsIcon icon={Upload04Icon} size={16} color="currentColor" strokeWidth={1.5} />
-              Загрузить подтверждение оплаты
-              <input type="file" className="hidden" onChange={handlePaymentProofUpload} accept=".pdf,.jpg,.jpeg,.png" />
-            </label>
+            <div className="flex items-center gap-1.5">
+              {deal.has_ddu && (
+                <div className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <HugeiconsIcon icon={File01Icon} size={16} color="currentColor" strokeWidth={1.5} />
+                  ДДУ загружен
+                </div>
+              )}
+              <label className={cn("flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors cursor-pointer", uploadDDU.isPending ? "text-gray-400 bg-gray-50 border border-gray-200" : deal.has_ddu ? "text-gray-500 bg-white border border-gray-200 hover:bg-gray-50" : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50")}>
+                <HugeiconsIcon icon={Upload04Icon} size={16} color="currentColor" strokeWidth={1.5} />
+                {uploadDDU.isPending ? 'Загрузка...' : deal.has_ddu ? 'Заменить' : 'Загрузить ДДУ'}
+                <input type="file" className="hidden" onChange={handleDDUUpload} accept=".pdf,.doc,.docx" disabled={uploadDDU.isPending} />
+              </label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {deal.has_payment_proof && (
+                <div className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <HugeiconsIcon icon={File01Icon} size={16} color="currentColor" strokeWidth={1.5} />
+                  Оплата подтверждена
+                </div>
+              )}
+              <label className={cn("flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors cursor-pointer", uploadPaymentProof.isPending ? "text-gray-400 bg-gray-50 border border-gray-200" : deal.has_payment_proof ? "text-gray-500 bg-white border border-gray-200 hover:bg-gray-50" : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50")}>
+                <HugeiconsIcon icon={Upload04Icon} size={16} color="currentColor" strokeWidth={1.5} />
+                {uploadPaymentProof.isPending ? 'Загрузка...' : deal.has_payment_proof ? 'Заменить' : 'Загрузить подтверждение оплаты'}
+                <input type="file" className="hidden" onChange={handlePaymentProofUpload} accept=".pdf,.jpg,.jpeg,.png" disabled={uploadPaymentProof.isPending} />
+              </label>
+            </div>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1.5">Комментарий (если документы переданы вне платформы)</p>
