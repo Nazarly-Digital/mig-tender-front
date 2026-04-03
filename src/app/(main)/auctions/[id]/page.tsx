@@ -1212,7 +1212,7 @@ export default function AuctionDetailPage() {
                 {auction.winner_bid && myBid && (
                   <div className='flex justify-between'>
                     <span className='text-gray-500'>Результат</span>
-                    {auction.winner_bid.id === myBid.id
+                    {auction.winner_bid.broker.id === (myBid.broker_id ?? user?.id)
                       ? <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700'>Победа</span>
                       : <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'>Не выиграли</span>
                     }
