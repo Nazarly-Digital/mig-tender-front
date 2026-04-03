@@ -1,14 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { useSessionStore, isUserDeveloper } from '@/entities/auth/model/store';
+import { useSessionStore, isUserDeveloper, isUserAdmin } from '@/entities/auth/model/store';
 import { BrokerPaymentsView } from './broker-payments-view';
 import { DeveloperPaymentsView } from './developer-payments-view';
+import { AdminPaymentsView } from './admin-payments-view';
 
 export default function PaymentsPage() {
   const user = useSessionStore((s) => s.user);
-  const isDev = isUserDeveloper(user);
 
-  if (isDev) return <DeveloperPaymentsView />;
+  if (isUserAdmin(user)) return <AdminPaymentsView />;
+  if (isUserDeveloper(user)) return <DeveloperPaymentsView />;
   return <BrokerPaymentsView />;
 }

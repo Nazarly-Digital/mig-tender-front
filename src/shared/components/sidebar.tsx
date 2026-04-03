@@ -79,6 +79,7 @@ export default function Sidebar() {
     { icon: UserIcon, label: 'Пользователи', href: '/admin/users' },
     { icon: Award01Icon, label: 'Аукционы', href: '/auctions' },
     { icon: Coins01Icon, label: 'Сделки', href: '/deals' },
+    { icon: Wallet01Icon, label: 'Выплаты', href: '/payments' },
   ];
 
   const visibleLinks = navigationLinks.filter((link) => {

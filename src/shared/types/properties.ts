@@ -36,6 +36,7 @@ export type Property = {
   status: PropertyStatus;
   moderation_status?: ModerationStatus;
   moderation_rejection_reason?: string | null;
+  commission_rate: string | null;
   images: PropertyImage[];
   created_at: string;
   updated_at: string;
@@ -75,6 +76,7 @@ export type PropertyCreateRequest = {
   price: string;
   currency?: string;
   deadline?: string | null;
+  commission_rate?: string | null;
   status?: PropertyStatus;
 };
 
@@ -87,6 +89,7 @@ export type PropertyUpdateRequest = {
   price?: string;
   currency?: string;
   deadline?: string | null;
+  commission_rate?: string | null;
   status?: PropertyStatus;
 };
 

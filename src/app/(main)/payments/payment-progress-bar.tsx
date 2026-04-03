@@ -9,7 +9,6 @@ type PaymentStep = {
 
 const PAYMENT_STEPS: PaymentStep[] = [
   { label: 'Ожидание', key: 'pending' },
-  { label: 'Подтверждена', key: 'confirmed' },
   { label: 'Выплачена', key: 'paid' },
 ];
 

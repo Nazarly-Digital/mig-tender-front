@@ -192,7 +192,7 @@ function PlaceBidModal({
       <Modal.Content>
         <Modal.Header
           title={isUpdate ? 'Обновить ставку' : 'Сделать ставку'}
-          description={`Минимальная сумма: ${formatPrice(minPrice)}`}
+          description={`Минимальная сумма: ${formatPrice(minPrice)} ₽`}
         />
         <form onSubmit={handleSubmit}>
           <Modal.Body className='space-y-4'>
@@ -321,7 +321,7 @@ function SelectWinnerModal({
                     </div>
                   </div>
                   <div className='text-base font-semibold text-gray-900'>
-                    {formatPrice(bid.amount)}
+                    {formatPrice(bid.amount)} ₽
                   </div>
                 </button>
               );
@@ -925,7 +925,7 @@ export default function AuctionDetailPage() {
               Выбрать победителя
             </FancyButton.Root>
           )}
-          {isOwnerOrAdmin && isFinished && auction.winner_bid && !isOpenAuction && auction.properties?.length > 1 && (
+          {isOwnerOrAdmin && isFinished && auction.winner_bid && !isOpenAuction && auction.properties?.length > 1 && !auction.deals_created && (
             <FancyButton.Root variant='primary' size='small' onClick={() => setAssignModalOpen(true)}>
               <HugeiconsIcon icon={ArrowMoveDownRightIcon} size={16} color='currentColor' strokeWidth={1.5} />
               Распределить объекты
@@ -1083,30 +1083,15 @@ export default function AuctionDetailPage() {
                   {bidsList.map((bid) => (
                     <tr key={bid.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors'>
                       <td className='py-3 font-medium text-gray-900'>
-                        <div className='flex items-center gap-2'>
-                          {isOwner && isFinished && !auction.winner_bid && (
-                            <button type='button' onClick={() => toggleShortlist(bid.id)} className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${shortlistIds.has(bid.id) ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
-                              {shortlistIds.has(bid.id) && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
-                            </button>
-                          )}
-                          {bid.first_name} {bid.last_name}
-                        </div>
+                        {bid.first_name} {bid.last_name}
                       </td>
-                      <td className='py-3 font-semibold text-gray-900'>{formatPrice(bid.amount)}</td>
+                      <td className='py-3 font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</td>
                       <td className='py-3 text-gray-400'>{formatDateTime(bid.created_at)}</td>
                       <td className='py-3'>{auction.winner_bid?.id === bid.id && <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {isOwner && isFinished && !auction.winner_bid && shortlistIds.size > 0 && (
-                <div className='mt-4'>
-                  <FancyButton.Root variant='primary' size='small' className='w-full' onClick={handleShortlist} disabled={shortlist.isPending}>
-                    <HugeiconsIcon icon={CheckListIcon} size={16} color='currentColor' strokeWidth={1.5} />
-                    {shortlist.isPending ? 'Формирование...' : `В шорт-лист (${shortlistIds.size})`}
-                  </FancyButton.Root>
-                </div>
-              )}
             </div>
           )}
 

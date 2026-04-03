@@ -47,6 +47,7 @@ export type Auction = {
     is_sealed: boolean;
   } | null;
   lot_total_price: string | null;
+  deals_created: boolean;
   created_at: string;
   updated_at: string;
 };

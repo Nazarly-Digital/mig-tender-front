@@ -84,6 +84,10 @@ export const propertySchema = z.object({
     .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
   currency: z.string().min(1),
   deadline: z.string().optional(),
+  commission_rate: z.string().optional().refine(
+    (v) => !v || parseFloat(v) >= 0,
+    'Комиссия должна быть >= 0',
+  ),
   status: z.string().min(1, 'Выберите статус'),
 }).refine(
   (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),

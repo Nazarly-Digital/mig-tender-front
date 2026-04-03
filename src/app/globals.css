@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+button {
+  cursor: pointer !important;
+}
+
 /* ============================================
    Clean SaaS Dashboard — Linear / Vercel Style
    Accent: #2563EB

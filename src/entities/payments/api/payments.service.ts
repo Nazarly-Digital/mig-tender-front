@@ -15,4 +15,13 @@ export const paymentsService = {
   // Summary (role-scoped on backend — returns different shape per role)
   getSummary: () =>
     apiInstance.get<BrokerPaymentSummary | DeveloperPaymentSummary>("/payments/summary/"),
+
+  // Admin: upload receipt and mark as paid
+  uploadReceipt: (paymentId: number, file: File) => {
+    const formData = new FormData();
+    formData.append("receipt_document", file);
+    return apiInstance.post<Payment>(`/payments/${paymentId}/upload-receipt/`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 };

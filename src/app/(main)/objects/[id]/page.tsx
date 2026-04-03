@@ -307,6 +307,12 @@ export default function CatalogDetailPage() {
                 {formatDateShort(property.deadline)}
               </div>
             </div>
+            <div>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия брокера</div>
+              <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                {property.commission_rate ? `${property.commission_rate}%` : '—'}
+              </div>
+            </div>
           </div>
         </div>
 

@@ -141,7 +141,7 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
               <button
                 onClick={() => confirmDeal.mutate(deal.id)}
                 disabled={confirmDeal.isPending}
-                className="px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                className="px-4 py-2.5 text-sm font-medium text-white bg-primary-base rounded-lg transition-colors disabled:opacity-50"
               >
                 Подтвердить сделку
               </button>

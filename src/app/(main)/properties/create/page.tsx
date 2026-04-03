@@ -57,6 +57,7 @@ export default function CreatePropertyPage() {
       area: '',
       price: '',
       deadline: '',
+      commission_rate: '',
     },
   });
 
@@ -145,7 +146,7 @@ export default function CreatePropertyPage() {
     setSubmitting(true);
     try {
       const property = await createMutation.mutateAsync(
-        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null } as any,
+        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null } as any,
       );
       for (let i = 0; i < photos.length; i++) {
         try {
@@ -257,6 +258,19 @@ export default function CreatePropertyPage() {
                     </Input.Wrapper>
                   </Input.Root>
                   <Hint.Root>Если неизвестен — пусто</Hint.Root>
+                </div>
+                <div className='space-y-1.5'>
+                  <Label.Root htmlFor='property-commission'>Комиссия брокера (%)</Label.Root>
+                  <Input.Root hasError={!!errors.commission_rate}>
+                    <Input.Wrapper>
+                      <Input.Input id='property-commission' type='number' step='0.01' min='0' placeholder='Например, 5' {...register('commission_rate')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                  {errors.commission_rate ? (
+                    <p className='text-xs text-red-500'>{errors.commission_rate.message}</p>
+                  ) : (
+                    <Hint.Root>Комиссия застройщика для брокера</Hint.Root>
+                  )}
                 </div>
                 <div className='space-y-1.5'>
                   <Label.Root htmlFor='property-status'>Статус</Label.Root>
