@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { File01Icon } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import { DealProgressBar } from './deal-progress-bar';
@@ -85,6 +87,24 @@ function AdminDealCard({ deal }: { deal: Deal }) {
         }}
       />
 
+      {/* Documents */}
+      {(deal.has_ddu || deal.has_payment_proof) && (
+        <div className="flex gap-3 mt-4">
+          {deal.ddu_document && (
+            <a href={deal.ddu_document} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+              <HugeiconsIcon icon={File01Icon} size={16} color="currentColor" strokeWidth={1.5} />
+              ДДУ
+            </a>
+          )}
+          {deal.payment_proof_document && (
+            <a href={deal.payment_proof_document} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+              <HugeiconsIcon icon={File01Icon} size={16} color="currentColor" strokeWidth={1.5} />
+              Подтверждение оплаты
+            </a>
+          )}
+        </div>
+      )}
+
       {/* Actions */}
       {isReviewable && (
         <div className="mt-4">
@@ -109,7 +129,7 @@ function AdminDealCard({ deal }: { deal: Deal }) {
                 </button>
                 <button
                   onClick={() => setShowRejectInput(false)}
-                  className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Отмена
                 </button>
@@ -126,7 +146,7 @@ function AdminDealCard({ deal }: { deal: Deal }) {
               </button>
               <button
                 onClick={() => setShowRejectInput(true)}
-                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 Отклонить
               </button>
@@ -186,8 +206,8 @@ export function AdminDealsView() {
                 className={cn(
                   'px-3.5 py-1.5 text-sm font-medium rounded-full transition-colors',
                   activeTab === tab.value
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50',
+                    ? 'bg-primary-base text-white'
+                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 cursor-pointer',
                 )}
               >
                 {tab.label}{tab.value === 'all' && count > 0 ? ` (${count})` : ''}

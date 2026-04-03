@@ -511,9 +511,10 @@ function LiveBidInput({
   isHighestBidder: boolean;
   wsError: string | null;
 }) {
+  const isFirstBid = bidsCount === 0 || parseFloat(currentPrice) <= 0;
   const [amount, setAmount] = React.useState('');
 
-  const minBid = bidsCount === 0 || parseFloat(currentPrice) <= 0
+  const minBid = isFirstBid
     ? parseFloat(minPrice)
     : parseFloat(currentPrice) + (parseFloat(minBidIncrement) || 0);
 
@@ -521,10 +522,10 @@ function LiveBidInput({
   const isEmpty = !amount.trim();
   const isBelowMin = !isEmpty && numericAmount < minBid;
   const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
-  const isDisabled = !connected || isEmpty || isBelowMin || isInvalid;
+  const isDisabled = isFirstBid ? !connected : (!connected || isEmpty || isBelowMin || isInvalid);
 
   const getError = (): string | null => {
-    if (isEmpty) return null;
+    if (isFirstBid || isEmpty) return null;
     if (isInvalid) return 'Введите корректную сумму';
     if (isBelowMin) return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))} ₽`;
     return null;
@@ -533,8 +534,12 @@ function LiveBidInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isDisabled) return;
-    sendBid(amount);
+    if (isFirstBid) {
+      sendBid(minPrice);
+    } else {
+      if (isDisabled) return;
+      sendBid(amount);
+    }
     setAmount('');
   };
 
@@ -554,9 +559,9 @@ function LiveBidInput({
                 type='text'
                 inputMode='decimal'
                 placeholder={formatPriceInput(String(Math.ceil(minBid))) + ' ₽'}
-                value={formatPriceInput(amount)}
+                value={isFirstBid ? formatPriceInput(minPrice) : formatPriceInput(amount)}
                 onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
-                disabled={isHighestBidder}
+                disabled={isHighestBidder || isFirstBid}
               />
             </Input.Wrapper>
           </Input.Root>
