@@ -155,25 +155,14 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1.5">Комментарий (если документы переданы вне платформы)</p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Ссылка или описание, где находятся документы"
-                className="flex-1 h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors"
-              />
-              {comment.trim() && (
-                <button
-                  onClick={handleCommentSubmit}
-                  disabled={updateComment.isPending}
-                  className="px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
-                >
-                  Отправить
-                </button>
-              )}
-            </div>
+            <p className="text-xs text-gray-500 mb-1.5">Комментарий (необязательно)</p>
+            <input
+              type="text"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Ссылка или описание, где находятся документы"
+              className="w-full h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors"
+            />
           </div>
         </div>
       )}
@@ -182,8 +171,11 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
       {canSubmit && (
         <div className="mt-4">
           <button
-            onClick={() => submitForReview.mutate(deal.id)}
-            disabled={submitForReview.isPending}
+            onClick={() => {
+              if (comment.trim()) updateComment.mutate({ deal_id: deal.id, comment: comment.trim() });
+              submitForReview.mutate(deal.id);
+            }}
+            disabled={submitForReview.isPending || updateComment.isPending}
             className="px-4 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             {submitForReview.isPending ? 'Отправка...' : 'Отправить на проверку'}
