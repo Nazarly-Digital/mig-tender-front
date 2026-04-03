@@ -227,8 +227,8 @@ export function BrokerDealsView() {
                 className={cn(
                   'px-3.5 py-1.5 text-sm font-medium rounded-full transition-colors',
                   activeTab === tab.value
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50',
+                    ? 'bg-primary-base text-white'
+                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 cursor-pointer!',
                 )}
               >
                 {tab.label}{tab.value === 'all' && count > 0 ? ` (${count})` : ''}
