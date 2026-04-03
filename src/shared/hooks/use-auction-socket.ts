@@ -136,14 +136,16 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
             }));
             break;
 
-          case 'auction_updated':
+          case 'auction_updated': {
+            const auctionUpdate = (msg as Record<string, unknown>).auction as Record<string, unknown> | undefined;
             setState((s) => ({
               ...s,
               auction: s.auction
-                ? { ...s.auction, ...(msg as Record<string, unknown>) }
+                ? { ...s.auction, ...(auctionUpdate ?? msg) }
                 : s.auction,
             }));
             break;
+          }
 
           case 'error':
             setState((s) => ({ ...s, error: normalizeError(msg.detail) }));
