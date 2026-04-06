@@ -15,6 +15,7 @@ const BROKER_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Все', value: 'all' },
   { label: 'Ожидает документов', value: 'pending_documents' },
   { label: 'На проверке', value: 'admin_review' },
+  { label: 'Ожидает подтверждения девелопера', value: 'developer_confirm' },
   { label: 'Подтверждена', value: 'confirmed' },
 ];
 

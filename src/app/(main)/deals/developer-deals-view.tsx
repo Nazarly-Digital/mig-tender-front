@@ -12,12 +12,13 @@ import { useMyAuctions } from '@/features/auctions';
 import type { Deal, DealStatus } from '@/shared/types/deals';
 import type { Auction } from '@/shared/types/auctions';
 
-type TabFilter = 'all' | 'developer_confirm' | 'pending_documents' | 'confirmed';
+type TabFilter = 'all' | 'developer_confirm' | 'pending_documents' | 'admin_review' | 'confirmed';
 
 const DEV_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Все', value: 'all' },
   { label: 'Ожидает моего подтверждения', value: 'developer_confirm' },
-  { label: 'На проверке', value: 'pending_documents' },
+  { label: 'На проверке', value: 'admin_review' },
+  { label: 'Ожидает документов', value: 'pending_documents' },
   { label: 'Сделка подтверждена', value: 'confirmed' },
 ];
 
@@ -88,7 +89,7 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
       <DealProgressBar
         currentStep={deal.status}
         isOverdue={deal.obligation_status === 'overdue'}
-        stepLabels={{ developer_confirm: 'Мое ПОДТВЕРЖДЕНИЕ' }}
+        stepLabels={{ developer_confirm: 'Мое подтверждение' }}
       />
 
       {/* Documents */}

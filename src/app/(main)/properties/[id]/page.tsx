@@ -575,7 +575,7 @@ function PropertyEditForm({
           {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
         </div>
         <div className='space-y-1.5'>
-          <Label.Root htmlFor='p-commission'>Комиссия брокера (%)</Label.Root>
+          <Label.Root htmlFor='p-commission'>Комиссия брокера (%) <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.commission_rate}>
             <Input.Wrapper>
               <Input.Input id='p-commission' type='number' step='0.01' min='0' placeholder='Например, 5' {...register('commission_rate')} />
