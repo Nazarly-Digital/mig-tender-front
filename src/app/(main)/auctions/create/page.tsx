@@ -102,7 +102,7 @@ function PropertySearchDropdown({
       </div>
 
       {open && (
-        <div className='absolute top-full left-0 right-0 z-10 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg max-h-80 overflow-y-auto'>
+        <div className='absolute top-full left-0 right-0 z-50 mt-1 rounded-xl border border-gray-200 bg-white shadow-lg max-h-80 overflow-y-auto'>
           {available.length === 0 ? (
             <div className='px-4 py-5 text-center text-sm text-gray-400'>
               {query ? 'Ничего не найдено' : 'Нет совместимых объектов'}
@@ -307,11 +307,10 @@ export default function CreateAuctionPage() {
                         if (v === 'closed') setValue('min_bid_increment', '');
                         setValue('propertyIds', [], { shouldValidate: true });
                       }}
-                      className={`flex flex-col items-start rounded-lg px-3.5 py-2.5 text-left transition-colors cursor-pointer ${
-                        field.value === v
+                      className={`flex flex-col items-start rounded-lg px-3.5 py-2.5 text-left transition-colors cursor-pointer ${field.value === v
                           ? 'border-[1.5px] border-blue-500 bg-blue-50/60'
                           : 'border border-gray-200 hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       <span className={`text-sm font-semibold ${field.value === v ? 'text-blue-700' : 'text-gray-900'}`}>{label}</span>
                       <span className={`text-xs ${field.value === v ? 'text-blue-500' : 'text-gray-400'}`}>{desc}</span>
@@ -324,22 +323,22 @@ export default function CreateAuctionPage() {
 
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-min-price'>Мин. цена <Label.Asterisk /></Label.Root>
-                <Controller control={control} name='min_price' render={({ field }) => (
-                  <Input.Root>
-                    <Input.Wrapper>
-                      <Input.Input
-                        id='auction-min-price'
-                        type='text'
-                        inputMode='decimal'
-                        placeholder='10 000 000 ₽'
-                        value={formatPriceInput(field.value)}
-                        onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
-                        onBlur={field.onBlur}
-                      />
-                    </Input.Wrapper>
-                  </Input.Root>
-                )} />
-                {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
+              <Controller control={control} name='min_price' render={({ field }) => (
+                <Input.Root>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='auction-min-price'
+                      type='text'
+                      inputMode='decimal'
+                      placeholder='10 000 000 ₽'
+                      value={formatPriceInput(field.value)}
+                      onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
+                      onBlur={field.onBlur}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+              )} />
+              {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
             </div>
 
             {/* Property selection */}
@@ -386,7 +385,7 @@ export default function CreateAuctionPage() {
                     <div className='flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5'>
                       <HugeiconsIcon icon={InformationCircleIcon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0 text-blue-600 mt-0.5' />
                       <span className='text-xs text-blue-700'>
-                        Первый объект — эталон. В списке только совместимые объекты ({TYPE_LABELS[referenceProperty.type] ?? referenceProperty.type}, {referenceProperty.area} м²).
+                        Первый объект - эталон. В списке только совместимые объекты ({TYPE_LABELS[referenceProperty.type] ?? referenceProperty.type}, {referenceProperty.area} м²).
                       </span>
                     </div>
                   )}
