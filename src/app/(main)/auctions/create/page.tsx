@@ -362,30 +362,14 @@ export default function CreateAuctionPage() {
                 <div className='text-sm text-gray-400'>Загрузка...</div>
               ) : properties.length === 0 ? (
                 <div className='text-sm text-gray-400'>Нет объектов. Сначала создайте объект.</div>
-              ) : selectedMode === 'open' ? (
-                /* OPEN mode: single select */
-                <Controller control={control} name='propertyIds' render={({ field }) => (
-                  <Select.Root
-                    value={field.value[0] ?? ''}
-                    onValueChange={(v) => field.onChange([v])}
-                  >
-                    <Select.Trigger id='auction-property'><Select.Value placeholder='Выберите объект' /></Select.Trigger>
-                    <Select.Content>
-                      {properties.map((p) => (
-                        <Select.Item key={p.id} value={String(p.id)}>{p.address} ({p.area} м²)</Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Root>
-                )} />
               ) : (
-                /* CLOSED mode: search dropdown + tags */
                 <div className='space-y-2'>
-                  {/* Info banner when reference selected */}
-                  {referenceProperty && (
+                  {/* Info banner (closed mode, reference selected) */}
+                  {selectedMode === 'closed' && referenceProperty && (
                     <div className='flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5'>
                       <HugeiconsIcon icon={InformationCircleIcon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0 text-blue-600 mt-0.5' />
                       <span className='text-xs text-blue-700'>
-                        Первый объект - эталон. В списке только совместимые объекты ({TYPE_LABELS[referenceProperty.type] ?? referenceProperty.type}, {referenceProperty.area} м²).
+                        Первый объект — эталон. В списке только совместимые объекты ({TYPE_LABELS[referenceProperty.type] ?? referenceProperty.type}, {referenceProperty.area} м²).
                       </span>
                     </div>
                   )}
@@ -397,23 +381,31 @@ export default function CreateAuctionPage() {
                         <SelectedPropertyTag
                           key={p.id}
                           property={p}
-                          isReference={i === 0}
+                          isReference={selectedMode === 'closed' && i === 0}
                           onRemove={() => removeProperty(String(p.id))}
                         />
                       ))}
                     </div>
                   )}
 
-                  {/* Search dropdown */}
-                  <PropertySearchDropdown
-                    properties={closedAvailableProperties}
-                    selectedIds={selectedPropertyIds}
-                    onSelect={addProperty}
-                    reference={referenceProperty}
-                  />
+                  {/* Search dropdown — hidden in open mode when 1 already selected */}
+                  {!(selectedMode === 'open' && selectedPropertyIds.length >= 1) && (
+                    <PropertySearchDropdown
+                      properties={selectedMode === 'closed' ? closedAvailableProperties : properties}
+                      selectedIds={selectedPropertyIds}
+                      onSelect={(id) => {
+                        if (selectedMode === 'open') {
+                          setValue('propertyIds', [id], { shouldValidate: true });
+                        } else {
+                          addProperty(id);
+                        }
+                      }}
+                      reference={selectedMode === 'closed' ? referenceProperty : null}
+                    />
+                  )}
 
-                  {/* Counter + total */}
-                  {selectedPropertyIds.length > 0 && (
+                  {/* Counter + total (closed mode, 1+ selected) */}
+                  {selectedMode === 'closed' && selectedPropertyIds.length > 0 && (
                     <div className='flex items-center gap-1.5 text-xs'>
                       <span className='font-semibold text-blue-600'>
                         {selectedPropertyIds.length} {selectedPropertyIds.length === 1 ? 'объект выбран' : selectedPropertyIds.length < 5 ? 'объекта выбрано' : 'объектов выбрано'}
