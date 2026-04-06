@@ -16,9 +16,9 @@ type TabFilter = 'all' | 'developer_confirm' | 'pending_documents' | 'confirmed'
 
 const DEV_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Все', value: 'all' },
-  { label: 'Ожидает моего ОК', value: 'developer_confirm' },
-  { label: 'Документы у брокера', value: 'pending_documents' },
-  { label: 'Подтверждена', value: 'confirmed' },
+  { label: 'Ожидает моего подтверждения', value: 'developer_confirm' },
+  { label: 'На проверке', value: 'pending_documents' },
+  { label: 'Сделка подтверждена', value: 'confirmed' },
 ];
 
 function getStatusBadge(status: DealStatus) {

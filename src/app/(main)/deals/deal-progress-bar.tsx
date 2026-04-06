@@ -32,7 +32,7 @@ export function DealProgressBar({ currentStep, isOverdue, stepLabels }: DealProg
   return (
     <div className="mt-4">
       {/* Progress line */}
-      <div className="flex items-center gap-0">
+      <div className="flex items-center gap-1">
         {DEAL_STEPS.map((step, i) => {
           const isCompleted = i < activeIndex;
           const isActive = i === activeIndex;
