@@ -423,7 +423,10 @@ function PropertyEditForm({
     },
   });
 
-  const isLand = watch('type') === 'land';
+  const selectedType = watch('type');
+  const isLand = selectedType === 'land';
+  const hasFloor = selectedType === 'apartment' || selectedType === 'commercial';
+  const hasHouseNumber = selectedType === 'house' || selectedType === 'townhouse';
 
   React.useEffect(() => {
     if (isLand) setValue('property_class', '', { shouldValidate: false });
@@ -471,6 +474,33 @@ function PropertyEditForm({
         {errors.address && <p className='text-[11px] text-red-500'>{errors.address.message}</p>}
       </div>
 
+      {/* Developer + Project */}
+      <div className='grid grid-cols-2 gap-3'>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-developer-name'>Застройщик <Label.Asterisk /></Label.Root>
+          <Input.Root size='small'>
+            <Input.Wrapper>
+              <Input.Input
+                id='p-developer-name'
+                type='text'
+                disabled
+                className='disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed'
+                {...register('developer_name')}
+              />
+            </Input.Wrapper>
+          </Input.Root>
+        </div>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-project'>Проект (ЖК) <Label.Asterisk /></Label.Root>
+          <Input.Root size='small' hasError={!!errors.project}>
+            <Input.Wrapper>
+              <Input.Input id='p-project' type='text' placeholder='Название проекта или ЖК' {...register('project')} />
+            </Input.Wrapper>
+          </Input.Root>
+          {errors.project && <p className='text-[11px] text-red-500'>{errors.project.message}</p>}
+        </div>
+      </div>
+
       {/* Area + Class */}
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
@@ -498,11 +528,61 @@ function PropertyEditForm({
         </div>
       </div>
 
-      {/* Price */}
-      <div className='space-y-1.5'>
-        <Label.Root htmlFor='p-price'>Цена (₽) <Label.Asterisk /></Label.Root>
-        <PriceField control={control} id='p-price' size='small' />
-        {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
+      {/* Floor (apartment/commercial) */}
+      {hasFloor && (
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-floor'>Этаж <Label.Asterisk /></Label.Root>
+          <Input.Root size='small' hasError={!!errors.floor}>
+            <Input.Wrapper>
+              <Input.Input id='p-floor' type='number' min='1' placeholder='Например, 5' {...register('floor')} />
+            </Input.Wrapper>
+          </Input.Root>
+          {errors.floor && <p className='text-[11px] text-red-500'>{errors.floor.message}</p>}
+        </div>
+      )}
+
+      {/* Land number */}
+      {isLand && (
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-land-number'>Номер участка <Label.Asterisk /></Label.Root>
+          <Input.Root size='small' hasError={!!errors.land_number}>
+            <Input.Wrapper>
+              <Input.Input id='p-land-number' type='text' placeholder='Например, 12А' {...register('land_number')} />
+            </Input.Wrapper>
+          </Input.Root>
+          {errors.land_number && <p className='text-[11px] text-red-500'>{errors.land_number.message}</p>}
+        </div>
+      )}
+
+      {/* House number */}
+      {hasHouseNumber && (
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-house-number'>Номер дома <Label.Asterisk /></Label.Root>
+          <Input.Root size='small' hasError={!!errors.house_number}>
+            <Input.Wrapper>
+              <Input.Input id='p-house-number' type='text' placeholder='Например, 15' {...register('house_number')} />
+            </Input.Wrapper>
+          </Input.Root>
+          {errors.house_number && <p className='text-[11px] text-red-500'>{errors.house_number.message}</p>}
+        </div>
+      )}
+
+      {/* Price + Commission */}
+      <div className='grid grid-cols-2 gap-3'>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-price'>Цена (₽) <Label.Asterisk /></Label.Root>
+          <PriceField control={control} id='p-price' size='small' />
+          {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
+        </div>
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-commission'>Комиссия брокера (%)</Label.Root>
+          <Input.Root size='small' hasError={!!errors.commission_rate}>
+            <Input.Wrapper>
+              <Input.Input id='p-commission' type='number' step='0.01' min='0' placeholder='Например, 5' {...register('commission_rate')} />
+            </Input.Wrapper>
+          </Input.Root>
+          {errors.commission_rate && <p className='text-[11px] text-red-500'>{errors.commission_rate.message}</p>}
+        </div>
       </div>
 
       {/* Deadline + Status */}
