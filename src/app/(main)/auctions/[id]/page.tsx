@@ -775,6 +775,7 @@ export default function AuctionDetailPage() {
   const participantIds: number[] = isActiveOpen
     ? Array.from(new Set([...restParticipantIds, ...ws.participants]))
     : restParticipantIds;
+  const participantDetails: { id: number; name: string }[] = participants?.participants_detail ?? [];
   const isParticipant = joined
     || participantIds.includes(user?.id ?? 0)
     || !!auction.myBid;
@@ -1171,14 +1172,19 @@ export default function AuctionDetailPage() {
               <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
             ) : (
               <div className='mt-3 space-y-1.5'>
-                {participantIds.map((pid) => (
-                  <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                    <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                      #{pid}
+                {participantIds.map((pid) => {
+                  const detail = participantDetails.find((d) => d.id === pid);
+                  const name = detail?.name ?? `Участник #${pid}`;
+                  const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
+                  return (
+                    <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                      <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                        {initials}
+                      </div>
+                      <span className='text-[13px] font-medium text-gray-900'>{name}</span>
                     </div>
-                    <span className='text-[13px] font-medium text-gray-900'>Участник #{pid}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

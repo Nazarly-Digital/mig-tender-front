@@ -183,7 +183,7 @@ function PendingAssignmentBanner({ auction }: { auction: Auction }) {
           Аукцион #{auction.id} — требуется распределение объектов
         </p>
         <p className="text-xs text-amber-700 mt-0.5">
-          {auction.properties.length} объектов в лоте. Наз��ачьте объекты победителям для создания сделок.
+          {auction.properties.length} объектов в лоте. Назначьте объекты победителям для создания сделок.
         </p>
       </div>
       <Link href={`/auctions/${auction.id}`}>
