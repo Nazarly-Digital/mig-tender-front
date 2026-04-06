@@ -58,6 +58,14 @@ const MODE_LABELS: Record<AuctionMode, string> = {
   closed: 'Закрытый',
 };
 
+const PROPERTY_TYPE_LABELS: Record<string, string> = {
+  apartment: 'Квартира',
+  house: 'Дом',
+  townhouse: 'Таунхаус',
+  commercial: 'Коммерция',
+  land: 'Земля',
+};
+
 function formatPrice(value: string) {
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
@@ -442,17 +450,15 @@ function AssignModal({
                       type='button'
                       disabled={isDisabled}
                       onClick={() => toggleAssignment(brokerId, prop.id)}
-                      className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
-                        isSelected
+                      className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${isSelected
                           ? 'border-blue-600 bg-blue-50'
                           : isDisabled
                             ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
                             : 'border-gray-200 hover:bg-gray-50 cursor-pointer'
-                      }`}
+                        }`}
                     >
-                      <div className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${
-                        isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'
-                      }`}>
+                      <div className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'
+                        }`}>
                         {isSelected && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
                       </div>
                       <div className='flex-1 min-w-0'>
@@ -807,8 +813,8 @@ export default function AuctionDetailPage() {
     : undefined;
   const realMyBid: Bid | undefined = isOpenAuction
     ? (myWsBid ? { id: myWsBid.id, auction_id: auctionId, broker_id: user?.id ?? 0, amount: myWsBid.amount, first_name: '', last_name: '', created_at: myWsBid.created_at, updated_at: myWsBid.created_at } : undefined)
-      ?? pendingOpenBid
-      ?? myRestBidObj
+    ?? pendingOpenBid
+    ?? myRestBidObj
     : apiMyBid ?? mySealedBid ?? myRestBidObj;
   // Use optimistic bid until real data arrives (for closed auctions)
   const myBid: Bid | undefined = realMyBid ?? optimisticBid ?? undefined;
@@ -1055,7 +1061,7 @@ export default function AuctionDetailPage() {
                   {auction.properties.map((prop) => (
                     <tr key={prop.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors cursor-pointer' onClick={() => router.push(`/objects/${prop.id}`)}>
                       <td className='py-3 font-medium text-blue-600 hover:text-blue-800'>{prop.address}</td>
-                      <td className='py-3 text-gray-600'>{prop.type}</td>
+                      <td className='py-3 text-gray-600'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</td>
                       <td className='py-3 text-gray-600'>{prop.area} м²</td>
                       <td className='py-3 font-semibold text-gray-900'>{formatPrice(prop.price)} ₽</td>
                     </tr>
@@ -1102,7 +1108,7 @@ export default function AuctionDetailPage() {
               <div className='flex items-center justify-between mb-4'>
                 <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
                   <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-                  Ставки (live)
+                  Ставки
                 </h3>
                 {ws.connected && (
                   <span className='inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-600'>
