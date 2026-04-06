@@ -133,12 +133,6 @@ export function useBrokerRegistration() {
       return;
     }
 
-    setShowObligationModal(true);
-  });
-
-  const onAcceptObligation = () => {
-    setShowObligationModal(false);
-
     const data = registerForm.getValues();
 
     registerBroker.mutate(
@@ -149,13 +143,13 @@ export function useBrokerRegistration() {
         first_name: data.firstName || undefined,
         last_name: data.lastName || undefined,
         inn_number: data.innNumber,
-        phone_number: data.phoneNumber,
+        phone_number: data.phoneNumber.replace(/\D/g, '').replace(/^7/, '+7'),
         inn: inn!,
         passport: passport!,
       },
       {
         onSuccess: () => {
-          router.replace('/dashboard');
+          setShowObligationModal(true);
         },
         onError: (err) => {
           if (err instanceof AxiosError) {
@@ -170,6 +164,11 @@ export function useBrokerRegistration() {
         },
       },
     );
+  });
+
+  const onAcceptObligation = () => {
+    setShowObligationModal(false);
+    router.replace('/dashboard');
   };
 
   return {

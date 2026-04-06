@@ -1051,6 +1051,7 @@ export default function AuctionDetailPage() {
               <table className='w-full text-left'>
                 <thead>
                   <tr className='border-b border-gray-100'>
+                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>ID</th>
                     <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</th>
                     <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</th>
                     <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</th>
@@ -1060,6 +1061,7 @@ export default function AuctionDetailPage() {
                 <tbody className='text-[13px]'>
                   {auction.properties.map((prop) => (
                     <tr key={prop.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors cursor-pointer' onClick={() => router.push(`/objects/${prop.id}`)}>
+                      <td className='py-3 text-gray-500 font-mono text-xs'>{prop.reference_id}</td>
                       <td className='py-3 font-medium text-blue-600 hover:text-blue-800'>{prop.address}</td>
                       <td className='py-3 text-gray-600'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</td>
                       <td className='py-3 text-gray-600'>{prop.area} м²</td>

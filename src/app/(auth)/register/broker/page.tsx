@@ -55,6 +55,19 @@ const PasswordInput = React.forwardRef<
 });
 PasswordInput.displayName = 'PasswordInput';
 
+function formatPhoneMask(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  // Ensure starts with 7
+  const d = digits.startsWith('7') ? digits : '7' + digits;
+  let result = '+7';
+  if (d.length > 1) result += ' (' + d.substring(1, 4);
+  if (d.length >= 4) result += ') ';
+  if (d.length > 4) result += d.substring(4, 7);
+  if (d.length > 7) result += '-' + d.substring(7, 9);
+  if (d.length > 9) result += '-' + d.substring(9, 11);
+  return result;
+}
+
 export default function PageRegisterBroker() {
   const {
     emailForm,
@@ -279,7 +292,18 @@ export default function PageRegisterBroker() {
                       id='phoneNumber'
                       type='tel'
                       placeholder='+7 (999) 123-45-67'
-                      {...registerForm.register('phoneNumber')}
+                      {...registerForm.register('phoneNumber', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const formatted = formatPhoneMask(e.target.value);
+                          registerForm.setValue('phoneNumber', formatted, { shouldValidate: true });
+                        },
+                      })}
+                      onFocus={(e) => {
+                        if (!e.target.value) {
+                          registerForm.setValue('phoneNumber', '+7');
+                        }
+                      }}
+                      maxLength={18}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -393,31 +417,31 @@ export default function PageRegisterBroker() {
     <Modal.Root open={showObligationModal}>
       <Modal.Content
         showClose={false}
-        className='bg-bg-strong-950 ring-stroke-soft-200/10 shadow-regular-md'
+        className='bg-white shadow-lg ring-1 ring-inset ring-gray-200'
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <Modal.Body className='flex flex-col gap-5 p-6'>
           {/* Icon */}
           <div className='flex justify-center'>
-            <div className='flex size-14 items-center justify-center rounded-2xl bg-warning-lighter'>
-              <RiAlertLine className='size-7 text-warning-base' />
+            <div className='flex size-14 items-center justify-center rounded-2xl bg-amber-50'>
+              <RiAlertLine className='size-7 text-amber-600' />
             </div>
           </div>
 
           {/* Texts */}
           <div className='space-y-1.5 text-center'>
-            <Modal.Title className='text-label-md text-static-white'>
+            <Modal.Title className='text-lg font-semibold text-gray-900'>
               Обязательство при участии в аукционе
             </Modal.Title>
-            <p className='text-paragraph-sm text-text-soft-400'>
+            <p className='text-sm text-gray-500'>
               Участвуя в аукционах на платформе MIG Tender, вы соглашаетесь с тем, что:
             </p>
           </div>
 
           {/* Obligation text box */}
-          <div className='rounded-xl bg-bg-surface-800 p-4 ring-1 ring-inset ring-stroke-soft-200/10'>
-            <p className='text-paragraph-sm leading-relaxed text-text-soft-400'>
+          <div className='rounded-xl bg-gray-50 p-4 ring-1 ring-inset ring-gray-200'>
+            <p className='text-sm leading-relaxed text-gray-600'>
               Каждая ваша ставка является обязательством приобрести объект на указанных условиях.
               Если ваша ставка выигрывает — вы обязаны завершить сделку: загрузить ДДУ и
               подтверждение оплаты в установленный срок.
@@ -430,18 +454,20 @@ export default function PageRegisterBroker() {
               checked={obligationChecked}
               onCheckedChange={(v) => setObligationChecked(v === true)}
             />
-            <span className='text-paragraph-sm text-text-soft-400'>Я понимаю и принимаю условия</span>
+            <span className='text-sm text-gray-700'>Я понимаю и принимаю условия</span>
           </label>
 
           {/* Accept button */}
-          <button
+          <FancyButton.Root
             type='button'
+            variant='primary'
+            size='medium'
+            className='w-full'
             onClick={onAcceptObligation}
             disabled={!obligationChecked}
-            className='h-10 w-full cursor-pointer rounded-lg bg-static-white text-paragraph-sm font-semibold text-static-black transition-opacity disabled:cursor-not-allowed disabled:opacity-40'
           >
             Принимаю
-          </button>
+          </FancyButton.Root>
         </Modal.Body>
       </Modal.Content>
     </Modal.Root>

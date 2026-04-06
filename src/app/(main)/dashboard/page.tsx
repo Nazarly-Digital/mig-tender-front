@@ -221,10 +221,10 @@ export default function DashboardPage() {
           <div className='overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
             <div className='flex items-center justify-between px-5 py-4 border-b border-gray-100'>
               <span className='text-[14px] font-semibold text-gray-900'>
-                {isDeveloper ? 'Мои аукционы' : 'Доступные аукционы'}
+                {isDeveloper ? 'Мои аукционы' : 'Последние аукционы'}
               </span>
               <Link href='/auctions' className='inline-flex items-center gap-1 text-[13px] font-medium text-gray-400 transition-colors hover:text-blue-600'>
-                Все <HugeiconsIcon icon={ArrowRight01Icon} size={12} color='currentColor' strokeWidth={1.5} />
+                Смотреть аукционы <HugeiconsIcon icon={ArrowRight01Icon} size={12} color='currentColor' strokeWidth={1.5} />
               </Link>
             </div>
             {recentAuctions.length === 0 ? (
