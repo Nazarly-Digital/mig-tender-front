@@ -88,8 +88,8 @@ function AdminPaymentCard({ payment }: { payment: Payment }) {
 
       <PaymentProgressBar currentStep={payment.status} />
 
-      {/* Upload receipt — only for pending payments */}
-      {payment.status === 'pending' && (
+      {/* Upload receipt — only for pending platform commission payments */}
+      {payment.status === 'pending' && payment.type === 'platform_commission' && (
         <div className="mt-4">
           <label className={cn(
             "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors cursor-pointer",
