@@ -79,6 +79,10 @@ export type PropertyCreateRequest = {
   deadline?: string | null;
   commission_rate?: string | null;
   status?: PropertyStatus;
+  floor?: number | null;
+  developer_name?: string;
+  project?: string;
+  land_number?: string | null;
 };
 
 // Update (partial)
@@ -92,6 +96,10 @@ export type PropertyUpdateRequest = {
   deadline?: string | null;
   commission_rate?: string | null;
   status?: PropertyStatus;
+  floor?: number | null;
+  developer_name?: string;
+  project?: string;
+  land_number?: string | null;
 };
 
 // Image create

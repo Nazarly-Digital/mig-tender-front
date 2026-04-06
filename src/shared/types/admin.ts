@@ -11,6 +11,7 @@ export type AdminUser = {
     is_verified: boolean;
     verification_status: string;
     inn_number?: string;
+    phone_number?: string;
     verified_at?: string | null;
     rejected_at?: string | null;
   } | null;

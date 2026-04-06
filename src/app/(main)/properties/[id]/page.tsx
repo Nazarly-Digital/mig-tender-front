@@ -560,6 +560,10 @@ export default function PropertyDetailPage() {
           property_class: data.property_class ? data.property_class as PropertyClass : null,
           status: data.status as PropertyStatus,
           deadline: data.deadline || null,
+          floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null,
+          developer_name: data.developer_name,
+          project: data.project,
+          land_number: data.type === 'land' && data.land_number ? data.land_number : null,
         },
       },
       {

@@ -7,6 +7,7 @@ import {
   RiFileTextLine,
   RiLock2Line,
   RiMailLine,
+  RiPhoneLine,
   RiUploadCloud2Line,
   RiUserLine,
   RiUserAddFill,
@@ -264,6 +265,26 @@ export default function PageRegisterBroker() {
                 </Input.Root>
                 {regErrors.innNumber && (
                   <p className='text-paragraph-xs text-error-base'>{regErrors.innNumber.message}</p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='phoneNumber'>
+                  Номер телефона <Label.Asterisk />
+                </Label.Root>
+                <Input.Root>
+                  <Input.Wrapper>
+                    <Input.Icon as={RiPhoneLine} />
+                    <Input.Input
+                      id='phoneNumber'
+                      type='tel'
+                      placeholder='+7 (999) 123-45-67'
+                      {...registerForm.register('phoneNumber')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {regErrors.phoneNumber && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.phoneNumber.message}</p>
                 )}
               </div>
 

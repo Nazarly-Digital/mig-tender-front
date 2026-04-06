@@ -308,8 +308,8 @@ export default function CreateAuctionPage() {
                         setValue('propertyIds', [], { shouldValidate: true });
                       }}
                       className={`flex flex-col items-start rounded-lg px-3.5 py-2.5 text-left transition-colors cursor-pointer ${field.value === v
-                          ? 'border-[1.5px] border-blue-500 bg-blue-50/60'
-                          : 'border border-gray-200 hover:bg-gray-50'
+                        ? 'border-[1.5px] border-blue-500 bg-blue-50/60'
+                        : 'border border-gray-200 hover:bg-gray-50'
                         }`}
                     >
                       <span className={`text-sm font-semibold ${field.value === v ? 'text-blue-700' : 'text-gray-900'}`}>{label}</span>
@@ -369,7 +369,7 @@ export default function CreateAuctionPage() {
                     <div className='flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5'>
                       <HugeiconsIcon icon={InformationCircleIcon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0 text-blue-600 mt-0.5' />
                       <span className='text-xs text-blue-700'>
-                        Первый объект — эталон. В списке только совместимые объекты{(() => {
+                        Первый объект - эталон. В списке только совместимые объекты{(() => {
                           const parts = [TYPE_LABELS[referenceProperty.type] || referenceProperty.type, `${referenceProperty.area} м²`].filter(Boolean);
                           return parts.length > 0 ? ` (${parts.join(', ')})` : '';
                         })()}.

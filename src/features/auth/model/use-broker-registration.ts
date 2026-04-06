@@ -149,6 +149,7 @@ export function useBrokerRegistration() {
         first_name: data.firstName || undefined,
         last_name: data.lastName || undefined,
         inn_number: data.innNumber,
+        phone_number: data.phoneNumber,
         inn: inn!,
         passport: passport!,
       },

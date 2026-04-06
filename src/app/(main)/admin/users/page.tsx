@@ -236,7 +236,7 @@ export default function AdminUsersPage() {
         </div>
       ) : (
         <div className='mt-6 overflow-x-auto rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40'>
-          <table className='min-w-[1100px] w-full text-left'>
+          <table className='min-w-[1250px] w-full text-left'>
             <thead>
               <tr className='bg-gray-50/50'>
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
@@ -253,6 +253,9 @@ export default function AdminUsersPage() {
                 </th>
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   ИНН
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Телефон
                 </th>
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Документы
@@ -310,6 +313,11 @@ export default function AdminUsersPage() {
                   <td className='px-5 py-3.5'>
                     <span className='text-[13px] text-gray-500 whitespace-nowrap'>
                       {user.broker?.inn_number ?? '—'}
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
+                    <span className='text-[13px] text-gray-500 whitespace-nowrap'>
+                      {user.broker?.phone_number ?? '—'}
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>

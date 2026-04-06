@@ -31,6 +31,9 @@ export const brokerRegisterSchema = z
     innNumber: z
       .string()
       .min(1, 'Введите ИНН номер'),
+    phoneNumber: z
+      .string()
+      .min(1, 'Введите номер телефона'),
     password: z
       .string()
       .min(1, 'Введите пароль')
@@ -89,9 +92,26 @@ export const propertySchema = z.object({
     'Комиссия должна быть >= 0',
   ),
   status: z.string().min(1, 'Выберите статус'),
+  floor: z.string().optional(),
+  developer_name: z.string().min(1, 'Введите название застройщика'),
+  project: z.string().min(1, 'Введите название проекта'),
+  land_number: z.string().optional(),
 }).refine(
   (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),
   { message: 'Выберите класс', path: ['property_class'] },
+).refine(
+  (data) => {
+    if (data.type !== 'apartment' && data.type !== 'commercial') return true;
+    if (!data.floor || !data.floor.trim()) return false;
+    return parseInt(data.floor) > 0;
+  },
+  { message: 'Укажите этаж', path: ['floor'] },
+).refine(
+  (data) => {
+    if (data.type !== 'land') return true;
+    return !!data.land_number && data.land_number.trim().length > 0;
+  },
+  { message: 'Укажите номер участка', path: ['land_number'] },
 );
 
 export type PropertyFormData = z.infer<typeof propertySchema>;

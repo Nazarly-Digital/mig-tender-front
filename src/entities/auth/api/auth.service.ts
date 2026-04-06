@@ -47,6 +47,7 @@ export const authService = {
     formData.append("password", data.password);
     formData.append("password_confirm", data.password_confirm);
     formData.append("inn_number", data.inn_number);
+    formData.append("phone_number", data.phone_number);
     formData.append("inn", data.inn);
     formData.append("passport", data.passport);
     if (data.first_name) formData.append("first_name", data.first_name);

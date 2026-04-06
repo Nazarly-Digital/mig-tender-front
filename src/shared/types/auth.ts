@@ -38,6 +38,7 @@ export type TokenUser = {
     is_verified: boolean;
     verification_status: string;
     inn_number?: string;
+    phone_number?: string;
     verified_at?: string | null;
     rejected_at?: string | null;
   } | null;
@@ -135,6 +136,7 @@ export type RegisterBrokerRequest = {
   first_name?: string;
   last_name?: string;
   inn_number: string;
+  phone_number: string;
   inn: File;
   passport: File;
 };

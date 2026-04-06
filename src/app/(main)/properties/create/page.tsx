@@ -21,6 +21,7 @@ import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
 import { AreaField, PriceField } from '@/shared/components/property-fields';
+import { useSessionStore } from '@/entities/auth/model/store';
 import { useCreateProperty } from '@/features/properties';
 import { propertiesService } from '@/entities/properties';
 import {
@@ -38,6 +39,7 @@ import { propertySchema, type PropertyFormData } from '@/shared/lib/validations'
 export default function CreatePropertyPage() {
   const router = useRouter();
   const createMutation = useCreateProperty();
+  const companyName = useSessionStore((s) => s.user?.developer?.company_name ?? '');
 
   const {
     register,
@@ -58,10 +60,21 @@ export default function CreatePropertyPage() {
       price: '',
       deadline: '',
       commission_rate: '',
+      floor: '',
+      developer_name: companyName,
+      project: '',
+      land_number: '',
     },
   });
 
-  const isLand = watch('type') === 'land';
+  const selectedType = watch('type');
+  const isLand = selectedType === 'land';
+  const hasFloor = selectedType === 'apartment' || selectedType === 'commercial';
+
+  // Sync company name after zustand persist rehydration
+  React.useEffect(() => {
+    if (companyName) setValue('developer_name', companyName);
+  }, [companyName, setValue]);
 
   // Clear property_class when switching to land
   React.useEffect(() => {
@@ -146,7 +159,7 @@ export default function CreatePropertyPage() {
     setSubmitting(true);
     try {
       const property = await createMutation.mutateAsync(
-        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null } as any,
+        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, land_number: data.type === 'land' && data.land_number ? data.land_number : null } as any,
       );
       for (let i = 0; i < photos.length; i++) {
         try {
@@ -234,11 +247,58 @@ export default function CreatePropertyPage() {
                   <Hint.Root>Полный адрес объекта</Hint.Root>
                 )}
               </div>
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='space-y-1.5'>
+                  <Label.Root htmlFor='property-developer-name'>Застройщик <Label.Asterisk /></Label.Root>
+                  <Input.Root>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='property-developer-name'
+                        type='text'
+                        disabled
+                        className='disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed'
+                        {...register('developer_name')}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                </div>
+                <div className='space-y-1.5'>
+                  <Label.Root htmlFor='property-project'>Проект (ЖК) <Label.Asterisk /></Label.Root>
+                  <Input.Root hasError={!!errors.project}>
+                    <Input.Wrapper>
+                      <Input.Input id='property-project' type='text' placeholder='Название проекта или ЖК' {...register('project')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                  {errors.project && <p className='text-xs text-red-500'>{errors.project.message}</p>}
+                </div>
+              </div>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-area'>Площадь ({watch('type') === 'land' ? 'соток' : 'м²'}) <Label.Asterisk /></Label.Root>
+                <Label.Root htmlFor='property-area'>Площадь ({isLand ? 'соток' : 'м²'}) <Label.Asterisk /></Label.Root>
                 <AreaField control={control} hasError={!!errors.area} />
                 {errors.area && <p className='text-xs text-red-500'>{errors.area.message}</p>}
               </div>
+              {hasFloor && (
+                <div className='space-y-1.5'>
+                  <Label.Root htmlFor='property-floor'>Этаж <Label.Asterisk /></Label.Root>
+                  <Input.Root hasError={!!errors.floor}>
+                    <Input.Wrapper>
+                      <Input.Input id='property-floor' type='number' min='1' placeholder='Например, 5' {...register('floor')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                  {errors.floor && <p className='text-xs text-red-500'>{errors.floor.message}</p>}
+                </div>
+              )}
+              {isLand && (
+                <div className='space-y-1.5'>
+                  <Label.Root htmlFor='property-land-number'>Номер участка <Label.Asterisk /></Label.Root>
+                  <Input.Root hasError={!!errors.land_number}>
+                    <Input.Wrapper>
+                      <Input.Input id='property-land-number' type='text' placeholder='Например, 12А' {...register('land_number')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                  {errors.land_number && <p className='text-xs text-red-500'>{errors.land_number.message}</p>}
+                </div>
+              )}
             </div>
 
             {/* Price & Status */}
