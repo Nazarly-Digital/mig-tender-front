@@ -78,9 +78,8 @@ function PropertySearchDropdown({
           setOpen(!open);
           setTimeout(() => inputRef.current?.focus(), 50);
         }}
-        className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 cursor-pointer bg-white transition-colors ${
-          open ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-300'
-        }`}
+        className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 cursor-pointer bg-white transition-colors ${open ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-300'
+          }`}
       >
         <HugeiconsIcon icon={Search01Icon} size={15} color='currentColor' strokeWidth={1.5} className='shrink-0 text-gray-400' />
         {open ? (
@@ -147,9 +146,8 @@ function SelectedPropertyTag({
   onRemove: () => void;
 }) {
   return (
-    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${
-      isReference ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'
-    }`}>
+    <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${isReference ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'
+      }`}>
       <div className='flex-1 min-w-0'>
         <div className='flex items-center gap-1.5'>
           <span className='text-sm font-medium text-gray-900 truncate'>{property.address}</span>
@@ -295,28 +293,37 @@ export default function CreateAuctionPage() {
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 space-y-4'>
             <div className='text-[14px] font-semibold text-gray-900'>Объект и параметры</div>
 
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-1.5'>
-                <Label.Root htmlFor='auction-mode'>Тип <Label.Asterisk /></Label.Root>
-                <Controller control={control} name='mode' render={({ field }) => (
-                  <Select.Root value={field.value} onValueChange={(v) => {
-                    field.onChange(v);
-                    if (v === 'closed') setValue('min_bid_increment', '');
-                    // Reset property selection when switching modes
-                    setValue('propertyIds', [], { shouldValidate: true });
-                  }}>
-                    <Select.Trigger id='auction-mode'><Select.Value /></Select.Trigger>
-                    <Select.Content>
-                      {(Object.entries(MODE_LABELS) as [AuctionMode, string][]).map(([v, l]) => (
-                        <Select.Item key={v} value={v}>{l}</Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Root>
-                )} />
-                {errors.mode && <p className='text-xs text-red-500'>{errors.mode.message}</p>}
-              </div>
-              <div className='space-y-1.5'>
-                <Label.Root htmlFor='auction-min-price'>Мин. цена <Label.Asterisk /></Label.Root>
+            {/* Mode toggle */}
+            <div className='space-y-1.5'>
+              <Label.Root>Режим аукциона <Label.Asterisk /></Label.Root>
+              <Controller control={control} name='mode' render={({ field }) => (
+                <div className='grid grid-cols-2 gap-2'>
+                  {([['closed', 'Закрытый', '1..N объектов'], ['open', 'Открытый', '1 объект']] as const).map(([v, label, desc]) => (
+                    <button
+                      key={v}
+                      type='button'
+                      onClick={() => {
+                        field.onChange(v);
+                        if (v === 'closed') setValue('min_bid_increment', '');
+                        setValue('propertyIds', [], { shouldValidate: true });
+                      }}
+                      className={`flex flex-col items-start rounded-lg px-3.5 py-2.5 text-left transition-colors cursor-pointer ${
+                        field.value === v
+                          ? 'border-[1.5px] border-blue-500 bg-blue-50/60'
+                          : 'border border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className={`text-sm font-semibold ${field.value === v ? 'text-blue-700' : 'text-gray-900'}`}>{label}</span>
+                      <span className={`text-xs ${field.value === v ? 'text-blue-500' : 'text-gray-400'}`}>{desc}</span>
+                    </button>
+                  ))}
+                </div>
+              )} />
+              {errors.mode && <p className='text-xs text-red-500'>{errors.mode.message}</p>}
+            </div>
+
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='auction-min-price'>Мин. цена <Label.Asterisk /></Label.Root>
                 <Controller control={control} name='min_price' render={({ field }) => (
                   <Input.Root>
                     <Input.Wrapper>
@@ -333,7 +340,6 @@ export default function CreateAuctionPage() {
                   </Input.Root>
                 )} />
                 {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
-              </div>
             </div>
 
             {/* Property selection */}
