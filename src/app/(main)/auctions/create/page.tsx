@@ -369,7 +369,10 @@ export default function CreateAuctionPage() {
                     <div className='flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5'>
                       <HugeiconsIcon icon={InformationCircleIcon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0 text-blue-600 mt-0.5' />
                       <span className='text-xs text-blue-700'>
-                        Первый объект — эталон. В списке только совместимые объекты ({TYPE_LABELS[referenceProperty.type] ?? referenceProperty.type}, {referenceProperty.area} м²).
+                        Первый объект — эталон. В списке только совместимые объекты{(() => {
+                          const parts = [TYPE_LABELS[referenceProperty.type] || referenceProperty.type, `${referenceProperty.area} м²`].filter(Boolean);
+                          return parts.length > 0 ? ` (${parts.join(', ')})` : '';
+                        })()}.
                       </span>
                     </div>
                   )}
