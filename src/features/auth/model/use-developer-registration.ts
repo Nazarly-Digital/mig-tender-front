@@ -60,7 +60,7 @@ export function useDeveloperRegistration() {
         },
         onError: (err) => {
           if (err instanceof AxiosError) {
-            if (err.response?.status === 409 || err.response?.data?.error === 'User already exists.') {
+            if (err.response?.status === 409 || err.response?.data?.error === 'Пользователь уже существует.') {
               toast.error('Аккаунт с таким email уже существует');
               router.replace('/login');
               return;
