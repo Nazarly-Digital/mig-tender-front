@@ -38,6 +38,11 @@ export type Property = {
   moderation_status?: ModerationStatus;
   moderation_rejection_reason?: string | null;
   commission_rate: string | null;
+  developer_name?: string;
+  project?: string;
+  floor?: number | null;
+  land_number?: string | null;
+  house_number?: string | null;
   images: PropertyImage[];
   created_at: string;
   updated_at: string;

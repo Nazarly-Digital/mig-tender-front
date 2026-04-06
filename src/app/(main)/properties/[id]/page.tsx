@@ -414,6 +414,12 @@ function PropertyEditForm({
       currency: 'RUB',
       deadline: property.deadline ?? '',
       status: property.status,
+      developer_name: property.developer_name ?? '',
+      project: property.project ?? '',
+      floor: property.floor != null ? String(property.floor) : '',
+      land_number: property.land_number ?? '',
+      house_number: property.house_number ?? '',
+      commission_rate: property.commission_rate != null ? String(property.commission_rate) : '',
     },
   });
 
