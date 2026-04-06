@@ -253,11 +253,9 @@ export default function CreatePropertyPage() {
                     />
                   )}
                 />
-                {errors.address ? (
+                {errors.address && (
                   <p className='text-xs text-red-500'>{errors.address.message}</p>
-                ) : (
-                  <Hint.Root>Полный адрес объекта</Hint.Root>
-                )}
+                ) }
               </div>
               <div className='grid grid-cols-2 gap-3'>
                 <div className='space-y-1.5'>
@@ -285,7 +283,7 @@ export default function CreatePropertyPage() {
                 </div>
               </div>
               <div className='space-y-1.5'>
-                <Label.Root htmlFor='property-area'>Площадь ({isLand ? 'соток' : 'м²'}) <Label.Asterisk /></Label.Root>
+                <Label.Root htmlFor='property-area'>Площадь ({isLand ? 'сот' : 'м²'}) <Label.Asterisk /></Label.Root>
                 <AreaField control={control} hasError={!!errors.area} />
                 {errors.area && <p className='text-xs text-red-500'>{errors.area.message}</p>}
               </div>
@@ -349,11 +347,9 @@ export default function CreatePropertyPage() {
                       <Input.Input id='property-commission' type='number' step='0.01' min='0' placeholder='Например, 5' {...register('commission_rate')} />
                     </Input.Wrapper>
                   </Input.Root>
-                  {errors.commission_rate ? (
+                  {errors.commission_rate && (
                     <p className='text-xs text-red-500'>{errors.commission_rate.message}</p>
-                  ) : (
-                    <Hint.Root>Комиссия застройщика для брокера</Hint.Root>
-                  )}
+                  ) }
                 </div>
                 <div className='space-y-1.5'>
                   <Label.Root htmlFor='property-status'>Статус</Label.Root>

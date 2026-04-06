@@ -9,10 +9,10 @@ type Step = {
 };
 
 const DEAL_STEPS: Step[] = [
-  { label: 'Документы', key: 'pending_documents' },
-  { label: 'Проверка админа', key: 'admin_review' },
-  { label: 'ОК девелопера', key: 'developer_confirm' },
-  { label: 'Подтверждена', key: 'confirmed' },
+  { label: 'Загрузка документов', key: 'pending_documents' },
+  { label: 'ПРОВЕРКА документов', key: 'admin_review' },
+  { label: 'Мое ПОДТВЕРЖДЕНИЕ', key: 'developer_confirm' },
+  { label: 'Сделка подтверждена', key: 'confirmed' },
 ];
 
 type DealProgressBarProps = {
@@ -32,7 +32,7 @@ export function DealProgressBar({ currentStep, isOverdue, stepLabels }: DealProg
   return (
     <div className="mt-4">
       {/* Progress line */}
-      <div className="flex items-center gap-0">
+      <div className="flex items-center gap-1">
         {DEAL_STEPS.map((step, i) => {
           const isCompleted = i < activeIndex;
           const isActive = i === activeIndex;

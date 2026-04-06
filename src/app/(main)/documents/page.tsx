@@ -412,7 +412,6 @@ export default function DocumentsPage() {
 
       {/* Deal Documents */}
       <div className='mt-8'>
-        <h2 className='text-lg font-semibold text-gray-900'>Документы по сделкам</h2>
 
         {isLoadingAll ? (
           <div className='mt-4'>

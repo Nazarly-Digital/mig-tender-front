@@ -101,7 +101,7 @@ const PaginationItem = React.forwardRef<HTMLButtonElement, PaginationItemProps>(
         className={cn(
           'flex items-center justify-center text-center text-sm font-medium text-text-sub-600 transition duration-200 ease-out',
           variantStyles[variant].item,
-          current && 'text-text-strong-950',
+          current && 'bg-blue-600 text-white ring-blue-600 hover:bg-blue-600',
           className
         )}
         {...rest}
