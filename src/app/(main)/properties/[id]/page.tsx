@@ -18,6 +18,7 @@ import {
 import { RiImageAddLine, RiCloseLine, RiCheckLine } from '@remixicon/react';
 
 import { DetailPageSkeleton } from '@/shared/components/skeletons';
+import { AddressInput } from '@/shared/components/address-input';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
@@ -447,11 +448,20 @@ function PropertyEditForm({
       {/* Address */}
       <div className='space-y-1.5'>
         <Label.Root htmlFor='p-address'>Адрес <Label.Asterisk /></Label.Root>
-        <Input.Root size='small'>
-          <Input.Wrapper>
-            <Input.Input id='p-address' placeholder='ул. Примерная, д. 1' {...register('address')} />
-          </Input.Wrapper>
-        </Input.Root>
+        <Controller
+          name='address'
+          control={control}
+          render={({ field }) => (
+            <AddressInput
+              id='p-address'
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              placeholder='ул. Примерная, д. 1'
+              hasError={!!errors.address}
+            />
+          )}
+        />
         {errors.address && <p className='text-[11px] text-red-500'>{errors.address.message}</p>}
       </div>
 
@@ -564,6 +574,7 @@ export default function PropertyDetailPage() {
           developer_name: data.developer_name,
           project: data.project,
           land_number: data.type === 'land' && data.land_number ? data.land_number : null,
+          house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null,
         },
       },
       {

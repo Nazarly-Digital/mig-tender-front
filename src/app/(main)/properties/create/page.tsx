@@ -21,6 +21,7 @@ import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
 import { AreaField, PriceField } from '@/shared/components/property-fields';
+import { AddressInput } from '@/shared/components/address-input';
 import { useSessionStore } from '@/entities/auth/model/store';
 import { useCreateProperty } from '@/features/properties';
 import { propertiesService } from '@/entities/properties';
@@ -64,12 +65,14 @@ export default function CreatePropertyPage() {
       developer_name: companyName,
       project: '',
       land_number: '',
+      house_number: '',
     },
   });
 
   const selectedType = watch('type');
   const isLand = selectedType === 'land';
   const hasFloor = selectedType === 'apartment' || selectedType === 'commercial';
+  const hasHouseNumber = selectedType === 'house' || selectedType === 'townhouse';
 
   // Sync company name after zustand persist rehydration
   React.useEffect(() => {
@@ -159,7 +162,7 @@ export default function CreatePropertyPage() {
     setSubmitting(true);
     try {
       const property = await createMutation.mutateAsync(
-        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, land_number: data.type === 'land' && data.land_number ? data.land_number : null } as any,
+        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, land_number: data.type === 'land' && data.land_number ? data.land_number : null, house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null } as any,
       );
       for (let i = 0; i < photos.length; i++) {
         try {
@@ -236,11 +239,20 @@ export default function CreatePropertyPage() {
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-address'>Адрес <Label.Asterisk /></Label.Root>
-                <Input.Root hasError={!!errors.address}>
-                  <Input.Wrapper>
-                    <Input.Input id='property-address' placeholder='ул. Примерная, д. 1' {...register('address')} />
-                  </Input.Wrapper>
-                </Input.Root>
+                <Controller
+                  name='address'
+                  control={control}
+                  render={({ field }) => (
+                    <AddressInput
+                      id='property-address'
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      placeholder='ул. Примерная, д. 1'
+                      hasError={!!errors.address}
+                    />
+                  )}
+                />
                 {errors.address ? (
                   <p className='text-xs text-red-500'>{errors.address.message}</p>
                 ) : (
@@ -297,6 +309,17 @@ export default function CreatePropertyPage() {
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.land_number && <p className='text-xs text-red-500'>{errors.land_number.message}</p>}
+                </div>
+              )}
+              {hasHouseNumber && (
+                <div className='space-y-1.5'>
+                  <Label.Root htmlFor='property-house-number'>Номер дома <Label.Asterisk /></Label.Root>
+                  <Input.Root hasError={!!errors.house_number}>
+                    <Input.Wrapper>
+                      <Input.Input id='property-house-number' type='text' placeholder='Например, 15' {...register('house_number')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                  {errors.house_number && <p className='text-xs text-red-500'>{errors.house_number.message}</p>}
                 </div>
               )}
             </div>

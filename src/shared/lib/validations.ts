@@ -96,6 +96,7 @@ export const propertySchema = z.object({
   developer_name: z.string().min(1, 'Введите название застройщика'),
   project: z.string().min(1, 'Введите название проекта'),
   land_number: z.string().optional(),
+  house_number: z.string().optional(),
 }).refine(
   (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),
   { message: 'Выберите класс', path: ['property_class'] },
@@ -112,6 +113,12 @@ export const propertySchema = z.object({
     return !!data.land_number && data.land_number.trim().length > 0;
   },
   { message: 'Укажите номер участка', path: ['land_number'] },
+).refine(
+  (data) => {
+    if (data.type !== 'house' && data.type !== 'townhouse') return true;
+    return !!data.house_number && data.house_number.trim().length > 0;
+  },
+  { message: 'Укажите номер дома', path: ['house_number'] },
 );
 
 export type PropertyFormData = z.infer<typeof propertySchema>;

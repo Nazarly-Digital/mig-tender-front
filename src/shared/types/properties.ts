@@ -83,6 +83,7 @@ export type PropertyCreateRequest = {
   developer_name?: string;
   project?: string;
   land_number?: string | null;
+  house_number?: string | null;
 };
 
 // Update (partial)
@@ -100,6 +101,7 @@ export type PropertyUpdateRequest = {
   developer_name?: string;
   project?: string;
   land_number?: string | null;
+  house_number?: string | null;
 };
 
 // Image create
