@@ -59,18 +59,28 @@ function AdminDealCard({ deal }: { deal: Deal }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mt-4">
+      <div className="grid grid-cols-5 gap-4 mt-4">
         <div>
-          <p className="text-xs text-gray-500">Сумма ставки</p>
+          <p className="text-xs text-gray-500">Стоимость объекта</p>
           <p className="text-sm font-semibold text-gray-900 mt-0.5">{formatPrice(deal.amount)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">Комиссия брокера</p>
+          <p className="text-sm font-semibold text-gray-900 mt-0.5">
+            {deal.broker_commission_amount ? formatPrice(deal.broker_commission_amount) : '—'}
+            {deal.broker_commission_rate && <span className="text-xs text-gray-400 ml-1">({deal.broker_commission_rate}%)</span>}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">Комиссия платформы</p>
+          <p className="text-sm font-semibold text-gray-900 mt-0.5">
+            {deal.platform_commission_amount ? formatPrice(deal.platform_commission_amount) : '—'}
+            {deal.platform_commission_rate && <span className="text-xs text-gray-400 ml-1">({deal.platform_commission_rate}%)</span>}
+          </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Брокер</p>
           <p className="text-sm font-semibold text-gray-900 mt-0.5">{deal.broker_name}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500">Девелопер</p>
-          <p className="text-sm font-semibold text-gray-900 mt-0.5">{deal.developer_name}</p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Дедлайн</p>

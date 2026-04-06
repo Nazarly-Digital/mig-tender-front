@@ -171,8 +171,8 @@ export function AdminPaymentsView() {
           ))}
         </div>
 
-        {/* Cards */}
-        <div className="space-y-4 mt-6">
+        {/* Cards grouped by auction */}
+        <div className="space-y-6 mt-6">
           {isLoading ? (
             <div className="flex justify-center py-16">
               <p className="text-sm text-gray-400">Загрузка...</p>
@@ -182,9 +182,39 @@ export function AdminPaymentsView() {
               <p className="text-sm font-medium text-gray-900">Нет выплат</p>
               <p className="text-xs text-gray-400 mt-1">Выплаты появятся после подтверждения сделок</p>
             </div>
-          ) : (
-            payments.map((payment) => <AdminPaymentCard key={payment.id} payment={payment} />)
-          )}
+          ) : (() => {
+            // Group by auction_id
+            const grouped = new Map<number, Payment[]>();
+            for (const p of payments) {
+              const arr = grouped.get(p.auction_id) ?? [];
+              arr.push(p);
+              grouped.set(p.auction_id, arr);
+            }
+            return Array.from(grouped.entries()).map(([auctionId, group]) => {
+              const brokerTotal = group
+                .filter((p) => p.type === 'developer_commission')
+                .reduce((sum, p) => sum + Number(p.amount), 0);
+              const platformTotal = group
+                .filter((p) => p.type === 'platform_commission')
+                .reduce((sum, p) => sum + Number(p.amount), 0);
+              return (
+                <div key={auctionId}>
+                  {/* Auction group header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900">Аукцион #{auctionId}</h3>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>Брокерам: <span className="font-semibold text-gray-700">{formatPrice(String(brokerTotal.toFixed(2)))}</span></span>
+                      <span>Платформе: <span className="font-semibold text-gray-700">{formatPrice(String(platformTotal.toFixed(2)))}</span></span>
+                      <span>Итого: <span className="font-semibold text-gray-900">{formatPrice(String((brokerTotal + platformTotal).toFixed(2)))}</span></span>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {group.map((payment) => <AdminPaymentCard key={payment.id} payment={payment} />)}
+                  </div>
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
     </div>

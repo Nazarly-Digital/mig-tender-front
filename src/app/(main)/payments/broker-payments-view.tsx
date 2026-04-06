@@ -105,7 +105,7 @@ export function BrokerPaymentsView() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div>
           <h1 className="text-lg font-semibold text-gray-900">Мои выплаты</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Комиссия от девелопера + комиссия платформы (0.8%) после закрытия сделки</p>
+          <p className="text-sm text-gray-500 mt-0.5">Комиссия от девелопера + комиссия платформы (0.4%) после закрытия сделки</p>
         </div>
 
         {/* Summary KPI */}

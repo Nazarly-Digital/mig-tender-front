@@ -38,6 +38,10 @@ export type Deal = {
   has_payment_proof: boolean;
   ddu_document: string | null;
   payment_proof_document: string | null;
+  broker_commission_rate: string | null;
+  broker_commission_amount: string | null;
+  platform_commission_rate: string | null;
+  platform_commission_amount: string | null;
   document_deadline: string;
   created_at: string;
   updated_at: string;

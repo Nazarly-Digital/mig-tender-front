@@ -235,11 +235,23 @@ export default function CreateAuctionPage() {
                   )}
                 </div>
               )}
-              {selectedMode === 'closed' && selectedPropertyIds.length > 0 && (
-                <p className='text-xs text-gray-500'>
-                  Выбрано: {selectedPropertyIds.length} {selectedPropertyIds.length === 1 ? 'объект' : selectedPropertyIds.length < 5 ? 'объекта' : 'объектов'}
-                </p>
-              )}
+              {selectedMode === 'closed' && selectedPropertyIds.length > 0 && (() => {
+                const totalPrice = selectedPropertyIds.reduce((sum, id) => {
+                  const prop = properties.find((p) => String(p.id) === id);
+                  return sum + (prop ? Number(prop.price) : 0);
+                }, 0);
+                const count = selectedPropertyIds.length;
+                return (
+                  <div className='flex items-center justify-between text-xs text-gray-500'>
+                    <span>
+                      Выбрано: {count} {count === 1 ? 'объект' : count < 5 ? 'объекта' : 'объектов'}
+                    </span>
+                    <span className='font-medium text-gray-700'>
+                      Сумма: {formatPrice(String(totalPrice))}
+                    </span>
+                  </div>
+                );
+              })()}
               {errors.propertyIds && <p className='text-xs text-red-500'>{errors.propertyIds.message}</p>}
             </div>
 
