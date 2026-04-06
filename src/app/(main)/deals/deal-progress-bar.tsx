@@ -9,10 +9,10 @@ type Step = {
 };
 
 const DEAL_STEPS: Step[] = [
-  { label: 'Документы', key: 'pending_documents' },
-  { label: 'Проверка админа', key: 'admin_review' },
-  { label: 'ОК девелопера', key: 'developer_confirm' },
-  { label: 'Подтверждена', key: 'confirmed' },
+  { label: 'Загрузка документов', key: 'pending_documents' },
+  { label: 'ПРОВЕРКА документов', key: 'admin_review' },
+  { label: 'Мое ПОДТВЕРЖДЕНИЕ', key: 'developer_confirm' },
+  { label: 'Сделка подтверждена', key: 'confirmed' },
 ];
 
 type DealProgressBarProps = {

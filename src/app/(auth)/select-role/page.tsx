@@ -35,9 +35,9 @@ export default function SelectRolePage() {
             </div>
 
             <div className='space-y-2 text-center'>
-              <h2 className='text-lg font-semibold text-gray-900'>Регистрация как Брокер</h2>
+              <h2 className='text-lg font-semibold text-gray-900'>Я Брокер</h2>
               <p className='text-sm text-gray-500'>
-                Участвуйте в аукционах и делайте ставки на объекты недвижимости
+                Участвуйте в аукционах и забирайте объекты по лучшим ценам
               </p>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function SelectRolePage() {
             className='w-full'
             onClick={() => router.push('/register/broker')}
           >
-            Зарегистрироваться как брокер
+            Зарегистрироваться 
           </FancyButton.Root>
         </div>
 
@@ -80,7 +80,7 @@ export default function SelectRolePage() {
             </div>
 
             <div className='space-y-2 text-center'>
-              <h2 className='text-lg font-semibold text-gray-900'>Регистрация как Девелопер</h2>
+              <h2 className='text-lg font-semibold text-gray-900'>Я Девелопер</h2>
               <p className='text-sm text-gray-500'>
                 Создавайте аукционы и управляйте продажей своих объектов
               </p>
@@ -108,7 +108,7 @@ export default function SelectRolePage() {
             className='w-full'
             onClick={() => router.push('/register/developer')}
           >
-            Зарегистрироваться как девелопер
+            Зарегистрироваться
           </FancyButton.Root>
         </div>
       </div>

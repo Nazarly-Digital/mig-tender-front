@@ -56,12 +56,12 @@ export default function CabinetPage() {
     <div className='w-full px-8 py-8'>
       {/* Header */}
       <div className='flex items-center gap-3'>
-        <div className='flex size-10 items-center justify-center rounded-xl bg-gray-100'>
+        {/* <div className='flex size-10 items-center justify-center rounded-xl bg-gray-100'>
           <HugeiconsIcon icon={UserIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-600' />
-        </div>
+        </div> */}
         <div>
           <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>Личный кабинет</h1>
-          <p className='mt-1 text-sm text-gray-500'>Ваши аукционы и обязательства</p>
+          <p className='mt-1 text-sm text-gray-500'>Ваши аукционы</p>
         </div>
       </div>
 

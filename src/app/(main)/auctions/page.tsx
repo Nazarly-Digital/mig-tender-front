@@ -8,6 +8,7 @@ import { Award01Icon, Clock01Icon, Add01Icon } from '@hugeicons/core-free-icons'
 
 import { AuctionGridSkeleton } from '@/shared/components/skeletons';
 import * as FancyButton from '@/shared/ui/fancy-button';
+import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
 import type {
@@ -150,6 +151,9 @@ export default function AuctionsPage() {
   const tab = parseTab(searchParams.get('tab'));
   const user = useSessionStore((s) => s.user);
 
+  const [page, setPage] = React.useState(1);
+  const pageSize = 20;
+
   function handleTabChange(next: Tab) {
     const params = new URLSearchParams(searchParams.toString());
     if (next === 'all') {
@@ -157,6 +161,7 @@ export default function AuctionsPage() {
     } else {
       params.set('tab', next);
     }
+    setPage(1);
     router.replace(`/auctions?${params.toString()}`);
   }
   const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
@@ -164,12 +169,15 @@ export default function AuctionsPage() {
   const params = {
     ...(tab !== 'all' && { status: tab as 'active' | 'finished' }),
     ordering: '-created_at',
+    page,
+    page_size: pageSize,
   };
 
   const myAuctions = useMyAuctions(isDeveloper ? params : undefined);
   const allAuctions = useAuctions(!isDeveloper ? params : undefined);
   const { data, isLoading } = isDeveloper ? myAuctions : allAuctions;
   const auctions = data?.results ?? [];
+  const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
 
   return (
     <div className='w-full px-8 py-8'>
@@ -236,8 +244,17 @@ export default function AuctionsPage() {
           )}
         </div>
       ) : (
-        <div className='mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-          {auctions.map((auction) => (<AuctionCard key={auction.id} auction={auction} />))}
+        <div className='mt-6 space-y-6'>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+            {auctions.map((auction) => (<AuctionCard key={auction.id} auction={auction} />))}
+          </div>
+          <PropertiesTablePagination
+            page={page}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={() => {}}
+          />
         </div>
       )}
     </div>

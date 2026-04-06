@@ -169,7 +169,7 @@ export default function DashboardPage() {
   const recentProperties = propertiesData?.results ?? [];
   const recentAuctions = auctionsData?.results ?? [];
 
-  const greeting = user?.first_name ? `Привет, ${user.first_name}` : 'Добро пожаловать';
+  const greeting = user?.first_name ? `Добрый день, ${user.first_name}` : 'Добро пожаловать';
 
   return (
     <div className='w-full px-8 py-8'>
