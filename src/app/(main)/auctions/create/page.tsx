@@ -413,7 +413,7 @@ export default function CreateAuctionPage() {
                       <span className='font-semibold text-blue-600'>
                         {selectedPropertyIds.length} {selectedPropertyIds.length === 1 ? 'объект выбран' : selectedPropertyIds.length < 5 ? 'объекта выбрано' : 'объектов выбрано'}
                       </span>
-                      {selectedPropertyIds.length > 1 && totalPrice > 0 && (
+                      {selectedPropertyIds.length > 1 && (
                         <>
                           <span className='text-gray-300'>·</span>
                           <span className='text-gray-500'>суммарно: {formatPrice(String(totalPrice))}</span>
