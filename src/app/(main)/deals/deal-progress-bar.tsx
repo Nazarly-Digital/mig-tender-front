@@ -10,8 +10,8 @@ type Step = {
 
 const DEAL_STEPS: Step[] = [
   { label: 'Загрузка документов', key: 'pending_documents' },
-  { label: 'ПРОВЕРКА документов', key: 'admin_review' },
-  { label: 'Мое ПОДТВЕРЖДЕНИЕ', key: 'developer_confirm' },
+  { label: 'Проверка документов', key: 'admin_review' },
+  { label: 'Мое подтверждение', key: 'developer_confirm' },
   { label: 'Сделка подтверждена', key: 'confirmed' },
 ];
 

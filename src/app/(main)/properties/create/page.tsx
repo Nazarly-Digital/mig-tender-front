@@ -273,7 +273,7 @@ export default function CreatePropertyPage() {
                   </Input.Root>
                 </div>
                 <div className='space-y-1.5'>
-                  <Label.Root htmlFor='property-project'>Проект (ЖК) <Label.Asterisk /></Label.Root>
+                  <Label.Root htmlFor='property-project'>Название проекта <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.project}>
                     <Input.Wrapper>
                       <Input.Input id='property-project' type='text' placeholder='Название проекта или ЖК' {...register('project')} />
@@ -292,7 +292,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-floor'>Этаж <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.floor}>
                     <Input.Wrapper>
-                      <Input.Input id='property-floor' type='number' min='1' placeholder='Например, 5' {...register('floor')} />
+                      <Input.Input id='property-floor' type='number' min='1' placeholder='5' {...register('floor')} />
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.floor && <p className='text-xs text-red-500'>{errors.floor.message}</p>}
@@ -341,10 +341,10 @@ export default function CreatePropertyPage() {
                   <Hint.Root>Если неизвестен — пусто</Hint.Root>
                 </div>
                 <div className='space-y-1.5'>
-                  <Label.Root htmlFor='property-commission'>Комиссия брокера (%)</Label.Root>
+                  <Label.Root htmlFor='property-commission'>Комиссия брокера (%) <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.commission_rate}>
                     <Input.Wrapper>
-                      <Input.Input id='property-commission' type='number' step='0.01' min='0' placeholder='Например, 5' {...register('commission_rate')} />
+                      <Input.Input id='property-commission' type='number' step='0.01' min='0' placeholder='5' {...register('commission_rate')} />
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.commission_rate && (
