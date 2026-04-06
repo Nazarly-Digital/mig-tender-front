@@ -16,6 +16,7 @@ import type {
 
 export const authKeys = {
   me: ["auth", "me"] as const,
+  allDocuments: ["auth", "allDocuments"] as const,
 };
 
 export function useMe() {
@@ -140,6 +141,7 @@ export function useUploadDocument() {
       authService.uploadDocument(data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.me });
+      queryClient.invalidateQueries({ queryKey: authKeys.allDocuments });
     },
   });
 }
@@ -164,6 +166,17 @@ export function useDeleteDocument() {
       authService.deleteDocument(documentId).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: authKeys.me });
+      queryClient.invalidateQueries({ queryKey: authKeys.allDocuments });
     },
+  });
+}
+
+export function useAllDocuments() {
+  const { isAuthenticated } = useSessionStore();
+
+  return useQuery({
+    queryKey: authKeys.allDocuments,
+    queryFn: () => authService.getAllDocuments().then((res) => res.data),
+    enabled: isAuthenticated,
   });
 }

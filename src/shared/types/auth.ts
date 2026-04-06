@@ -9,6 +9,20 @@ export type UserDocument = {
   updated_at: string;
 };
 
+export type UnifiedDocument = {
+  id: number;
+  source: 'user' | 'deal';
+  doc_type: string;
+  document_name: string;
+  url: string;
+  filename: string;
+  extension: string;
+  created_at: string;
+  deal_id: number | null;
+  deal_status: string | null;
+  property_address: string | null;
+};
+
 export type TokenUser = {
   id: number;
   email: string;

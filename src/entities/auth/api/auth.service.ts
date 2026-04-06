@@ -19,6 +19,7 @@ import type {
   UploadDocumentResponse,
   UpdateDocumentNameRequest,
   UpdateDocumentNameResponse,
+  UnifiedDocument,
 } from "@/shared/types/auth";
 
 export const authService = {
@@ -84,4 +85,7 @@ export const authService = {
 
   deleteDocument: (documentId: number) =>
     apiInstance.delete<{ message: string }>(`/auth/documents/${documentId}/`),
+
+  getAllDocuments: () =>
+    apiInstance.get<UnifiedDocument[]>("/auth/documents/all/"),
 };

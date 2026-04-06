@@ -12,6 +12,7 @@ export {
   useUploadDocument,
   useUpdateDocumentName,
   useDeleteDocument,
+  useAllDocuments,
 } from "./model/queries";
 
 export { useDeveloperRegistration } from "./model/use-developer-registration";

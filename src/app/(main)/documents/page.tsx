@@ -21,9 +21,9 @@ import * as Select from '@/shared/ui/select';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as FileFormatIcon from '@/shared/ui/file-format-icon';
-import { useMe, useUploadDocument, useUpdateDocumentName, useDeleteDocument } from '@/features/auth';
+import { useMe, useUploadDocument, useUpdateDocumentName, useDeleteDocument, useAllDocuments } from '@/features/auth';
 import { useSessionStore, isUserBroker } from '@/entities/auth/model/store';
-import type { UserDocument } from '@/shared/types/auth';
+import type { UserDocument, UnifiedDocument } from '@/shared/types/auth';
 
 // --- Helpers ---
 
@@ -31,6 +31,15 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   inn: 'ИНН',
   passport: 'Паспорт',
   others: 'Другое',
+  ddu: 'ДДУ',
+  payment_proof: 'Подтверждение оплаты',
+};
+
+const DEAL_STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  pending_documents: { label: 'Ожидание документов', className: 'bg-amber-50 text-amber-700' },
+  admin_review: { label: 'На проверке', className: 'bg-blue-50 text-blue-700' },
+  developer_confirm: { label: 'Подтверждение', className: 'bg-blue-50 text-blue-700' },
+  confirmed: { label: 'Подтверждена', className: 'bg-emerald-50 text-emerald-700' },
 };
 
 function getExtensionColor(ext: string): 'red' | 'blue' | 'gray' | 'green' {
@@ -353,9 +362,11 @@ function RenameDocumentModal({
 
 export default function DocumentsPage() {
   const { data: me, isLoading } = useMe();
+  const { data: allDocuments, isLoading: isLoadingAll } = useAllDocuments();
   const user = useSessionStore((s) => s.user);
   const isBroker = isUserBroker(user);
   const documents = me?.documents ?? [];
+  const dealDocuments = (allDocuments ?? []).filter((d) => d.source === 'deal');
 
   const innDoc = documents.find((d) => d.doc_type === 'inn');
   const passportDoc = documents.find((d) => d.doc_type === 'passport');
@@ -485,6 +496,107 @@ export default function DocumentsPage() {
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Deal Documents */}
+      <div className='mt-8'>
+        <h2 className='text-lg font-semibold text-gray-900'>Документы по сделкам</h2>
+
+        {isLoadingAll ? (
+          <div className='mt-4'>
+            <TableSkeleton rows={3} cols={4} />
+          </div>
+        ) : dealDocuments.length === 0 ? (
+          <div className='flex flex-col items-center justify-center gap-2 py-16'>
+            <div className='flex size-11 items-center justify-center rounded-xl bg-gray-50'>
+              <HugeiconsIcon icon={File01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+            </div>
+            <p className='mt-1 text-sm font-medium text-gray-900'>Нет документов по сделкам</p>
+            <p className='text-[13px] text-gray-500'>Документы появятся после загрузки в сделках</p>
+          </div>
+        ) : (
+          <div className='mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white'>
+            <table className='w-full text-left'>
+              <thead>
+                <tr className='bg-gray-50/50'>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                    Документ
+                  </th>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                    Объект
+                  </th>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                    Статус сделки
+                  </th>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                    Дата
+                  </th>
+                  <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                    Действия
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {dealDocuments.map((doc) => {
+                  const statusInfo = DEAL_STATUS_LABELS[doc.deal_status ?? ''];
+                  return (
+                    <tr
+                      key={doc.id}
+                      className='border-b border-gray-100 last:border-0 transition-colors hover:bg-gray-50/50'
+                    >
+                      <td className='px-5 py-3.5'>
+                        <div className='flex items-center gap-3'>
+                          <FileFormatIcon.Root
+                            format={doc.extension.replace('.', '').toUpperCase()}
+                            color={getExtensionColor(doc.extension)}
+                            size='small'
+                          />
+                          <div className='min-w-0'>
+                            <p className='truncate text-[13px] font-medium text-gray-900'>
+                              {DOC_TYPE_LABELS[doc.doc_type] ?? doc.document_name}
+                            </p>
+                            <p className='truncate text-[12px] text-gray-400'>
+                              {doc.filename}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className='px-5 py-3.5'>
+                        <span className='text-[13px] text-gray-500'>
+                          {doc.property_address || '—'}
+                        </span>
+                      </td>
+                      <td className='px-5 py-3.5'>
+                        {statusInfo ? (
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusInfo.className}`}>
+                            {statusInfo.label}
+                          </span>
+                        ) : (
+                          <span className='text-[13px] text-gray-400'>—</span>
+                        )}
+                      </td>
+                      <td className='px-5 py-3.5'>
+                        <span className='text-[13px] text-gray-500'>
+                          {formatDate(doc.created_at)}
+                        </span>
+                      </td>
+                      <td className='px-5 py-3.5'>
+                        <div className='flex items-center justify-end'>
+                          <a href={doc.url} target='_blank' rel='noopener noreferrer'>
+                            <FancyButton.Root variant='basic' size='xsmall'>
+                              <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                              Скачать
+                            </FancyButton.Root>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
