@@ -214,7 +214,7 @@ export function BrokerDealsView() {
 
   return (
     <div className="w-full px-8 py-8">
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="">
         <div className="flex items-start justify-between mb-1">
           <div>
             <h1 className="text-lg font-semibold text-gray-900">Мои сделки</h1>

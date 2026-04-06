@@ -97,7 +97,7 @@ function PropertySearchDropdown({
           </span>
         )}
         {reference && (
-          <span className='text-[11px] font-medium text-blue-600 shrink-0'>{compatibleCount} совмест.</span>
+          <span className='text-[11px] font-medium text-blue-600 shrink-0'>{compatibleCount > 0 ? `${compatibleCount} подходящих объектов` : 'Нет подходящих объектов'} совмест.</span>
         )}
       </div>
 
@@ -298,7 +298,7 @@ export default function CreateAuctionPage() {
               <Label.Root>Режим аукциона <Label.Asterisk /></Label.Root>
               <Controller control={control} name='mode' render={({ field }) => (
                 <div className='grid grid-cols-2 gap-2'>
-                  {([['closed', 'Закрытый', '1..N объектов'], ['open', 'Открытый', '1 объект']] as const).map(([v, label, desc]) => (
+                  {([['closed', 'Закрытый', 'Один объект или несколько'], ['open', 'Открытый', 'Один объект']] as const).map(([v, label, desc]) => (
                     <button
                       key={v}
                       type='button'
@@ -369,10 +369,13 @@ export default function CreateAuctionPage() {
                     <div className='flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5'>
                       <HugeiconsIcon icon={InformationCircleIcon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0 text-blue-600 mt-0.5' />
                       <span className='text-xs text-blue-700'>
-                        Первый объект - эталон. В списке только совместимые объекты{(() => {
+                        Выберите один или несколько объектов. Если вы
+                        выберите несколько похожих объектов , они будут
+                        продаваться одним лотом.
+                        {/* {(() => {
                           const parts = [TYPE_LABELS[referenceProperty.type] || referenceProperty.type, `${referenceProperty.area} м²`].filter(Boolean);
                           return parts.length > 0 ? ` (${parts.join(', ')})` : '';
-                        })()}.
+                        })()}. */}
                       </span>
                     </div>
                   )}

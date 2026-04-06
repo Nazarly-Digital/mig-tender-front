@@ -189,7 +189,7 @@ export function AdminDealsView() {
 
   return (
     <div className="w-full px-8 py-8">
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="">
         <div>
           <h1 className="text-lg font-semibold text-gray-900">Админ-панель · Сделки</h1>
           <p className="text-sm text-gray-500 mt-0.5">Проверка документов, подтверждение сделок, контроль обязательств</p>
@@ -198,7 +198,7 @@ export function AdminDealsView() {
         {/* KPI */}
         <div className="grid grid-cols-4 gap-4 mt-5">
           {kpis.map((kpi) => (
-            <div key={kpi.label} className="bg-gray-50 rounded-xl p-4">
+            <div key={kpi.label} className="bg-gray-50 rounded-xl border border-gray-200 p-4">
               <p className="text-xs text-gray-500">{kpi.label}</p>
               <p className={cn('text-2xl font-bold tracking-tight mt-1', kpi.color)}>{kpi.value}</p>
             </div>

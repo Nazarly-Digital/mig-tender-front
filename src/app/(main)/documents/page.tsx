@@ -380,7 +380,7 @@ export default function DocumentsPage() {
   if (isLoading) {
     return (
       <div className='w-full px-8 py-8'>
-        <PageHeader title='Документы' description='Управляйте вашими документами' />
+        <PageHeader title='Документы' description='Управляйте вашими документами со сделок' />
         <div className='mt-6'>
           <TableSkeleton rows={4} cols={4} />
         </div>
@@ -390,7 +390,7 @@ export default function DocumentsPage() {
 
   return (
     <div className='w-full px-8 py-8'>
-      <PageHeader title='Документы' description='Управляйте вашими документами' />
+      <PageHeader title='Документы' description='Управляйте вашими документами со сделок' />
 
       {/* Required Documents — INN & Passport (broker only) */}
       {isBroker && (
