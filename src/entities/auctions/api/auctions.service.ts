@@ -62,7 +62,7 @@ export const auctionsService = {
     apiInstance.post<AssignResponse>(`/auctions/${auctionId}/assign/`, data),
 
   // Compatible properties for lot
-  getCompatibleProperties: (referenceId: number) =>
+  getCompatibleProperties: (referenceId: string) =>
     apiInstance.get<AuctionLotProperty[]>("/properties/compatible/", {
       params: { reference_id: referenceId },
     }),

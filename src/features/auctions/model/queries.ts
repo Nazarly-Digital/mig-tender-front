@@ -24,7 +24,7 @@ export const auctionKeys = {
     [...auctionKeys.all, "participants", id] as const,
   sealedBids: (id: number) =>
     [...auctionKeys.all, "sealed-bids", id] as const,
-  compatibleProperties: (referenceId: number) =>
+  compatibleProperties: (referenceId: string) =>
     [...auctionKeys.all, "compatible-properties", referenceId] as const,
 };
 
@@ -221,11 +221,11 @@ export function useCancelAuction() {
   });
 }
 
-export function useCompatibleProperties(referenceId: number, options?: { enabled?: boolean }) {
+export function useCompatibleProperties(referenceId: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: auctionKeys.compatibleProperties(referenceId),
     queryFn: () =>
       auctionsService.getCompatibleProperties(referenceId).then((res) => res.data),
-    enabled: (options?.enabled ?? true) && referenceId > 0,
+    enabled: (options?.enabled ?? true) && !!referenceId,
   });
 }

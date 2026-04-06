@@ -25,6 +25,7 @@ export type ModerationStatus = 'pending' | 'approved' | 'rejected';
 // Property
 export type Property = {
   id: number;
+  reference_id: string;
   developer: number;
   type: PropertyType;
   address: string;

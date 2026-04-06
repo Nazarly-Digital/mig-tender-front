@@ -57,11 +57,12 @@ export default function CreateAuctionPage() {
   const selectedPropertyIds = watch('propertyIds');
 
   // For CLOSED mode: load compatible properties based on first selected property
-  const referencePropertyId = selectedMode === 'closed' && selectedPropertyIds.length > 0
-    ? Number(selectedPropertyIds[0])
-    : 0;
-  const { data: compatibleProperties } = useCompatibleProperties(referencePropertyId, {
-    enabled: selectedMode === 'closed' && referencePropertyId > 0,
+  const referenceProperty = selectedMode === 'closed' && selectedPropertyIds.length > 0
+    ? properties.find((p) => String(p.id) === selectedPropertyIds[0])
+    : null;
+  const referencePropertyRefId = referenceProperty?.reference_id ?? '';
+  const { data: compatibleProperties } = useCompatibleProperties(referencePropertyRefId, {
+    enabled: selectedMode === 'closed' && !!referencePropertyRefId,
   });
 
   // Properties available for selection in CLOSED mode
@@ -69,9 +70,10 @@ export default function CreateAuctionPage() {
     if (selectedMode !== 'closed') return properties;
     // No reference selected yet — show all properties
     if (!compatibleProperties || selectedPropertyIds.length === 0) return properties;
-    // Show compatible properties
+    // Show compatible properties + always include the reference (first selected)
     const compatibleIds = new Set(compatibleProperties.map((p) => p.id));
-    return properties.filter((p) => compatibleIds.has(p.id));
+    const refId = Number(selectedPropertyIds[0]);
+    return properties.filter((p) => p.id === refId || compatibleIds.has(p.id));
   }, [selectedMode, properties, compatibleProperties, selectedPropertyIds]);
 
   const handlePropertyToggle = (propertyId: string) => {
@@ -221,7 +223,7 @@ export default function CreateAuctionPage() {
                           </div>
                           <div className='flex-1 min-w-0'>
                             <div className='text-sm text-gray-900 truncate'>{p.address}</div>
-                            <div className='text-xs text-gray-500'>{p.area} м² &middot; {formatPrice(p.price)}</div>
+                            <div className='text-xs text-gray-500'>{p.area} м²{p.price && parseFloat(p.price) > 0 ? ` · ${formatPrice(p.price)}` : ''}</div>
                           </div>
                           <input
                             type='checkbox'
