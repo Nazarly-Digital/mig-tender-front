@@ -63,7 +63,7 @@ export const auctionsService = {
 
   // Compatible properties for lot
   getCompatibleProperties: (referenceId: string) =>
-    apiInstance.get<AuctionLotProperty[]>("/properties/compatible/", {
-      params: { reference_id: referenceId },
+    apiInstance.get<{ results: AuctionLotProperty[] }>("/properties/compatible/", {
+      params: { reference_id: referenceId, page_size: 200 },
     }),
 };

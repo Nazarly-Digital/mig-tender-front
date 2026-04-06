@@ -225,7 +225,7 @@ export function useCompatibleProperties(referenceId: string, options?: { enabled
   return useQuery({
     queryKey: auctionKeys.compatibleProperties(referenceId),
     queryFn: () =>
-      auctionsService.getCompatibleProperties(referenceId).then((res) => res.data),
+      auctionsService.getCompatibleProperties(referenceId).then((res) => res.data.results),
     enabled: (options?.enabled ?? true) && !!referenceId,
   });
 }
