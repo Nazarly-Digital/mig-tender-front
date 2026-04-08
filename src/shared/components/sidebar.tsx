@@ -26,6 +26,7 @@ import { cn } from '@/shared/lib/cn';
 import * as Modal from '@/shared/ui/modal';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { useSessionStore, isUserAdmin, isUserDeveloper } from '@/entities/auth/model/store';
+import NotificationButton from '@/shared/components/notification-button';
 
 // Returns true only for the most specific matching link.
 // e.g. on /properties/create: '/properties/create' wins over '/properties'
@@ -125,8 +126,11 @@ export default function Sidebar() {
     <>
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[240px] flex-col border-r border-gray-200 bg-gradient-to-b from-white to-blue-50/30 lg:flex">
         {/* Logo */}
-        <div className="flex h-14 shrink-0 items-center border-b border-gray-200 px-4">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 px-4">
           <Image src="/images/logo.svg" alt="MIG Tender" width={120} height={36} className="h-8 w-auto" />
+          <NotificationButton
+            className="size-9 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 data-[state=open]:bg-gray-100 data-[state=open]:text-gray-700"
+          />
         </div>
 
         {/* Navigation */}

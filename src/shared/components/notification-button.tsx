@@ -1,460 +1,247 @@
 'use client';
 
-import Image from 'next/image';
+import { useCallback, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  RiAttachment2,
-  RiContractRightLine,
-  RiFilter3Fill,
-  RiNotification3Line,
-  RiSettings2Line,
-} from '@remixicon/react';
+  Award01Icon,
+  Building03Icon,
+  Coins01Icon,
+  Wallet01Icon,
+  UserIcon,
+  CogIcon,
+  Notification01Icon,
+  Tick02Icon,
+} from '@hugeicons/core-free-icons';
 
-import * as Avatar from '@/shared/ui/avatar';
-import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
-import * as CompactButton from '@/shared/ui/compact-button';
-import * as Divider from '@/shared/ui/divider';
-import * as LinkButton from '@/shared/ui/link-button';
+import { useNotificationsStore } from '@/entities/notifications';
+import { useNotificationsSocket } from '@/shared/hooks/use-notifications-socket';
+import type { NotificationItem, NotificationCategory } from '@/shared/types/notifications';
 import * as Popover from '@/shared/ui/popover';
-import * as TabMenuHorizontal from '@/shared/ui/tab-menu-horizontal';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
+
+// --- Helpers ---
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'Только что';
+  if (minutes < 60) return `${minutes} мин. назад`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ч. назад`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} дн. назад`;
+  return new Date(dateStr).toLocaleDateString('ru-RU');
+}
+
+function getNotificationRoute(n: NotificationItem): string | null {
+  switch (n.category) {
+    case 'auction':
+      return n.auction_id ? `/auctions/${n.auction_id}` : '/auctions';
+    case 'deal':
+      return '/deals';
+    case 'payment':
+      return '/payments';
+    case 'property':
+      return n.real_property_id ? `/properties/${n.real_property_id}` : '/properties';
+    case 'user':
+      return '/admin/users';
+    default:
+      return null;
+  }
+}
+
+// --- Category avatar config ---
+
+type CategoryConfig = {
+  icon: typeof Award01Icon;
+  bg: string;
+  color: string;
+};
+
+const CATEGORY_CONFIG: Record<NotificationCategory, CategoryConfig> = {
+  auction:  { icon: Award01Icon,     bg: 'bg-blue-100',    color: 'text-blue-600'    },
+  deal:     { icon: Coins01Icon,     bg: 'bg-amber-100',   color: 'text-amber-600'   },
+  payment:  { icon: Wallet01Icon,    bg: 'bg-emerald-100', color: 'text-emerald-600' },
+  property: { icon: Building03Icon,  bg: 'bg-cyan-100',    color: 'text-cyan-600'    },
+  user:     { icon: UserIcon,        bg: 'bg-purple-100',  color: 'text-purple-600'  },
+  system:   { icon: CogIcon,         bg: 'bg-gray-100',    color: 'text-gray-500'    },
+};
+
+// --- Sub-components ---
+
+function CategoryAvatar({ category }: { category: NotificationCategory }) {
+  const cfg = CATEGORY_CONFIG[category] ?? CATEGORY_CONFIG.system;
+  return (
+    <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${cfg.bg} ${cfg.color}`}>
+      <HugeiconsIcon icon={cfg.icon} size={20} color="currentColor" strokeWidth={1.5} />
+    </div>
+  );
+}
+
+function NotificationRow({
+  notification,
+  onRead,
+  onClick,
+}: {
+  notification: NotificationItem;
+  onRead: (id: number) => void;
+  onClick: (n: NotificationItem) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
+      onClick={() => {
+        if (!notification.is_read) onRead(notification.id);
+        onClick(notification);
+      }}
+    >
+      <CategoryAvatar category={notification.category} />
+
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="truncate text-sm font-semibold text-gray-900">{notification.title}</span>
+        <p className="line-clamp-2 text-sm leading-snug text-gray-500">{notification.message}</p>
+        </div>
+          <span className="shrink-0 text-end text-[11px] text-gray-400">{timeAgo(notification.created_at)}</span>
+      </div>
+
+      {!notification.is_read && (
+        <div className="mt-2 size-2 shrink-0 rounded-full bg-emerald-500" />
+      )}
+    </button>
+  );
+}
+
+// --- Main component ---
 
 export default function NotificationButton({
   ...rest
 }: React.ComponentPropsWithoutRef<typeof TopbarItemButton.Root>) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+
+  const items = useNotificationsStore((s) => s.items);
+  const unreadCount = useNotificationsStore((s) => s.unreadCount);
+  const { markRead, markAllRead } = useNotificationsSocket();
+
+  const visibleItems = filter === 'unread' ? items.filter((n) => !n.is_read) : items;
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+  };
+
+  const handleClick = useCallback(
+    (n: NotificationItem) => {
+      const route = getNotificationRoute(n);
+      if (route) router.push(route);
+    },
+    [router],
+  );
+
   return (
-    <Popover.Root>
+    <>
+      <Popover.Root open={open} onOpenChange={handleOpenChange}>
       <Popover.Trigger asChild>
-        <TopbarItemButton.Root hasNotification {...rest}>
-          <TopbarItemButton.Icon as={RiNotification3Line} />
+        <TopbarItemButton.Root hasNotification={unreadCount > 0} {...rest}>
+          <HugeiconsIcon
+            icon={Notification01Icon}
+            size={18}
+            color="currentColor"
+            strokeWidth={1.8}
+          />
         </TopbarItemButton.Root>
       </Popover.Trigger>
+
       <Popover.Content
         showArrow={false}
-        className='w-screen max-w-[calc(100%-36px)] rounded-20 p-0 shadow-none min-[480px]:max-w-[448px]'
+        side="bottom"
+        align="end"
+        sideOffset={8}
+        className="w-[380px] rounded-2xl border border-gray-200 bg-white p-0 shadow-xl"
       >
-        <TabMenuHorizontal.Root defaultValue='all'>
-          <div className='flex h-14 items-center justify-between px-5'>
-            <span className='text-label-md text-text-strong-950'>
-              Notifications
-            </span>
-            <LinkButton.Root variant='primary' size='medium'>
-              Mark all as read
-            </LinkButton.Root>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <span className="text-base font-semibold text-gray-900">Уведомления</span>
+          <div className="flex items-center gap-0.5 rounded-lg bg-gray-100 p-1">
+            <button
+              type="button"
+              onClick={() => setFilter('all')}
+              className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                filter === 'all'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Все
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter('unread')}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                filter === 'unread'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Непрочитанные
+              {unreadCount > 0 && (
+                <span className="flex size-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium leading-none text-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
           </div>
-          <div className='flex items-center justify-between gap-5 border-y border-stroke-soft-200 px-5'>
-            <TabMenuHorizontal.List
-              className='gap-5 border-y-transparent'
-              wrapperClassName='-my-px'
-            >
-              <TabMenuHorizontal.Trigger value='all'>
-                All
-              </TabMenuHorizontal.Trigger>
-              <TabMenuHorizontal.Trigger value='inbox'>
-                Inbox
-                <Badge.Root
-                  size='small'
-                  color='red'
-                  variant='filled'
-                  square
-                  className='-ml-0.5'
-                >
-                  2
-                </Badge.Root>
-              </TabMenuHorizontal.Trigger>
-              <TabMenuHorizontal.Trigger value='following'>
-                Following
-              </TabMenuHorizontal.Trigger>
-              <div
-                className='h-5 w-px shrink-0 bg-stroke-soft-200'
-                role='separator'
-              />
-              <TabMenuHorizontal.Trigger value='archived'>
-                Archived
-              </TabMenuHorizontal.Trigger>
-            </TabMenuHorizontal.List>
-            <CompactButton.Root fullRadius size='large' variant='ghost'>
-              <CompactButton.Icon as={RiFilter3Fill} />
-            </CompactButton.Root>
-          </div>
+        </div>
 
-          <div className='p-2'>
-            <TabMenuHorizontal.Content
-              className='flex flex-col gap-1 data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2'
-              value='all'
-            >
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/wei.png' />
-                  <Avatar.Indicator position='top'>
-                    <Avatar.Status status='busy' />
-                  </Avatar.Indicator>
-                </Avatar.Root>
-                <div className='space-y-1'>
-                  <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                    <strong>Wei Chen</strong> joined to{' '}
-                    <strong>Final Presentation</strong>
-                  </div>
-                  <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                    <span>8 min ago</span>
-                    <span className='px-0.5'>∙</span>
-                    <div className='flex items-center gap-1'>
-                      <Image
-                        src='/images/placeholder/horizon.svg'
-                        alt=''
-                        width={16}
-                        height={16}
-                        className='size-4 shrink-0'
-                      />
-                      <span>Horizon Shift</span>
-                    </div>
-                  </div>
-                </div>
+        <div className="mx-4 h-px bg-gray-100" />
+
+        {/* Notification list */}
+        <div className="max-h-[420px] overflow-y-auto px-1 py-2">
+          {visibleItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={1.5} />
               </div>
-
-              <Divider.Root variant='line-spacing' />
-
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/sophia.png' />
-                  <Avatar.Indicator position='top'>
-                    <Avatar.Status status='busy' />
-                  </Avatar.Indicator>
-                </Avatar.Root>
-                <div className='space-y-4'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Sophia Williams</strong> invites you{' '}
-                      <strong>synergy.fig</strong> file with you
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>2 hours ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/synergy.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Synergy HR</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='xsmall'
-                      className='px-3.5'
-                    >
-                      Deny
-                    </Button.Root>
-                    <Button.Root
-                      variant='primary'
-                      mode='filled'
-                      size='xsmall'
-                      className='px-3.5'
-                      onClick={() => alert('approve')}
-                    >
-                      Approve
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-
-              <Divider.Root variant='line-spacing' />
-
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/arthur.png' />
-                </Avatar.Root>
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Arthur Taylor</strong> uploaded an{' '}
-                      <strong>arthur.csv</strong> file
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>3 hours ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/apex.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Apex Financial</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
-                      className='text-paragraph-sm'
-                    >
-                      <Button.Icon as={RiAttachment2} />
-                      <div className='flex gap-0.5'>
-                        arthur.csv
-                        <span className='text-paragraph-sm text-text-soft-400'>
-                          (4mb)
-                        </span>
-                      </div>
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-
-              <Divider.Root variant='line-spacing' />
-
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/laura.png' />
-                </Avatar.Root>
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Laura Perez</strong> commented on your post
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>2 days ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/solaris.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Solaris</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
-                      className='text-paragraph-sm'
-                    >
-                      Fantastic! Let&apos;s dive right in 🚀
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-            </TabMenuHorizontal.Content>
-            <TabMenuHorizontal.Content
-              className='flex flex-col gap-1 data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2'
-              value='inbox'
-            >
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/wei.png' />
-                  <Avatar.Indicator position='top'>
-                    <Avatar.Status status='busy' />
-                  </Avatar.Indicator>
-                </Avatar.Root>
-                <div className='space-y-1'>
-                  <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                    <strong>Wei Chen</strong> joined to{' '}
-                    <strong>Final Presentation</strong>
-                  </div>
-                  <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                    <span>8 min ago</span>
-                    <span className='px-0.5'>∙</span>
-                    <div className='flex items-center gap-1'>
-                      <Image
-                        src='/images/placeholder/horizon.svg'
-                        alt=''
-                        width={16}
-                        height={16}
-                        className='size-4 shrink-0'
-                      />
-                      <span>Horizon Shift</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Divider.Root variant='line-spacing' />
-
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/sophia.png' />
-                  <Avatar.Indicator position='top'>
-                    <Avatar.Status status='busy' />
-                  </Avatar.Indicator>
-                </Avatar.Root>
-                <div className='space-y-4'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Sophia Williams</strong> invites you{' '}
-                      <strong>synergy.fig</strong> file with you
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>2 hours ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/synergy.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Synergy HR</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='xsmall'
-                      className='px-3.5'
-                    >
-                      Deny
-                    </Button.Root>
-                    <Button.Root
-                      variant='primary'
-                      mode='filled'
-                      size='xsmall'
-                      className='px-3.5'
-                      onClick={() => alert('approve')}
-                    >
-                      Approve
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-            </TabMenuHorizontal.Content>
-            <TabMenuHorizontal.Content
-              className='flex flex-col gap-1 data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2'
-              value='following'
-            >
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/arthur.png' />
-                </Avatar.Root>
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Arthur Taylor</strong> uploaded an{' '}
-                      <strong>arthur.csv</strong> file
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>3 hours ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/apex.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Apex Financial</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
-                      className='text-paragraph-sm'
-                    >
-                      <Button.Icon as={RiAttachment2} />
-                      <div className='flex gap-0.5'>
-                        arthur.csv
-                        <span className='text-paragraph-sm text-text-soft-400'>
-                          (4mb)
-                        </span>
-                      </div>
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-            </TabMenuHorizontal.Content>
-            <TabMenuHorizontal.Content
-              className='flex flex-col gap-1 data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2'
-              value='archived'
-            >
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/laura.png' />
-                </Avatar.Root>
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Laura Perez</strong> commented on your post
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>2 days ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/solaris.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Solaris</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
-                      className='text-paragraph-sm'
-                    >
-                      Fantastic! Let&apos;s dive right in 🚀
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-            </TabMenuHorizontal.Content>
-          </div>
-
-          <div className='flex h-12 items-center justify-between border-t border-stroke-soft-200 px-5'>
-            <div className='flex items-center gap-2 text-paragraph-xs text-text-sub-600'>
-              Use
-              <div className='ring-inside flex size-5 shrink-0 items-center justify-center rounded bg-bg-weak-50 text-text-sub-600 ring-1 ring-stroke-soft-200'>
-                <RiContractRightLine className='size-4' />
-              </div>
-              to navigate
+              <p className="text-sm font-medium text-gray-900">Нет уведомлений</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {filter === 'unread' ? 'Все уведомления прочитаны' : 'У вас пока нет уведомлений'}
+              </p>
             </div>
+          ) : (
+            <div className="flex flex-col">
+              {visibleItems.map((n) => (
+                <NotificationRow
+                  key={n.id}
+                  notification={n}
+                  onRead={markRead}
+                  onClick={handleClick}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
-            <LinkButton.Root size='small' variant='gray'>
-              <LinkButton.Icon as={RiSettings2Line} />
-              Manage Notification
-            </LinkButton.Root>
-          </div>
-        </TabMenuHorizontal.Root>
+        {/* Footer — mark all read */}
+        {unreadCount > 0 && (
+          <>
+            <div className="mx-4 h-px bg-gray-100" />
+            <div className="px-3 py-3">
+              <button
+                type="button"
+                onClick={markAllRead}
+                className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+              >
+                <HugeiconsIcon icon={Tick02Icon} size={16} color="currentColor" strokeWidth={1.5} />
+                Отметить все как прочитанные
+              </button>
+            </div>
+          </>
+        )}
       </Popover.Content>
     </Popover.Root>
+    </>
   );
 }
