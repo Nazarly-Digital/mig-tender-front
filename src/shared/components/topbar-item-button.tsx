@@ -35,7 +35,7 @@ const TopbarItemButton = React.forwardRef<
       >
         <Slottable>{children}</Slottable>
         {hasNotification && (
-          <div className='absolute right-2.5 top-2.5 size-2 rounded-full border-2 border-stroke-white-0 bg-error-base shadow-regular-xs' />
+          <div className='absolute right-1.5 top-1 size-2 rounded-full border-2 border-stroke-white-0 bg-error-base shadow-regular-xs' />
         )}
       </Component>
     );

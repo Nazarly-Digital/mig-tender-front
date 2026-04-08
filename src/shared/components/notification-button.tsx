@@ -1,15 +1,23 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { RiNotification3Line, RiCheckDoubleLine } from '@remixicon/react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+  Award01Icon,
+  Building03Icon,
+  Coins01Icon,
+  Wallet01Icon,
+  UserIcon,
+  CogIcon,
+  Notification01Icon,
+  Tick02Icon,
+} from '@hugeicons/core-free-icons';
 
 import { useNotificationsStore } from '@/entities/notifications';
 import { useNotificationsSocket } from '@/shared/hooks/use-notifications-socket';
-import type { NotificationItem } from '@/shared/types/notifications';
+import type { NotificationItem, NotificationCategory } from '@/shared/types/notifications';
 import * as Popover from '@/shared/ui/popover';
-import * as Divider from '@/shared/ui/divider';
-import * as LinkButton from '@/shared/ui/link-button';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
 
 // --- Helpers ---
@@ -26,41 +34,52 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('ru-RU');
 }
 
-function getCategoryLabel(category: string): string {
-  const map: Record<string, string> = {
-    system: 'Система',
-    user: 'Пользователи',
-    property: 'Объекты',
-    auction: 'Аукционы',
-    deal: 'Сделки',
-    payment: 'Выплаты',
-  };
-  return map[category] ?? category;
-}
-
-function getCategoryColor(category: string): string {
-  const map: Record<string, string> = {
-    auction: 'bg-blue-50 text-blue-700',
-    deal: 'bg-amber-50 text-amber-700',
-    payment: 'bg-emerald-50 text-emerald-700',
-    user: 'bg-purple-50 text-purple-700',
-    property: 'bg-cyan-50 text-cyan-700',
-    system: 'bg-gray-100 text-gray-600',
-  };
-  return map[category] ?? 'bg-gray-100 text-gray-600';
-}
-
 function getNotificationRoute(n: NotificationItem): string | null {
-  if (n.deal_id) return `/deals/${n.deal_id}`;
-  if (n.payment_id) return `/payments`;
-  if (n.auction_id) return `/auctions/${n.auction_id}`;
-  if (n.real_property_id) return `/properties/${n.real_property_id}`;
-  return null;
+  switch (n.category) {
+    case 'auction':
+      return n.auction_id ? `/auctions/${n.auction_id}` : '/auctions';
+    case 'deal':
+      return '/deals';
+    case 'payment':
+      return '/payments';
+    case 'property':
+      return n.real_property_id ? `/properties/${n.real_property_id}` : '/properties';
+    case 'user':
+      return '/admin/users';
+    default:
+      return null;
+  }
 }
 
-// --- Components ---
+// --- Category avatar config ---
 
-function NotificationItemRow({
+type CategoryConfig = {
+  icon: typeof Award01Icon;
+  bg: string;
+  color: string;
+};
+
+const CATEGORY_CONFIG: Record<NotificationCategory, CategoryConfig> = {
+  auction:  { icon: Award01Icon,     bg: 'bg-blue-100',    color: 'text-blue-600'    },
+  deal:     { icon: Coins01Icon,     bg: 'bg-amber-100',   color: 'text-amber-600'   },
+  payment:  { icon: Wallet01Icon,    bg: 'bg-emerald-100', color: 'text-emerald-600' },
+  property: { icon: Building03Icon,  bg: 'bg-cyan-100',    color: 'text-cyan-600'    },
+  user:     { icon: UserIcon,        bg: 'bg-purple-100',  color: 'text-purple-600'  },
+  system:   { icon: CogIcon,         bg: 'bg-gray-100',    color: 'text-gray-500'    },
+};
+
+// --- Sub-components ---
+
+function CategoryAvatar({ category }: { category: NotificationCategory }) {
+  const cfg = CATEGORY_CONFIG[category] ?? CATEGORY_CONFIG.system;
+  return (
+    <div className={`flex size-10 shrink-0 items-center justify-center rounded-full ${cfg.bg} ${cfg.color}`}>
+      <HugeiconsIcon icon={cfg.icon} size={20} color="currentColor" strokeWidth={1.5} />
+    </div>
+  );
+}
+
+function NotificationRow({
   notification,
   onRead,
   onClick,
@@ -72,41 +91,47 @@ function NotificationItemRow({
   return (
     <button
       type="button"
-      className={`flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors hover:bg-gray-50 ${
-        !notification.is_read ? 'bg-blue-50/40' : ''
-      }`}
+      className="flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-gray-50 active:bg-gray-100"
       onClick={() => {
         if (!notification.is_read) onRead(notification.id);
         onClick(notification);
       }}
     >
-      <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full ${getCategoryColor(
-              notification.category,
-            )}`}
-          >
-            {getCategoryLabel(notification.category)}
-          </span>
-          {!notification.is_read && (
-            <span className="size-1.5 rounded-full bg-blue-600 shrink-0" />
-          )}
+      <CategoryAvatar category={notification.category} />
+
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="truncate text-sm font-semibold text-gray-900">{notification.title}</span>
+        <p className="line-clamp-2 text-sm leading-snug text-gray-500">{notification.message}</p>
         </div>
-        <p className="text-sm text-gray-900 leading-snug">{notification.message}</p>
-        <span className="text-xs text-gray-400">{timeAgo(notification.created_at)}</span>
+          <span className="shrink-0 text-end text-[11px] text-gray-400">{timeAgo(notification.created_at)}</span>
       </div>
+
+      {!notification.is_read && (
+        <div className="mt-2 size-2 shrink-0 rounded-full bg-emerald-500" />
+      )}
     </button>
   );
 }
+
+// --- Main component ---
 
 export default function NotificationButton({
   ...rest
 }: React.ComponentPropsWithoutRef<typeof TopbarItemButton.Root>) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+
   const items = useNotificationsStore((s) => s.items);
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
   const { markRead, markAllRead } = useNotificationsSocket();
+
+  const visibleItems = filter === 'unread' ? items.filter((n) => !n.is_read) : items;
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+  };
 
   const handleClick = useCallback(
     (n: NotificationItem) => {
@@ -116,69 +141,107 @@ export default function NotificationButton({
     [router],
   );
 
-  const handleMarkRead = useCallback(
-    (id: number) => {
-      markRead(id);
-    },
-    [markRead],
-  );
-
   return (
-    <Popover.Root>
+    <>
+      <Popover.Root open={open} onOpenChange={handleOpenChange}>
       <Popover.Trigger asChild>
         <TopbarItemButton.Root hasNotification={unreadCount > 0} {...rest}>
-          <TopbarItemButton.Icon as={RiNotification3Line} />
+          <HugeiconsIcon
+            icon={Notification01Icon}
+            size={18}
+            color="currentColor"
+            strokeWidth={1.8}
+          />
         </TopbarItemButton.Root>
       </Popover.Trigger>
+
       <Popover.Content
         showArrow={false}
-        className="w-screen max-w-[calc(100%-36px)] rounded-20 p-0 shadow-none min-[480px]:max-w-[448px]"
+        side="bottom"
+        align="end"
+        sideOffset={8}
+        className="w-[380px] rounded-2xl border border-gray-200 bg-white p-0 shadow-xl"
       >
         {/* Header */}
-        <div className="flex h-14 items-center justify-between px-5">
-          <span className="text-label-md text-text-strong-950">
-            Уведомления
-            {unreadCount > 0 && (
-              <span className="ml-2 inline-flex items-center justify-center rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-medium text-white leading-none">
-                {unreadCount}
-              </span>
-            )}
-          </span>
-          {unreadCount > 0 && (
-            <LinkButton.Root
-              variant="primary"
-              size="medium"
-              onClick={markAllRead}
+        <div className="flex items-center justify-between px-4 pt-4 pb-3">
+          <span className="text-base font-semibold text-gray-900">Уведомления</span>
+          <div className="flex items-center gap-0.5 rounded-lg bg-gray-100 p-1">
+            <button
+              type="button"
+              onClick={() => setFilter('all')}
+              className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                filter === 'all'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
             >
-              <RiCheckDoubleLine className="size-4" />
-              Прочитать все
-            </LinkButton.Root>
-          )}
+              Все
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter('unread')}
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                filter === 'unread'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Непрочитанные
+              {unreadCount > 0 && (
+                <span className="flex size-4 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium leading-none text-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
-        <Divider.Root variant="line-spacing" />
+        <div className="mx-4 h-px bg-gray-100" />
 
-        {/* List */}
-        <div className="max-h-[400px] overflow-y-auto p-2">
-          {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <RiNotification3Line className="size-10 text-gray-300 mb-3" />
-              <p className="text-sm text-gray-500">Нет уведомлений</p>
+        {/* Notification list */}
+        <div className="max-h-[420px] overflow-y-auto px-1 py-2">
+          {visibleItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                <HugeiconsIcon icon={Notification01Icon} size={24} color="currentColor" strokeWidth={1.5} />
+              </div>
+              <p className="text-sm font-medium text-gray-900">Нет уведомлений</p>
+              <p className="mt-1 text-xs text-gray-500">
+                {filter === 'unread' ? 'Все уведомления прочитаны' : 'У вас пока нет уведомлений'}
+              </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-0.5">
-              {items.map((n) => (
-                <NotificationItemRow
+            <div className="flex flex-col">
+              {visibleItems.map((n) => (
+                <NotificationRow
                   key={n.id}
                   notification={n}
-                  onRead={handleMarkRead}
+                  onRead={markRead}
                   onClick={handleClick}
                 />
               ))}
             </div>
           )}
         </div>
+
+        {/* Footer — mark all read */}
+        {unreadCount > 0 && (
+          <>
+            <div className="mx-4 h-px bg-gray-100" />
+            <div className="px-3 py-3">
+              <button
+                type="button"
+                onClick={markAllRead}
+                className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900"
+              >
+                <HugeiconsIcon icon={Tick02Icon} size={16} color="currentColor" strokeWidth={1.5} />
+                Отметить все как прочитанные
+              </button>
+            </div>
+          </>
+        )}
       </Popover.Content>
     </Popover.Root>
+    </>
   );
 }
