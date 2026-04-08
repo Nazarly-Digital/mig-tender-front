@@ -1,459 +1,183 @@
 'use client';
 
-import Image from 'next/image';
-import {
-  RiAttachment2,
-  RiContractRightLine,
-  RiFilter3Fill,
-  RiNotification3Line,
-  RiSettings2Line,
-} from '@remixicon/react';
+import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { RiNotification3Line, RiCheckDoubleLine } from '@remixicon/react';
 
-import * as Avatar from '@/shared/ui/avatar';
-import * as Badge from '@/shared/ui/badge';
-import * as Button from '@/shared/ui/button';
-import * as CompactButton from '@/shared/ui/compact-button';
+import { useNotificationsStore } from '@/entities/notifications';
+import { useNotificationsSocket } from '@/shared/hooks/use-notifications-socket';
+import type { NotificationItem } from '@/shared/types/notifications';
+import * as Popover from '@/shared/ui/popover';
 import * as Divider from '@/shared/ui/divider';
 import * as LinkButton from '@/shared/ui/link-button';
-import * as Popover from '@/shared/ui/popover';
-import * as TabMenuHorizontal from '@/shared/ui/tab-menu-horizontal';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
+
+// --- Helpers ---
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'Только что';
+  if (minutes < 60) return `${minutes} мин. назад`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ч. назад`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} дн. назад`;
+  return new Date(dateStr).toLocaleDateString('ru-RU');
+}
+
+function getCategoryLabel(category: string): string {
+  const map: Record<string, string> = {
+    system: 'Система',
+    user: 'Пользователи',
+    property: 'Объекты',
+    auction: 'Аукционы',
+    deal: 'Сделки',
+    payment: 'Выплаты',
+  };
+  return map[category] ?? category;
+}
+
+function getCategoryColor(category: string): string {
+  const map: Record<string, string> = {
+    auction: 'bg-blue-50 text-blue-700',
+    deal: 'bg-amber-50 text-amber-700',
+    payment: 'bg-emerald-50 text-emerald-700',
+    user: 'bg-purple-50 text-purple-700',
+    property: 'bg-cyan-50 text-cyan-700',
+    system: 'bg-gray-100 text-gray-600',
+  };
+  return map[category] ?? 'bg-gray-100 text-gray-600';
+}
+
+function getNotificationRoute(n: NotificationItem): string | null {
+  if (n.deal_id) return `/deals/${n.deal_id}`;
+  if (n.payment_id) return `/payments`;
+  if (n.auction_id) return `/auctions/${n.auction_id}`;
+  if (n.real_property_id) return `/properties/${n.real_property_id}`;
+  return null;
+}
+
+// --- Components ---
+
+function NotificationItemRow({
+  notification,
+  onRead,
+  onClick,
+}: {
+  notification: NotificationItem;
+  onRead: (id: number) => void;
+  onClick: (n: NotificationItem) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors hover:bg-gray-50 ${
+        !notification.is_read ? 'bg-blue-50/40' : ''
+      }`}
+      onClick={() => {
+        if (!notification.is_read) onRead(notification.id);
+        onClick(notification);
+      }}
+    >
+      <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full ${getCategoryColor(
+              notification.category,
+            )}`}
+          >
+            {getCategoryLabel(notification.category)}
+          </span>
+          {!notification.is_read && (
+            <span className="size-1.5 rounded-full bg-blue-600 shrink-0" />
+          )}
+        </div>
+        <p className="text-sm text-gray-900 leading-snug">{notification.message}</p>
+        <span className="text-xs text-gray-400">{timeAgo(notification.created_at)}</span>
+      </div>
+    </button>
+  );
+}
 
 export default function NotificationButton({
   ...rest
 }: React.ComponentPropsWithoutRef<typeof TopbarItemButton.Root>) {
+  const router = useRouter();
+  const items = useNotificationsStore((s) => s.items);
+  const unreadCount = useNotificationsStore((s) => s.unreadCount);
+  const { markRead, markAllRead } = useNotificationsSocket();
+
+  const handleClick = useCallback(
+    (n: NotificationItem) => {
+      const route = getNotificationRoute(n);
+      if (route) router.push(route);
+    },
+    [router],
+  );
+
+  const handleMarkRead = useCallback(
+    (id: number) => {
+      markRead(id);
+    },
+    [markRead],
+  );
+
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <TopbarItemButton.Root hasNotification {...rest}>
+        <TopbarItemButton.Root hasNotification={unreadCount > 0} {...rest}>
           <TopbarItemButton.Icon as={RiNotification3Line} />
         </TopbarItemButton.Root>
       </Popover.Trigger>
       <Popover.Content
         showArrow={false}
-        className='w-screen max-w-[calc(100%-36px)] rounded-20 p-0 shadow-none min-[480px]:max-w-[448px]'
+        className="w-screen max-w-[calc(100%-36px)] rounded-20 p-0 shadow-none min-[480px]:max-w-[448px]"
       >
-        <TabMenuHorizontal.Root defaultValue='all'>
-          <div className='flex h-14 items-center justify-between px-5'>
-            <span className='text-label-md text-text-strong-950'>
-              Notifications
-            </span>
-            <LinkButton.Root variant='primary' size='medium'>
-              Mark all as read
+        {/* Header */}
+        <div className="flex h-14 items-center justify-between px-5">
+          <span className="text-label-md text-text-strong-950">
+            Уведомления
+            {unreadCount > 0 && (
+              <span className="ml-2 inline-flex items-center justify-center rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-medium text-white leading-none">
+                {unreadCount}
+              </span>
+            )}
+          </span>
+          {unreadCount > 0 && (
+            <LinkButton.Root
+              variant="primary"
+              size="medium"
+              onClick={markAllRead}
+            >
+              <RiCheckDoubleLine className="size-4" />
+              Прочитать все
             </LinkButton.Root>
-          </div>
-          <div className='flex items-center justify-between gap-5 border-y border-stroke-soft-200 px-5'>
-            <TabMenuHorizontal.List
-              className='gap-5 border-y-transparent'
-              wrapperClassName='-my-px'
-            >
-              <TabMenuHorizontal.Trigger value='all'>
-                All
-              </TabMenuHorizontal.Trigger>
-              <TabMenuHorizontal.Trigger value='inbox'>
-                Inbox
-                <Badge.Root
-                  size='small'
-                  color='red'
-                  variant='filled'
-                  square
-                  className='-ml-0.5'
-                >
-                  2
-                </Badge.Root>
-              </TabMenuHorizontal.Trigger>
-              <TabMenuHorizontal.Trigger value='following'>
-                Following
-              </TabMenuHorizontal.Trigger>
-              <div
-                className='h-5 w-px shrink-0 bg-stroke-soft-200'
-                role='separator'
-              />
-              <TabMenuHorizontal.Trigger value='archived'>
-                Archived
-              </TabMenuHorizontal.Trigger>
-            </TabMenuHorizontal.List>
-            <CompactButton.Root fullRadius size='large' variant='ghost'>
-              <CompactButton.Icon as={RiFilter3Fill} />
-            </CompactButton.Root>
-          </div>
+          )}
+        </div>
 
-          <div className='p-2'>
-            <TabMenuHorizontal.Content
-              className='flex flex-col gap-1 data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2'
-              value='all'
-            >
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/wei.png' />
-                  <Avatar.Indicator position='top'>
-                    <Avatar.Status status='busy' />
-                  </Avatar.Indicator>
-                </Avatar.Root>
-                <div className='space-y-1'>
-                  <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                    <strong>Wei Chen</strong> joined to{' '}
-                    <strong>Final Presentation</strong>
-                  </div>
-                  <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                    <span>8 min ago</span>
-                    <span className='px-0.5'>∙</span>
-                    <div className='flex items-center gap-1'>
-                      <Image
-                        src='/images/placeholder/horizon.svg'
-                        alt=''
-                        width={16}
-                        height={16}
-                        className='size-4 shrink-0'
-                      />
-                      <span>Horizon Shift</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <Divider.Root variant="line-spacing" />
 
-              <Divider.Root variant='line-spacing' />
-
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/sophia.png' />
-                  <Avatar.Indicator position='top'>
-                    <Avatar.Status status='busy' />
-                  </Avatar.Indicator>
-                </Avatar.Root>
-                <div className='space-y-4'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Sophia Williams</strong> invites you{' '}
-                      <strong>synergy.fig</strong> file with you
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>2 hours ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/synergy.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Synergy HR</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='xsmall'
-                      className='px-3.5'
-                    >
-                      Deny
-                    </Button.Root>
-                    <Button.Root
-                      variant='primary'
-                      mode='filled'
-                      size='xsmall'
-                      className='px-3.5'
-                      onClick={() => alert('approve')}
-                    >
-                      Approve
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-
-              <Divider.Root variant='line-spacing' />
-
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/arthur.png' />
-                </Avatar.Root>
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Arthur Taylor</strong> uploaded an{' '}
-                      <strong>arthur.csv</strong> file
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>3 hours ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/apex.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Apex Financial</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
-                      className='text-paragraph-sm'
-                    >
-                      <Button.Icon as={RiAttachment2} />
-                      <div className='flex gap-0.5'>
-                        arthur.csv
-                        <span className='text-paragraph-sm text-text-soft-400'>
-                          (4mb)
-                        </span>
-                      </div>
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-
-              <Divider.Root variant='line-spacing' />
-
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/laura.png' />
-                </Avatar.Root>
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Laura Perez</strong> commented on your post
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>2 days ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/solaris.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Solaris</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
-                      className='text-paragraph-sm'
-                    >
-                      Fantastic! Let&apos;s dive right in 🚀
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-            </TabMenuHorizontal.Content>
-            <TabMenuHorizontal.Content
-              className='flex flex-col gap-1 data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2'
-              value='inbox'
-            >
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/wei.png' />
-                  <Avatar.Indicator position='top'>
-                    <Avatar.Status status='busy' />
-                  </Avatar.Indicator>
-                </Avatar.Root>
-                <div className='space-y-1'>
-                  <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                    <strong>Wei Chen</strong> joined to{' '}
-                    <strong>Final Presentation</strong>
-                  </div>
-                  <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                    <span>8 min ago</span>
-                    <span className='px-0.5'>∙</span>
-                    <div className='flex items-center gap-1'>
-                      <Image
-                        src='/images/placeholder/horizon.svg'
-                        alt=''
-                        width={16}
-                        height={16}
-                        className='size-4 shrink-0'
-                      />
-                      <span>Horizon Shift</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Divider.Root variant='line-spacing' />
-
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/sophia.png' />
-                  <Avatar.Indicator position='top'>
-                    <Avatar.Status status='busy' />
-                  </Avatar.Indicator>
-                </Avatar.Root>
-                <div className='space-y-4'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Sophia Williams</strong> invites you{' '}
-                      <strong>synergy.fig</strong> file with you
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>2 hours ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/synergy.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Synergy HR</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='xsmall'
-                      className='px-3.5'
-                    >
-                      Deny
-                    </Button.Root>
-                    <Button.Root
-                      variant='primary'
-                      mode='filled'
-                      size='xsmall'
-                      className='px-3.5'
-                      onClick={() => alert('approve')}
-                    >
-                      Approve
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-            </TabMenuHorizontal.Content>
-            <TabMenuHorizontal.Content
-              className='flex flex-col gap-1 data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2'
-              value='following'
-            >
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/arthur.png' />
-                </Avatar.Root>
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Arthur Taylor</strong> uploaded an{' '}
-                      <strong>arthur.csv</strong> file
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>3 hours ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/apex.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Apex Financial</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
-                      className='text-paragraph-sm'
-                    >
-                      <Button.Icon as={RiAttachment2} />
-                      <div className='flex gap-0.5'>
-                        arthur.csv
-                        <span className='text-paragraph-sm text-text-soft-400'>
-                          (4mb)
-                        </span>
-                      </div>
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-            </TabMenuHorizontal.Content>
-            <TabMenuHorizontal.Content
-              className='flex flex-col gap-1 data-[state=active]:duration-300 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2'
-              value='archived'
-            >
-              {/* notifiaction item */}
-              <div className='flex items-start gap-[15px] rounded-lg p-3 text-paragraph-sm text-text-strong-950'>
-                <Avatar.Root size='40'>
-                  <Avatar.Image src='/images/avatar/illustration/laura.png' />
-                </Avatar.Root>
-                <div className='space-y-3'>
-                  <div className='space-y-1'>
-                    <div className='text-label-sm font-normal text-text-sub-600 [&>strong]:font-medium [&>strong]:text-text-strong-950'>
-                      <strong>Laura Perez</strong> commented on your post
-                    </div>
-                    <div className='flex items-center gap-1 text-paragraph-xs text-text-sub-600'>
-                      <span>2 days ago</span>
-                      <span className='px-0.5'>∙</span>
-                      <div className='flex items-center gap-1'>
-                        <Image
-                          src='/images/placeholder/solaris.svg'
-                          alt=''
-                          width={16}
-                          height={16}
-                          className='size-4 shrink-0'
-                        />
-                        <span>Solaris</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex gap-2.5'>
-                    <Button.Root
-                      variant='neutral'
-                      mode='stroke'
-                      size='small'
-                      className='text-paragraph-sm'
-                    >
-                      Fantastic! Let&apos;s dive right in 🚀
-                    </Button.Root>
-                  </div>
-                </div>
-              </div>
-            </TabMenuHorizontal.Content>
-          </div>
-
-          <div className='flex h-12 items-center justify-between border-t border-stroke-soft-200 px-5'>
-            <div className='flex items-center gap-2 text-paragraph-xs text-text-sub-600'>
-              Use
-              <div className='ring-inside flex size-5 shrink-0 items-center justify-center rounded bg-bg-weak-50 text-text-sub-600 ring-1 ring-stroke-soft-200'>
-                <RiContractRightLine className='size-4' />
-              </div>
-              to navigate
+        {/* List */}
+        <div className="max-h-[400px] overflow-y-auto p-2">
+          {items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <RiNotification3Line className="size-10 text-gray-300 mb-3" />
+              <p className="text-sm text-gray-500">Нет уведомлений</p>
             </div>
-
-            <LinkButton.Root size='small' variant='gray'>
-              <LinkButton.Icon as={RiSettings2Line} />
-              Manage Notification
-            </LinkButton.Root>
-          </div>
-        </TabMenuHorizontal.Root>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              {items.map((n) => (
+                <NotificationItemRow
+                  key={n.id}
+                  notification={n}
+                  onRead={handleMarkRead}
+                  onClick={handleClick}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </Popover.Content>
     </Popover.Root>
   );
