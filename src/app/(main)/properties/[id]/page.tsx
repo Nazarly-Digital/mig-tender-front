@@ -570,7 +570,7 @@ function PropertyEditForm({
       {/* Price + Commission */}
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
-          <Label.Root htmlFor='p-price'>Цена (₽) <Label.Asterisk /></Label.Root>
+          <Label.Root htmlFor='p-price'>Прайсовая цена <Label.Asterisk /></Label.Root>
           <PriceField control={control} id='p-price' size='small' />
           {errors.price && <p className='text-[11px] text-red-500'>{errors.price.message}</p>}
         </div>
@@ -591,7 +591,7 @@ function PropertyEditForm({
           <Label.Root htmlFor='p-deadline'>Срок сдачи</Label.Root>
           <Input.Root size='small'>
             <Input.Wrapper>
-              <Input.Input id='p-deadline' type='date' {...register('deadline')} />
+              <Input.Input id='p-deadline' type='date' min={new Date().toISOString().split('T')[0]} {...register('deadline')} />
             </Input.Wrapper>
           </Input.Root>
         </div>
@@ -604,7 +604,7 @@ function PropertyEditForm({
               <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
                 <Select.Trigger id='p-status'><Select.Value /></Select.Trigger>
                 <Select.Content>
-                  {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).map(([v, l]) => (
+                  {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).filter(([v]) => v !== 'draft').map(([v, l]) => (
                     <Select.Item key={v} value={v}>{l}</Select.Item>
                   ))}
                 </Select.Content>
@@ -758,7 +758,7 @@ export default function PropertyDetailPage() {
       {/* KPI Row */}
       <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</span>
+          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</span>
           <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(property.price, property.currency)}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>

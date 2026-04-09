@@ -954,7 +954,7 @@ export default function AuctionDetailPage() {
           <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)} ₽</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Мин. цена</span>
+          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Стартовая цена</span>
           <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_price)} ₽</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
@@ -973,7 +973,7 @@ export default function AuctionDetailPage() {
             <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
           </div>
         )}
-        {isOpenAuction && (
+        {isOpenAuction && isOwnerOrAdmin && (
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
             <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
             <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
@@ -1105,7 +1105,7 @@ export default function AuctionDetailPage() {
           )}
 
           {/* Live bids feed — OPEN auction */}
-          {isActiveOpen && ws.bids.length > 0 && (
+          {isActiveOpen && isOwnerOrAdmin && ws.bids.length > 0 && (
             <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
               <div className='flex items-center justify-between mb-4'>
                 <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
@@ -1171,31 +1171,33 @@ export default function AuctionDetailPage() {
             />
           )}
 
-          {/* Participants */}
-          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
-            <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
-              <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
-            </h3>
-            {participantIds.length === 0 ? (
-              <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
-            ) : (
-              <div className='mt-3 space-y-1.5'>
-                {participantIds.map((pid) => {
-                  const detail = participantDetails.find((d) => d.id === pid);
-                  const name = detail?.name ?? `Участник #${pid}`;
-                  const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
-                  return (
-                    <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                      <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                        {initials}
+          {/* Participants — hidden for brokers in open auctions */}
+          {(!isOpenAuction || isOwnerOrAdmin) && (
+            <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
+              <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
+                <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
+              </h3>
+              {participantIds.length === 0 ? (
+                <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
+              ) : (
+                <div className='mt-3 space-y-1.5'>
+                  {participantIds.map((pid) => {
+                    const detail = participantDetails.find((d) => d.id === pid);
+                    const name = detail?.name ?? `Участник #${pid}`;
+                    const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
+                    return (
+                      <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                        <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                          {initials}
+                        </div>
+                        <span className='text-[13px] font-medium text-gray-900'>{name}</span>
                       </div>
-                      <span className='text-[13px] font-medium text-gray-900'>{name}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Broker status */}
           {!isDeveloper && !isAdmin && (
