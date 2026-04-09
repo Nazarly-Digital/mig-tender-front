@@ -124,7 +124,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
         </span>
         <span className='flex items-center gap-1'>
           <HugeiconsIcon icon={Clock01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
-          до {formatDate(auction.end_date)}
+           {formatDate(auction.end_date)}
         </span>
       </div>
     </Link>

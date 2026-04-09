@@ -327,7 +327,7 @@ export default function CreatePropertyPage() {
               <div className='text-[14px] font-semibold text-gray-900'>Стоимость и сроки</div>
               <div className='grid grid-cols-2 gap-3'>
                 <div className='space-y-1.5'>
-                  <Label.Root htmlFor='property-price'>Цена (₽) <Label.Asterisk /></Label.Root>
+                  <Label.Root htmlFor='property-price'>Прайсовая цена <Label.Asterisk /></Label.Root>
                   <PriceField control={control} hasError={!!errors.price} />
                   {errors.price && <p className='text-xs text-red-500'>{errors.price.message}</p>}
                 </div>
@@ -335,7 +335,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-deadline'>Срок сдачи</Label.Root>
                   <Input.Root>
                     <Input.Wrapper>
-                      <Input.Input id='property-deadline' type='date' {...register('deadline')} />
+                      <Input.Input id='property-deadline' type='date' min={new Date().toISOString().split('T')[0]} {...register('deadline')} />
                     </Input.Wrapper>
                   </Input.Root>
                   <Hint.Root>Если неизвестен — пусто</Hint.Root>
@@ -357,7 +357,7 @@ export default function CreatePropertyPage() {
                     <Select.Root value={field.value} onValueChange={field.onChange}>
                       <Select.Trigger id='property-status' className='cursor-pointer'><Select.Value /></Select.Trigger>
                       <Select.Content>
-                        {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).map(([v, l]) => (
+                        {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).filter(([v]) => v !== 'draft').map(([v, l]) => (
                           <Select.Item key={v} value={v}>{l}</Select.Item>
                         ))}
                       </Select.Content>

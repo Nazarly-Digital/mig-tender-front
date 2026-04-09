@@ -173,6 +173,11 @@ function SelectedPropertyTag({
   );
 }
 
+function toLocalDT(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export default function CreateAuctionPage() {
   const router = useRouter();
   const createMutation = useCreateAuction();
@@ -205,6 +210,12 @@ export default function CreateAuctionPage() {
 
   const selectedMode = watch('mode');
   const selectedPropertyIds = watch('propertyIds');
+  const startDateValue = watch('start_date');
+
+  const minStart = toLocalDT(new Date(Date.now() + 60 * 60 * 1000));
+  const minEnd = startDateValue
+    ? toLocalDT(new Date(new Date(startDateValue).getTime() + 60 * 60 * 1000))
+    : minStart;
 
   // For CLOSED mode: load compatible properties based on first selected property
   const referenceProperty = selectedMode === 'closed' && selectedPropertyIds.length > 0
@@ -467,6 +478,7 @@ export default function CreateAuctionPage() {
                   <Input.Input
                     id='auction-start'
                     type='datetime-local'
+                    min={minStart}
                     {...register('start_date')}
                   />
                 </Input.Wrapper>
@@ -484,6 +496,7 @@ export default function CreateAuctionPage() {
                   <Input.Input
                     id='auction-end'
                     type='datetime-local'
+                    min={minEnd}
                     {...register('end_date')}
                   />
                 </Input.Wrapper>

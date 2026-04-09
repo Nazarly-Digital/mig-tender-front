@@ -331,7 +331,7 @@ export default function PropertiesPage() {
             </Select.Trigger>
             <Select.Content>
               <Select.Item value='all'>Все статусы</Select.Item>
-              {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).map(([value, label]) => (
+              {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).filter(([value]) => value !== 'draft').map(([value, label]) => (
                 <Select.Item key={value} value={value}>{label}</Select.Item>
               ))}
             </Select.Content>
