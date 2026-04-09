@@ -106,7 +106,7 @@ function AuctionCard({ auction }: { auction: Auction }) {
       <div className='mt-3 pt-3 border-t border-blue-50'>
         <div className='flex justify-between text-[11px]'>
           <span className='text-gray-400'>
-            {auction.bids_count} {pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')} · мин. {formatPrice(auction.min_price)}
+            {auction.bids_count} {pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')} · старт. {formatPrice(auction.min_price)} ₽
             {auction.mode === 'open' && auction.min_bid_increment && ` · шаг ${formatPrice(auction.min_bid_increment)}`}
           </span>
           {isActive && <span className='font-semibold text-gray-500'>{progress}%</span>}

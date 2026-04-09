@@ -333,7 +333,7 @@ export default function CreateAuctionPage() {
             </div>
 
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='auction-min-price'>Мин. цена <Label.Asterisk /></Label.Root>
+              <Label.Root htmlFor='auction-min-price'>Стартовая цена <Label.Asterisk /></Label.Root>
               <Controller control={control} name='min_price' render={({ field }) => (
                 <Input.Root>
                   <Input.Wrapper>
@@ -372,7 +372,12 @@ export default function CreateAuctionPage() {
               {propertiesLoading ? (
                 <div className='text-sm text-gray-400'>Загрузка...</div>
               ) : properties.length === 0 ? (
-                <div className='text-sm text-gray-400'>Нет объектов. Сначала создайте объект.</div>
+                <div className='flex items-center gap-3 text-sm text-gray-400'>
+                  Нет объектов.
+                  <Link href='/properties/create'>
+                    <FancyButton.Root variant='primary' size='xsmall'>Создать объект</FancyButton.Root>
+                  </Link>
+                </div>
               ) : (
                 <div className='space-y-2'>
                   {/* Info banner (closed mode, reference selected) */}

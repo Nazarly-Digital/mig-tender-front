@@ -27,6 +27,23 @@ import type { UserDocument, UnifiedDocument } from '@/shared/types/auth';
 
 // --- Helpers ---
 
+async function downloadFile(url: string, filename: string) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    window.open(url, '_blank');
+  }
+}
+
 const DOC_TYPE_LABELS: Record<string, string> = {
   inn: 'ИНН',
   passport: 'Паспорт',
@@ -124,12 +141,10 @@ function RequiredDocCard({
         <span className='text-[13px] font-medium text-gray-700'>{title}</span>
         <div className='flex items-center gap-2'>
           {isUploaded ? (
-            <a href={document.url} target='_blank' rel='noopener noreferrer'>
-              <FancyButton.Root variant='basic' size='xsmall'>
-                <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
-                Скачать
-              </FancyButton.Root>
-            </a>
+            <FancyButton.Root variant='basic' size='xsmall' onClick={() => downloadFile(document.url, document.document_name || document.url.split('/').pop() || 'document')}>
+              <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+              Скачать
+            </FancyButton.Root>
           ) : (
             <>
               <FancyButton.Root
@@ -493,12 +508,10 @@ export default function DocumentsPage() {
                       </td>
                       <td className='px-5 py-3.5'>
                         <div className='flex items-center justify-end'>
-                          <a href={doc.url} target='_blank' rel='noopener noreferrer'>
-                            <FancyButton.Root variant='basic' size='xsmall'>
-                              <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
-                              Скачать
-                            </FancyButton.Root>
-                          </a>
+                          <FancyButton.Root variant='basic' size='xsmall' onClick={() => downloadFile(doc.url, doc.filename)}>
+                            <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                            Скачать
+                          </FancyButton.Root>
                         </div>
                       </td>
                     </tr>

@@ -758,7 +758,7 @@ export default function PropertyDetailPage() {
       {/* KPI Row */}
       <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</span>
+          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</span>
           <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(property.price, property.currency)}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>
