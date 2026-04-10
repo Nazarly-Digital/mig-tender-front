@@ -10,6 +10,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowLeft01Icon, CheckmarkCircle02Icon, Search01Icon, Cancel01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { auctionSchema, type AuctionFormData } from '@/shared/lib/validations';
 import { formatPriceInput, stripPriceFormat, formatPrice } from '@/shared/lib/formatters';
+import { clampDateInputYear, enforceNotPastYearOnBlur } from '@/shared/lib/date';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
@@ -298,7 +299,7 @@ export default function CreateAuctionPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className='mt-6 w-full'>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className='mt-6 w-full'>
         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
           {/* Left — Object & Params */}
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 space-y-4'>
@@ -484,7 +485,9 @@ export default function CreateAuctionPage() {
                     id='auction-start'
                     type='datetime-local'
                     min={minStart}
-                    {...register('start_date')}
+                    max='9999-12-31T23:59'
+                    onInput={clampDateInputYear}
+                    {...register('start_date', { onBlur: enforceNotPastYearOnBlur })}
                   />
                 </Input.Wrapper>
               </Input.Root>
@@ -502,7 +505,9 @@ export default function CreateAuctionPage() {
                     id='auction-end'
                     type='datetime-local'
                     min={minEnd}
-                    {...register('end_date')}
+                    max='9999-12-31T23:59'
+                    onInput={clampDateInputYear}
+                    {...register('end_date', { onBlur: enforceNotPastYearOnBlur })}
                   />
                 </Input.Wrapper>
               </Input.Root>

@@ -28,7 +28,6 @@ import { propertiesService } from '@/entities/properties';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
-  STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import type {
   PropertyType,
@@ -36,6 +35,7 @@ import type {
   PropertyStatus,
 } from '@/shared/types/properties';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
+import { clampDateInputYear, enforceNotPastYearOnBlur } from '@/shared/lib/date';
 
 export default function CreatePropertyPage() {
   const router = useRouter();
@@ -55,7 +55,7 @@ export default function CreatePropertyPage() {
       type: 'apartment',
       property_class: 'comfort',
       currency: 'RUB',
-      status: 'draft',
+      status: 'published',
       address: '',
       area: '',
       price: '',
@@ -200,7 +200,7 @@ export default function CreatePropertyPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className='mt-6 w-full'>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className='mt-6 w-full'>
         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
           {/* Left column */}
           <div className='flex flex-col gap-4'>
@@ -335,7 +335,14 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-deadline'>Срок сдачи</Label.Root>
                   <Input.Root>
                     <Input.Wrapper>
-                      <Input.Input id='property-deadline' type='date' min={new Date().toISOString().split('T')[0]} {...register('deadline')} />
+                      <Input.Input
+                        id='property-deadline'
+                        type='date'
+                        min={new Date().toISOString().split('T')[0]}
+                        max='9999-12-31'
+                        onInput={clampDateInputYear}
+                        {...register('deadline', { onBlur: enforceNotPastYearOnBlur })}
+                      />
                     </Input.Wrapper>
                   </Input.Root>
                   <Hint.Root>Если неизвестен — пусто</Hint.Root>
@@ -350,20 +357,6 @@ export default function CreatePropertyPage() {
                   {errors.commission_rate && (
                     <p className='text-xs text-red-500'>{errors.commission_rate.message}</p>
                   ) }
-                </div>
-                <div className='space-y-1.5'>
-                  <Label.Root htmlFor='property-status'>Статус</Label.Root>
-                  <Controller name='status' control={control} render={({ field }) => (
-                    <Select.Root value={field.value} onValueChange={field.onChange}>
-                      <Select.Trigger id='property-status' className='cursor-pointer'><Select.Value /></Select.Trigger>
-                      <Select.Content>
-                        {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).filter(([v]) => v !== 'draft').map(([v, l]) => (
-                          <Select.Item key={v} value={v}>{l}</Select.Item>
-                        ))}
-                      </Select.Content>
-                    </Select.Root>
-                  )} />
-                  {errors.status && <p className='text-xs text-red-500'>{errors.status.message}</p>}
                 </div>
               </div>
             </div>

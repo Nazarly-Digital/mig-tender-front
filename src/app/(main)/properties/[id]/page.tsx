@@ -30,6 +30,7 @@ import {
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
+import { clampDateInputYear, enforceNotPastYearOnBlur } from '@/shared/lib/date';
 import { AreaField, PriceField } from '@/shared/components/property-fields';
 import {
   useProperty,
@@ -591,7 +592,14 @@ function PropertyEditForm({
           <Label.Root htmlFor='p-deadline'>Срок сдачи</Label.Root>
           <Input.Root size='small'>
             <Input.Wrapper>
-              <Input.Input id='p-deadline' type='date' min={new Date().toISOString().split('T')[0]} {...register('deadline')} />
+              <Input.Input
+                id='p-deadline'
+                type='date'
+                min={new Date().toISOString().split('T')[0]}
+                max='9999-12-31'
+                onInput={clampDateInputYear}
+                {...register('deadline', { onBlur: enforceNotPastYearOnBlur })}
+              />
             </Input.Wrapper>
           </Input.Root>
         </div>
