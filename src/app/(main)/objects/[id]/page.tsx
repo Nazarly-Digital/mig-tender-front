@@ -302,7 +302,7 @@ export default function CatalogDetailPage() {
               </div>
             </div>
             <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дедлайн</div>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Срок сдачи</div>
               <div className='text-[13px] font-medium text-gray-900 mt-1'>
                 {formatDateShort(property.deadline)}
               </div>
