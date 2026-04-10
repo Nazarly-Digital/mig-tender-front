@@ -413,18 +413,25 @@ export default function CreateAuctionPage() {
 
                   {/* Search dropdown — hidden in open mode when 1 already selected */}
                   {!(selectedMode === 'open' && selectedPropertyIds.length >= 1) && (
-                    <PropertySearchDropdown
-                      properties={selectedMode === 'closed' ? closedAvailableProperties : properties}
-                      selectedIds={selectedPropertyIds}
-                      onSelect={(id) => {
-                        if (selectedMode === 'open') {
-                          setValue('propertyIds', [id], { shouldValidate: true });
-                        } else {
-                          addProperty(id);
-                        }
-                      }}
-                      reference={selectedMode === 'closed' ? referenceProperty : null}
-                    />
+                    <div className='flex items-center gap-2'>
+                      <div className='flex-1 min-w-0'>
+                        <PropertySearchDropdown
+                          properties={selectedMode === 'closed' ? closedAvailableProperties : properties}
+                          selectedIds={selectedPropertyIds}
+                          onSelect={(id) => {
+                            if (selectedMode === 'open') {
+                              setValue('propertyIds', [id], { shouldValidate: true });
+                            } else {
+                              addProperty(id);
+                            }
+                          }}
+                          reference={selectedMode === 'closed' ? referenceProperty : null}
+                        />
+                      </div>
+                      <Link href='/properties/create' className='shrink-0'>
+                        <FancyButton.Root variant='primary' size='medium'>Создать объект</FancyButton.Root>
+                      </Link>
+                    </div>
                   )}
 
                   {/* Counter + total (closed mode, 1+ selected) */}
