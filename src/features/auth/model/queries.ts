@@ -7,7 +7,6 @@ import type {
   GetCodeRequest,
   VerifyEmailRequest,
   ResendCodeRequest,
-  RegisterDeveloperRequest,
   RegisterBrokerRequest,
   BrokerVerificationRequest,
   UploadDocumentRequest,
@@ -83,19 +82,6 @@ export function useResendCode() {
   return useMutation({
     mutationFn: (data: ResendCodeRequest) =>
       authService.resendCode(data).then((res) => res.data),
-  });
-}
-
-export function useRegisterDeveloper() {
-  const { setTokens, setUser } = useSessionStore();
-
-  return useMutation({
-    mutationFn: (data: RegisterDeveloperRequest) =>
-      authService.registerDeveloper(data).then((res) => res.data),
-    onSuccess: (data) => {
-      setTokens(data.access, data.refresh);
-      setUser(data.user);
-    },
   });
 }
 

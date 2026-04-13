@@ -4,6 +4,8 @@ import type {
   AdminUserListParams,
   PendingPropertyListParams,
   RejectPropertyRequest,
+  AdminCreateDeveloperRequest,
+  AdminUpdateDeveloperRequest,
 } from "@/shared/types/admin";
 
 export const adminKeys = {
@@ -39,6 +41,30 @@ export function useAdminVerifyBroker() {
   return useMutation({
     mutationFn: (id: number) =>
       adminService.verifyBroker(id).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.all });
+    },
+  });
+}
+
+// --- Developer management ---
+
+export function useAdminCreateDeveloper() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: AdminCreateDeveloperRequest) =>
+      adminService.createDeveloper(data).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.all });
+    },
+  });
+}
+
+export function useAdminUpdateDeveloper() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: AdminUpdateDeveloperRequest }) =>
+      adminService.updateDeveloper(id, data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.all });
     },

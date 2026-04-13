@@ -118,16 +118,6 @@ export type ResendCodeRequest = {
   email: string;
 };
 
-// Register Developer
-export type RegisterDeveloperRequest = {
-  email: string;
-  password: string;
-  password_confirm: string;
-  first_name?: string;
-  last_name?: string;
-  company_name: string;
-};
-
 // Register Broker
 export type RegisterBrokerRequest = {
   email: string;

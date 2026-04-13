@@ -3,6 +3,8 @@ export {
   useAdminUsers,
   useBlockUser,
   useAdminVerifyBroker,
+  useAdminCreateDeveloper,
+  useAdminUpdateDeveloper,
   usePendingProperties,
   useApproveProperty,
   useRejectProperty,
