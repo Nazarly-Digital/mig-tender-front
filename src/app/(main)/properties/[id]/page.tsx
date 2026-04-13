@@ -27,6 +27,7 @@ import * as Modal from '@/shared/ui/modal';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
+  COMMERCIAL_SUBTYPE_LABELS,
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
@@ -49,6 +50,7 @@ import type {
   PropertyStatus,
   PropertyImage,
   ModerationStatus,
+  CommercialSubtype,
 } from '@/shared/types/properties';
 
 // --- Constants ---
@@ -417,6 +419,8 @@ function PropertyEditForm({
       status: property.status,
       developer_name: property.developer_name ?? '',
       project: property.project ?? '',
+      project_comment: property.project_comment ?? '',
+      commercial_subtype: property.commercial_subtype ?? '',
       floor: property.floor != null ? String(property.floor) : '',
       land_number: property.land_number ?? '',
       house_number: property.house_number ?? '',
@@ -426,12 +430,17 @@ function PropertyEditForm({
 
   const selectedType = watch('type');
   const isLand = selectedType === 'land';
+  const isCommercial = selectedType === 'commercial';
   const hasFloor = selectedType === 'apartment' || selectedType === 'commercial';
   const hasHouseNumber = selectedType === 'house' || selectedType === 'townhouse';
 
   React.useEffect(() => {
     if (isLand) setValue('property_class', '', { shouldValidate: false });
   }, [isLand, setValue]);
+
+  React.useEffect(() => {
+    if (!isCommercial) setValue('commercial_subtype', '', { shouldValidate: false });
+  }, [isCommercial, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
@@ -454,6 +463,28 @@ function PropertyEditForm({
         />
         {errors.type && <p className='text-[11px] text-red-500'>{errors.type.message}</p>}
       </div>
+
+      {/* Commercial subtype */}
+      {isCommercial && (
+        <div className='space-y-1.5'>
+          <Label.Root htmlFor='p-commercial-subtype'>Подтип коммерции <Label.Asterisk /></Label.Root>
+          <Controller
+            name='commercial_subtype'
+            control={control}
+            render={({ field }) => (
+              <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
+                <Select.Trigger id='p-commercial-subtype'><Select.Value placeholder='Выберите подтип' /></Select.Trigger>
+                <Select.Content>
+                  {(Object.entries(COMMERCIAL_SUBTYPE_LABELS) as [CommercialSubtype, string][]).map(([v, l]) => (
+                    <Select.Item key={v} value={v}>{l}</Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Root>
+            )}
+          />
+          {errors.commercial_subtype && <p className='text-[11px] text-red-500'>{errors.commercial_subtype.message}</p>}
+        </div>
+      )}
 
       {/* Address */}
       <div className='space-y-1.5'>
@@ -500,6 +531,18 @@ function PropertyEditForm({
           </Input.Root>
           {errors.project && <p className='text-[11px] text-red-500'>{errors.project.message}</p>}
         </div>
+      </div>
+
+      {/* Project comment */}
+      <div className='space-y-1.5'>
+        <Label.Root htmlFor='p-project-comment'>Комментарий к проекту</Label.Root>
+        <textarea
+          id='p-project-comment'
+          rows={3}
+          placeholder='Например: первая очередь, вид на парк'
+          className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none'
+          {...register('project_comment')}
+        />
       </div>
 
       {/* Area + Class */}
@@ -667,6 +710,7 @@ export default function PropertyDetailPage() {
           floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null,
           developer_name: data.developer_name,
           project: data.project,
+          commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null,
           land_number: data.type === 'land' && data.land_number ? data.land_number : null,
           house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null,
         },

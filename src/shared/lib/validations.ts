@@ -95,11 +95,19 @@ export const propertySchema = z.object({
   floor: z.string().optional(),
   developer_name: z.string().min(1, 'Введите название застройщика'),
   project: z.string().min(1, 'Введите название проекта'),
+  project_comment: z.string().optional(),
+  commercial_subtype: z.string().optional(),
   land_number: z.string().optional(),
   house_number: z.string().optional(),
 }).refine(
   (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),
   { message: 'Выберите класс', path: ['property_class'] },
+).refine(
+  (data) => {
+    if (data.type !== 'commercial') return true;
+    return !!data.commercial_subtype && data.commercial_subtype.length > 0;
+  },
+  { message: 'Выберите подтип', path: ['commercial_subtype'] },
 ).refine(
   (data) => {
     if (data.type !== 'apartment' && data.type !== 'commercial') return true;

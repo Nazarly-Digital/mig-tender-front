@@ -28,11 +28,13 @@ import { propertiesService } from '@/entities/properties';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
+  COMMERCIAL_SUBTYPE_LABELS,
 } from '@/shared/components/properties-table';
 import type {
   PropertyType,
   PropertyClass,
   PropertyStatus,
+  CommercialSubtype,
 } from '@/shared/types/properties';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
 import { clampDateInputYear, enforceNotPastYearOnBlur } from '@/shared/lib/date';
@@ -64,6 +66,8 @@ export default function CreatePropertyPage() {
       floor: '',
       developer_name: companyName,
       project: '',
+      project_comment: '',
+      commercial_subtype: '',
       land_number: '',
       house_number: '',
     },
@@ -71,6 +75,7 @@ export default function CreatePropertyPage() {
 
   const selectedType = watch('type');
   const isLand = selectedType === 'land';
+  const isCommercial = selectedType === 'commercial';
   const hasFloor = selectedType === 'apartment' || selectedType === 'commercial';
   const hasHouseNumber = selectedType === 'house' || selectedType === 'townhouse';
 
@@ -83,6 +88,11 @@ export default function CreatePropertyPage() {
   React.useEffect(() => {
     if (isLand) setValue('property_class', '', { shouldValidate: false });
   }, [isLand, setValue]);
+
+  // Clear commercial_subtype when switching away from commercial
+  React.useEffect(() => {
+    if (!isCommercial) setValue('commercial_subtype', '', { shouldValidate: false });
+  }, [isCommercial, setValue]);
 
   // Photo-related state
   const [photos, setPhotos] = React.useState<File[]>([]);
@@ -162,7 +172,7 @@ export default function CreatePropertyPage() {
     setSubmitting(true);
     try {
       const property = await createMutation.mutateAsync(
-        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, land_number: data.type === 'land' && data.land_number ? data.land_number : null, house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null } as any,
+        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, project_comment: data.project_comment ?? '', commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null, land_number: data.type === 'land' && data.land_number ? data.land_number : null, house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null } as any,
       );
       for (let i = 0; i < photos.length; i++) {
         try {
@@ -237,6 +247,22 @@ export default function CreatePropertyPage() {
                   {errors.property_class && <p className='text-xs text-red-500'>{errors.property_class.message}</p>}
                 </div>
               </div>
+              {isCommercial && (
+                <div className='space-y-1.5'>
+                  <Label.Root htmlFor='property-commercial-subtype'>Подтип коммерции <Label.Asterisk /></Label.Root>
+                  <Controller name='commercial_subtype' control={control} render={({ field }) => (
+                    <Select.Root value={field.value} onValueChange={field.onChange}>
+                      <Select.Trigger id='property-commercial-subtype' className='cursor-pointer'><Select.Value placeholder='Выберите подтип' /></Select.Trigger>
+                      <Select.Content>
+                        {(Object.entries(COMMERCIAL_SUBTYPE_LABELS) as [CommercialSubtype, string][]).map(([v, l]) => (
+                          <Select.Item key={v} value={v}>{l}</Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Root>
+                  )} />
+                  {errors.commercial_subtype && <p className='text-xs text-red-500'>{errors.commercial_subtype.message}</p>}
+                </div>
+              )}
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-address'>Адрес <Label.Asterisk /></Label.Root>
                 <Controller
@@ -281,6 +307,16 @@ export default function CreatePropertyPage() {
                   </Input.Root>
                   {errors.project && <p className='text-xs text-red-500'>{errors.project.message}</p>}
                 </div>
+              </div>
+              <div className='space-y-1.5'>
+                <Label.Root htmlFor='property-project-comment'>Комментарий к проекту</Label.Root>
+                <textarea
+                  id='property-project-comment'
+                  rows={3}
+                  placeholder='Например: первая очередь, вид на парк'
+                  className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors resize-none'
+                  {...register('project_comment')}
+                />
               </div>
               <div className='space-y-1.5'>
                 <Label.Root htmlFor='property-area'>Площадь ({isLand ? 'сот' : 'м²'}) <Label.Asterisk /></Label.Root>

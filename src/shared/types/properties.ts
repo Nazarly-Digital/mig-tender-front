@@ -8,6 +8,8 @@ export type PropertyType =
 
 export type PropertyClass = "economy" | "comfort" | "business" | "premium";
 
+export type CommercialSubtype = "retail" | "office";
+
 export type PropertyStatus = "draft" | "published" | "archived" | "sold";
 
 // Property Image
@@ -40,6 +42,8 @@ export type Property = {
   commission_rate: string | null;
   developer_name?: string;
   project?: string;
+  project_comment?: string;
+  commercial_subtype?: CommercialSubtype | null;
   floor?: number | null;
   land_number?: string | null;
   house_number?: string | null;
@@ -87,6 +91,8 @@ export type PropertyCreateRequest = {
   floor?: number | null;
   developer_name?: string;
   project?: string;
+  project_comment?: string;
+  commercial_subtype?: CommercialSubtype | null;
   land_number?: string | null;
   house_number?: string | null;
 };
@@ -105,6 +111,8 @@ export type PropertyUpdateRequest = {
   floor?: number | null;
   developer_name?: string;
   project?: string;
+  project_comment?: string;
+  commercial_subtype?: CommercialSubtype | null;
   land_number?: string | null;
   house_number?: string | null;
 };

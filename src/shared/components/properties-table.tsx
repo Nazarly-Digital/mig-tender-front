@@ -68,6 +68,11 @@ const CLASS_LABELS: Record<PropertyClass, string> = {
   premium: 'Премиум',
 };
 
+const COMMERCIAL_SUBTYPE_LABELS: Record<'retail' | 'office', string> = {
+  retail: 'Ретейл',
+  office: 'Офис',
+};
+
 const CLASS_COLORS: Record<PropertyClass, 'gray' | 'blue' | 'purple' | 'orange'> = {
   economy: 'gray',
   comfort: 'blue',
@@ -490,6 +495,7 @@ export function PropertiesTablePagination({
 export {
   TYPE_LABELS,
   CLASS_LABELS,
+  COMMERCIAL_SUBTYPE_LABELS,
   STATUS_LABELS,
   STATUS_MAP,
   TYPE_COLORS,
