@@ -5,7 +5,6 @@ export {
   useGetCode,
   useVerifyEmail,
   useResendCode,
-  useRegisterDeveloper,
   useRegisterBroker,
   useVerifyBroker,
   useLogout,
@@ -15,5 +14,4 @@ export {
   useAllDocuments,
 } from "./model/queries";
 
-export { useDeveloperRegistration } from "./model/use-developer-registration";
 export { useBrokerRegistration } from "./model/use-broker-registration";

@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import toast from 'react-hot-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   UserIcon,
@@ -10,18 +12,30 @@ import {
   SquareUnlock01Icon,
   Cancel01Icon,
   Download01Icon,
+  UserAdd01Icon,
+  Edit02Icon,
 } from '@hugeicons/core-free-icons';
 
 import { TableSkeleton } from '@/shared/components/skeletons';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
+import * as Input from '@/shared/ui/input';
+import * as Label from '@/shared/ui/label';
 import { PageHeader } from '@/shared/components/page-header';
 import {
   useAdminUsers,
   useBlockUser,
   useAdminVerifyBroker,
+  useAdminCreateDeveloper,
+  useAdminUpdateDeveloper,
 } from '@/features/admin';
 import type { AdminUser } from '@/shared/types/admin';
+import {
+  adminCreateDeveloperSchema,
+  type AdminCreateDeveloperFormData,
+  adminUpdateDeveloperSchema,
+  type AdminUpdateDeveloperFormData,
+} from '@/shared/lib/validations';
 
 // --- Helpers ---
 
@@ -43,8 +57,23 @@ function formatDate(dateStr: string | undefined | null) {
 }
 
 function getApiError(error: unknown): string {
-  const err = error as { response?: { data?: { error?: string; detail?: string } } };
-  return err.response?.data?.error ?? err.response?.data?.detail ?? 'Произошла ошибка';
+  const err = error as { response?: { data?: unknown } };
+  const data = err.response?.data;
+  if (!data) return 'Произошла ошибка';
+  if (typeof data === 'string') return data;
+  if (typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
+    if (typeof obj.error === 'string') return obj.error;
+    if (typeof obj.detail === 'string') return obj.detail;
+    // DRF field-level errors: { email: ["..."], company_name: ["..."] }
+    const messages: string[] = [];
+    for (const value of Object.values(obj)) {
+      if (Array.isArray(value)) messages.push(...value.filter((v): v is string => typeof v === 'string'));
+      else if (typeof value === 'string') messages.push(value);
+    }
+    if (messages.length) return messages.join('. ');
+  }
+  return 'Произошла ошибка';
 }
 
 // --- Block Confirm Modal ---
@@ -175,6 +204,355 @@ function VerifyBrokerModal({
   );
 }
 
+// --- Create Developer Modal ---
+
+function CreateDeveloperModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const createDeveloper = useAdminCreateDeveloper();
+
+  const form = useForm<AdminCreateDeveloperFormData>({
+    resolver: zodResolver(adminCreateDeveloperSchema),
+    defaultValues: {
+      email: '',
+      firstName: '',
+      lastName: '',
+      companyName: '',
+      password: '',
+      passwordConfirm: '',
+    },
+  });
+
+  React.useEffect(() => {
+    if (!open) form.reset();
+  }, [open, form]);
+
+  const onSubmit = form.handleSubmit((data) => {
+    createDeveloper.mutate(
+      {
+        email: data.email,
+        password: data.password,
+        password_confirm: data.passwordConfirm,
+        company_name: data.companyName,
+        first_name: data.firstName || undefined,
+        last_name: data.lastName || undefined,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Девелопер создан');
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          toast.error(getApiError(error));
+        },
+      },
+    );
+  });
+
+  return (
+    <Modal.Root open={open} onOpenChange={onOpenChange}>
+      <Modal.Content className='max-w-[480px]'>
+        <Modal.Header
+          title='Новый девелопер'
+          description='Создайте аккаунт девелопера. Пароль можно будет сообщить пользователю лично.'
+        />
+        <form onSubmit={onSubmit}>
+          <Modal.Body>
+            <div className='flex flex-col gap-4'>
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='cd-email'>
+                  Email <Label.Asterisk />
+                </Label.Root>
+                <Input.Root>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='cd-email'
+                      type='email'
+                      placeholder='example@mail.com'
+                      {...form.register('email')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.email && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.email.message}
+                  </span>
+                )}
+              </div>
+
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='flex flex-col gap-1'>
+                  <Label.Root htmlFor='cd-firstName'>Имя</Label.Root>
+                  <Input.Root>
+                    <Input.Wrapper>
+                      <Input.Input id='cd-firstName' type='text' placeholder='Имя' {...form.register('firstName')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                </div>
+                <div className='flex flex-col gap-1'>
+                  <Label.Root htmlFor='cd-lastName'>Фамилия</Label.Root>
+                  <Input.Root>
+                    <Input.Wrapper>
+                      <Input.Input id='cd-lastName' type='text' placeholder='Фамилия' {...form.register('lastName')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                </div>
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='cd-companyName'>
+                  Название компании <Label.Asterisk />
+                </Label.Root>
+                <Input.Root>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='cd-companyName'
+                      type='text'
+                      placeholder='ООО «Пример»'
+                      {...form.register('companyName')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.companyName && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.companyName.message}
+                  </span>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='cd-password'>
+                  Пароль <Label.Asterisk />
+                </Label.Root>
+                <Input.Root>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='cd-password'
+                      type='password'
+                      placeholder='Минимум 8 символов'
+                      autoComplete='new-password'
+                      {...form.register('password')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.password && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.password.message}
+                  </span>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='cd-passwordConfirm'>
+                  Повторите пароль <Label.Asterisk />
+                </Label.Root>
+                <Input.Root>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='cd-passwordConfirm'
+                      type='password'
+                      placeholder='Повторите пароль'
+                      autoComplete='new-password'
+                      {...form.register('passwordConfirm')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.passwordConfirm && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.passwordConfirm.message}
+                  </span>
+                )}
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root type='button' variant='basic' size='small'>
+                Отмена
+              </FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              type='submit'
+              variant='primary'
+              size='small'
+              disabled={createDeveloper.isPending}
+            >
+              {createDeveloper.isPending ? 'Создание...' : 'Создать'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </form>
+      </Modal.Content>
+    </Modal.Root>
+  );
+}
+
+// --- Edit Developer Modal ---
+
+function EditDeveloperModal({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: AdminUser | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const updateDeveloper = useAdminUpdateDeveloper();
+
+  const form = useForm<AdminUpdateDeveloperFormData>({
+    resolver: zodResolver(adminUpdateDeveloperSchema),
+    defaultValues: {
+      email: '',
+      firstName: '',
+      lastName: '',
+      companyName: '',
+    },
+  });
+
+  React.useEffect(() => {
+    if (open && user) {
+      form.reset({
+        email: user.email ?? '',
+        firstName: user.first_name ?? '',
+        lastName: user.last_name ?? '',
+        companyName: user.developer?.company_name ?? '',
+      });
+    }
+  }, [open, user, form]);
+
+  if (!user) return null;
+
+  const onSubmit = form.handleSubmit((data) => {
+    // Send only changed fields (PATCH semantics)
+    const payload: {
+      email?: string;
+      first_name?: string;
+      last_name?: string;
+      company_name?: string;
+    } = {};
+    if (data.email !== user.email) payload.email = data.email;
+    if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName ?? '';
+    if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName ?? '';
+    if (data.companyName !== (user.developer?.company_name ?? '')) {
+      payload.company_name = data.companyName;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      onOpenChange(false);
+      return;
+    }
+
+    updateDeveloper.mutate(
+      { id: user.id, data: payload },
+      {
+        onSuccess: () => {
+          toast.success('Данные девелопера обновлены');
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          toast.error(getApiError(error));
+        },
+      },
+    );
+  });
+
+  return (
+    <Modal.Root open={open} onOpenChange={onOpenChange}>
+      <Modal.Content className='max-w-[480px]'>
+        <Modal.Header
+          title='Редактирование девелопера'
+          description={`${user.first_name} ${user.last_name}`.trim() || user.email}
+        />
+        <form onSubmit={onSubmit}>
+          <Modal.Body>
+            <div className='flex flex-col gap-4'>
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='ed-email'>
+                  Email <Label.Asterisk />
+                </Label.Root>
+                <Input.Root>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='ed-email'
+                      type='email'
+                      placeholder='example@mail.com'
+                      {...form.register('email')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.email && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.email.message}
+                  </span>
+                )}
+              </div>
+
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='flex flex-col gap-1'>
+                  <Label.Root htmlFor='ed-firstName'>Имя</Label.Root>
+                  <Input.Root>
+                    <Input.Wrapper>
+                      <Input.Input id='ed-firstName' type='text' placeholder='Имя' {...form.register('firstName')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                </div>
+                <div className='flex flex-col gap-1'>
+                  <Label.Root htmlFor='ed-lastName'>Фамилия</Label.Root>
+                  <Input.Root>
+                    <Input.Wrapper>
+                      <Input.Input id='ed-lastName' type='text' placeholder='Фамилия' {...form.register('lastName')} />
+                    </Input.Wrapper>
+                  </Input.Root>
+                </div>
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='ed-companyName'>
+                  Название компании <Label.Asterisk />
+                </Label.Root>
+                <Input.Root>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='ed-companyName'
+                      type='text'
+                      placeholder='ООО «Пример»'
+                      {...form.register('companyName')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.companyName && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.companyName.message}
+                  </span>
+                )}
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root type='button' variant='basic' size='small'>
+                Отмена
+              </FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              type='submit'
+              variant='primary'
+              size='small'
+              disabled={updateDeveloper.isPending}
+            >
+              {updateDeveloper.isPending ? 'Сохранение...' : 'Сохранить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </form>
+      </Modal.Content>
+    </Modal.Root>
+  );
+}
+
 // --- Main Page ---
 
 type RoleFilter = 'all' | 'developer' | 'broker';
@@ -183,6 +561,8 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = React.useState<RoleFilter>('all');
   const [blockTarget, setBlockTarget] = React.useState<AdminUser | null>(null);
   const [verifyTarget, setVerifyTarget] = React.useState<AdminUser | null>(null);
+  const [editTarget, setEditTarget] = React.useState<AdminUser | null>(null);
+  const [createOpen, setCreateOpen] = React.useState(false);
 
   const params = {
     ...(roleFilter !== 'all' && { role: roleFilter }),
@@ -204,6 +584,16 @@ export default function AdminUsersPage() {
       <PageHeader
         title='Пользователи'
         description='Управление пользователями платформы'
+        action={
+          <FancyButton.Root
+            variant='primary'
+            size='small'
+            onClick={() => setCreateOpen(true)}
+          >
+            <HugeiconsIcon icon={UserAdd01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+            Добавить девелопера
+          </FancyButton.Root>
+        }
       />
 
       {/* Filters — flat underline tab bar */}
@@ -348,6 +738,12 @@ export default function AdminUsersPage() {
                           Верифицировать
                         </FancyButton.Root>
                       )}
+                      {user.role === 'developer' && (
+                        <FancyButton.Root variant='basic' size='xsmall' onClick={() => setEditTarget(user)}>
+                          <HugeiconsIcon icon={Edit02Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                          Редактировать
+                        </FancyButton.Root>
+                      )}
                       <FancyButton.Root variant={!user.is_active ? 'primary' : 'destructive'} size='xsmall' onClick={() => setBlockTarget(user)}>
                         {!user.is_active ? (
                           <HugeiconsIcon icon={SquareUnlock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
@@ -378,6 +774,14 @@ export default function AdminUsersPage() {
         open={!!verifyTarget}
         onOpenChange={(open) => {
           if (!open) setVerifyTarget(null);
+        }}
+      />
+      <CreateDeveloperModal open={createOpen} onOpenChange={setCreateOpen} />
+      <EditDeveloperModal
+        user={editTarget}
+        open={!!editTarget}
+        onOpenChange={(open) => {
+          if (!open) setEditTarget(null);
         }}
       />
     </div>

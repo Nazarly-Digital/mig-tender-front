@@ -112,6 +112,15 @@
 - `src/shared/lib/design-tokens.ts` — design system constants
 - Path alias: `@/*` → `./src/*`
 
+## Registration Flow
+- **Brokers** register themselves publicly at `/register/broker` (email code → data → documents).
+- **Developers** are created **only by admins** via `/admin/users` (button «Добавить девелопера»).
+  The public `/register/developer` route has been removed. Admin endpoints:
+  - `POST /admin/developers/` — create
+  - `PATCH /admin/developers/{id}/` — partial update (edit)
+- Admin UI: `src/app/(main)/admin/users/page.tsx` hosts the create/edit modals.
+  Mutations live in `src/features/admin/model/queries.ts` (`useAdminCreateDeveloper`, `useAdminUpdateDeveloper`).
+
 ## Known Issues
 - Pre-existing TS type errors; `typescript: { ignoreBuildErrors: true }` in next.config.ts
 - Next.js 16 requires `turbopack: {}` config key

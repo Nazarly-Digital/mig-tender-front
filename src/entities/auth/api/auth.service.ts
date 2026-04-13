@@ -9,7 +9,6 @@ import type {
   VerifyEmailRequest,
   VerifyEmailResponse,
   ResendCodeRequest,
-  RegisterDeveloperRequest,
   RegisterBrokerRequest,
   RegisterResponse,
   BrokerVerificationRequest,
@@ -37,9 +36,6 @@ export const authService = {
 
   refresh: (data: RefreshRequest) =>
     apiInstance.post<RefreshResponse>("/auth/refresh/", data),
-
-  registerDeveloper: (data: RegisterDeveloperRequest) =>
-    apiInstance.post<RegisterResponse>("/auth/register/developer/", data),
 
   registerBroker: (data: RegisterBrokerRequest) => {
     const formData = new FormData();

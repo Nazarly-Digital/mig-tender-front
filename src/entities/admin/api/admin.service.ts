@@ -9,6 +9,9 @@ import type {
   PropertyActionResponse,
   RejectPropertyRequest,
   PaginatedResponse,
+  AdminCreateDeveloperRequest,
+  AdminUpdateDeveloperRequest,
+  AdminDeveloperResponse,
 } from "@/shared/types/admin";
 
 export const adminService = {
@@ -22,6 +25,13 @@ export const adminService = {
   // Broker verification
   verifyBroker: (id: number) =>
     apiInstance.post<VerifyBrokerResponse>("/admin/broker/verify/", { id, action: "accept" }),
+
+  // Developer management (admin)
+  createDeveloper: (data: AdminCreateDeveloperRequest) =>
+    apiInstance.post<AdminDeveloperResponse>("/admin/developers/", data),
+
+  updateDeveloper: (id: number, data: AdminUpdateDeveloperRequest) =>
+    apiInstance.patch<AdminDeveloperResponse>(`/admin/developers/${id}/`, data),
 
   // Properties moderation
   getPendingProperties: (params?: PendingPropertyListParams) =>

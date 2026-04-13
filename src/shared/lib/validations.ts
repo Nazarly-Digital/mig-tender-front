@@ -49,17 +49,24 @@ export const brokerRegisterSchema = z
 
 export type BrokerRegisterFormData = z.infer<typeof brokerRegisterSchema>;
 
-export const developerRegisterSchema = z
+// Admin: create developer
+export const adminCreateDeveloperSchema = z
   .object({
+    email: z
+      .string()
+      .min(1, 'Введите email')
+      .transform((v) => v.replace(/\s/g, ''))
+      .pipe(z.string().email('Введите корректный email')),
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     companyName: z
       .string()
-      .min(1, 'Введите название компании'),
+      .min(1, 'Введите название компании')
+      .max(55, 'Максимум 55 символов'),
     password: z
       .string()
-      .min(1, 'Введите пароль')
-      .min(8, 'Пароль должен содержать минимум 8 символов'),
+      .min(8, 'Пароль должен содержать минимум 8 символов')
+      .max(128, 'Максимум 128 символов'),
     passwordConfirm: z
       .string()
       .min(1, 'Подтвердите пароль'),
@@ -69,7 +76,24 @@ export const developerRegisterSchema = z
     path: ['passwordConfirm'],
   });
 
-export type DeveloperRegisterFormData = z.infer<typeof developerRegisterSchema>;
+export type AdminCreateDeveloperFormData = z.infer<typeof adminCreateDeveloperSchema>;
+
+// Admin: edit developer (PATCH)
+export const adminUpdateDeveloperSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Введите email')
+    .transform((v) => v.replace(/\s/g, ''))
+    .pipe(z.string().email('Введите корректный email')),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  companyName: z
+    .string()
+    .min(1, 'Введите название компании')
+    .max(55, 'Максимум 55 символов'),
+});
+
+export type AdminUpdateDeveloperFormData = z.infer<typeof adminUpdateDeveloperSchema>;
 
 // === Properties ===
 

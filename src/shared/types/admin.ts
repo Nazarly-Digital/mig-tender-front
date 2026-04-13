@@ -1,5 +1,5 @@
 import type { PaginatedResponse } from './properties';
-import type { UserDocument } from './auth';
+import type { UserDocument, TokenUser } from './auth';
 
 export type AdminUser = {
   id: number;
@@ -35,6 +35,28 @@ export type BlockUserResponse = {
 
 export type VerifyBrokerResponse = {
   message: string;
+};
+
+// Admin developer management
+export type AdminCreateDeveloperRequest = {
+  email: string;
+  password: string;
+  password_confirm: string;
+  company_name: string;
+  first_name?: string;
+  last_name?: string;
+};
+
+export type AdminUpdateDeveloperRequest = {
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
+};
+
+export type AdminDeveloperResponse = {
+  message: string;
+  user: TokenUser;
 };
 
 export type PendingProperty = {
