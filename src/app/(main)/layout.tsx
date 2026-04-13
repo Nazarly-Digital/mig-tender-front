@@ -19,7 +19,9 @@ const BREADCRUMB_MAP: Record<string, string> = {
   '/payments': 'Выплаты',
   // '/analytics': 'Аналитика',
   '/documents': 'Документы',
+  '/admin': 'Админ',
   '/admin/users': 'Пользователи',
+  '/admin/users/new-developer': 'Новый девелопер',
   '/admin/properties': 'Модерация',
 };
 

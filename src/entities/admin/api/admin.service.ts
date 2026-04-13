@@ -27,8 +27,24 @@ export const adminService = {
     apiInstance.post<VerifyBrokerResponse>("/admin/broker/verify/", { id, action: "accept" }),
 
   // Developer management (admin)
-  createDeveloper: (data: AdminCreateDeveloperRequest) =>
-    apiInstance.post<AdminDeveloperResponse>("/admin/developers/", data),
+  createDeveloper: (data: AdminCreateDeveloperRequest) => {
+    const formData = new FormData();
+    formData.append("email", data.email);
+    formData.append("password", data.password);
+    formData.append("password_confirm", data.password_confirm);
+    formData.append("company_name", data.company_name);
+    formData.append("first_name", data.first_name);
+    formData.append("last_name", data.last_name);
+    formData.append("inn_number", data.inn_number);
+    formData.append("phone_number", data.phone_number);
+    formData.append("inn", data.inn, data.inn.name);
+    formData.append("passport", data.passport, data.passport.name);
+    return apiInstance.post<AdminDeveloperResponse>(
+      "/admin/developers/",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+  },
 
   updateDeveloper: (id: number, data: AdminUpdateDeveloperRequest) =>
     apiInstance.patch<AdminDeveloperResponse>(`/admin/developers/${id}/`, data),

@@ -116,10 +116,28 @@
 - **Brokers** register themselves publicly at `/register/broker` (email code → data → documents).
 - **Developers** are created **only by admins** via `/admin/users` (button «Добавить девелопера»).
   The public `/register/developer` route has been removed. Admin endpoints:
-  - `POST /admin/developers/` — create
-  - `PATCH /admin/developers/{id}/` — partial update (edit)
-- Admin UI: `src/app/(main)/admin/users/page.tsx` hosts the create/edit modals.
-  Mutations live in `src/features/admin/model/queries.ts` (`useAdminCreateDeveloper`, `useAdminUpdateDeveloper`).
+  - `POST /admin/developers/` — create. Accepts JSON with:
+    `email`, `password`, `password_confirm`, `company_name` (required),
+    `first_name`, `last_name` (optional).
+  - `PATCH /admin/developers/{id}/` — partial update. Accepts JSON with any subset of:
+    `email`, `first_name`, `last_name`, `company_name`.
+- Admin UI:
+  - `/admin/users` (`src/app/(main)/admin/users/page.tsx`) — user list with block/verify/edit actions. Edit developer is a modal on this page. «Добавить девелопера» is a `Link` to the create page.
+  - `/admin/users/new-developer` (`src/app/(main)/admin/users/new-developer/page.tsx`) — dedicated full page for creating a developer (not a modal). Matches the design of `/properties/create` (blue card, header with back arrow, footer with Cancel + Create buttons). Same field set as the edit modal plus password fields.
+- Mutations: `src/features/admin/model/queries.ts` (`useAdminCreateDeveloper`, `useAdminUpdateDeveloper`).
+- Service layer: `src/entities/admin/api/admin.service.ts`.
+
+### Known backend gaps (developer profile)
+Attempts to extend admin developer create/edit with `inn_number`, `phone_number`, `inn`
+(file), `passport` (file) were reverted because the backend does not accept them
+(verified empirically on 2026-04-14 via Playwright against the live API):
+- `POST /admin/developers/` with multipart silently ignores those fields and returns 201,
+  but `inn_number`/`phone_number` are not saved and no `UserDocument` is created.
+- `PATCH /admin/developers/{id}/` with only those fields returns `400 {"detail":["Передайте хотя бы одно поле для обновления."]}` — proof the request serializer doesn't know the fields at all.
+- To restore these fields, backend must: add columns/fields to `DeveloperProfile`,
+  include them in both request and response serializers for `/admin/developers/` and
+  `/admin/users/`, and handle file uploads into `UserDocument(doc_type='inn'|'passport')`
+  on behalf of the target user (admin context).
 
 ## Known Issues
 - Pre-existing TS type errors; `typescript: { ignoreBuildErrors: true }` in next.config.ts
