@@ -27,7 +27,6 @@ import { useSessionStore } from '@/entities/auth/model/store';
 import {
   useAuctionDetail,
   useParticipants,
-  useJoinAuction,
   useSealedBids,
   usePlaceBid,
   useUpdateBid,
@@ -656,11 +655,9 @@ export default function AuctionDetailPage() {
     || (canViewClosedData && isSealedBidsLoading)
     || (isActiveOpen && !ws.auction);
 
-  const joinAuction = useJoinAuction();
   const cancelAuction = useCancelAuction();
   const shortlist = useShortlist();
 
-  const [joined, setJoined] = React.useState(false);
   const [optimisticBid, setOptimisticBid] = React.useState<Bid | null>(null);
   const [pendingOpenBid, setPendingOpenBid] = React.useState<Bid | null>(null);
   const [bidModalOpen, setBidModalOpen] = React.useState(false);
@@ -782,8 +779,7 @@ export default function AuctionDetailPage() {
     ? Array.from(new Set([...restParticipantIds, ...ws.participants]))
     : restParticipantIds;
   const participantDetails: { id: number; name: string }[] = participants?.participants_detail ?? [];
-  const isParticipant = joined
-    || participantIds.includes(user?.id ?? 0)
+  const isParticipant = participantIds.includes(user?.id ?? 0)
     || !!auction.myBid;
   // For closed auctions, prefer WS sealed bids over REST when available
   const restBidsList = Array.isArray(sealedBids) ? sealedBids : [];
@@ -832,18 +828,6 @@ export default function AuctionDetailPage() {
       updated_at: now,
     });
     ws.sendBid(amount);
-  };
-
-  const handleJoin = () => {
-    joinAuction.mutate(auctionId, {
-      onSuccess: () => {
-        setJoined(true);
-        toast.success('Вы присоединились к аукциону');
-      },
-      onError: (error) => {
-        toast.error(getApiError(error));
-      },
-    });
   };
 
   const handleCancel = () => {
@@ -907,11 +891,16 @@ export default function AuctionDetailPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {!isDeveloper && !isAdmin && isActive && !isParticipant && (
+          {!isDeveloper && !isAdmin && isActive && !isOpenAuction && !myBid && (
             <div className='relative group'>
-              <FancyButton.Root variant='primary' size='small' onClick={handleJoin} disabled={joinAuction.isPending || !isBrokerVerified}>
-                <HugeiconsIcon icon={UserIcon} size={16} color='currentColor' strokeWidth={1.5} />
-                {joinAuction.isPending ? 'Присоединение...' : 'Участвовать'}
+              <FancyButton.Root
+                variant='primary'
+                size='small'
+                onClick={() => setBidModalOpen(true)}
+                disabled={!isBrokerVerified}
+              >
+                <HugeiconsIcon icon={Coins01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                Сделать ставку
               </FancyButton.Root>
               {!isBrokerVerified && (
                 <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
@@ -919,12 +908,6 @@ export default function AuctionDetailPage() {
                 </div>
               )}
             </div>
-          )}
-          {!isDeveloper && !isAdmin && isActive && isParticipant && !isOpenAuction && !myBid && (
-            <FancyButton.Root variant='primary' size='small' onClick={() => setBidModalOpen(true)}>
-              <HugeiconsIcon icon={Coins01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-              Сделать ставку
-            </FancyButton.Root>
           )}
           {isOwner && isFinished && !auction.winner_bid && bidsList.length > 0 && (
             <FancyButton.Root variant='primary' size='small' onClick={() => setWinnerModalOpen(true)}>
@@ -1157,8 +1140,8 @@ export default function AuctionDetailPage() {
 
         {/* Right 1/3 */}
         <div className='space-y-4'>
-          {/* Live bid input — OPEN auction, broker participant */}
-          {isActiveOpen && isBroker && isParticipant && (
+          {/* Live bid input — OPEN auction, broker (participation auto-registered on first bid) */}
+          {isActiveOpen && isBroker && (
             <LiveBidInput
               sendBid={handleSendBid}
               connected={ws.connected}
