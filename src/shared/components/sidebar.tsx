@@ -223,6 +223,7 @@ export default function Sidebar() {
           <div className="flex flex-col gap-0.5">
             <Link
               href="/settings/profile-settings"
+              prefetch={false}
               aria-disabled
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors',
