@@ -189,7 +189,7 @@ export default function NotificationButton({
               Непрочитанные
               {unreadCount > 0 && (
                 <span className="flex py-1 px-1.5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-medium leading-none text-white">
-                  {unreadCount > 9 ? '9+' : unreadCount} +
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </button>
