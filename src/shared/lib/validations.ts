@@ -1,13 +1,137 @@
 import { z } from 'zod';
 
-// === Auth ===
+// Strict email validation — two-layer:
+//
+// 1) Shape check: RFC-like regex with a curated TLD whitelist. Blocks typos
+//    like «test@example.comg» that pass the default `z.string().email()`.
+// 2) Provider check: if the domain belongs to a known email provider, it
+//    must match one of the provider's real domains exactly. Blocks typos
+//    like «dadw@gmail.co» that otherwise pass the shape check because `.co`
+//    is a legitimate TLD (Colombia).
+//
+// Custom / corporate domains fall through to check #1 only.
 
-export const loginSchema = z.object({
-  email: z
+const STRICT_EMAIL_TLDS = [
+  // generic
+  'com', 'org', 'net', 'info', 'biz', 'name', 'pro', 'xyz', 'online', 'site',
+  'store', 'shop', 'cloud', 'app', 'dev', 'tech', 'io', 'co', 'me', 'edu',
+  'gov', 'mil', 'int',
+  // CIS
+  'ru', 'by', 'ua', 'kz', 'kg', 'uz', 'tm', 'tj', 'az', 'am', 'ge', 'md',
+  // EU
+  'uk', 'de', 'fr', 'es', 'it', 'nl', 'pl', 'cz', 'fi', 'se', 'no', 'dk',
+  'ch', 'at', 'be', 'ie', 'pt', 'gr', 'ro', 'hu', 'sk', 'bg', 'hr', 'lt',
+  'lv', 'ee', 'is',
+  // Asia / Pacific
+  'jp', 'cn', 'hk', 'tw', 'kr', 'in', 'id', 'th', 'vn', 'my', 'sg', 'ph',
+  'au', 'nz',
+  // Americas / Africa / Middle East
+  'us', 'ca', 'br', 'ar', 'mx', 'cl', 'pe', 'za', 'tr', 'il', 'ae', 'sa',
+];
+
+const strictEmailRegex = new RegExp(
+  `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.(${STRICT_EMAIL_TLDS.join('|')})$`,
+  'i',
+);
+
+// Known email providers and their allowed full domains. The key matches the
+// first label of the domain (everything before the first dot). If an email's
+// domain starts with one of these keys, the full domain MUST be in the list.
+const KNOWN_PROVIDER_DOMAINS: Record<string, readonly string[]> = {
+  gmail: ['gmail.com'],
+  googlemail: ['googlemail.com'],
+  yahoo: [
+    'yahoo.com', 'yahoo.co.uk', 'yahoo.co.jp', 'yahoo.fr', 'yahoo.de',
+    'yahoo.es', 'yahoo.it', 'yahoo.ca', 'yahoo.com.br', 'yahoo.com.au',
+    'yahoo.com.mx', 'yahoo.com.tr', 'yahoo.com.ar', 'yahoo.com.ph',
+  ],
+  hotmail: [
+    'hotmail.com', 'hotmail.co.uk', 'hotmail.fr', 'hotmail.de',
+    'hotmail.es', 'hotmail.it', 'hotmail.ru',
+  ],
+  outlook: ['outlook.com', 'outlook.fr', 'outlook.de', 'outlook.es', 'outlook.it'],
+  live: ['live.com', 'live.ru', 'live.co.uk'],
+  msn: ['msn.com'],
+  yandex: ['yandex.ru', 'yandex.com', 'yandex.kz', 'yandex.by', 'yandex.ua'],
+  mail: ['mail.ru', 'mail.com'],
+  inbox: ['inbox.ru', 'inbox.lv'],
+  list: ['list.ru'],
+  bk: ['bk.ru'],
+  rambler: ['rambler.ru'],
+  icloud: ['icloud.com'],
+  protonmail: ['protonmail.com'],
+  proton: ['proton.me'],
+  aol: ['aol.com'],
+  zoho: ['zoho.com', 'zoho.eu'],
+  fastmail: ['fastmail.com', 'fastmail.fm'],
+  tutanota: ['tutanota.com'],
+  gmx: ['gmx.com', 'gmx.de', 'gmx.net'],
+};
+
+// Levenshtein distance — classic DP. Small strings only (domain labels),
+// O(m*n) is fine. Used to detect typos in provider labels.
+const levenshtein = (a: string, b: string): number => {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp: number[][] = Array.from({ length: m + 1 }, () =>
+    new Array(n + 1).fill(0),
+  );
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost,
+      );
+    }
+  }
+  return dp[m][n];
+};
+
+const checkProviderDomain = (email: string): boolean => {
+  const at = email.indexOf('@');
+  if (at < 0) return false;
+  const domain = email.slice(at + 1).toLowerCase();
+  const firstLabel = domain.split('.')[0];
+  if (!firstLabel) return false;
+
+  // Exact-match path: full domain must be in allowed list for this provider.
+  const exact = KNOWN_PROVIDER_DOMAINS[firstLabel];
+  if (exact) return exact.includes(domain);
+
+  // Fuzzy-match path: reject labels that are very close to a known provider
+  // label but not exactly it — catches typos like «gmdail», «gmial», «gnail»,
+  // «outloook», «yhaoo», «yandx» etc. Only applied to providers with label
+  // length ≥5 to avoid false positives on short custom domains.
+  for (const candidate of Object.keys(KNOWN_PROVIDER_DOMAINS)) {
+    if (candidate.length < 5) continue;
+    if (Math.abs(candidate.length - firstLabel.length) > 2) continue;
+    if (levenshtein(firstLabel, candidate) <= 2) return false;
+  }
+  return true; // genuinely custom domain — let it pass
+};
+
+const strictEmail = () =>
+  z
     .string()
     .min(1, 'Введите email')
     .transform((v) => v.replace(/\s/g, ''))
-    .pipe(z.string().email('Введите корректный email')),
+    .pipe(
+      z
+        .string()
+        .regex(strictEmailRegex, 'Введите корректный email')
+        .refine(checkProviderDomain, 'Проверьте email'),
+    );
+
+// === Auth ===
+
+export const loginSchema = z.object({
+  email: strictEmail(),
   password: z
     .string()
     .min(1, 'Введите пароль'),
@@ -16,10 +140,7 @@ export const loginSchema = z.object({
 export type LoginFormData = z.infer<typeof loginSchema>;
 
 export const emailStepSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Введите email')
-    .email('Введите корректный email'),
+  email: strictEmail(),
 });
 
 export type EmailStepFormData = z.infer<typeof emailStepSchema>;
@@ -37,7 +158,7 @@ export const brokerRegisterSchema = z
     password: z
       .string()
       .min(1, 'Введите пароль')
-      .min(8, 'Пароль должен содержать минимум 8 символов'),
+      .min(8, 'Минимум 8 символов'),
     passwordConfirm: z
       .string()
       .min(1, 'Подтвердите пароль'),
@@ -49,23 +170,54 @@ export const brokerRegisterSchema = z
 
 export type BrokerRegisterFormData = z.infer<typeof brokerRegisterSchema>;
 
+const MAX_DOC_SIZE = 10 * 1024 * 1024; // 10 MB
+const ACCEPTED_DOC_MIME = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'application/pdf',
+];
+
+const requiredFile = z
+  .any()
+  .refine((file) => file instanceof File, 'Загрузите файл')
+  .refine(
+    (file) => file instanceof File && file.size <= MAX_DOC_SIZE,
+    'Файл должен быть не больше 10 МБ',
+  )
+  .refine(
+    (file) => file instanceof File && ACCEPTED_DOC_MIME.includes(file.type),
+    'Поддерживаются: JPG, PNG, WEBP, HEIC, PDF',
+  );
+
 // Admin: create developer
 export const adminCreateDeveloperSchema = z
   .object({
-    email: z
+    email: strictEmail(),
+    firstName: z
       .string()
-      .min(1, 'Введите email')
-      .transform((v) => v.replace(/\s/g, ''))
-      .pipe(z.string().email('Введите корректный email')),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
+      .min(1, 'Введите имя')
+      .max(50, 'Максимум 50 символов'),
+    lastName: z
+      .string()
+      .min(1, 'Введите фамилию')
+      .max(50, 'Максимум 50 символов'),
     companyName: z
       .string()
       .min(1, 'Введите название компании')
       .max(55, 'Максимум 55 символов'),
+    innNumber: z
+      .string()
+      .min(1, 'Введите ИНН'),
+    phoneNumber: z
+      .string()
+      .min(1, 'Введите номер телефона'),
+    innDocument: requiredFile,
+    passportDocument: requiredFile,
     password: z
       .string()
-      .min(8, 'Пароль должен содержать минимум 8 символов')
+      .min(8, 'Минимум 8 символов')
       .max(128, 'Максимум 128 символов'),
     passwordConfirm: z
       .string()
@@ -80,13 +232,15 @@ export type AdminCreateDeveloperFormData = z.infer<typeof adminCreateDeveloperSc
 
 // Admin: edit developer (PATCH)
 export const adminUpdateDeveloperSchema = z.object({
-  email: z
+  email: strictEmail(),
+  firstName: z
     .string()
-    .min(1, 'Введите email')
-    .transform((v) => v.replace(/\s/g, ''))
-    .pipe(z.string().email('Введите корректный email')),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+    .min(1, 'Введите имя')
+    .max(50, 'Максимум 50 символов'),
+  lastName: z
+    .string()
+    .min(1, 'Введите фамилию')
+    .max(50, 'Максимум 50 символов'),
   companyName: z
     .string()
     .min(1, 'Введите название компании')

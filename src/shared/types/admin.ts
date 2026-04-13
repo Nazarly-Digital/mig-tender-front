@@ -43,8 +43,12 @@ export type AdminCreateDeveloperRequest = {
   password: string;
   password_confirm: string;
   company_name: string;
-  first_name?: string;
-  last_name?: string;
+  first_name: string;
+  last_name: string;
+  inn_number: string;
+  phone_number: string;
+  inn: File;
+  passport: File;
 };
 
 export type AdminUpdateDeveloperRequest = {

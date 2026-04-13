@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,6 @@ import {
   SecurityCheckIcon,
   SquareLock01Icon,
   SquareUnlock01Icon,
-  Cancel01Icon,
   Download01Icon,
   UserAdd01Icon,
   Edit02Icon,
@@ -26,13 +26,10 @@ import {
   useAdminUsers,
   useBlockUser,
   useAdminVerifyBroker,
-  useAdminCreateDeveloper,
   useAdminUpdateDeveloper,
 } from '@/features/admin';
 import type { AdminUser } from '@/shared/types/admin';
 import {
-  adminCreateDeveloperSchema,
-  type AdminCreateDeveloperFormData,
   adminUpdateDeveloperSchema,
   type AdminUpdateDeveloperFormData,
 } from '@/shared/lib/validations';
@@ -44,17 +41,6 @@ const ROLE_LABELS: Record<string, string> = {
   broker: 'Брокер',
   admin: 'Админ',
 };
-
-function formatDate(dateStr: string | undefined | null) {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-}
 
 function getApiError(error: unknown): string {
   const err = error as { response?: { data?: unknown } };
@@ -204,192 +190,6 @@ function VerifyBrokerModal({
   );
 }
 
-// --- Create Developer Modal ---
-
-function CreateDeveloperModal({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const createDeveloper = useAdminCreateDeveloper();
-
-  const form = useForm<AdminCreateDeveloperFormData>({
-    resolver: zodResolver(adminCreateDeveloperSchema),
-    defaultValues: {
-      email: '',
-      firstName: '',
-      lastName: '',
-      companyName: '',
-      password: '',
-      passwordConfirm: '',
-    },
-  });
-
-  React.useEffect(() => {
-    if (!open) form.reset();
-  }, [open, form]);
-
-  const onSubmit = form.handleSubmit((data) => {
-    createDeveloper.mutate(
-      {
-        email: data.email,
-        password: data.password,
-        password_confirm: data.passwordConfirm,
-        company_name: data.companyName,
-        first_name: data.firstName || undefined,
-        last_name: data.lastName || undefined,
-      },
-      {
-        onSuccess: () => {
-          toast.success('Девелопер создан');
-          onOpenChange(false);
-        },
-        onError: (error) => {
-          toast.error(getApiError(error));
-        },
-      },
-    );
-  });
-
-  return (
-    <Modal.Root open={open} onOpenChange={onOpenChange}>
-      <Modal.Content className='max-w-[480px]'>
-        <Modal.Header
-          title='Новый девелопер'
-          description='Создайте аккаунт девелопера. Пароль можно будет сообщить пользователю лично.'
-        />
-        <form onSubmit={onSubmit}>
-          <Modal.Body>
-            <div className='flex flex-col gap-4'>
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='cd-email'>
-                  Email <Label.Asterisk />
-                </Label.Root>
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='cd-email'
-                      type='email'
-                      placeholder='example@mail.com'
-                      {...form.register('email')}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {form.formState.errors.email && (
-                  <span className='text-paragraph-xs text-error-base'>
-                    {form.formState.errors.email.message}
-                  </span>
-                )}
-              </div>
-
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='flex flex-col gap-1'>
-                  <Label.Root htmlFor='cd-firstName'>Имя</Label.Root>
-                  <Input.Root>
-                    <Input.Wrapper>
-                      <Input.Input id='cd-firstName' type='text' placeholder='Имя' {...form.register('firstName')} />
-                    </Input.Wrapper>
-                  </Input.Root>
-                </div>
-                <div className='flex flex-col gap-1'>
-                  <Label.Root htmlFor='cd-lastName'>Фамилия</Label.Root>
-                  <Input.Root>
-                    <Input.Wrapper>
-                      <Input.Input id='cd-lastName' type='text' placeholder='Фамилия' {...form.register('lastName')} />
-                    </Input.Wrapper>
-                  </Input.Root>
-                </div>
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='cd-companyName'>
-                  Название компании <Label.Asterisk />
-                </Label.Root>
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='cd-companyName'
-                      type='text'
-                      placeholder='ООО «Пример»'
-                      {...form.register('companyName')}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {form.formState.errors.companyName && (
-                  <span className='text-paragraph-xs text-error-base'>
-                    {form.formState.errors.companyName.message}
-                  </span>
-                )}
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='cd-password'>
-                  Пароль <Label.Asterisk />
-                </Label.Root>
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='cd-password'
-                      type='password'
-                      placeholder='Минимум 8 символов'
-                      autoComplete='new-password'
-                      {...form.register('password')}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {form.formState.errors.password && (
-                  <span className='text-paragraph-xs text-error-base'>
-                    {form.formState.errors.password.message}
-                  </span>
-                )}
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='cd-passwordConfirm'>
-                  Повторите пароль <Label.Asterisk />
-                </Label.Root>
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='cd-passwordConfirm'
-                      type='password'
-                      placeholder='Повторите пароль'
-                      autoComplete='new-password'
-                      {...form.register('passwordConfirm')}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {form.formState.errors.passwordConfirm && (
-                  <span className='text-paragraph-xs text-error-base'>
-                    {form.formState.errors.passwordConfirm.message}
-                  </span>
-                )}
-              </div>
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Modal.Close asChild>
-              <FancyButton.Root type='button' variant='basic' size='small'>
-                Отмена
-              </FancyButton.Root>
-            </Modal.Close>
-            <FancyButton.Root
-              type='submit'
-              variant='primary'
-              size='small'
-              disabled={createDeveloper.isPending}
-            >
-              {createDeveloper.isPending ? 'Создание...' : 'Создать'}
-            </FancyButton.Root>
-          </Modal.Footer>
-        </form>
-      </Modal.Content>
-    </Modal.Root>
-  );
-}
-
 // --- Edit Developer Modal ---
 
 function EditDeveloperModal({
@@ -435,8 +235,8 @@ function EditDeveloperModal({
       company_name?: string;
     } = {};
     if (data.email !== user.email) payload.email = data.email;
-    if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName ?? '';
-    if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName ?? '';
+    if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName;
+    if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName;
     if (data.companyName !== (user.developer?.company_name ?? '')) {
       payload.company_name = data.companyName;
     }
@@ -493,20 +293,34 @@ function EditDeveloperModal({
 
               <div className='grid grid-cols-2 gap-3'>
                 <div className='flex flex-col gap-1'>
-                  <Label.Root htmlFor='ed-firstName'>Имя</Label.Root>
-                  <Input.Root>
+                  <Label.Root htmlFor='ed-firstName'>
+                    Имя <Label.Asterisk />
+                  </Label.Root>
+                  <Input.Root hasError={!!form.formState.errors.firstName}>
                     <Input.Wrapper>
                       <Input.Input id='ed-firstName' type='text' placeholder='Имя' {...form.register('firstName')} />
                     </Input.Wrapper>
                   </Input.Root>
+                  {form.formState.errors.firstName && (
+                    <span className='text-paragraph-xs text-error-base'>
+                      {form.formState.errors.firstName.message}
+                    </span>
+                  )}
                 </div>
                 <div className='flex flex-col gap-1'>
-                  <Label.Root htmlFor='ed-lastName'>Фамилия</Label.Root>
-                  <Input.Root>
+                  <Label.Root htmlFor='ed-lastName'>
+                    Фамилия <Label.Asterisk />
+                  </Label.Root>
+                  <Input.Root hasError={!!form.formState.errors.lastName}>
                     <Input.Wrapper>
                       <Input.Input id='ed-lastName' type='text' placeholder='Фамилия' {...form.register('lastName')} />
                     </Input.Wrapper>
                   </Input.Root>
+                  {form.formState.errors.lastName && (
+                    <span className='text-paragraph-xs text-error-base'>
+                      {form.formState.errors.lastName.message}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -530,6 +344,7 @@ function EditDeveloperModal({
                   </span>
                 )}
               </div>
+
             </div>
           </Modal.Body>
           <Modal.Footer>
@@ -562,7 +377,6 @@ export default function AdminUsersPage() {
   const [blockTarget, setBlockTarget] = React.useState<AdminUser | null>(null);
   const [verifyTarget, setVerifyTarget] = React.useState<AdminUser | null>(null);
   const [editTarget, setEditTarget] = React.useState<AdminUser | null>(null);
-  const [createOpen, setCreateOpen] = React.useState(false);
 
   const params = {
     ...(roleFilter !== 'all' && { role: roleFilter }),
@@ -585,14 +399,12 @@ export default function AdminUsersPage() {
         title='Пользователи'
         description='Управление пользователями платформы'
         action={
-          <FancyButton.Root
-            variant='primary'
-            size='small'
-            onClick={() => setCreateOpen(true)}
-          >
-            <HugeiconsIcon icon={UserAdd01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-            Добавить девелопера
-          </FancyButton.Root>
+          <Link href='/admin/users/new-developer'>
+            <FancyButton.Root variant='primary' size='small'>
+              <HugeiconsIcon icon={UserAdd01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+              Добавить девелопера
+            </FancyButton.Root>
+          </Link>
         }
       />
 
@@ -776,7 +588,6 @@ export default function AdminUsersPage() {
           if (!open) setVerifyTarget(null);
         }}
       />
-      <CreateDeveloperModal open={createOpen} onOpenChange={setCreateOpen} />
       <EditDeveloperModal
         user={editTarget}
         open={!!editTarget}
