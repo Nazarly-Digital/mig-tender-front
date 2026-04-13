@@ -22,6 +22,7 @@ import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
+  COMMERCIAL_SUBTYPE_LABELS,
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import { useProperty } from '@/features/properties';
@@ -281,6 +282,16 @@ export default function CatalogDetailPage() {
               </div>
             </div>
             )}
+            {property.type === 'commercial' && property.commercial_subtype && (
+              <div>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Подтип</div>
+                <div className='mt-1'>
+                  <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
+                    {COMMERCIAL_SUBTYPE_LABELS[property.commercial_subtype]}
+                  </span>
+                </div>
+              </div>
+            )}
             <div>
               <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Статус</div>
               <div className='mt-1'>
@@ -314,6 +325,14 @@ export default function CatalogDetailPage() {
               </div>
             </div>
           </div>
+          {property.project_comment && (
+            <div className='mt-5 border-t border-blue-50 pt-5'>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комментарий к проекту</div>
+              <div className='mt-1.5 whitespace-pre-wrap text-[13px] text-gray-900'>
+                {property.project_comment}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Price & Auction card */}
