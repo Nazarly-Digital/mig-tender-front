@@ -30,7 +30,8 @@ const MODE_LABELS: Record<AuctionMode, string> = {
   closed: 'Закрытый',
 };
 
-function formatPrice(value: string) {
+function formatPrice(value: string | null | undefined) {
+  if (value == null) return '—';
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
   return new Intl.NumberFormat('ru-RU').format(num);
@@ -85,9 +86,11 @@ function AuctionCard({ auction }: { auction: Auction }) {
             ? auction.properties[0].address + (auction.properties.length > 1 ? ` (+${auction.properties.length - 1})` : '')
             : auction.real_property?.address}
         </span>
-        <span className='text-[17px] font-bold text-gray-900 shrink-0'>
-          {formatPrice(auction.lot_total_price ?? auction.current_price)} ₽
-        </span>
+        {(auction.lot_total_price != null || auction.current_price != null) && (
+          <span className='text-[17px] font-bold text-gray-900 shrink-0'>
+            {formatPrice(auction.lot_total_price ?? auction.current_price)} ₽
+          </span>
+        )}
         <div className='flex items-center gap-1.5'>
           <span className={`size-1.5 rounded-full ${statusCfg.dot}`} />
           <span className={`text-[11px] font-medium ${statusCfg.text}`}>{statusCfg.label}</span>
@@ -106,8 +109,17 @@ function AuctionCard({ auction }: { auction: Auction }) {
       <div className='mt-3 pt-3 border-t border-blue-50'>
         <div className='flex justify-between text-[11px]'>
           <span className='text-gray-400'>
-            {auction.bids_count} {pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')} · старт. {formatPrice(auction.min_price)} ₽
-            {auction.mode === 'open' && auction.min_bid_increment && ` · шаг ${formatPrice(auction.min_bid_increment)}`}
+            {[
+              auction.bids_count != null
+                ? `${auction.bids_count} ${pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')}`
+                : null,
+              auction.min_price != null ? `старт. ${formatPrice(auction.min_price)} ₽` : null,
+              auction.mode === 'open' && auction.min_bid_increment
+                ? `шаг ${formatPrice(auction.min_bid_increment)}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
           </span>
           {isActive && <span className='font-semibold text-gray-500'>{progress}%</span>}
         </div>
@@ -118,10 +130,12 @@ function AuctionCard({ auction }: { auction: Auction }) {
 
       {/* Footer */}
       <div className='mt-3 flex flex-col gap-2 border-t border-blue-50 pt-3 text-[12px] text-gray-400'>
-        <span className='flex items-center gap-1'>
-          <HugeiconsIcon icon={Award01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
-          {auction.bids_count} {pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')}
-        </span>
+        {auction.bids_count != null && (
+          <span className='flex items-center gap-1'>
+            <HugeiconsIcon icon={Award01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
+            {auction.bids_count} {pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')}
+          </span>
+        )}
         <span className='flex items-center gap-1'>
           <HugeiconsIcon icon={Clock01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
            {formatDate(auction.end_date)}

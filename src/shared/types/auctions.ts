@@ -32,13 +32,13 @@ export type Auction = {
   properties: AuctionLotProperty[];
   owner_id: number;
   mode: AuctionMode;
-  min_price: string;
+  min_price: string | null;
   min_bid_increment: string | null;
   start_date: string;
   end_date: string;
   status: AuctionStatus;
-  bids_count: number;
-  current_price: string;
+  bids_count: number | null;
+  current_price: string | null;
   highest_bid_id: number | null;
   winner_bid: {
     id: number;

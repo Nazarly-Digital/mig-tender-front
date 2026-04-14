@@ -136,14 +136,12 @@ function PlaceBidModal({
   open,
   onOpenChange,
   existingBid,
-  minPrice,
   onBidPlaced,
 }: {
   auctionId: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingBid?: Bid | null;
-  minPrice: string;
   onBidPlaced?: (amount: string) => void;
 }) {
   const [amount, setAmount] = React.useState(existingBid?.amount ?? '');
@@ -162,16 +160,13 @@ function PlaceBidModal({
   }, [open, existingBid]);
 
   const numericAmount = parseFloat(stripPriceFormat(amount)) || 0;
-  const minPriceNum = parseFloat(minPrice) || 0;
   const isEmpty = !amount.trim();
   const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
-  const isBelowMin = !isEmpty && !isInvalid && numericAmount < minPriceNum;
-  const isDisabled = mutation.isPending || isEmpty || isInvalid || isBelowMin;
+  const isDisabled = mutation.isPending || isEmpty || isInvalid;
 
   const getError = (): string | null => {
     if (isEmpty) return null;
     if (isInvalid) return 'Введите корректную сумму';
-    if (isBelowMin) return `Ставка должна быть не менее ${formatPrice(minPrice)}`;
     return null;
   };
   const error = getError();
@@ -200,7 +195,7 @@ function PlaceBidModal({
       <Modal.Content>
         <Modal.Header
           title={isUpdate ? 'Обновить ставку' : 'Сделать ставку'}
-          description={`Минимальная сумма: ${formatPrice(minPrice)} ₽`}
+          description='Введите сумму вашей ставки'
         />
         <form onSubmit={handleSubmit}>
           <Modal.Body className='space-y-4'>
@@ -214,7 +209,7 @@ function PlaceBidModal({
                     id='bid-amount'
                     type='text'
                     inputMode='decimal'
-                    placeholder={formatPriceInput(minPrice) + ' ₽'}
+                    placeholder='0 ₽'
                     value={formatPriceInput(amount)}
                     onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
                   />
@@ -931,39 +926,71 @@ export default function AuctionDetailPage() {
         </div>
       </div>
 
-      {/* KPI Row */}
-      <div className={`grid grid-cols-2 gap-3 ${isOpenAuction ? 'sm:grid-cols-5' : auction.lot_total_price ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>
-        <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
-          <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)} ₽</span>
-        </div>
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Стартовая цена</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_price)} ₽</span>
-        </div>
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
-          <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
-        </div>
-        {auction.lot_total_price && (
-          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-            <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Сумма лота</span>
-            <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.lot_total_price)} ₽</span>
+      {/* KPI Row — cards render only when data is available (brokers don't see min/current/bids in CLOSED auctions) */}
+      {(() => {
+        const showCurrentPrice = liveCurrentPrice != null;
+        const showMinPrice = auction.min_price != null;
+        const showBidsCount = liveBidsCount != null;
+        const showLotTotal = auction.lot_total_price != null;
+        const showIncrement = isOpenAuction && auction.min_bid_increment != null;
+        const showParticipants = isOpenAuction && isOwnerOrAdmin;
+        const visibleCount = [
+          showCurrentPrice,
+          showMinPrice,
+          showBidsCount,
+          showLotTotal,
+          showIncrement,
+          showParticipants,
+        ].filter(Boolean).length;
+        if (visibleCount === 0) return null;
+        const cols = Math.min(visibleCount, 5);
+        const colsClass =
+          cols >= 5 ? 'sm:grid-cols-5'
+          : cols === 4 ? 'sm:grid-cols-4'
+          : cols === 3 ? 'sm:grid-cols-3'
+          : cols === 2 ? 'sm:grid-cols-2'
+          : 'sm:grid-cols-1';
+        return (
+          <div className={`grid grid-cols-2 gap-3 ${colsClass}`}>
+            {showCurrentPrice && (
+              <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
+                <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)} ₽</span>
+              </div>
+            )}
+            {showMinPrice && (
+              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Стартовая цена</span>
+                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_price)} ₽</span>
+              </div>
+            )}
+            {showBidsCount && (
+              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
+                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
+              </div>
+            )}
+            {showLotTotal && (
+              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Сумма лота</span>
+                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.lot_total_price)} ₽</span>
+              </div>
+            )}
+            {showIncrement && (
+              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
+                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
+              </div>
+            )}
+            {showParticipants && (
+              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
+                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
+              </div>
+            )}
           </div>
-        )}
-        {isOpenAuction && auction.min_bid_increment && (
-          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-            <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
-            <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
-          </div>
-        )}
-        {isOpenAuction && isOwnerOrAdmin && (
-          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-            <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
-            <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
-          </div>
-        )}
-      </div>
+        );
+      })()}
 
       {/* Main 2/3 + 1/3 */}
       <div className='grid grid-cols-1 gap-4 xl:grid-cols-3'>
@@ -1146,17 +1173,17 @@ export default function AuctionDetailPage() {
             <LiveBidInput
               sendBid={handleSendBid}
               connected={ws.connected}
-              currentPrice={liveCurrentPrice}
-              minPrice={auction.min_price}
+              currentPrice={liveCurrentPrice ?? '0'}
+              minPrice={auction.min_price ?? '0'}
               minBidIncrement={auction.min_bid_increment ?? '0'}
-              bidsCount={liveBidsCount}
+              bidsCount={liveBidsCount ?? 0}
               isHighestBidder={isHighestBidder}
               wsError={ws.error}
             />
           )}
 
-          {/* Participants — hidden for brokers in open auctions */}
-          {(!isOpenAuction || isOwnerOrAdmin) && (
+          {/* Participants — owner/admin only (hidden for brokers in both open and closed auctions) */}
+          {isOwnerOrAdmin && (
             <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
               <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
                 <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
@@ -1220,7 +1247,6 @@ export default function AuctionDetailPage() {
         open={bidModalOpen}
         onOpenChange={setBidModalOpen}
         existingBid={myBid}
-        minPrice={auction.min_price}
         onBidPlaced={(amount) => {
           const now = new Date().toISOString();
           setOptimisticBid({
