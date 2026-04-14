@@ -16,7 +16,7 @@ export type AuctionLotProperty = {
   address: string;
   area: string;
   property_class: string;
-  price: string;
+  price: string | null;
   commission_rate: string;
   deadline: string;
   status: string;

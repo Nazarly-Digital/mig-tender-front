@@ -214,9 +214,10 @@ export default function CreateAuctionPage() {
   const startDateValue = watch('start_date');
 
   const minStart = toLocalDT(new Date(Date.now() + 60 * 60 * 1000));
+  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
   const minEnd = startDateValue
-    ? toLocalDT(new Date(new Date(startDateValue).getTime() + 60 * 60 * 1000))
-    : minStart;
+    ? toLocalDT(new Date(new Date(startDateValue).getTime() + TWELVE_HOURS_MS))
+    : toLocalDT(new Date(Date.now() + TWELVE_HOURS_MS));
 
   // For CLOSED mode: load compatible properties based on first selected property
   const referenceProperty = selectedMode === 'closed' && selectedPropertyIds.length > 0
@@ -521,7 +522,7 @@ export default function CreateAuctionPage() {
               {errors.end_date ? (
                 <p className='text-xs text-red-500'>{errors.end_date.message}</p>
               ) : (
-                <p className='text-xs text-gray-400'>Минимум на 1 час позже даты начала</p>
+                <p className='text-xs text-gray-400'>Минимальная длительность аукциона — 12 часов</p>
               )}
             </div>
           </div>

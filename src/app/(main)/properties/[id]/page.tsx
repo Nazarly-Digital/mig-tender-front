@@ -76,7 +76,8 @@ const MODERATION_STYLES: Record<ModerationStatus, string> = {
 
 // --- Helpers ---
 
-function formatPrice(value: string, _currency?: string) {
+function formatPrice(value: string | null | undefined, _currency?: string) {
+  if (value == null) return '—';
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
   return new Intl.NumberFormat('ru-RU').format(num) + ' ₽';
@@ -413,7 +414,7 @@ function PropertyEditForm({
       address: property.address,
       area: property.area,
       property_class: property.property_class,
-      price: property.price,
+      price: property.price ?? '',
       currency: 'RUB',
       deadline: property.deadline ?? '',
       status: property.status,
@@ -425,6 +426,7 @@ function PropertyEditForm({
       land_number: property.land_number ?? '',
       house_number: property.house_number ?? '',
       commission_rate: property.commission_rate != null ? String(property.commission_rate) : '',
+      show_price_to_brokers: property.show_price_to_brokers ?? true,
     },
   });
 
@@ -629,6 +631,26 @@ function PropertyEditForm({
         </div>
       </div>
 
+      {/* Show price to brokers */}
+      <Controller
+        name='show_price_to_brokers'
+        control={control}
+        render={({ field }) => (
+          <label className='flex items-start gap-2 cursor-pointer select-none'>
+            <input
+              type='checkbox'
+              checked={field.value ?? true}
+              onChange={(e) => field.onChange(e.target.checked)}
+              className='mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20'
+            />
+            <span className='text-[13px] text-gray-700'>
+              Показывать прайсовую цену брокерам
+              <span className='block text-[11px] text-gray-400'>Если отключено, брокеры увидят «Скрыта» вместо цены</span>
+            </span>
+          </label>
+        )}
+      />
+
       {/* Deadline + Status */}
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
@@ -713,6 +735,7 @@ export default function PropertyDetailPage() {
           commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null,
           land_number: data.type === 'land' && data.land_number ? data.land_number : null,
           house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null,
+          show_price_to_brokers: data.show_price_to_brokers ?? true,
         },
       },
       {
@@ -811,7 +834,7 @@ export default function PropertyDetailPage() {
       <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
         <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</span>
-          <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(property.price, property.currency)}</span>
+          <span className='mt-1 block text-[17px] font-bold text-blue-700'>{property.price == null ? 'Скрыта' : formatPrice(property.price, property.currency)}</span>
         </div>
         <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-4'>
           <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</span>

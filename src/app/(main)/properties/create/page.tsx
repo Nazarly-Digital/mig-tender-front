@@ -70,6 +70,7 @@ export default function CreatePropertyPage() {
       commercial_subtype: '',
       land_number: '',
       house_number: '',
+      show_price_to_brokers: true,
     },
   });
 
@@ -172,7 +173,7 @@ export default function CreatePropertyPage() {
     setSubmitting(true);
     try {
       const property = await createMutation.mutateAsync(
-        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, project_comment: data.project_comment ?? '', commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null, land_number: data.type === 'land' && data.land_number ? data.land_number : null, house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null } as any,
+        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, project_comment: data.project_comment ?? '', commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null, land_number: data.type === 'land' && data.land_number ? data.land_number : null, house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null, show_price_to_brokers: data.show_price_to_brokers ?? true } as any,
       );
       for (let i = 0; i < photos.length; i++) {
         try {
@@ -395,6 +396,24 @@ export default function CreatePropertyPage() {
                   ) }
                 </div>
               </div>
+              <Controller
+                name='show_price_to_brokers'
+                control={control}
+                render={({ field }) => (
+                  <label className='flex items-start gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={field.value ?? true}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      className='mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20'
+                    />
+                    <span className='text-[13px] text-gray-700'>
+                      Показывать прайсовую цену брокерам
+                      <span className='block text-[11px] text-gray-400'>Если отключено, брокеры увидят «Скрыта» вместо цены</span>
+                    </span>
+                  </label>
+                )}
+              />
             </div>
           </div>
 

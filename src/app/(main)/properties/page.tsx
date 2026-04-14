@@ -11,6 +11,7 @@ import {
   Image01Icon,
   Delete01Icon,
   Building03Icon,
+  ViewOffSlashIcon,
 } from '@hugeicons/core-free-icons';
 
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -50,7 +51,8 @@ const MODERATION_STYLES: Record<ModerationStatus, string> = {
   rejected: 'bg-red-50 text-red-700',
 };
 
-function formatPrice(value: string, _currency?: string) {
+function formatPrice(value: string | null | undefined, _currency?: string) {
+  if (value == null) return '\u2014';
   const num = parseFloat(value);
   if (isNaN(num)) return '\u2014';
   return new Intl.NumberFormat('ru-RU').format(num) + ' ₽';
@@ -171,8 +173,16 @@ function PropertyCard({
           )}
         </div>
         {/* Price overlay */}
-        <div className='absolute left-3 bottom-3 rounded-md bg-black/60 px-2 py-1 text-[13px] font-bold text-white backdrop-blur-sm'>
+        <div className='absolute left-3 bottom-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-[13px] font-bold text-white backdrop-blur-sm'>
           {formatPrice(property.price, property.currency)}
+          {property.show_price_to_brokers === false && (
+            <span
+              title='Прайсовая цена скрыта от брокеров'
+              className='flex items-center text-white/80'
+            >
+              <HugeiconsIcon icon={ViewOffSlashIcon} size={13} color='currentColor' strokeWidth={2.5} />
+            </span>
+          )}
         </div>
         {/* Delete on hover */}
         <div className='absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity'>

@@ -65,7 +65,8 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   land: 'Земля',
 };
 
-function formatPrice(value: string) {
+function formatPrice(value: string | null | undefined) {
+  if (value == null) return '—';
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
   return new Intl.NumberFormat('ru-RU').format(num);
@@ -462,7 +463,7 @@ function AssignModal({
                       </div>
                       <div className='flex-1 min-w-0'>
                         <div className='text-sm text-gray-900 truncate'>{prop.address}</div>
-                        <div className='text-xs text-gray-500'>{prop.area} м² · {formatPrice(prop.price)} ₽</div>
+                        <div className='text-xs text-gray-500'>{prop.area} м² · {prop.price == null ? 'Цена скрыта' : `${formatPrice(prop.price)} ₽`}</div>
                       </div>
                       {isDisabled && (
                         <span className='text-[10px] text-gray-400'>Назначен #{assignedTo![0]}</span>
@@ -1038,7 +1039,7 @@ export default function AuctionDetailPage() {
                     <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</th>
                     <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</th>
                     <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</th>
-                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</th>
+                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</th>
                   </tr>
                 </thead>
                 <tbody className='text-[13px]'>
@@ -1048,7 +1049,7 @@ export default function AuctionDetailPage() {
                       <td className='py-3 font-medium text-blue-600 hover:text-blue-800'>{prop.address}</td>
                       <td className='py-3 text-gray-600'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</td>
                       <td className='py-3 text-gray-600'>{prop.area} м²</td>
-                      <td className='py-3 font-semibold text-gray-900'>{formatPrice(prop.price)} ₽</td>
+                      <td className='py-3 font-semibold text-gray-900'>{prop.price == null ? 'Скрыта' : `${formatPrice(prop.price)} ₽`}</td>
                     </tr>
                   ))}
                 </tbody>
