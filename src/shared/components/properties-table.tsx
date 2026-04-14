@@ -94,7 +94,8 @@ const STATUS_MAP: Record<PropertyStatus, 'pending' | 'completed' | 'disabled'> =
   sold: 'completed',
 };
 
-function formatPrice(price: string, _currency?: string) {
+function formatPrice(price: string | null | undefined, _currency?: string) {
+  if (price == null) return 'Скрыта';
   const num = parseFloat(price);
   if (isNaN(num)) return price;
   return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(num) + ' ₽';

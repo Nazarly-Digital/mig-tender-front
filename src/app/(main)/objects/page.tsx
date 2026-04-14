@@ -135,7 +135,7 @@ type CatalogCardItem = {
   type: string;
   property_class: string;
   status: string;
-  price: string;
+  price: string | null;
   currency: string;
   area: string;
   deadline?: string | null;
@@ -209,9 +209,9 @@ function CatalogPropertyCard({
           {/* Details grid */}
           <div className='mt-4 pt-4 border-t border-blue-50 grid grid-cols-2 gap-x-4 gap-y-3'>
             <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</div>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</div>
               <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {formatPrice(property.price, property.currency)}
+                {property.price == null ? 'Скрыта' : formatPrice(property.price, property.currency)}
               </div>
             </div>
             <div>

@@ -338,9 +338,9 @@ export default function CatalogDetailPage() {
         {/* Price & Auction card */}
         <div className='flex flex-col gap-4'>
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
-            <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Цена</div>
+            <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</div>
             <div className='mt-2 text-xl font-semibold text-gray-900'>
-              {formatPrice(property.price, property.currency)}
+              {property.price == null ? 'Скрыта' : formatPrice(property.price, property.currency)}
             </div>
           </div>
 

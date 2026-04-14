@@ -277,6 +277,7 @@ export const propertySchema = z.object({
   commercial_subtype: z.string().optional(),
   land_number: z.string().optional(),
   house_number: z.string().optional(),
+  show_price_to_brokers: z.boolean().optional(),
 }).refine(
   (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),
   { message: 'Выберите класс', path: ['property_class'] },
@@ -341,9 +342,10 @@ export const auctionSchema = z.object({
     if (!data.start_date || !data.end_date) return true;
     const start = new Date(data.start_date).getTime();
     const end = new Date(data.end_date).getTime();
-    return end > start;
+    const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+    return end - start >= TWELVE_HOURS_MS;
   },
-  { message: 'Дата окончания должна быть позже даты начала',
+  { message: 'Минимальная длительность аукциона — 12 часов',
     path: ['end_date'] },
 ).refine(
   (data) => {

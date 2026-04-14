@@ -7,7 +7,8 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   TRY: '₺',
 };
 
-export function formatPrice(value: string, _currency?: string): string {
+export function formatPrice(value: string | null | undefined, _currency?: string): string {
+  if (value == null) return '—';
   const num = parseFloat(value);
   if (isNaN(num)) return '—';
   return ruNumberFormatter.format(num) + ' ₽';
@@ -25,7 +26,8 @@ export function formatDateShort(dateStr: string | null | undefined): string {
 }
 
 /** Format number string with spaces for display: "10000000" → "10 000 000" */
-export function formatPriceInput(value: string): string {
+export function formatPriceInput(value: string | null | undefined): string {
+  if (value == null) return '';
   const clean = value.replace(/[^0-9.]/g, '');
   const [integer, decimal] = clean.split('.');
   const formatted = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
