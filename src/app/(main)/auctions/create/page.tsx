@@ -213,11 +213,11 @@ export default function CreateAuctionPage() {
   const selectedPropertyIds = watch('propertyIds');
   const startDateValue = watch('start_date');
 
-  const minStart = toLocalDT(new Date(Date.now() + 60 * 60 * 1000));
-  const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+  const minStart = toLocalDT(new Date(Date.now() + 60 * 1000));
+  const ONE_MINUTE_MS = 60 * 1000;
   const minEnd = startDateValue
-    ? toLocalDT(new Date(new Date(startDateValue).getTime() + TWELVE_HOURS_MS))
-    : toLocalDT(new Date(Date.now() + TWELVE_HOURS_MS));
+    ? toLocalDT(new Date(new Date(startDateValue).getTime() + ONE_MINUTE_MS))
+    : toLocalDT(new Date(Date.now() + ONE_MINUTE_MS));
 
   // For CLOSED mode: load compatible properties based on first selected property
   const referenceProperty = selectedMode === 'closed' && selectedPropertyIds.length > 0
@@ -502,7 +502,7 @@ export default function CreateAuctionPage() {
               {errors.start_date ? (
                 <p className='text-xs text-red-500'>{errors.start_date.message}</p>
               ) : (
-                <p className='text-xs text-gray-400'>Минимум через 1 час от текущего времени</p>
+                <p className='text-xs text-gray-400'>Минимум через 1 минуту от текущего времени</p>
               )}
             </div>
             <div className='space-y-1.5'>
@@ -522,7 +522,7 @@ export default function CreateAuctionPage() {
               {errors.end_date ? (
                 <p className='text-xs text-red-500'>{errors.end_date.message}</p>
               ) : (
-                <p className='text-xs text-gray-400'>Минимальная длительность аукциона — 12 часов</p>
+                <p className='text-xs text-gray-400'>Минимальная длительность аукциона — 1 минута</p>
               )}
             </div>
           </div>

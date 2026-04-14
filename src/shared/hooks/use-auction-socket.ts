@@ -11,6 +11,7 @@ export type WsBid = {
   broker: number;
   amount: string;
   created_at: string;
+  updated_at?: string;
 };
 
 export type WsAuctionSnapshot = {
@@ -31,6 +32,7 @@ export type WsMessage =
   | { type: 'auction_snapshot'; auction: WsAuctionSnapshot; bids: WsBid[] }
   | { type: 'participants_snapshot'; participants: number[] }
   | { type: 'bid_created'; auction: Partial<WsAuctionSnapshot>; bid: WsBid }
+  | { type: 'bid_updated'; auction: Partial<WsAuctionSnapshot>; bid: WsBid }
   | { type: 'participant_joined'; auction_id: number; user_id: number; participants_count: number }
   | { type: 'auction_updated'; [key: string]: unknown }
   | { type: 'error'; detail: string | { detail: string } };
@@ -117,12 +119,17 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
             break;
 
           case 'bid_created':
+          case 'bid_updated':
+            // Each broker has exactly ONE open bid (enforced by unique constraint).
+            // Upsert by broker: replace existing bid from same broker, otherwise prepend.
             setState((s) => {
-              const exists = s.bids.some((b) => b.id === msg.bid.id);
+              const without = s.bids.filter(
+                (b) => b.broker !== msg.bid.broker && b.id !== msg.bid.id,
+              );
               return {
                 ...s,
                 auction: s.auction ? { ...s.auction, ...msg.auction } : s.auction,
-                bids: exists ? s.bids : [msg.bid, ...s.bids].slice(0, 50),
+                bids: [msg.bid, ...without].slice(0, 50),
               };
             });
             break;
