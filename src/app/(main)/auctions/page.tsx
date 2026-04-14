@@ -111,7 +111,9 @@ function AuctionCard({ auction }: { auction: Auction }) {
           <span className='text-gray-400'>
             {[
               auction.bids_count != null
-                ? `${auction.bids_count} ${pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')}`
+                ? auction.mode === 'open'
+                  ? `${auction.bids_count} ${pluralize(auction.bids_count, 'участник', 'участника', 'участников')}`
+                  : `${auction.bids_count} ${pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')}`
                 : null,
               auction.min_price != null ? `старт. ${formatPrice(auction.min_price)} ₽` : null,
               auction.mode === 'open' && auction.min_bid_increment
@@ -133,7 +135,9 @@ function AuctionCard({ auction }: { auction: Auction }) {
         {auction.bids_count != null && (
           <span className='flex items-center gap-1'>
             <HugeiconsIcon icon={Award01Icon} size={13} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
-            {auction.bids_count} {pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')}
+            {auction.mode === 'open'
+              ? `${auction.bids_count} ${pluralize(auction.bids_count, 'участник', 'участника', 'участников')}`
+              : `${auction.bids_count} ${pluralize(auction.bids_count, 'ставка', 'ставки', 'ставок')}`}
           </span>
         )}
         <span className='flex items-center gap-1'>

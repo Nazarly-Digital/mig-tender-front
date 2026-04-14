@@ -342,10 +342,10 @@ export const auctionSchema = z.object({
     if (!data.start_date || !data.end_date) return true;
     const start = new Date(data.start_date).getTime();
     const end = new Date(data.end_date).getTime();
-    const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
-    return end - start >= TWELVE_HOURS_MS;
+    const ONE_MINUTE_MS = 60 * 1000;
+    return end - start >= ONE_MINUTE_MS;
   },
-  { message: 'Минимальная длительность аукциона — 12 часов',
+  { message: 'Минимальная длительность аукциона — 1 минута',
     path: ['end_date'] },
 ).refine(
   (data) => {

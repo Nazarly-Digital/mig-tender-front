@@ -500,6 +500,8 @@ function LiveBidInput({
   minPrice,
   minBidIncrement,
   bidsCount,
+  hasMyBid,
+  myBidAmount,
   isHighestBidder,
   wsError,
 }: {
@@ -509,13 +511,18 @@ function LiveBidInput({
   minPrice: string;
   minBidIncrement: string;
   bidsCount: number;
+  hasMyBid: boolean;
+  myBidAmount: string | null;
   isHighestBidder: boolean;
   wsError: string | null;
 }) {
-  const isFirstBid = bidsCount === 0 || parseFloat(currentPrice) <= 0;
+  // "First bid" in the auction (across all brokers) — allows the minimum price flow.
+  const isFirstGlobalBid = bidsCount === 0 || parseFloat(currentPrice) <= 0;
   const [amount, setAmount] = React.useState('');
 
-  const minBid = isFirstBid
+  // Minimum allowed bid: must be above current leader + increment.
+  // For first global bid — equal to min_price.
+  const minBid = isFirstGlobalBid
     ? parseFloat(minPrice)
     : parseFloat(currentPrice) + (parseFloat(minBidIncrement) || 0);
 
@@ -523,10 +530,14 @@ function LiveBidInput({
   const isEmpty = !amount.trim();
   const isBelowMin = !isEmpty && numericAmount < minBid;
   const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
-  const isDisabled = isFirstBid ? !connected : (!connected || isEmpty || isBelowMin || isInvalid);
+  // First-global-bid flow auto-sends min_price (no input required).
+  const autoFirst = isFirstGlobalBid && !hasMyBid;
+  const isDisabled = autoFirst
+    ? !connected
+    : (!connected || isEmpty || isBelowMin || isInvalid);
 
   const getError = (): string | null => {
-    if (isFirstBid || isEmpty) return null;
+    if (autoFirst || isEmpty) return null;
     if (isInvalid) return 'Введите корректную сумму';
     if (isBelowMin) return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))} ₽`;
     return null;
@@ -535,7 +546,7 @@ function LiveBidInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isFirstBid) {
+    if (autoFirst) {
       sendBid(minPrice);
     } else {
       if (isDisabled) return;
@@ -544,15 +555,28 @@ function LiveBidInput({
     setAmount('');
   };
 
+  const title = hasMyBid ? 'Изменить ставку' : 'Сделать ставку';
+  const submitLabel = connected
+    ? (hasMyBid ? 'Изменить' : 'Поставить')
+    : 'Подключение...';
+
   return (
     <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
       <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2 mb-3'>
         <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-        Сделать ставку
+        {title}
       </h3>
+      {hasMyBid && myBidAmount != null && (
+        <div className='mb-3 rounded-lg bg-blue-50/70 px-3 py-2'>
+          <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Текущая ставка</span>
+          <span className='mt-0.5 block text-[15px] font-bold text-blue-700'>{formatPrice(myBidAmount)} ₽</span>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className='space-y-3'>
         <div className='space-y-1.5'>
-          <Label.Root htmlFor='live-bid-amount'>Сумма ставки</Label.Root>
+          <Label.Root htmlFor='live-bid-amount'>
+            {hasMyBid ? 'Новая сумма' : 'Сумма ставки'}
+          </Label.Root>
           <Input.Root>
             <Input.Wrapper>
               <Input.Input
@@ -560,9 +584,9 @@ function LiveBidInput({
                 type='text'
                 inputMode='decimal'
                 placeholder={formatPriceInput(String(Math.ceil(minBid))) + ' ₽'}
-                value={isFirstBid ? formatPriceInput(minPrice) : formatPriceInput(amount)}
+                value={autoFirst ? formatPriceInput(minPrice) : formatPriceInput(amount)}
                 onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
-                disabled={isHighestBidder || isFirstBid}
+                disabled={isHighestBidder || autoFirst}
               />
             </Input.Wrapper>
           </Input.Root>
@@ -574,7 +598,7 @@ function LiveBidInput({
             <p className='text-[11px] text-red-500'>{error}</p>
           ) : (
             <p className='text-[11px] text-gray-400'>
-              {bidsCount === 0
+              {autoFirst
                 ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)} ₽)`
                 : `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽`}
             </p>
@@ -582,7 +606,7 @@ function LiveBidInput({
         </div>
         <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled || isHighestBidder || !!wsError}>
           <HugeiconsIcon icon={Coins01Icon} size={16} />
-          {connected ? 'Поставить' : 'Подключение...'}
+          {submitLabel}
         </FancyButton.Root>
       </form>
     </div>
@@ -930,17 +954,17 @@ export default function AuctionDetailPage() {
       {(() => {
         const showCurrentPrice = liveCurrentPrice != null;
         const showMinPrice = auction.min_price != null;
+        // For OPEN auctions bids_count == number of unique participants (1 bid per broker).
+        // We merge it with the dedicated "Участников" card: one count card per auction.
         const showBidsCount = liveBidsCount != null;
         const showLotTotal = auction.lot_total_price != null;
         const showIncrement = isOpenAuction && auction.min_bid_increment != null;
-        const showParticipants = isOpenAuction && isOwnerOrAdmin;
         const visibleCount = [
           showCurrentPrice,
           showMinPrice,
           showBidsCount,
           showLotTotal,
           showIncrement,
-          showParticipants,
         ].filter(Boolean).length;
         if (visibleCount === 0) return null;
         const cols = Math.min(visibleCount, 5);
@@ -966,7 +990,9 @@ export default function AuctionDetailPage() {
             )}
             {showBidsCount && (
               <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Ставок</span>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  {isOpenAuction ? 'Участников' : 'Ставок'}
+                </span>
                 <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
               </div>
             )}
@@ -980,12 +1006,6 @@ export default function AuctionDetailPage() {
               <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
                 <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
                 <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
-              </div>
-            )}
-            {showParticipants && (
-              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Участников</span>
-                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{participantIds.length}</span>
               </div>
             )}
           </div>
@@ -1115,38 +1135,61 @@ export default function AuctionDetailPage() {
             </div>
           )}
 
-          {/* Live bids feed — OPEN auction */}
-          {isActiveOpen && isOwnerOrAdmin && ws.bids.length > 0 && (
-            <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
-              <div className='flex items-center justify-between mb-4'>
-                <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
-                  <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-                  Ставки
-                </h3>
-                {ws.connected && (
-                  <span className='inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-600'>
-                    <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
-                    Online
-                  </span>
-                )}
-              </div>
-              <div className='space-y-2 max-h-80 overflow-y-auto'>
-                {ws.bids.map((bid) => (
-                  <div key={bid.id} className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                    <div className='flex items-center gap-2.5'>
-                      <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                        #{bid.broker}
-                      </div>
-                      <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>
-                    </div>
-                    <span className='text-[11px] text-gray-400'>
-                      {new Date(bid.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          {/* Live bids feed — OPEN auction. Shows latest bid per broker (each broker has exactly 1), sorted by amount desc. */}
+          {isActiveOpen && isOwnerOrAdmin && ws.bids.length > 0 && (() => {
+            const latestByBroker = new Map<number, typeof ws.bids[number]>();
+            for (const b of ws.bids) {
+              const prev = latestByBroker.get(b.broker);
+              if (!prev) {
+                latestByBroker.set(b.broker, b);
+                continue;
+              }
+              const prevTs = new Date(prev.updated_at ?? prev.created_at).getTime();
+              const curTs = new Date(b.updated_at ?? b.created_at).getTime();
+              if (curTs >= prevTs) latestByBroker.set(b.broker, b);
+            }
+            const sortedBids = Array.from(latestByBroker.values()).sort(
+              (a, b) => parseFloat(b.amount) - parseFloat(a.amount),
+            );
+            return (
+              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
+                <div className='flex items-center justify-between mb-4'>
+                  <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
+                    <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+                    Ставки ({sortedBids.length})
+                  </h3>
+                  {ws.connected && (
+                    <span className='inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-600'>
+                      <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
+                      Online
                     </span>
-                  </div>
-                ))}
+                  )}
+                </div>
+                <div className='space-y-2 max-h-80 overflow-y-auto'>
+                  {sortedBids.map((bid, idx) => {
+                    const isLeader = idx === 0;
+                    const ts = bid.updated_at ?? bid.created_at;
+                    return (
+                      <div key={bid.id} className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                        <div className='flex items-center gap-2.5'>
+                          <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                            #{bid.broker}
+                          </div>
+                          <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>
+                          {isLeader && (
+                            <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Лидер</span>
+                          )}
+                        </div>
+                        <span className='text-[11px] text-gray-400'>
+                          {new Date(ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* My bid — participant */}
           {!isDeveloper && isParticipant && myBid && (
@@ -1177,6 +1220,8 @@ export default function AuctionDetailPage() {
               minPrice={auction.min_price ?? '0'}
               minBidIncrement={auction.min_bid_increment ?? '0'}
               bidsCount={liveBidsCount ?? 0}
+              hasMyBid={!!myBid}
+              myBidAmount={myBid?.amount ?? null}
               isHighestBidder={isHighestBidder}
               wsError={ws.error}
             />
