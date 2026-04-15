@@ -9,7 +9,6 @@ import type {
   BidUpdateRequest,
   ShortlistRequest,
   SelectWinnerRequest,
-  AssignRequest,
 } from "@/shared/types/auctions";
 
 export const auctionKeys = {
@@ -179,25 +178,6 @@ export function useSelectWinner() {
       data: SelectWinnerRequest;
     }) =>
       auctionsService.selectWinner(auctionId, data).then((res) => res.data),
-    onSuccess: (_data, { auctionId }) => {
-      queryClient.invalidateQueries({
-        queryKey: auctionKeys.detail(auctionId),
-      });
-      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
-    },
-  });
-}
-
-export function useAssign() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      auctionId,
-      data,
-    }: {
-      auctionId: number;
-      data: AssignRequest;
-    }) => auctionsService.assign(auctionId, data).then((res) => res.data),
     onSuccess: (_data, { auctionId }) => {
       queryClient.invalidateQueries({
         queryKey: auctionKeys.detail(auctionId),

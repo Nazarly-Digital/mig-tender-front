@@ -13,9 +13,7 @@ import {
   ChampionIcon,
   Coins01Icon,
   CheckListIcon,
-  Tick01Icon,
   Cancel01Icon,
-  ArrowMoveDownRightIcon,
 } from '@hugeicons/core-free-icons';
 
 import { DetailPageSkeleton } from '@/shared/components/skeletons';
@@ -32,7 +30,6 @@ import {
   useUpdateBid,
   useShortlist,
   useSelectWinner,
-  useAssign,
   useCancelAuction,
 } from '@/features/auctions';
 import { useQueryClient } from '@tanstack/react-query';
@@ -40,7 +37,7 @@ import { dealKeys } from '@/features/deals';
 import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
 import { useSealedBidsSocket } from '@/shared/hooks/use-sealed-bids-socket';
 import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
-import type { AuctionStatus, AuctionMode, Bid, AuctionLotProperty } from '@/shared/types/auctions';
+import type { AuctionStatus, AuctionMode, Bid } from '@/shared/types/auctions';
 
 // --- Helpers ---
 
@@ -243,7 +240,7 @@ function PlaceBidModal({
   );
 }
 
-// --- Select Winner Modal ---
+// --- Select Winner Modal (manual fallback: backend auto-picks winner on CLOSED finish) ---
 
 function SelectWinnerModal({
   auctionId,
@@ -256,26 +253,21 @@ function SelectWinnerModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [selectedBrokerIds, setSelectedBrokerIds] = React.useState<Set<number>>(new Set());
+  const [selectedBrokerId, setSelectedBrokerId] = React.useState<number | null>(null);
   const selectWinner = useSelectWinner();
 
-  const toggleBroker = (brokerId: number) => {
-    setSelectedBrokerIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(brokerId)) next.delete(brokerId);
-      else next.add(brokerId);
-      return next;
-    });
-  };
+  React.useEffect(() => {
+    if (!open) setSelectedBrokerId(null);
+  }, [open]);
 
   const handleSubmit = () => {
-    if (selectedBrokerIds.size === 0) return;
+    if (selectedBrokerId == null) return;
     selectWinner.mutate(
-      { auctionId, data: { brokerIds: Array.from(selectedBrokerIds) } },
+      { auctionId, data: { brokerId: selectedBrokerId } },
       {
         onSuccess: () => {
-          toast.success(selectedBrokerIds.size > 1 ? 'Победители выбраны' : 'Победитель выбран');
-          setSelectedBrokerIds(new Set());
+          toast.success('Победитель выбран');
+          setSelectedBrokerId(null);
           onOpenChange(false);
         },
         onError: (error) => {
@@ -289,8 +281,8 @@ function SelectWinnerModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content className='max-w-[500px]'>
         <Modal.Header
-          title='Выбор победителей'
-          description='Выберите брокеров-победителей аукциона'
+          title='Выбор победителя'
+          description='Выберите брокера-победителя аукциона'
         />
         <Modal.Body className='max-h-[320px] space-y-2 overflow-y-auto'>
           {bids.length === 0 ? (
@@ -299,20 +291,22 @@ function SelectWinnerModal({
             </div>
           ) : (
             bids.map((bid) => {
-              const isSelected = selectedBrokerIds.has(bid.broker_id);
+              const isSelected = selectedBrokerId === bid.broker_id;
               return (
                 <button
                   key={bid.id}
                   type='button'
-                  onClick={() => toggleBroker(bid.broker_id)}
+                  role='radio'
+                  aria-checked={isSelected}
+                  onClick={() => setSelectedBrokerId(bid.broker_id)}
                   className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition-colors ${isSelected
                     ? 'border-blue-600 bg-blue-50'
                     : 'border-gray-200 hover:bg-gray-50'
                     }`}
                 >
                   <div className='flex items-center gap-2.5'>
-                    <div className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'}`}>
-                      {isSelected && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
+                    <div className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${isSelected ? 'border-blue-600' : 'border-gray-300'}`}>
+                      {isSelected && <div className='size-2.5 rounded-full bg-blue-600' />}
                     </div>
                     <div>
                       <div className='text-sm font-medium text-gray-900'>
@@ -340,150 +334,10 @@ function SelectWinnerModal({
           <FancyButton.Root
             variant='primary'
             size='small'
-            disabled={selectedBrokerIds.size === 0 || selectWinner.isPending}
+            disabled={selectedBrokerId == null || selectWinner.isPending}
             onClick={handleSubmit}
           >
-            {selectWinner.isPending ? 'Выбор...' : `Подтвердить (${selectedBrokerIds.size})`}
-          </FancyButton.Root>
-        </Modal.Footer>
-      </Modal.Content>
-    </Modal.Root>
-  );
-}
-
-// --- Assign Modal (distribute properties among winners) ---
-
-function AssignModal({
-  auctionId,
-  properties,
-  winnerBrokerIds,
-  open,
-  onOpenChange,
-}: {
-  auctionId: number;
-  properties: AuctionLotProperty[];
-  winnerBrokerIds: number[];
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const assign = useAssign();
-  // Map: brokerId -> Set<propertyId>
-  const [assignments, setAssignments] = React.useState<Map<number, Set<number>>>(new Map());
-
-  React.useEffect(() => {
-    if (open) setAssignments(new Map());
-  }, [open]);
-
-  const toggleAssignment = (brokerId: number, propertyId: number) => {
-    setAssignments((prev) => {
-      const next = new Map(prev);
-      const current = new Set(next.get(brokerId) ?? []);
-      if (current.has(propertyId)) {
-        current.delete(propertyId);
-      } else {
-        // Remove from other brokers first
-        next.forEach((pids, bid) => {
-          if (bid !== brokerId && pids.has(propertyId)) {
-            const copy = new Set(pids);
-            copy.delete(propertyId);
-            next.set(bid, copy);
-          }
-        });
-        current.add(propertyId);
-      }
-      next.set(brokerId, current);
-      return next;
-    });
-  };
-
-  const totalAssigned = Array.from(assignments.values()).reduce((sum, s) => sum + s.size, 0);
-  const allAssigned = totalAssigned === properties.length;
-
-  const handleSubmit = () => {
-    const data = Array.from(assignments.entries())
-      .filter(([, pids]) => pids.size > 0)
-      .map(([brokerId, pids]) => ({
-        brokerId,
-        propertyIds: Array.from(pids),
-      }));
-    if (data.length === 0) return;
-    assign.mutate(
-      { auctionId, data: { assignments: data } },
-      {
-        onSuccess: (res) => {
-          toast.success(`Создано ${res.dealsCount} ${res.dealsCount === 1 ? 'сделка' : res.dealsCount < 5 ? 'сделки' : 'сделок'}`);
-          onOpenChange(false);
-        },
-        onError: (error) => {
-          toast.error(getApiError(error));
-        },
-      },
-    );
-  };
-
-  return (
-    <Modal.Root open={open} onOpenChange={onOpenChange}>
-      <Modal.Content className='max-w-[600px]'>
-        <Modal.Header
-          title='Распределение объектов'
-          description='Назначьте объекты лота победителям аукциона'
-        />
-        <Modal.Body className='space-y-4 max-h-[400px] overflow-y-auto'>
-          {winnerBrokerIds.map((brokerId) => (
-            <div key={brokerId} className='space-y-2'>
-              <div className='text-sm font-semibold text-gray-900'>Брокер #{brokerId}</div>
-              <div className='space-y-1'>
-                {properties.map((prop) => {
-                  const isSelected = assignments.get(brokerId)?.has(prop.id) ?? false;
-                  const assignedTo = Array.from(assignments.entries()).find(
-                    ([bid, pids]) => bid !== brokerId && pids.has(prop.id),
-                  );
-                  const isDisabled = !!assignedTo;
-                  return (
-                    <button
-                      key={prop.id}
-                      type='button'
-                      disabled={isDisabled}
-                      onClick={() => toggleAssignment(brokerId, prop.id)}
-                      className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${isSelected
-                          ? 'border-blue-600 bg-blue-50'
-                          : isDisabled
-                            ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                            : 'border-gray-200 hover:bg-gray-50 cursor-pointer'
-                        }`}
-                    >
-                      <div className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300'
-                        }`}>
-                        {isSelected && <HugeiconsIcon icon={Tick01Icon} size={12} color='currentColor' strokeWidth={2} />}
-                      </div>
-                      <div className='flex-1 min-w-0'>
-                        <div className='text-sm text-gray-900 truncate'>{prop.address}</div>
-                        <div className='text-xs text-gray-500'>{prop.area} м² · {prop.price == null ? 'Цена скрыта' : `${formatPrice(prop.price)} ₽`}</div>
-                      </div>
-                      {isDisabled && (
-                        <span className='text-[10px] text-gray-400'>Назначен #{assignedTo![0]}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </Modal.Body>
-        <Modal.Footer>
-          <div className='flex items-center gap-2 mr-auto text-xs text-gray-400'>
-            {totalAssigned}/{properties.length} объектов назначено
-          </div>
-          <Modal.Close asChild>
-            <FancyButton.Root variant='basic' size='small'>Отмена</FancyButton.Root>
-          </Modal.Close>
-          <FancyButton.Root
-            variant='primary'
-            size='small'
-            disabled={!allAssigned || assign.isPending}
-            onClick={handleSubmit}
-          >
-            {assign.isPending ? 'Назначение...' : 'Подтвердить'}
+            {selectWinner.isPending ? 'Выбор...' : 'Подтвердить'}
           </FancyButton.Root>
         </Modal.Footer>
       </Modal.Content>
@@ -682,7 +536,6 @@ export default function AuctionDetailPage() {
   const [pendingOpenBid, setPendingOpenBid] = React.useState<Bid | null>(null);
   const [bidModalOpen, setBidModalOpen] = React.useState(false);
   const [winnerModalOpen, setWinnerModalOpen] = React.useState(false);
-  const [assignModalOpen, setAssignModalOpen] = React.useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = React.useState(false);
   const [shortlistIds, setShortlistIds] = React.useState<Set<number>>(
     new Set(),
@@ -935,12 +788,6 @@ export default function AuctionDetailPage() {
               Выбрать победителя
             </FancyButton.Root>
           )}
-          {isOwnerOrAdmin && isFinished && auction.winner_bid && !isOpenAuction && auction.properties?.length > 1 && !auction.deals_created && (
-            <FancyButton.Root variant='primary' size='small' onClick={() => setAssignModalOpen(true)}>
-              <HugeiconsIcon icon={ArrowMoveDownRightIcon} size={16} color='currentColor' strokeWidth={1.5} />
-              Распределить объекты
-            </FancyButton.Root>
-          )}
           {isOwnerOrAdmin && auction.status === 'scheduled' && (
             <FancyButton.Root variant='destructive' size='small' onClick={() => setCancelConfirmOpen(true)} disabled={cancelAuction.isPending}>
               <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
@@ -1065,7 +912,9 @@ export default function AuctionDetailPage() {
               <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
                 <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
                 <div>
-                  <div className='text-sm font-medium text-gray-900'>Победитель определён</div>
+                  <div className='text-sm font-medium text-gray-900'>
+                    {isOpenAuction ? 'Победитель определён' : 'Победитель определён автоматически'}
+                  </div>
                   <div className='text-xs text-gray-500'>{auction.winner_bid.broker.fullname} — {formatPrice(auction.winner_bid.amount)} ₽</div>
                 </div>
               </div>
@@ -1307,15 +1156,6 @@ export default function AuctionDetailPage() {
         }}
       />
       {isOwner && <SelectWinnerModal auctionId={auctionId} bids={bidsList} open={winnerModalOpen} onOpenChange={setWinnerModalOpen} />}
-      {isOwnerOrAdmin && auction.properties?.length > 1 && (
-        <AssignModal
-          auctionId={auctionId}
-          properties={auction.properties}
-          winnerBrokerIds={auction.winner_bid ? [auction.winner_bid.broker.id] : []}
-          open={assignModalOpen}
-          onOpenChange={setAssignModalOpen}
-        />
-      )}
 
       {/* Cancel confirmation */}
       <Modal.Root open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
