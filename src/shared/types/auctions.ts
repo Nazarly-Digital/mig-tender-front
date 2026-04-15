@@ -134,28 +134,13 @@ export type ShortlistResponse = {
 };
 
 export type SelectWinnerRequest = {
-  brokerIds: number[];
+  brokerId: number;
 };
 
 export type SelectWinnerResponse = {
   auctionId: number;
-  selectedBrokerIds: number[];
-  selectedBidIds: number[];
-};
-
-export type AssignmentItem = {
-  brokerId: number;
-  propertyIds: number[];
-};
-
-export type AssignRequest = {
-  assignments: AssignmentItem[];
-};
-
-export type AssignResponse = {
-  auctionId: number;
-  dealsCount: number;
-  dealIds: number[];
+  selectedBrokerId: number;
+  selectedBidId: number;
 };
 
 export type { PaginatedResponse };

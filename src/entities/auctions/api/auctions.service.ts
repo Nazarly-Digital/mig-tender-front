@@ -13,8 +13,6 @@ import type {
   ShortlistResponse,
   SelectWinnerRequest,
   SelectWinnerResponse,
-  AssignRequest,
-  AssignResponse,
   AuctionLotProperty,
 } from "@/shared/types/auctions";
 
@@ -57,9 +55,6 @@ export const auctionsService = {
 
   selectWinner: (auctionId: number, data: SelectWinnerRequest) =>
     apiInstance.post<SelectWinnerResponse>(`/auctions/${auctionId}/select-winner/`, data),
-
-  assign: (auctionId: number, data: AssignRequest) =>
-    apiInstance.post<AssignResponse>(`/auctions/${auctionId}/assign/`, data),
 
   // Compatible properties for lot
   getCompatibleProperties: (referenceId: string) =>
