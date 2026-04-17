@@ -28,12 +28,14 @@ function getStepIndex(step: string): number {
 
 export function DealProgressBar({ currentStep, isOverdue, stepLabels }: DealProgressBarProps) {
   const isFailed = currentStep === 'failed';
+  const isDeclined = currentStep === 'declined';
+  const isTerminal = isFailed || isDeclined;
   const activeIndex = currentStep === 'confirmed' ? DEAL_STEPS.length - 1 : getStepIndex(currentStep);
 
-  if (isFailed) {
+  if (isTerminal) {
     return (
       <div className="mt-4">
-        {/* All segments red/gray for failed */}
+        {/* All segments red/gray for failed or declined */}
         <div className="flex items-center gap-1">
           {DEAL_STEPS.map((step) => (
             <div key={step.key} className="flex items-center flex-1">
@@ -44,7 +46,9 @@ export function DealProgressBar({ currentStep, isOverdue, stepLabels }: DealProg
           ))}
         </div>
         <div className="mt-1.5">
-          <span className="text-[11px] text-red-600 font-medium">Несостоявшаяся</span>
+          <span className="text-[11px] text-red-600 font-medium">
+            {isDeclined ? 'Отклонена девелопером' : 'Несостоявшаяся'}
+          </span>
         </div>
       </div>
     );

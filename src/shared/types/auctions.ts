@@ -54,6 +54,8 @@ export type Auction = {
   owner_decision: AuctionOwnerDecision | null;
   owner_rejection_reason: string | null;
   owner_decided_at: string | null;
+  // Populated by backend after /decline-result/ — IDs of bids that the owner already rejected as winner.
+  declined_bids?: number[];
   created_at: string;
   updated_at: string;
 };
@@ -72,6 +74,19 @@ export type RejectResultResponse = {
   auctionId: number;
   status: "failed";
   ownerDecision: "rejected";
+};
+
+// --- Decline result (TZ 8.5) — skip current winner, try next candidate ---
+export type DeclineResultRequest = {
+  reason: string;
+};
+
+export type DeclineResultResponse = {
+  auctionId: number;
+  status: AuctionStatus;
+  ownerDecision: AuctionOwnerDecision;
+  auctionFailed: boolean;
+  newWinnerBidId: number | null;
 };
 
 export type AuctionDetailBid = {

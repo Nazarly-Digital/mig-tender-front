@@ -17,10 +17,14 @@ export const dealKeys = {
 
 // --- List & Detail ---
 
-export function useDeals(params?: DealListParams) {
+export function useDeals(
+  params?: DealListParams,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: dealKeys.list(params),
     queryFn: () => dealsService.getAll(params).then((res) => res.data),
+    enabled: options?.enabled ?? true,
   });
 }
 

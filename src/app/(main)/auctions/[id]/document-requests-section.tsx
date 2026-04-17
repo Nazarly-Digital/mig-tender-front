@@ -429,34 +429,45 @@ export function RequestDocumentsButton({
   auctionId,
   brokerId,
   brokerName,
-  hasPendingRequest,
+  lockStatus,
 }: {
   auctionId: number;
   brokerId: number;
   brokerName: string;
-  hasPendingRequest: boolean;
+  lockStatus: 'pending' | 'answered' | null;
 }) {
   const [open, setOpen] = React.useState(false);
+
+  const isLocked = lockStatus !== null;
+  const label = lockStatus === 'answered' ? 'Документы получены' : 'Запросить документы';
+  const tooltip =
+    lockStatus === 'pending'
+      ? 'Ожидается ответ брокера на предыдущий запрос'
+      : lockStatus === 'answered'
+        ? 'Документы от брокера уже получены'
+        : 'Запросить документы';
 
   return (
     <>
       <button
         type='button'
         onClick={() => setOpen(true)}
-        disabled={hasPendingRequest}
-        title={hasPendingRequest ? 'Есть неотвеченный запрос к этому брокеру' : 'Запросить документы'}
+        disabled={isLocked}
+        title={tooltip}
         className='inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
       >
         <HugeiconsIcon icon={FileUploadIcon} size={12} color='currentColor' strokeWidth={1.5} />
-        Запросить документы
+        {label}
       </button>
-      <RequestDocumentsModal
-        auctionId={auctionId}
-        brokerId={brokerId}
-        brokerName={brokerName}
-        open={open}
-        onOpenChange={setOpen}
-      />
+      {!isLocked && (
+        <RequestDocumentsModal
+          auctionId={auctionId}
+          brokerId={brokerId}
+          brokerName={brokerName}
+          open={open}
+          onOpenChange={setOpen}
+        />
+      )}
     </>
   );
 }
@@ -481,10 +492,16 @@ export function PendingRequestsWarning({
   );
 }
 
-export function hasPendingRequestForBroker(
+// Returns the status that locks further requests for this broker, or null.
+// Both 'pending' (waiting for broker) and 'answered' (docs received) lock the button —
+// developer shouldn't be able to spam new requests or re-request after receiving docs.
+export function getRequestLockStatusForBroker(
   requests: DocumentRequest[] | undefined,
   brokerId: number,
-): boolean {
-  if (!requests) return false;
-  return requests.some((r) => r.broker === brokerId && r.status === 'pending');
+): 'pending' | 'answered' | null {
+  if (!requests) return null;
+  const brokerRequests = requests.filter((r) => r.broker === brokerId);
+  if (brokerRequests.some((r) => r.status === 'pending')) return 'pending';
+  if (brokerRequests.some((r) => r.status === 'answered')) return 'answered';
+  return null;
 }

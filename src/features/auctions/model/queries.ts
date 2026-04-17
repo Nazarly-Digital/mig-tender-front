@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { auctionsService } from "@/entities/auctions";
 import { propertyKeys } from "@/features/properties";
+import { dealKeys } from "@/features/deals";
 import { useSessionStore } from "@/entities/auth/model/store";
 import type {
   AuctionListParams,
@@ -10,6 +11,7 @@ import type {
   ShortlistRequest,
   SelectWinnerRequest,
   RejectResultRequest,
+  DeclineResultRequest,
 } from "@/shared/types/auctions";
 
 export const auctionKeys = {
@@ -233,6 +235,23 @@ export function useRejectResult() {
     onSuccess: (_data, { auctionId }) => {
       queryClient.invalidateQueries({ queryKey: auctionKeys.detail(auctionId) });
       queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
+  });
+}
+
+// TZ 8.5 — decline current winner; backend auto-picks next candidate or fails the auction if queue is empty.
+// The Deal (if it existed) transitions to 'declined'; a new Deal is NOT auto-created — owner must
+// call /confirm-result/ again on the promoted winner.
+export function useDeclineResult() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ auctionId, data }: { auctionId: number; data: DeclineResultRequest }) =>
+      auctionsService.declineResult(auctionId, data).then((res) => res.data),
+    onSuccess: (_data, { auctionId }) => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.detail(auctionId) });
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+      // Deals might transition to `declined` after this — refresh deal lists everywhere.
+      queryClient.invalidateQueries({ queryKey: dealKeys.all });
     },
   });
 }

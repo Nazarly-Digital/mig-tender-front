@@ -17,6 +17,8 @@ import type {
   ConfirmResultResponse,
   RejectResultRequest,
   RejectResultResponse,
+  DeclineResultRequest,
+  DeclineResultResponse,
 } from "@/shared/types/auctions";
 
 export const auctionsService = {
@@ -65,6 +67,10 @@ export const auctionsService = {
 
   rejectResult: (auctionId: number, data: RejectResultRequest) =>
     apiInstance.post<RejectResultResponse>(`/auctions/${auctionId}/reject-result/`, data),
+
+  // TZ 8.5 — decline current winner, auto-promote next candidate
+  declineResult: (auctionId: number, data: DeclineResultRequest) =>
+    apiInstance.post<DeclineResultResponse>(`/auctions/${auctionId}/decline-result/`, data),
 
   // Compatible properties for lot
   getCompatibleProperties: (referenceId: string) =>
