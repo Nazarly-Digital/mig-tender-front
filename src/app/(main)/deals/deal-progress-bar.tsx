@@ -27,7 +27,28 @@ function getStepIndex(step: string): number {
 }
 
 export function DealProgressBar({ currentStep, isOverdue, stepLabels }: DealProgressBarProps) {
+  const isFailed = currentStep === 'failed';
   const activeIndex = currentStep === 'confirmed' ? DEAL_STEPS.length - 1 : getStepIndex(currentStep);
+
+  if (isFailed) {
+    return (
+      <div className="mt-4">
+        {/* All segments red/gray for failed */}
+        <div className="flex items-center gap-1">
+          {DEAL_STEPS.map((step) => (
+            <div key={step.key} className="flex items-center flex-1">
+              <div className="relative flex-1 h-1 rounded-full">
+                <div className="absolute inset-0 rounded-full bg-red-300" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-1.5">
+          <span className="text-[11px] text-red-600 font-medium">Несостоявшаяся</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4">

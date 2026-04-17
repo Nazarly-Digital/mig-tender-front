@@ -12,7 +12,7 @@ import { useMyAuctions } from '@/features/auctions';
 import type { Deal, DealStatus } from '@/shared/types/deals';
 import type { Auction } from '@/shared/types/auctions';
 
-type TabFilter = 'all' | 'developer_confirm' | 'pending_documents' | 'admin_review' | 'confirmed';
+type TabFilter = 'all' | 'developer_confirm' | 'pending_documents' | 'admin_review' | 'confirmed' | 'failed';
 
 const DEV_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Все', value: 'all' },
@@ -20,6 +20,7 @@ const DEV_TABS: { label: string; value: TabFilter }[] = [
   { label: 'На проверке', value: 'admin_review' },
   { label: 'Ожидает документов', value: 'pending_documents' },
   { label: 'Сделка подтверждена', value: 'confirmed' },
+  { label: 'Несостоявшиеся', value: 'failed' },
 ];
 
 function getStatusBadge(status: DealStatus) {
@@ -28,11 +29,15 @@ function getStatusBadge(status: DealStatus) {
     admin_review: { label: 'На проверке админа', className: 'bg-gray-100 text-gray-600' },
     developer_confirm: { label: 'Ожидает моего ОК', className: 'bg-blue-50 text-blue-700' },
     confirmed: { label: 'Подтверждена', className: 'bg-emerald-50 text-emerald-700' },
+    failed: { label: 'Несостоявшаяся', className: 'bg-red-50 text-red-700' },
   };
   return map[status];
 }
 
 function getInfoMessage(deal: Deal): { text: string; color: string } | null {
+  if (deal.status === 'failed') {
+    return { text: 'Сделка автоматически признана несостоявшейся: брокер не загрузил документы в течение 5 дней. Объект снова доступен для размещения в аукционе.', color: 'text-red-600' };
+  }
   if (deal.obligation_status === 'overdue') {
     return { text: 'Брокер просрочил загрузку документов.', color: 'text-red-600' };
   }
@@ -49,13 +54,14 @@ function getInfoMessage(deal: Deal): { text: string; color: string } | null {
 function DeveloperDealCard({ deal }: { deal: Deal }) {
   const badge = getStatusBadge(deal.status);
   const info = getInfoMessage(deal);
+  const isFailed = deal.status === 'failed';
   const confirmDeal = useDeveloperConfirmDeal();
   const rejectDeal = useDeveloperRejectDeal();
   const [rejectReason, setRejectReason] = React.useState('');
   const [showRejectInput, setShowRejectInput] = React.useState(false);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div className={cn('bg-white rounded-xl border p-5', isFailed ? 'border-red-200 bg-red-50/30' : 'border-gray-200')}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>

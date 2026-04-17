@@ -23,6 +23,7 @@ const STATUS_CONFIG: Record<AuctionStatus, { label: string; cls: string; dot: st
   finished: { label: 'Завершён', cls: 'bg-gray-50 text-gray-700', dot: 'bg-gray-500', text: 'text-gray-600' },
   cancelled: { label: 'Отменён', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-500' },
   scheduled: { label: 'Запланирован', cls: 'bg-red-50 text-red-700', dot: 'bg-blue-500', text: 'text-blue-500' },
+  failed: { label: 'Несостоявшийся', cls: 'bg-red-50 text-red-700', dot: 'bg-red-500', text: 'text-red-500' },
 };
 
 const MODE_LABELS: Record<AuctionMode, string> = {

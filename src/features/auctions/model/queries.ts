@@ -9,6 +9,7 @@ import type {
   BidUpdateRequest,
   ShortlistRequest,
   SelectWinnerRequest,
+  RejectResultRequest,
 } from "@/shared/types/auctions";
 
 export const auctionKeys = {
@@ -207,5 +208,31 @@ export function useCompatibleProperties(referenceId: string, options?: { enabled
     queryFn: () =>
       auctionsService.getCompatibleProperties(referenceId).then((res) => res.data.results),
     enabled: (options?.enabled ?? true) && !!referenceId,
+  });
+}
+
+// --- Owner decision (confirm / reject result) ---
+
+export function useConfirmResult() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (auctionId: number) =>
+      auctionsService.confirmResult(auctionId).then((res) => res.data),
+    onSuccess: (_data, auctionId) => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.detail(auctionId) });
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
+  });
+}
+
+export function useRejectResult() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ auctionId, data }: { auctionId: number; data: RejectResultRequest }) =>
+      auctionsService.rejectResult(auctionId, data).then((res) => res.data),
+    onSuccess: (_data, { auctionId }) => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.detail(auctionId) });
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
   });
 }

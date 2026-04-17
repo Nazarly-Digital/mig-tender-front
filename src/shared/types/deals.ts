@@ -8,7 +8,8 @@ export type DealStatus =
   | "pending_documents"
   | "admin_review"
   | "developer_confirm"
-  | "confirmed";
+  | "confirmed"
+  | "failed";
 
 // Deal log entry
 export type DealLogEntry = {

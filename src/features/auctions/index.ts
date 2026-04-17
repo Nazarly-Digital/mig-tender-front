@@ -13,4 +13,6 @@ export {
   useSelectWinner,
   useCancelAuction,
   useCompatibleProperties,
+  useConfirmResult,
+  useRejectResult,
 } from "./model/queries";

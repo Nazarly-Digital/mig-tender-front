@@ -17,6 +17,7 @@ const BROKER_TABS: { label: string; value: TabFilter }[] = [
   { label: 'На проверке', value: 'admin_review' },
   { label: 'Ожидает подтверждения девелопера', value: 'developer_confirm' },
   { label: 'Подтверждена', value: 'confirmed' },
+  { label: 'Несостоявшиеся', value: 'failed' },
 ];
 
 function getStatusBadge(status: DealStatus, obligationStatus?: ObligationStatus) {
@@ -28,6 +29,7 @@ function getStatusBadge(status: DealStatus, obligationStatus?: ObligationStatus)
     admin_review: { label: 'На проверке', className: 'bg-gray-100 text-gray-600' },
     developer_confirm: { label: 'Ожидает девелопера', className: 'bg-blue-50 text-blue-700' },
     confirmed: { label: 'Подтверждена', className: 'bg-emerald-50 text-emerald-700' },
+    failed: { label: 'Несостоявшаяся', className: 'bg-red-50 text-red-700' },
   };
   return map[status];
 }
@@ -42,6 +44,9 @@ function getObligationLabel(status: ObligationStatus) {
 }
 
 function getInfoMessage(deal: Deal): { text: string; color: string } | null {
+  if (deal.status === 'failed') {
+    return { text: 'Сделка автоматически переведена в статус «Несостоявшийся», так как документы не были загружены в течение 5 дней. Восстановить сделку нельзя.', color: 'text-red-600' };
+  }
   if (deal.obligation_status === 'overdue') {
     return { text: `Дедлайн загрузки документов был ${formatDateShort(deal.document_deadline)}. Обязательство просрочено.`, color: 'text-red-600' };
   }
@@ -87,10 +92,12 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
     }
   };
 
+  const isFailed = deal.status === 'failed';
+
   return (
     <div className={cn(
       'bg-white rounded-xl border p-5',
-      isOverdue ? 'border-red-200' : 'border-gray-200'
+      isFailed ? 'border-red-200 bg-red-50/30' : isOverdue ? 'border-red-200' : 'border-gray-200'
     )}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">

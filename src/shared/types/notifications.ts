@@ -15,6 +15,10 @@ export type NotificationEventType =
   | 'auction_not_selected'
   | 'auction_finished_open'
   | 'auction_finished_closed'
+  | 'auction_result_confirmed'
+  | 'auction_result_rejected'
+  | 'documents_requested'
+  | 'documents_request_answered'
   // Deal / Deadline / Review
   | 'documents_deadline_3d'
   | 'documents_deadline_1d'
@@ -26,6 +30,7 @@ export type NotificationEventType =
   | 'developer_confirm_reminder'
   | 'developer_confirmed'
   | 'developer_rejected'
+  | 'deal_failed'
   // Payment
   | 'payout_created'
   | 'payout_paid'

@@ -14,6 +14,7 @@ import {
   Coins01Icon,
   CheckListIcon,
   Cancel01Icon,
+  CheckmarkCircle02Icon,
 } from '@hugeicons/core-free-icons';
 
 import { DetailPageSkeleton } from '@/shared/components/skeletons';
@@ -31,9 +32,19 @@ import {
   useShortlist,
   useSelectWinner,
   useCancelAuction,
+  useConfirmResult,
+  useRejectResult,
 } from '@/features/auctions';
 import { useQueryClient } from '@tanstack/react-query';
 import { dealKeys } from '@/features/deals';
+import { useAuctionDocumentRequests } from '@/features/document-requests';
+import {
+  BrokerIncomingRequests,
+  DocumentRequestsList,
+  RequestDocumentsButton,
+  PendingRequestsWarning,
+  hasPendingRequestForBroker,
+} from './document-requests-section';
 import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
 import { useSealedBidsSocket } from '@/shared/hooks/use-sealed-bids-socket';
 import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
@@ -46,7 +57,8 @@ const STATUS_CONFIG: Record<AuctionStatus, { label: string; cls: string }> = {
   draft: { label: 'Черновик', cls: 'bg-gray-100 text-gray-600' },
   finished: { label: 'Завершён', cls: 'bg-blue-50 text-blue-700' },
   cancelled: { label: 'Отменён', cls: 'bg-red-50 text-red-700' },
-  scheduled: { 'label': 'Запланирован', cls: 'bg-gray-100 text-gray-600' }
+  scheduled: { label: 'Запланирован', cls: 'bg-gray-100 text-gray-600' },
+  failed: { label: 'Несостоявшийся', cls: 'bg-red-50 text-red-700' },
 };
 
 const MODE_LABELS: Record<AuctionMode, string> = {
@@ -531,12 +543,30 @@ export default function AuctionDetailPage() {
 
   const cancelAuction = useCancelAuction();
   const shortlist = useShortlist();
+  const confirmResult = useConfirmResult();
+  const rejectResult = useRejectResult();
+
+  // Document requests: visible to owner/admin (all) or broker (their own).
+  const documentRequestsEnabled = auction != null && (isOwnerOrAdmin || isBroker);
+  const { data: documentRequests } = useAuctionDocumentRequests(auctionId, {
+    enabled: documentRequestsEnabled,
+  });
+  const myIncomingRequests = React.useMemo(() => {
+    if (!documentRequests || !user?.id) return [];
+    return documentRequests.filter((r) => r.broker === user.id);
+  }, [documentRequests, user?.id]);
+  const pendingRequestsCount = React.useMemo(() => {
+    if (!documentRequests) return 0;
+    return documentRequests.filter((r) => r.status === 'pending').length;
+  }, [documentRequests]);
 
   const [optimisticBid, setOptimisticBid] = React.useState<Bid | null>(null);
   const [pendingOpenBid, setPendingOpenBid] = React.useState<Bid | null>(null);
   const [bidModalOpen, setBidModalOpen] = React.useState(false);
   const [winnerModalOpen, setWinnerModalOpen] = React.useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = React.useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = React.useState(false);
+  const [rejectReason, setRejectReason] = React.useState('');
   const [shortlistIds, setShortlistIds] = React.useState<Set<number>>(
     new Set(),
   );
@@ -919,6 +949,73 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Owner decision panel */}
+            {isFinished && isOwnerOrAdmin && auction.owner_decision === 'pending' && auction.winner_bid && (
+              <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-3'>
+                <div>
+                  <p className='text-sm font-semibold text-gray-900'>Требуется ваше решение</p>
+                  <p className='text-xs text-gray-500 mt-1'>Подтвердите результат для создания сделки или отклоните с указанием причины.</p>
+                </div>
+                <PendingRequestsWarning pendingCount={pendingRequestsCount} />
+                <div className='flex flex-wrap items-center gap-2'>
+                  <FancyButton.Root
+                    variant='primary'
+                    size='small'
+                    onClick={() => {
+                      confirmResult.mutate(auctionId, {
+                        onSuccess: () => {
+                          toast.success('Результат подтверждён. Сделка создана.');
+                          queryClient.invalidateQueries({ queryKey: dealKeys.all });
+                        },
+                        onError: (error) => toast.error(getApiError(error)),
+                      });
+                    }}
+                    disabled={confirmResult.isPending}
+                  >
+                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                    {confirmResult.isPending ? 'Подтверждение...' : 'Подтвердить результат'}
+                  </FancyButton.Root>
+                  <FancyButton.Root
+                    variant='destructive'
+                    size='small'
+                    onClick={() => setRejectModalOpen(true)}
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                    Отклонить результат
+                  </FancyButton.Root>
+                </div>
+              </div>
+            )}
+
+            {/* Decision: confirmed */}
+            {auction.owner_decision === 'confirmed' && (
+              <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
+                <div className='size-2 rounded-full bg-emerald-500' />
+                <div>
+                  <p className='text-sm font-medium text-emerald-700'>Результат подтверждён</p>
+                  {auction.owner_decided_at && (
+                    <p className='text-xs text-gray-500'>{formatDateTime(auction.owner_decided_at)}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Decision: rejected / failed */}
+            {(auction.owner_decision === 'rejected' || auction.status === 'failed') && (
+              <div className='mt-4 rounded-lg bg-red-50 p-4'>
+                <div className='flex items-center gap-2'>
+                  <div className='size-2 rounded-full bg-red-500' />
+                  <p className='text-sm font-medium text-red-700'>Результат отклонён — аукцион несостоявшийся</p>
+                </div>
+                {auction.owner_rejection_reason && (
+                  <p className='text-xs text-gray-600 mt-1.5'>Причина: {auction.owner_rejection_reason}</p>
+                )}
+                {auction.owner_decided_at && (
+                  <p className='text-xs text-gray-400 mt-1'>{formatDateTime(auction.owner_decided_at)}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Lot Properties — for multi-property CLOSED auctions */}
@@ -1040,6 +1137,16 @@ export default function AuctionDetailPage() {
             );
           })()}
 
+          {/* Document requests — broker's incoming */}
+          {isBroker && myIncomingRequests.length > 0 && (
+            <BrokerIncomingRequests requests={myIncomingRequests} />
+          )}
+
+          {/* Document requests — owner/admin full list */}
+          {isOwnerOrAdmin && documentRequests && documentRequests.length > 0 && (
+            <DocumentRequestsList requests={documentRequests} />
+          )}
+
           {/* My bid — participant */}
           {!isDeveloper && isParticipant && myBid && (
             <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
@@ -1090,12 +1197,21 @@ export default function AuctionDetailPage() {
                     const detail = participantDetails.find((d) => d.id === pid);
                     const name = detail?.name ?? `Участник #${pid}`;
                     const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
+                    const hasPending = hasPendingRequestForBroker(documentRequests, pid);
                     return (
-                      <div key={pid} className='flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                        <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                          {initials}
+                      <div key={pid} className='flex items-center justify-between gap-2 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                        <div className='flex items-center gap-2.5 min-w-0'>
+                          <div className='size-7 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                            {initials}
+                          </div>
+                          <span className='text-[13px] font-medium text-gray-900 truncate'>{name}</span>
                         </div>
-                        <span className='text-[13px] font-medium text-gray-900'>{name}</span>
+                        <RequestDocumentsButton
+                          auctionId={auctionId}
+                          brokerId={pid}
+                          brokerName={name}
+                          hasPendingRequest={hasPending}
+                        />
                       </div>
                     );
                   })}
@@ -1170,6 +1286,50 @@ export default function AuctionDetailPage() {
             </Modal.Close>
             <FancyButton.Root variant='destructive' size='small' onClick={handleCancel} disabled={cancelAuction.isPending}>
               {cancelAuction.isPending ? 'Отмена...' : 'Да, отменить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
+
+      {/* Reject result modal */}
+      <Modal.Root open={rejectModalOpen} onOpenChange={(open) => { setRejectModalOpen(open); if (!open) setRejectReason(''); }}>
+        <Modal.Content className='max-w-[480px]'>
+          <Modal.Header
+            title='Отклонить результат аукциона'
+            description='Аукцион станет несостоявшимся. Это действие необратимо. Укажите причину отклонения.'
+          />
+          <Modal.Body className='space-y-3'>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder='Причина отклонения (обязательно)'
+              rows={3}
+              className='w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors resize-none'
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>Отмена</FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='destructive'
+              size='small'
+              disabled={!rejectReason.trim() || rejectResult.isPending}
+              onClick={() => {
+                rejectResult.mutate(
+                  { auctionId, data: { reason: rejectReason.trim() } },
+                  {
+                    onSuccess: () => {
+                      toast.success('Результат отклонён. Аукцион несостоявшийся.');
+                      setRejectModalOpen(false);
+                      setRejectReason('');
+                    },
+                    onError: (error) => toast.error(getApiError(error)),
+                  },
+                );
+              }}
+            >
+              {rejectResult.isPending ? 'Отклонение...' : 'Отклонить'}
             </FancyButton.Root>
           </Modal.Footer>
         </Modal.Content>
