@@ -7,7 +7,10 @@ export type AuctionStatus =
   | "active"
   | "finished"
   | "cancelled"
-  | "scheduled";
+  | "scheduled"
+  | "failed";
+
+export type AuctionOwnerDecision = "pending" | "confirmed" | "rejected";
 
 export type AuctionLotProperty = {
   id: number;
@@ -48,8 +51,27 @@ export type Auction = {
   } | null;
   lot_total_price: string | null;
   deals_created: boolean;
+  owner_decision: AuctionOwnerDecision | null;
+  owner_rejection_reason: string | null;
+  owner_decided_at: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type ConfirmResultResponse = {
+  auctionId: number;
+  ownerDecision: "confirmed";
+  createdDealIds: number[];
+};
+
+export type RejectResultRequest = {
+  reason: string;
+};
+
+export type RejectResultResponse = {
+  auctionId: number;
+  status: "failed";
+  ownerDecision: "rejected";
 };
 
 export type AuctionDetailBid = {

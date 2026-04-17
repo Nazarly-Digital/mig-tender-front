@@ -14,6 +14,9 @@ import type {
   SelectWinnerRequest,
   SelectWinnerResponse,
   AuctionLotProperty,
+  ConfirmResultResponse,
+  RejectResultRequest,
+  RejectResultResponse,
 } from "@/shared/types/auctions";
 
 export const auctionsService = {
@@ -55,6 +58,13 @@ export const auctionsService = {
 
   selectWinner: (auctionId: number, data: SelectWinnerRequest) =>
     apiInstance.post<SelectWinnerResponse>(`/auctions/${auctionId}/select-winner/`, data),
+
+  // Owner decision (confirm / reject result)
+  confirmResult: (auctionId: number) =>
+    apiInstance.post<ConfirmResultResponse>(`/auctions/${auctionId}/confirm-result/`),
+
+  rejectResult: (auctionId: number, data: RejectResultRequest) =>
+    apiInstance.post<RejectResultResponse>(`/auctions/${auctionId}/reject-result/`, data),
 
   // Compatible properties for lot
   getCompatibleProperties: (referenceId: string) =>

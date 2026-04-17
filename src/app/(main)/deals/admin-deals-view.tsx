@@ -17,6 +17,7 @@ const ADMIN_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Ожидает девелопера', value: 'developer_confirm' },
   { label: 'Подтверждена', value: 'confirmed' },
   { label: 'Ожидает документов', value: 'pending_documents' },
+  { label: 'Несостоявшиеся', value: 'failed' },
 ];
 
 function getStatusBadge(status: DealStatus, obligationStatus?: string) {
@@ -28,6 +29,7 @@ function getStatusBadge(status: DealStatus, obligationStatus?: string) {
     admin_review: { label: 'На проверке', className: 'bg-blue-50 text-blue-700' },
     developer_confirm: { label: 'Ожидает девелопера', className: 'bg-purple-50 text-purple-700' },
     confirmed: { label: 'Подтверждена', className: 'bg-emerald-50 text-emerald-700' },
+    failed: { label: 'Несостоявшаяся', className: 'bg-red-50 text-red-700' },
   };
   return map[status];
 }
@@ -35,6 +37,7 @@ function getStatusBadge(status: DealStatus, obligationStatus?: string) {
 function AdminDealCard({ deal }: { deal: Deal }) {
   const badge = getStatusBadge(deal.status, deal.obligation_status);
   const isReviewable = deal.status === 'admin_review';
+  const isFailed = deal.status === 'failed';
   const approveDeal = useAdminApproveDeal();
   const rejectDeal = useAdminRejectDeal();
   const [rejectReason, setRejectReason] = React.useState('');
@@ -43,7 +46,7 @@ function AdminDealCard({ deal }: { deal: Deal }) {
   return (
     <div className={cn(
       'bg-white rounded-xl border p-5',
-      isReviewable ? 'border-blue-200' : 'border-gray-200',
+      isFailed ? 'border-red-200 bg-red-50/30' : isReviewable ? 'border-blue-200' : 'border-gray-200',
     )}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
@@ -112,6 +115,14 @@ function AdminDealCard({ deal }: { deal: Deal }) {
               Подтверждение оплаты
             </a>
           )}
+        </div>
+      )}
+
+      {/* Failed banner */}
+      {isFailed && (
+        <div className="flex items-start gap-2 mt-4">
+          <span className="mt-1 size-2 shrink-0 rounded-full bg-red-500" />
+          <p className="text-xs text-red-600">Сделка автоматически признана несостоявшейся: документы не были загружены в течение 5 дней. Статус терминальный.</p>
         </div>
       )}
 
@@ -185,6 +196,7 @@ export function AdminDealsView() {
     { label: 'Ожидают девелопера', value: allDeals.filter((d) => d.status === 'developer_confirm').length, color: 'text-purple-600' },
     { label: 'Подтверждены', value: allDeals.filter((d) => d.status === 'confirmed').length, color: 'text-emerald-600' },
     { label: 'Просрочены', value: allDeals.filter((d) => d.obligation_status === 'overdue').length, color: 'text-red-600' },
+    { label: 'Несостоявшиеся', value: allDeals.filter((d) => d.status === 'failed').length, color: 'text-red-600' },
   ];
 
   return (
@@ -196,7 +208,7 @@ export function AdminDealsView() {
         </div>
 
         {/* KPI */}
-        <div className="grid grid-cols-4 gap-4 mt-5">
+        <div className="grid grid-cols-5 gap-4 mt-5">
           {kpis.map((kpi) => (
             <div key={kpi.label} className="bg-gray-50 rounded-xl border border-gray-200 p-4">
               <p className="text-xs text-gray-500">{kpi.label}</p>
