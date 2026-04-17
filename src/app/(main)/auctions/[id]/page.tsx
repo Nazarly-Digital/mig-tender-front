@@ -34,16 +34,17 @@ import {
   useCancelAuction,
   useConfirmResult,
   useRejectResult,
+  useDeclineResult,
 } from '@/features/auctions';
 import { useQueryClient } from '@tanstack/react-query';
-import { dealKeys } from '@/features/deals';
+import { dealKeys, useDeals } from '@/features/deals';
 import { useAuctionDocumentRequests } from '@/features/document-requests';
 import {
   BrokerIncomingRequests,
   DocumentRequestsList,
   RequestDocumentsButton,
   PendingRequestsWarning,
-  hasPendingRequestForBroker,
+  getRequestLockStatusForBroker,
 } from './document-requests-section';
 import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
 import { useSealedBidsSocket } from '@/shared/hooks/use-sealed-bids-socket';
@@ -545,6 +546,32 @@ export default function AuctionDetailPage() {
   const shortlist = useShortlist();
   const confirmResult = useConfirmResult();
   const rejectResult = useRejectResult();
+  const declineResult = useDeclineResult();
+
+  // Deal tied to this auction — needed to know if /decline-result/ is still allowed.
+  // Backend blocks decline once the deal has moved past pending_documents.
+  // Only owner/admin on a finished auction with winner_bid needs this.
+  const needsDealLookup = auction != null
+    && isOwnerOrAdmin
+    && auction.status === 'finished'
+    && !!auction.winner_bid;
+  const { data: relatedDealsPage } = useDeals(
+    { auction_id: auctionId, page_size: 20 },
+    { enabled: needsDealLookup },
+  );
+  // Pick the most recent deal for this auction (declined ones are keptin history, we want the active one).
+  const currentDeal = React.useMemo(() => {
+    const list = relatedDealsPage?.results ?? [];
+    if (list.length === 0) return null;
+    const active = list.find((d) => d.status !== 'declined' && d.status !== 'failed');
+    if (active) return active;
+    return [...list].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0] ?? null;
+  }, [relatedDealsPage]);
+  // Decline is allowed if there's no deal yet OR the existing deal is still at pending_documents.
+  const canDecline = !currentDeal || currentDeal.status === 'pending_documents';
+  const declineBlockedReason = !canDecline && currentDeal
+    ? 'Сделка уже на следующем этапе — используйте отклонение на карточке сделки'
+    : null;
 
   // Document requests: visible to owner/admin (all) or broker (their own).
   const documentRequestsEnabled = auction != null && (isOwnerOrAdmin || isBroker);
@@ -567,6 +594,8 @@ export default function AuctionDetailPage() {
   const [cancelConfirmOpen, setCancelConfirmOpen] = React.useState(false);
   const [rejectModalOpen, setRejectModalOpen] = React.useState(false);
   const [rejectReason, setRejectReason] = React.useState('');
+  const [declineModalOpen, setDeclineModalOpen] = React.useState(false);
+  const [declineReason, setDeclineReason] = React.useState('');
   const [shortlistIds, setShortlistIds] = React.useState<Set<number>>(
     new Set(),
   );
@@ -976,6 +1005,22 @@ export default function AuctionDetailPage() {
                     <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color='currentColor' strokeWidth={1.5} />
                     {confirmResult.isPending ? 'Подтверждение...' : 'Подтвердить результат'}
                   </FancyButton.Root>
+                  <div className='relative group'>
+                    <button
+                      type='button'
+                      onClick={() => setDeclineModalOpen(true)}
+                      disabled={!canDecline || declineResult.isPending}
+                      className='inline-flex h-9 items-center gap-2 rounded-lg bg-amber-500 px-3 text-sm font-medium text-white shadow-[0_1px_2px_0_rgba(14,18,27,0.24),0_0_0_1px_#d97706] transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none'
+                    >
+                      <HugeiconsIcon icon={ChampionIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                      Отказаться от кандидата
+                    </button>
+                    {declineBlockedReason && (
+                      <div className='pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white group-hover:block'>
+                        {declineBlockedReason}
+                      </div>
+                    )}
+                  </div>
                   <FancyButton.Root
                     variant='destructive'
                     size='small'
@@ -1197,7 +1242,7 @@ export default function AuctionDetailPage() {
                     const detail = participantDetails.find((d) => d.id === pid);
                     const name = detail?.name ?? `Участник #${pid}`;
                     const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
-                    const hasPending = hasPendingRequestForBroker(documentRequests, pid);
+                    const lockStatus = getRequestLockStatusForBroker(documentRequests, pid);
                     return (
                       <div key={pid} className='flex items-center justify-between gap-2 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
                         <div className='flex items-center gap-2.5 min-w-0'>
@@ -1210,7 +1255,7 @@ export default function AuctionDetailPage() {
                           auctionId={auctionId}
                           brokerId={pid}
                           brokerName={name}
-                          hasPendingRequest={hasPending}
+                          lockStatus={lockStatus}
                         />
                       </div>
                     );
@@ -1286,6 +1331,54 @@ export default function AuctionDetailPage() {
             </Modal.Close>
             <FancyButton.Root variant='destructive' size='small' onClick={handleCancel} disabled={cancelAuction.isPending}>
               {cancelAuction.isPending ? 'Отмена...' : 'Да, отменить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
+
+      {/* Decline result modal — TZ 8.5 (skip current winner, promote next candidate) */}
+      <Modal.Root open={declineModalOpen} onOpenChange={(open) => { setDeclineModalOpen(open); if (!open) setDeclineReason(''); }}>
+        <Modal.Content className='max-w-[480px]'>
+          <Modal.Header
+            title='Отказаться от текущего кандидата'
+            description='Будет подобран следующий по очереди кандидат. Если таких нет — аукцион станет несостоявшимся.'
+          />
+          <Modal.Body className='space-y-3'>
+            <textarea
+              value={declineReason}
+              onChange={(e) => setDeclineReason(e.target.value)}
+              placeholder='Причина отказа (обязательно)'
+              rows={3}
+              className='w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors resize-none'
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>Отмена</FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='primary'
+              size='small'
+              disabled={!declineReason.trim() || declineResult.isPending}
+              onClick={() => {
+                declineResult.mutate(
+                  { auctionId, data: { reason: declineReason.trim() } },
+                  {
+                    onSuccess: (data) => {
+                      if (data.auctionFailed) {
+                        toast.success('Кандидатов больше нет — аукцион несостоявшийся');
+                      } else {
+                        toast.success('Кандидат отклонён, выбран следующий');
+                      }
+                      setDeclineModalOpen(false);
+                      setDeclineReason('');
+                    },
+                    onError: (error) => toast.error(getApiError(error)),
+                  },
+                );
+              }}
+            >
+              {declineResult.isPending ? 'Отправка...' : 'Подтвердить отказ'}
             </FancyButton.Root>
           </Modal.Footer>
         </Modal.Content>

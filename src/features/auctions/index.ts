@@ -15,4 +15,5 @@ export {
   useCompatibleProperties,
   useConfirmResult,
   useRejectResult,
+  useDeclineResult,
 } from "./model/queries";

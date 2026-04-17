@@ -18,6 +18,7 @@ const BROKER_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Ожидает подтверждения девелопера', value: 'developer_confirm' },
   { label: 'Подтверждена', value: 'confirmed' },
   { label: 'Несостоявшиеся', value: 'failed' },
+  { label: 'Отклонённые', value: 'declined' },
 ];
 
 function getStatusBadge(status: DealStatus, obligationStatus?: ObligationStatus) {
@@ -30,6 +31,7 @@ function getStatusBadge(status: DealStatus, obligationStatus?: ObligationStatus)
     developer_confirm: { label: 'Ожидает девелопера', className: 'bg-blue-50 text-blue-700' },
     confirmed: { label: 'Подтверждена', className: 'bg-emerald-50 text-emerald-700' },
     failed: { label: 'Несостоявшаяся', className: 'bg-red-50 text-red-700' },
+    declined: { label: 'Отклонена девелопером', className: 'bg-red-50 text-red-700' },
   };
   return map[status];
 }
@@ -44,6 +46,9 @@ function getObligationLabel(status: ObligationStatus) {
 }
 
 function getInfoMessage(deal: Deal): { text: string; color: string } | null {
+  if (deal.status === 'declined') {
+    return { text: 'Девелопер отказался от результата аукциона. Сделка закрыта без завершения.', color: 'text-red-600' };
+  }
   if (deal.status === 'failed') {
     return { text: 'Сделка автоматически переведена в статус «Несостоявшийся», так как документы не были загружены в течение 5 дней. Восстановить сделку нельзя.', color: 'text-red-600' };
   }
@@ -93,11 +98,13 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
   };
 
   const isFailed = deal.status === 'failed';
+  const isDeclined = deal.status === 'declined';
+  const isTerminal = isFailed || isDeclined;
 
   return (
     <div className={cn(
       'bg-white rounded-xl border p-5',
-      isFailed ? 'border-red-200 bg-red-50/30' : isOverdue ? 'border-red-200' : 'border-gray-200'
+      isTerminal ? 'border-red-200 bg-red-50/30' : isOverdue ? 'border-red-200' : 'border-gray-200'
     )}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">

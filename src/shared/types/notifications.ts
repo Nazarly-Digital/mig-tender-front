@@ -17,6 +17,8 @@ export type NotificationEventType =
   | 'auction_finished_closed'
   | 'auction_result_confirmed'
   | 'auction_result_rejected'
+  | 'auction_winner_declined'
+  | 'auction_winner_promoted'
   | 'documents_requested'
   | 'documents_request_answered'
   // Deal / Deadline / Review

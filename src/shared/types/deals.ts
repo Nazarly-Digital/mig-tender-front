@@ -9,7 +9,8 @@ export type DealStatus =
   | "admin_review"
   | "developer_confirm"
   | "confirmed"
-  | "failed";
+  | "failed"
+  | "declined";
 
 // Deal log entry
 export type DealLogEntry = {

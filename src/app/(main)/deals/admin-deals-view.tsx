@@ -18,6 +18,7 @@ const ADMIN_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Подтверждена', value: 'confirmed' },
   { label: 'Ожидает документов', value: 'pending_documents' },
   { label: 'Несостоявшиеся', value: 'failed' },
+  { label: 'Отклонённые', value: 'declined' },
 ];
 
 function getStatusBadge(status: DealStatus, obligationStatus?: string) {
@@ -30,6 +31,7 @@ function getStatusBadge(status: DealStatus, obligationStatus?: string) {
     developer_confirm: { label: 'Ожидает девелопера', className: 'bg-purple-50 text-purple-700' },
     confirmed: { label: 'Подтверждена', className: 'bg-emerald-50 text-emerald-700' },
     failed: { label: 'Несостоявшаяся', className: 'bg-red-50 text-red-700' },
+    declined: { label: 'Отклонена девелопером', className: 'bg-red-50 text-red-700' },
   };
   return map[status];
 }
@@ -38,6 +40,8 @@ function AdminDealCard({ deal }: { deal: Deal }) {
   const badge = getStatusBadge(deal.status, deal.obligation_status);
   const isReviewable = deal.status === 'admin_review';
   const isFailed = deal.status === 'failed';
+  const isDeclined = deal.status === 'declined';
+  const isTerminal = isFailed || isDeclined;
   const approveDeal = useAdminApproveDeal();
   const rejectDeal = useAdminRejectDeal();
   const [rejectReason, setRejectReason] = React.useState('');
@@ -46,7 +50,7 @@ function AdminDealCard({ deal }: { deal: Deal }) {
   return (
     <div className={cn(
       'bg-white rounded-xl border p-5',
-      isFailed ? 'border-red-200 bg-red-50/30' : isReviewable ? 'border-blue-200' : 'border-gray-200',
+      isTerminal ? 'border-red-200 bg-red-50/30' : isReviewable ? 'border-blue-200' : 'border-gray-200',
     )}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
@@ -126,6 +130,14 @@ function AdminDealCard({ deal }: { deal: Deal }) {
         </div>
       )}
 
+      {/* Declined banner */}
+      {isDeclined && (
+        <div className="flex items-start gap-2 mt-4">
+          <span className="mt-1 size-2 shrink-0 rounded-full bg-red-500" />
+          <p className="text-xs text-red-600">Девелопер отказался от результата аукциона по этой сделке. Статус терминальный.</p>
+        </div>
+      )}
+
       {/* Actions */}
       {isReviewable && (
         <div className="mt-4">
@@ -197,6 +209,7 @@ export function AdminDealsView() {
     { label: 'Подтверждены', value: allDeals.filter((d) => d.status === 'confirmed').length, color: 'text-emerald-600' },
     { label: 'Просрочены', value: allDeals.filter((d) => d.obligation_status === 'overdue').length, color: 'text-red-600' },
     { label: 'Несостоявшиеся', value: allDeals.filter((d) => d.status === 'failed').length, color: 'text-red-600' },
+    { label: 'Отклонённые', value: allDeals.filter((d) => d.status === 'declined').length, color: 'text-red-600' },
   ];
 
   return (
