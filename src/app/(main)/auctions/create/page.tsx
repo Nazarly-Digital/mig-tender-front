@@ -204,6 +204,7 @@ export default function CreateAuctionPage() {
       mode: 'closed',
       min_price: '',
       min_bid_increment: '',
+      show_price_to_brokers: true,
       start_date: '',
       end_date: '',
     },
@@ -268,6 +269,7 @@ export default function CreateAuctionPage() {
         mode: data.mode as AuctionMode,
         min_price: data.min_price,
         ...(isOpen && data.min_bid_increment ? { min_bid_increment: data.min_bid_increment } : {}),
+        show_price_to_brokers: data.show_price_to_brokers ?? true,
         start_date: new Date(data.start_date).toISOString(),
         end_date: new Date(data.end_date).toISOString(),
       },
@@ -479,6 +481,25 @@ export default function CreateAuctionPage() {
                 )}
               </div>
             )}
+
+            <Controller
+              name='show_price_to_brokers'
+              control={control}
+              render={({ field }) => (
+                <label className='flex items-start gap-2 cursor-pointer select-none'>
+                  <input
+                    type='checkbox'
+                    checked={field.value ?? true}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    className='mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20'
+                  />
+                  <span className='text-[13px] text-gray-700'>
+                    Показывать прайсовую цену брокерам
+                    <span className='block text-[11px] text-gray-400'>Если отключено, брокеры увидят «Скрыта» вместо цены в этом аукционе</span>
+                  </span>
+                </label>
+              )}
+            />
           </div>
 
           {/* Right — Dates */}

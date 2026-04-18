@@ -27,11 +27,14 @@ import {
   useBlockUser,
   useAdminVerifyBroker,
   useAdminUpdateDeveloper,
+  useAdminUpdateBroker,
 } from '@/features/admin';
 import type { AdminUser } from '@/shared/types/admin';
 import {
   adminUpdateDeveloperSchema,
   type AdminUpdateDeveloperFormData,
+  adminUpdateBrokerSchema,
+  type AdminUpdateBrokerFormData,
 } from '@/shared/lib/validations';
 
 // --- Helpers ---
@@ -210,6 +213,8 @@ function EditDeveloperModal({
       firstName: '',
       lastName: '',
       companyName: '',
+      innNumber: '',
+      phoneNumber: '',
     },
   });
 
@@ -220,6 +225,8 @@ function EditDeveloperModal({
         firstName: user.first_name ?? '',
         lastName: user.last_name ?? '',
         companyName: user.developer?.company_name ?? '',
+        innNumber: user.developer?.inn_number ?? '',
+        phoneNumber: user.developer?.phone_number ?? '',
       });
     }
   }, [open, user, form]);
@@ -233,12 +240,20 @@ function EditDeveloperModal({
       first_name?: string;
       last_name?: string;
       company_name?: string;
+      inn_number?: string;
+      phone_number?: string;
     } = {};
     if (data.email !== user.email) payload.email = data.email;
     if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName;
     if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName;
     if (data.companyName !== (user.developer?.company_name ?? '')) {
       payload.company_name = data.companyName;
+    }
+    if (data.innNumber !== (user.developer?.inn_number ?? '')) {
+      payload.inn_number = data.innNumber;
+    }
+    if (data.phoneNumber !== (user.developer?.phone_number ?? '')) {
+      payload.phone_number = data.phoneNumber;
     }
 
     if (Object.keys(payload).length === 0) {
@@ -345,6 +360,68 @@ function EditDeveloperModal({
                 )}
               </div>
 
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='ed-innNumber'>ИНН</Label.Root>
+                <Input.Root hasError={!!form.formState.errors.innNumber}>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='ed-innNumber'
+                      type='text'
+                      inputMode='numeric'
+                      maxLength={12}
+                      placeholder='12 цифр'
+                      {...form.register('innNumber', {
+                        setValueAs: (v: string) => (v ?? '').replace(/\D/g, ''),
+                      })}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.innNumber && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.innNumber.message}
+                  </span>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='ed-phoneNumber'>Телефон</Label.Root>
+                <Input.Root hasError={!!form.formState.errors.phoneNumber}>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='ed-phoneNumber'
+                      type='tel'
+                      maxLength={20}
+                      placeholder='+7 999 000 00 00'
+                      {...form.register('phoneNumber')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.phoneNumber && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.phoneNumber.message}
+                  </span>
+                )}
+              </div>
+
+              {user.documents && user.documents.length > 0 && (
+                <div className='flex flex-col gap-1'>
+                  <Label.Root>Документы</Label.Root>
+                  <div className='flex flex-wrap gap-2'>
+                    {user.documents.map((doc) => (
+                      <a
+                        key={doc.id}
+                        href={doc.url}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap'
+                      >
+                        <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                        {doc.document_name || doc.doc_type}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </Modal.Body>
           <Modal.Footer>
@@ -368,6 +445,219 @@ function EditDeveloperModal({
   );
 }
 
+// --- Edit Broker Modal ---
+
+function EditBrokerModal({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: AdminUser | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const updateBroker = useAdminUpdateBroker();
+
+  const form = useForm<AdminUpdateBrokerFormData>({
+    resolver: zodResolver(adminUpdateBrokerSchema),
+    defaultValues: {
+      email: '',
+      firstName: '',
+      lastName: '',
+      innNumber: '',
+      phoneNumber: '',
+    },
+  });
+
+  React.useEffect(() => {
+    if (open && user) {
+      form.reset({
+        email: user.email ?? '',
+        firstName: user.first_name ?? '',
+        lastName: user.last_name ?? '',
+        innNumber: user.broker?.inn_number ?? '',
+        phoneNumber: user.broker?.phone_number ?? '',
+      });
+    }
+  }, [open, user, form]);
+
+  if (!user) return null;
+
+  const onSubmit = form.handleSubmit((data) => {
+    // Send only changed fields (PATCH semantics)
+    const payload: {
+      email?: string;
+      first_name?: string;
+      last_name?: string;
+      inn_number?: string;
+      phone_number?: string;
+    } = {};
+    if (data.email !== user.email) payload.email = data.email;
+    if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName;
+    if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName;
+    if (data.innNumber !== (user.broker?.inn_number ?? '')) payload.inn_number = data.innNumber;
+    if (data.phoneNumber !== (user.broker?.phone_number ?? '')) {
+      payload.phone_number = data.phoneNumber;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      onOpenChange(false);
+      return;
+    }
+
+    updateBroker.mutate(
+      { id: user.id, data: payload },
+      {
+        onSuccess: () => {
+          toast.success('Данные брокера обновлены');
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          toast.error(getApiError(error));
+        },
+      },
+    );
+  });
+
+  return (
+    <Modal.Root open={open} onOpenChange={onOpenChange}>
+      <Modal.Content className='max-w-[480px]'>
+        <Modal.Header
+          title='Редактирование брокера'
+          description={`${user.first_name} ${user.last_name}`.trim() || user.email}
+        />
+        <form onSubmit={onSubmit}>
+          <Modal.Body>
+            <div className='flex flex-col gap-4'>
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='eb-email'>
+                  Email <Label.Asterisk />
+                </Label.Root>
+                <Input.Root hasError={!!form.formState.errors.email}>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='eb-email'
+                      type='email'
+                      placeholder='example@mail.com'
+                      {...form.register('email')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.email && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.email.message}
+                  </span>
+                )}
+              </div>
+
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='flex flex-col gap-1'>
+                  <Label.Root htmlFor='eb-firstName'>
+                    Имя <Label.Asterisk />
+                  </Label.Root>
+                  <Input.Root hasError={!!form.formState.errors.firstName}>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='eb-firstName'
+                        type='text'
+                        placeholder='Имя'
+                        {...form.register('firstName')}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                  {form.formState.errors.firstName && (
+                    <span className='text-paragraph-xs text-error-base'>
+                      {form.formState.errors.firstName.message}
+                    </span>
+                  )}
+                </div>
+                <div className='flex flex-col gap-1'>
+                  <Label.Root htmlFor='eb-lastName'>
+                    Фамилия <Label.Asterisk />
+                  </Label.Root>
+                  <Input.Root hasError={!!form.formState.errors.lastName}>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='eb-lastName'
+                        type='text'
+                        placeholder='Фамилия'
+                        {...form.register('lastName')}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                  {form.formState.errors.lastName && (
+                    <span className='text-paragraph-xs text-error-base'>
+                      {form.formState.errors.lastName.message}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='eb-innNumber'>ИНН</Label.Root>
+                <Input.Root hasError={!!form.formState.errors.innNumber}>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='eb-innNumber'
+                      type='text'
+                      inputMode='numeric'
+                      maxLength={12}
+                      placeholder='12 цифр'
+                      {...form.register('innNumber', {
+                        setValueAs: (v: string) => (v ?? '').replace(/\D/g, ''),
+                      })}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.innNumber && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.innNumber.message}
+                  </span>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='eb-phoneNumber'>Телефон</Label.Root>
+                <Input.Root hasError={!!form.formState.errors.phoneNumber}>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='eb-phoneNumber'
+                      type='tel'
+                      maxLength={20}
+                      placeholder='+7 999 000 00 00'
+                      {...form.register('phoneNumber')}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {form.formState.errors.phoneNumber && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.phoneNumber.message}
+                  </span>
+                )}
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root type='button' variant='basic' size='small'>
+                Отмена
+              </FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              type='submit'
+              variant='primary'
+              size='small'
+              disabled={updateBroker.isPending}
+            >
+              {updateBroker.isPending ? 'Сохранение...' : 'Сохранить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </form>
+      </Modal.Content>
+    </Modal.Root>
+  );
+}
+
 // --- Main Page ---
 
 type RoleFilter = 'all' | 'developer' | 'broker';
@@ -377,6 +667,7 @@ export default function AdminUsersPage() {
   const [blockTarget, setBlockTarget] = React.useState<AdminUser | null>(null);
   const [verifyTarget, setVerifyTarget] = React.useState<AdminUser | null>(null);
   const [editTarget, setEditTarget] = React.useState<AdminUser | null>(null);
+  const [editBrokerTarget, setEditBrokerTarget] = React.useState<AdminUser | null>(null);
 
   const params = {
     ...(roleFilter !== 'all' && { role: roleFilter }),
@@ -556,6 +847,12 @@ export default function AdminUsersPage() {
                           Редактировать
                         </FancyButton.Root>
                       )}
+                      {user.role === 'broker' && (
+                        <FancyButton.Root variant='basic' size='xsmall' onClick={() => setEditBrokerTarget(user)}>
+                          <HugeiconsIcon icon={Edit02Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                          Редактировать
+                        </FancyButton.Root>
+                      )}
                       <FancyButton.Root variant={!user.is_active ? 'primary' : 'destructive'} size='xsmall' onClick={() => setBlockTarget(user)}>
                         {!user.is_active ? (
                           <HugeiconsIcon icon={SquareUnlock01Icon} size={16} color='currentColor' strokeWidth={1.5} />
@@ -593,6 +890,13 @@ export default function AdminUsersPage() {
         open={!!editTarget}
         onOpenChange={(open) => {
           if (!open) setEditTarget(null);
+        }}
+      />
+      <EditBrokerModal
+        user={editBrokerTarget}
+        open={!!editBrokerTarget}
+        onOpenChange={(open) => {
+          if (!open) setEditBrokerTarget(null);
         }}
       />
     </div>

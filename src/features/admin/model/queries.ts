@@ -6,6 +6,7 @@ import type {
   RejectPropertyRequest,
   AdminCreateDeveloperRequest,
   AdminUpdateDeveloperRequest,
+  AdminUpdateBrokerRequest,
 } from "@/shared/types/admin";
 
 export const adminKeys = {
@@ -65,6 +66,19 @@ export function useAdminUpdateDeveloper() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: AdminUpdateDeveloperRequest }) =>
       adminService.updateDeveloper(id, data).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.all });
+    },
+  });
+}
+
+// --- Broker management ---
+
+export function useAdminUpdateBroker() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: AdminUpdateBrokerRequest }) =>
+      adminService.updateBroker(id, data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.all });
     },

@@ -35,6 +35,7 @@ export type Auction = {
   properties: AuctionLotProperty[];
   owner_id: number;
   mode: AuctionMode;
+  show_price_to_brokers: boolean;
   min_price: string | null;
   min_bid_increment: string | null;
   start_date: string;
@@ -51,6 +52,7 @@ export type Auction = {
   } | null;
   lot_total_price: string | null;
   deals_created: boolean;
+  has_failed_deal: boolean;
   owner_decision: AuctionOwnerDecision | null;
   owner_rejection_reason: string | null;
   owner_decided_at: string | null;
@@ -107,6 +109,7 @@ export type AuctionCreateRequest = {
   mode: AuctionMode;
   min_price: string;
   min_bid_increment?: string;
+  show_price_to_brokers?: boolean;
   start_date: string;
   end_date: string;
 };

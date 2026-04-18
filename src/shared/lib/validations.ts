@@ -245,9 +245,36 @@ export const adminUpdateDeveloperSchema = z.object({
     .string()
     .min(1, 'Введите название компании')
     .max(55, 'Максимум 55 символов'),
+  innNumber: z
+    .string()
+    .refine((v) => v === '' || /^\d{12}$/.test(v), 'ИНН должен состоять из 12 цифр'),
+  phoneNumber: z
+    .string()
+    .max(20, 'Максимум 20 символов'),
 });
 
 export type AdminUpdateDeveloperFormData = z.infer<typeof adminUpdateDeveloperSchema>;
+
+// Admin: edit broker (PATCH /admin/users/<id>/)
+export const adminUpdateBrokerSchema = z.object({
+  email: strictEmail(),
+  firstName: z
+    .string()
+    .min(1, 'Введите имя')
+    .max(50, 'Максимум 50 символов'),
+  lastName: z
+    .string()
+    .min(1, 'Введите фамилию')
+    .max(50, 'Максимум 50 символов'),
+  innNumber: z
+    .string()
+    .refine((v) => v === '' || /^\d{12}$/.test(v), 'ИНН должен состоять из 12 цифр'),
+  phoneNumber: z
+    .string()
+    .max(20, 'Максимум 20 символов'),
+});
+
+export type AdminUpdateBrokerFormData = z.infer<typeof adminUpdateBrokerSchema>;
 
 // === Properties ===
 
@@ -277,7 +304,6 @@ export const propertySchema = z.object({
   commercial_subtype: z.string().optional(),
   land_number: z.string().optional(),
   house_number: z.string().optional(),
-  show_price_to_brokers: z.boolean().optional(),
 }).refine(
   (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),
   { message: 'Выберите класс', path: ['property_class'] },
@@ -322,6 +348,7 @@ export const auctionSchema = z.object({
     .min(1, 'Введите минимальную цену')
     .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
   min_bid_increment: z.string().optional(),
+  show_price_to_brokers: z.boolean().optional(),
   start_date: z
     .string()
     .min(1, 'Выберите дату начала')

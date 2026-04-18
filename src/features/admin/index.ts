@@ -5,6 +5,7 @@ export {
   useAdminVerifyBroker,
   useAdminCreateDeveloper,
   useAdminUpdateDeveloper,
+  useAdminUpdateBroker,
   usePendingProperties,
   useApproveProperty,
   useRejectProperty,

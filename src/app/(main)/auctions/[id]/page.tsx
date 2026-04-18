@@ -383,12 +383,13 @@ function LiveBidInput({
   isHighestBidder: boolean;
   wsError: string | null;
 }) {
-  // "First bid" in the auction (across all brokers) — allows the minimum price flow.
+  // "First bid" in the auction (across all brokers) — starts from min_price.
   const isFirstGlobalBid = bidsCount === 0 || parseFloat(currentPrice) <= 0;
   const [amount, setAmount] = React.useState('');
 
-  // Minimum allowed bid: must be above current leader + increment.
-  // For first global bid — equal to min_price.
+  // Minimum allowed bid:
+  // - first bid: >= min_price
+  // - subsequent: > current leader + increment
   const minBid = isFirstGlobalBid
     ? parseFloat(minPrice)
     : parseFloat(currentPrice) + (parseFloat(minBidIncrement) || 0);
@@ -397,14 +398,10 @@ function LiveBidInput({
   const isEmpty = !amount.trim();
   const isBelowMin = !isEmpty && numericAmount < minBid;
   const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
-  // First-global-bid flow auto-sends min_price (no input required).
-  const autoFirst = isFirstGlobalBid && !hasMyBid;
-  const isDisabled = autoFirst
-    ? !connected
-    : (!connected || isEmpty || isBelowMin || isInvalid);
+  const isDisabled = !connected || isEmpty || isBelowMin || isInvalid;
 
   const getError = (): string | null => {
-    if (autoFirst || isEmpty) return null;
+    if (isEmpty) return null;
     if (isInvalid) return 'Введите корректную сумму';
     if (isBelowMin) return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))} ₽`;
     return null;
@@ -413,18 +410,14 @@ function LiveBidInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (autoFirst) {
-      sendBid(minPrice);
-    } else {
-      if (isDisabled) return;
-      sendBid(amount);
-    }
+    if (isDisabled) return;
+    sendBid(amount);
     setAmount('');
   };
 
-  const title = hasMyBid ? 'Изменить ставку' : 'Сделать ставку';
+  const title = hasMyBid ? 'Повысить ставку' : 'Сделать ставку';
   const submitLabel = connected
-    ? (hasMyBid ? 'Изменить' : 'Поставить')
+    ? (hasMyBid ? 'Повысить' : 'Поставить')
     : 'Подключение...';
 
   return (
@@ -442,7 +435,7 @@ function LiveBidInput({
       <form onSubmit={handleSubmit} className='space-y-3'>
         <div className='space-y-1.5'>
           <Label.Root htmlFor='live-bid-amount'>
-            {hasMyBid ? 'Новая сумма' : 'Сумма ставки'}
+            {hasMyBid ? 'Новая сумма (выше текущей)' : 'Сумма ставки'}
           </Label.Root>
           <Input.Root>
             <Input.Wrapper>
@@ -451,27 +444,26 @@ function LiveBidInput({
                 type='text'
                 inputMode='decimal'
                 placeholder={formatPriceInput(String(Math.ceil(minBid))) + ' ₽'}
-                value={autoFirst ? formatPriceInput(minPrice) : formatPriceInput(amount)}
+                value={formatPriceInput(amount)}
                 onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
-                disabled={isHighestBidder || autoFirst}
               />
             </Input.Wrapper>
           </Input.Root>
-          {isHighestBidder || wsError ? (
-            <p className='text-[11px] text-emerald-600 font-medium'>
-              {wsError || 'Вы лидер торгов. Ожидайте новых ставок.'}
-            </p>
+          {wsError ? (
+            <p className='text-[11px] text-red-500'>{wsError}</p>
           ) : error ? (
             <p className='text-[11px] text-red-500'>{error}</p>
           ) : (
             <p className='text-[11px] text-gray-400'>
-              {autoFirst
-                ? `Первая ставка автоматически = мин. цена (${formatPrice(minPrice)} ₽)`
-                : `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽`}
+              {isHighestBidder
+                ? `Вы лидер. Можно повысить (минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽)`
+                : isFirstGlobalBid
+                  ? `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽ (стартовая цена)`
+                  : `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽`}
             </p>
           )}
         </div>
-        <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled || isHighestBidder || !!wsError}>
+        <FancyButton.Root variant='primary' size='small' type='submit' className='w-full' disabled={isDisabled || !!wsError}>
           <HugeiconsIcon icon={Coins01Icon} size={16} />
           {submitLabel}
         </FancyButton.Root>
@@ -823,7 +815,7 @@ export default function AuctionDetailPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {!isDeveloper && !isAdmin && isActive && !isOpenAuction && !myBid && (
+          {!isDeveloper && !isAdmin && isActive && !isOpenAuction && (
             <div className='relative group'>
               <FancyButton.Root
                 variant='primary'
@@ -832,7 +824,7 @@ export default function AuctionDetailPage() {
                 disabled={!isBrokerVerified}
               >
                 <HugeiconsIcon icon={Coins01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-                Сделать ставку
+                {myBid ? 'Изменить ставку' : 'Сделать ставку'}
               </FancyButton.Root>
               {!isBrokerVerified && (
                 <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
@@ -979,8 +971,21 @@ export default function AuctionDetailPage() {
               </div>
             )}
 
+            {/* Deal failed — documents not uploaded in time */}
+            {auction.has_failed_deal && (
+              <div className='mt-4 rounded-lg bg-red-50 p-4'>
+                <div className='flex items-center gap-2'>
+                  <div className='size-2 rounded-full bg-red-500' />
+                  <p className='text-sm font-medium text-red-700'>Сделка несостоявшаяся</p>
+                </div>
+                <p className='text-xs text-gray-600 mt-1.5'>
+                  Победитель не предоставил документы в установленный срок (5 дней). Сделка автоматически помечена как несостоявшаяся.
+                </p>
+              </div>
+            )}
+
             {/* Owner decision panel */}
-            {isFinished && isOwnerOrAdmin && auction.owner_decision === 'pending' && auction.winner_bid && (
+            {isFinished && isOwnerOrAdmin && auction.owner_decision === 'pending' && auction.winner_bid && !auction.has_failed_deal && (
               <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-3'>
                 <div>
                   <p className='text-sm font-semibold text-gray-900'>Требуется ваше решение</p>

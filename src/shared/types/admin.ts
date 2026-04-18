@@ -15,7 +15,11 @@ export type AdminUser = {
     verified_at?: string | null;
     rejected_at?: string | null;
   } | null;
-  developer: { company_name?: string } | null;
+  developer: {
+    company_name?: string;
+    phone_number?: string;
+    inn_number?: string;
+  } | null;
   documents: UserDocument[];
   is_active?: boolean;
   created_at?: string;
@@ -56,9 +60,25 @@ export type AdminUpdateDeveloperRequest = {
   first_name?: string;
   last_name?: string;
   company_name?: string;
+  inn_number?: string;
+  phone_number?: string;
 };
 
 export type AdminDeveloperResponse = {
+  message: string;
+  user: TokenUser;
+};
+
+// Admin broker management (edit via PATCH /admin/users/<id>/)
+export type AdminUpdateBrokerRequest = {
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  inn_number?: string;
+  phone_number?: string;
+};
+
+export type AdminUpdateBrokerResponse = {
   message: string;
   user: TokenUser;
 };

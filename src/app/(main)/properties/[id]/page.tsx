@@ -426,7 +426,6 @@ function PropertyEditForm({
       land_number: property.land_number ?? '',
       house_number: property.house_number ?? '',
       commission_rate: property.commission_rate != null ? String(property.commission_rate) : '',
-      show_price_to_brokers: property.show_price_to_brokers ?? true,
     },
   });
 
@@ -631,26 +630,6 @@ function PropertyEditForm({
         </div>
       </div>
 
-      {/* Show price to brokers */}
-      <Controller
-        name='show_price_to_brokers'
-        control={control}
-        render={({ field }) => (
-          <label className='flex items-start gap-2 cursor-pointer select-none'>
-            <input
-              type='checkbox'
-              checked={field.value ?? true}
-              onChange={(e) => field.onChange(e.target.checked)}
-              className='mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20'
-            />
-            <span className='text-[13px] text-gray-700'>
-              Показывать прайсовую цену брокерам
-              <span className='block text-[11px] text-gray-400'>Если отключено, брокеры увидят «Скрыта» вместо цены</span>
-            </span>
-          </label>
-        )}
-      />
-
       {/* Deadline + Status */}
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
@@ -735,7 +714,6 @@ export default function PropertyDetailPage() {
           commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null,
           land_number: data.type === 'land' && data.land_number ? data.land_number : null,
           house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null,
-          show_price_to_brokers: data.show_price_to_brokers ?? true,
         },
       },
       {

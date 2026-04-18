@@ -33,9 +33,8 @@ export type Property = {
   address: string;
   area: string; // decimal as string
   property_class: PropertyClass;
-  price: string | null; // decimal as string; null when hidden from brokers
+  price: string | null; // decimal as string; null when hidden by auction
   currency: string;
-  show_price_to_brokers?: boolean;
   deadline: string | null;
   status: PropertyStatus;
   moderation_status?: ModerationStatus;
@@ -96,7 +95,6 @@ export type PropertyCreateRequest = {
   commercial_subtype?: CommercialSubtype | null;
   land_number?: string | null;
   house_number?: string | null;
-  show_price_to_brokers?: boolean;
 };
 
 // Update (partial)
@@ -117,7 +115,6 @@ export type PropertyUpdateRequest = {
   commercial_subtype?: CommercialSubtype | null;
   land_number?: string | null;
   house_number?: string | null;
-  show_price_to_brokers?: boolean;
 };
 
 // Image create

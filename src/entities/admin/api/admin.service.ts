@@ -12,6 +12,8 @@ import type {
   AdminCreateDeveloperRequest,
   AdminUpdateDeveloperRequest,
   AdminDeveloperResponse,
+  AdminUpdateBrokerRequest,
+  AdminUpdateBrokerResponse,
 } from "@/shared/types/admin";
 
 export const adminService = {
@@ -48,6 +50,10 @@ export const adminService = {
 
   updateDeveloper: (id: number, data: AdminUpdateDeveloperRequest) =>
     apiInstance.patch<AdminDeveloperResponse>(`/admin/developers/${id}/`, data),
+
+  // Broker management (admin edits via shared /admin/users/<id>/ endpoint)
+  updateBroker: (id: number, data: AdminUpdateBrokerRequest) =>
+    apiInstance.patch<AdminUpdateBrokerResponse>(`/admin/users/${id}/`, data),
 
   // Properties moderation
   getPendingProperties: (params?: PendingPropertyListParams) =>
