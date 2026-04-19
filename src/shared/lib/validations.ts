@@ -139,6 +139,26 @@ export const loginSchema = z.object({
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 
+export const changePasswordSchema = z
+  .object({
+    old_password: z.string().min(1, 'Введите текущий пароль'),
+    new_password: z
+      .string()
+      .min(8, 'Минимум 8 символов')
+      .max(128, 'Максимум 128 символов'),
+    new_password_confirm: z.string().min(1, 'Повторите новый пароль'),
+  })
+  .refine((d) => d.new_password === d.new_password_confirm, {
+    message: 'Пароли не совпадают',
+    path: ['new_password_confirm'],
+  })
+  .refine((d) => d.new_password !== d.old_password, {
+    message: 'Новый пароль должен отличаться от текущего',
+    path: ['new_password'],
+  });
+
+export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+
 export const emailStepSchema = z.object({
   email: strictEmail(),
 });

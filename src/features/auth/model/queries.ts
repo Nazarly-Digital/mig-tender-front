@@ -11,6 +11,7 @@ import type {
   BrokerVerificationRequest,
   UploadDocumentRequest,
   UpdateDocumentNameRequest,
+  ChangePasswordRequest,
 } from "@/shared/types/auth";
 
 export const authKeys = {
@@ -164,5 +165,12 @@ export function useAllDocuments() {
     queryKey: authKeys.allDocuments,
     queryFn: () => authService.getAllDocuments().then((res) => res.data),
     enabled: isAuthenticated,
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (data: ChangePasswordRequest) =>
+      authService.changePassword(data).then((res) => res.data),
   });
 }

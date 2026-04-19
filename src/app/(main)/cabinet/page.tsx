@@ -1,12 +1,15 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Clock01Icon, Award01Icon, UserIcon } from '@hugeicons/core-free-icons';
+import { Clock01Icon, Award01Icon, UserIcon, LockPasswordIcon } from '@hugeicons/core-free-icons';
 
 import { useAuctions } from '@/features/auctions';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Auction } from '@/shared/types/auctions';
+import * as FancyButton from '@/shared/ui/fancy-button';
+import { ChangePasswordModal } from './change-password-modal';
 
 function AuctionItem({ auction }: { auction: Auction }) {
   const statusCls =
@@ -46,6 +49,7 @@ function AuctionItem({ auction }: { auction: Auction }) {
 }
 
 export default function CabinetPage() {
+  const [pwdOpen, setPwdOpen] = React.useState(false);
   const { data: activeData } = useAuctions({ status: 'active', page_size: 5 });
   const { data: finishedData } = useAuctions({ status: 'finished', page_size: 5 });
 
@@ -64,6 +68,24 @@ export default function CabinetPage() {
           <p className='mt-1 text-sm text-gray-500'>Ваши аукционы</p>
         </div>
       </div>
+
+      {/* Security */}
+      <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 flex items-center justify-between'>
+        <div className='flex items-center gap-3'>
+          <div className='flex size-9 items-center justify-center rounded-lg bg-gray-50'>
+            <HugeiconsIcon icon={LockPasswordIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-500' />
+          </div>
+          <div>
+            <div className='text-[14px] font-semibold text-gray-900'>Безопасность</div>
+            <div className='text-[12px] text-gray-500'>Смените пароль, если считаете что он скомпрометирован</div>
+          </div>
+        </div>
+        <FancyButton.Root variant='basic' size='small' onClick={() => setPwdOpen(true)}>
+          Сменить пароль
+        </FancyButton.Root>
+      </div>
+
+      <ChangePasswordModal open={pwdOpen} onOpenChange={setPwdOpen} />
 
       <div className='mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2'>
         {/* Active participations */}

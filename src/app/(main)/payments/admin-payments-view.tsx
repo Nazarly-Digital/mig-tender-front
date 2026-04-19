@@ -1,222 +1,278 @@
 'use client';
 
 import * as React from 'react';
+import toast from 'react-hot-toast';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { File01Icon, Upload04Icon } from '@hugeicons/core-free-icons';
+import {
+  File01Icon,
+  CheckmarkCircle02Icon,
+  Clock01Icon,
+  AlertCircleIcon,
+  Upload01Icon,
+} from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
-import { PaymentProgressBar } from './payment-progress-bar';
-import { usePayments, usePaymentSummary, useUploadReceipt } from '@/features/payments';
-import type { Payment, PaymentStatus, BrokerPaymentSummary } from '@/shared/types/payments';
+import * as FancyButton from '@/shared/ui/fancy-button';
+import {
+  useSettlements,
+  useSettlementSummary,
+  useMarkPaidToBroker,
+  useConfirmDeveloperReceipt,
+} from '@/features/payments';
+import type { Settlement } from '@/shared/types/payments';
 
-type TabFilter = 'all' | PaymentStatus;
+type StatusFilter = 'all' | 'awaiting_broker_payout' | 'awaiting_developer_payment' | 'closed';
 
-const ADMIN_TABS: { label: string; value: TabFilter }[] = [
+const FILTERS: { label: string; value: StatusFilter }[] = [
   { label: 'Все', value: 'all' },
-  { label: 'Ожидание', value: 'pending' },
-  { label: 'Выплачена', value: 'paid' },
+  { label: 'Нужно выплатить брокеру', value: 'awaiting_broker_payout' },
+  { label: 'Ждём девелопера', value: 'awaiting_developer_payment' },
+  { label: 'Закрыто', value: 'closed' },
 ];
 
-function getStatusBadge(status: PaymentStatus) {
-  const map: Record<PaymentStatus, { label: string; className: string }> = {
-    pending: { label: 'Ожидание', className: 'bg-amber-50 text-amber-700' },
-    paid: { label: 'Выплачена', className: 'bg-emerald-50 text-emerald-700' },
-  };
-  return map[status];
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-function AdminPaymentCard({ payment }: { payment: Payment }) {
-  const badge = getStatusBadge(payment.status);
-  const uploadReceipt = useUploadReceipt();
-  const typeLabel = payment.type === 'developer_commission'
-    ? 'Комиссия от девелопера'
-    : 'Комиссия от платформы';
-  const typeColor = payment.type === 'developer_commission'
-    ? 'text-amber-700'
-    : 'text-blue-700';
+function AdminSettlementCard({ s }: { s: Settlement }) {
+  const fileRef = React.useRef<HTMLInputElement>(null);
+  const markPaid = useMarkPaidToBroker();
+  const confirmRecv = useConfirmDeveloperReceipt();
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePickFile = () => fileRef.current?.click();
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadReceipt.mutate({ paymentId: payment.id, file });
+    e.target.value = '';
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Максимальный размер файла — 10 МБ');
+      return;
+    }
+    markPaid.mutate({ settlementId: s.id, file });
+  };
+
+  const handleConfirm = () => {
+    if (!s.developer_receipt) {
+      toast.error('Девелопер ещё не загрузил чек');
+      return;
+    }
+    confirmRecv.mutate(s.id);
   };
 
   return (
     <div className={cn(
       'bg-white rounded-xl border p-5',
-      payment.status === 'pending' ? 'border-amber-200' : 'border-gray-200',
+      s.is_financially_closed ? 'border-emerald-200' : 'border-gray-200',
     )}>
-      <div className="flex items-start justify-between gap-4">
+      <div className='flex items-start justify-between gap-4'>
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{payment.property_name}</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Аукцион #{payment.auction_id}</p>
+          <h3 className='text-sm font-semibold text-gray-900'>{s.property_name}</h3>
+          <p className='text-xs text-gray-500 mt-0.5'>
+            Аукцион #{s.auction_id} · Сделка #{s.deal_id} · Девелопер: {s.developer_name} · Брокер: {s.broker_name}
+          </p>
         </div>
-        <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap', badge.className)}>
-          {badge.label}
-        </span>
+        {s.is_financially_closed && (
+          <span className='inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700'>
+            <HugeiconsIcon icon={CheckmarkCircle02Icon} size={12} color='currentColor' strokeWidth={2} />
+            Финансово закрыто
+          </span>
+        )}
       </div>
 
-      <div className="grid grid-cols-4 gap-4 mt-4">
+      <div className='grid grid-cols-4 gap-4 mt-4'>
         <div>
-          <p className="text-xs text-gray-500">Тип</p>
-          <p className={cn('text-sm font-semibold mt-0.5', typeColor)}>{typeLabel}</p>
+          <p className='text-xs text-gray-500'>Сумма сделки</p>
+          <p className='text-sm font-semibold text-gray-900 mt-0.5'>{formatPrice(s.deal_amount)}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Ставка</p>
-          <p className="text-sm font-semibold text-gray-900 mt-0.5">{payment.rate}%</p>
+          <p className='text-xs text-gray-500'>Брокеру ({s.broker_rate}%)</p>
+          <p className='text-sm font-medium text-gray-900 mt-0.5'>{formatPrice(s.broker_amount)}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Сумма</p>
-          <p className="text-sm font-semibold text-gray-900 mt-0.5">{formatPrice(payment.amount)}</p>
+          <p className='text-xs text-gray-500'>Платформе ({s.platform_rate}%)</p>
+          <p className='text-sm font-medium text-gray-900 mt-0.5'>{formatPrice(s.platform_amount)}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Чек</p>
-          {payment.receipt_document ? (
-            <a
-              href={payment.receipt_document}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 mt-0.5"
-            >
-              <HugeiconsIcon icon={File01Icon} size={14} color="currentColor" strokeWidth={1.5} />
-              Чек.pdf
-            </a>
-          ) : (
-            <p className="text-sm text-gray-400 mt-0.5">—</p>
+          <p className='text-xs text-gray-500'>Всего с девелопера</p>
+          <p className='text-sm font-bold text-blue-700 mt-0.5'>{formatPrice(s.total_from_developer)}</p>
+        </div>
+      </div>
+
+      {/* Step 1 — pay broker */}
+      <div className={cn(
+        'mt-4 rounded-lg border p-3',
+        s.paid_to_broker ? 'bg-emerald-50/50 border-emerald-200' : s.broker_payout_overdue ? 'bg-red-50/50 border-red-200' : 'bg-amber-50/50 border-amber-200',
+      )}>
+        <div className='flex items-center justify-between gap-3'>
+          <div className='flex-1'>
+            <div className='flex items-center gap-2'>
+              {s.paid_to_broker ? (
+                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color='currentColor' strokeWidth={2} className='text-emerald-600' />
+              ) : s.broker_payout_overdue ? (
+                <HugeiconsIcon icon={AlertCircleIcon} size={14} color='currentColor' strokeWidth={2} className='text-red-600' />
+              ) : (
+                <HugeiconsIcon icon={Clock01Icon} size={14} color='currentColor' strokeWidth={2} className='text-amber-600' />
+              )}
+              <p className='text-sm font-semibold text-gray-900'>
+                1. Платформа → брокеру ({formatPrice(s.broker_amount)})
+              </p>
+            </div>
+            <p className='text-xs text-gray-600 mt-0.5'>
+              {s.paid_to_broker
+                ? `Выплачено ${formatDate(s.paid_to_broker_at)}`
+                : `Дедлайн: ${formatDate(s.broker_payout_deadline)}${s.broker_payout_overdue ? ' (просрочено!)' : ''}`}
+            </p>
+          </div>
+          {!s.paid_to_broker && (
+            <div>
+              <input ref={fileRef} type='file' accept='image/*,.pdf' className='hidden' onChange={handleFile} />
+              <FancyButton.Root variant='primary' size='small' onClick={handlePickFile} disabled={markPaid.isPending}>
+                <HugeiconsIcon icon={Upload01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                {markPaid.isPending ? 'Загрузка...' : 'Выплатил (с чеком)'}
+              </FancyButton.Root>
+            </div>
           )}
         </div>
+        {s.broker_payout_receipt && (
+          <a
+            href={s.broker_payout_receipt}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700'
+          >
+            <HugeiconsIcon icon={File01Icon} size={12} color='currentColor' strokeWidth={1.5} />
+            Чек выплаты брокеру
+          </a>
+        )}
       </div>
 
-      <PaymentProgressBar currentStep={payment.status} />
-
-      {/* Upload receipt — only for pending platform commission payments */}
-      {payment.status === 'pending' && payment.type === 'platform_commission' && (
-        <div className="mt-4">
-          <label className={cn(
-            "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors cursor-pointer",
-            uploadReceipt.isPending
-              ? "text-gray-400 bg-gray-50 border border-gray-200"
-              : "text-white bg-primary-base",
-          )}>
-            <HugeiconsIcon icon={Upload04Icon} size={16} color="currentColor" strokeWidth={1.5} />
-            {uploadReceipt.isPending ? 'Загрузка...' : 'Загрузить чек и подтвердить выплату'}
-            <input type="file" className="hidden" onChange={handleUpload} accept=".pdf,.jpg,.jpeg,.png" disabled={uploadReceipt.isPending} />
-          </label>
+      {/* Step 2 — receive from developer */}
+      <div className={cn(
+        'mt-3 rounded-lg border p-3',
+        s.received_from_developer ? 'bg-emerald-50/50 border-emerald-200' : s.developer_payment_overdue ? 'bg-red-50/50 border-red-200' : 'bg-amber-50/50 border-amber-200',
+      )}>
+        <div className='flex items-center justify-between gap-3'>
+          <div className='flex-1'>
+            <div className='flex items-center gap-2'>
+              {s.received_from_developer ? (
+                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color='currentColor' strokeWidth={2} className='text-emerald-600' />
+              ) : s.developer_payment_overdue ? (
+                <HugeiconsIcon icon={AlertCircleIcon} size={14} color='currentColor' strokeWidth={2} className='text-red-600' />
+              ) : (
+                <HugeiconsIcon icon={Clock01Icon} size={14} color='currentColor' strokeWidth={2} className='text-amber-600' />
+              )}
+              <p className='text-sm font-semibold text-gray-900'>
+                2. Девелопер → платформе ({formatPrice(s.total_from_developer)})
+              </p>
+            </div>
+            <p className='text-xs text-gray-600 mt-0.5'>
+              {s.received_from_developer
+                ? `Подтверждено ${formatDate(s.received_from_developer_at)}`
+                : s.developer_receipt
+                  ? `Чек загружен ${formatDate(s.developer_receipt_uploaded_at)} — требуется подтверждение`
+                  : `Ожидаем чек от девелопера. Дедлайн: ${formatDate(s.developer_payment_deadline)}`}
+            </p>
+          </div>
+          {!s.received_from_developer && s.developer_receipt && (
+            <FancyButton.Root variant='primary' size='small' onClick={handleConfirm} disabled={confirmRecv.isPending}>
+              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color='currentColor' strokeWidth={1.5} />
+              {confirmRecv.isPending ? 'Подтверждение...' : 'Подтвердить поступление'}
+            </FancyButton.Root>
+          )}
         </div>
-      )}
+        {s.developer_receipt && (
+          <a
+            href={s.developer_receipt}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700'
+          >
+            <HugeiconsIcon icon={File01Icon} size={12} color='currentColor' strokeWidth={1.5} />
+            Чек от девелопера
+          </a>
+        )}
+      </div>
     </div>
   );
 }
 
 export function AdminPaymentsView() {
-  const [activeTab, setActiveTab] = React.useState<TabFilter>('all');
+  const [filter, setFilter] = React.useState<StatusFilter>('all');
+  const { data: sum } = useSettlementSummary();
+  const { data, isLoading } = useSettlements();
+  const all = data ?? [];
 
-  const { data: summaryData } = usePaymentSummary();
-  const summary = summaryData as BrokerPaymentSummary | undefined;
+  const filtered = all.filter((s) => {
+    switch (filter) {
+      case 'awaiting_broker_payout':
+        return !s.paid_to_broker;
+      case 'awaiting_developer_payment':
+        return !s.received_from_developer;
+      case 'closed':
+        return s.is_financially_closed;
+      default:
+        return true;
+    }
+  });
 
-  const { data, isLoading } = usePayments(
-    activeTab === 'all' ? undefined : { status: activeTab as PaymentStatus }
-  );
-  const payments = data ?? [];
-
-  const allPayments = data ?? [];
-  const pendingCount = allPayments.filter((p) => p.status === 'pending').length;
-  const paidCount = allPayments.filter((p) => p.status === 'paid').length;
-
-  const kpis = summary ? [
-    { label: 'Всего выплат', value: formatPrice(summary.total), color: 'text-gray-900' },
-    { label: 'К выплате', value: formatPrice(summary.pending), color: 'text-amber-600' },
-    { label: 'Выплачено', value: formatPrice(summary.paid), color: 'text-emerald-600' },
-    { label: 'Ожидают чека', value: String(pendingCount), color: 'text-red-600', raw: true },
-  ] : [];
+  const cards = [
+    { label: 'Всего расчётов', value: String(sum?.total_settlements ?? 0), color: 'text-gray-900', raw: true },
+    { label: 'Долг девелоперов', value: sum?.total_owed_by_developers ?? '0', color: 'text-amber-600', raw: false },
+    { label: 'Выплачено брокерам', value: sum?.total_paid_to_brokers ?? '0', color: 'text-blue-600', raw: false },
+    { label: 'Получено от девелоперов', value: sum?.total_received_from_developers ?? '0', color: 'text-emerald-600', raw: false },
+  ];
 
   return (
-    <div className="w-full px-8 py-8">
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div>
-          <h1 className="text-lg font-semibold text-gray-900">Админ-панель · Выплаты</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Загрузка чеков, подтверждение выплат брокерам</p>
-        </div>
+    <div className='w-full px-8 py-8'>
+      <div>
+        <h1 className='text-lg font-semibold text-gray-900'>Выплаты (админ)</h1>
+        <p className='text-sm text-gray-500 mt-0.5'>
+          Транзитная модель: платформа выплачивает брокеру за 3 дня, затем получает от девелопера до 6 месяцев.
+        </p>
+      </div>
 
-        {/* KPI */}
-        {kpis.length > 0 && (
-          <div className="grid grid-cols-4 gap-4 mt-5">
-            {kpis.map((kpi) => (
-              <div key={kpi.label} className="bg-gray-50 rounded-xl p-4">
-                <p className="text-xs text-gray-500">{kpi.label}</p>
-                <p className={cn('text-2xl font-bold tracking-tight mt-1', kpi.color)}>
-                  {'raw' in kpi ? kpi.value : kpi.value}
-                </p>
-              </div>
-            ))}
+      <div className='grid grid-cols-4 gap-4 mt-5'>
+        {cards.map((c) => (
+          <div key={c.label} className='bg-gray-50 rounded-xl border border-gray-200 p-4'>
+            <p className='text-xs text-gray-500'>{c.label}</p>
+            <p className={cn('text-2xl font-bold tracking-tight mt-1', c.color)}>
+              {c.raw ? c.value : `${formatPrice(c.value)}`}
+            </p>
           </div>
+        ))}
+      </div>
+
+      <div className='flex items-center gap-0 border-b border-gray-200 mt-5'>
+        {FILTERS.map((t) => (
+          <button
+            key={t.value}
+            type='button'
+            onClick={() => setFilter(t.value)}
+            className={cn(
+              'px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors border-b-2 -mb-px',
+              filter === t.value ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className='space-y-4 mt-6'>
+        {isLoading ? (
+          <div className='flex justify-center py-16'>
+            <p className='text-sm text-gray-400'>Загрузка...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className='flex flex-col items-center justify-center py-16 text-center'>
+            <p className='text-sm font-medium text-gray-900'>Пусто</p>
+          </div>
+        ) : (
+          filtered.map((s) => <AdminSettlementCard key={s.id} s={s} />)
         )}
-
-        {/* Tabs */}
-        <div className="flex items-center gap-0 border-b border-gray-200 mt-5">
-          {ADMIN_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              type='button'
-              onClick={() => setActiveTab(tab.value)}
-              className={cn(
-                'px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors border-b-2 -mb-px',
-                activeTab === tab.value
-                  ? 'border-blue-600 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:text-gray-700',
-              )}
-            >
-              {tab.label}
-              {tab.value === 'pending' && pendingCount > 0 ? ` (${pendingCount})` : ''}
-              {tab.value === 'paid' && paidCount > 0 ? ` (${paidCount})` : ''}
-            </button>
-          ))}
-        </div>
-
-        {/* Cards grouped by auction */}
-        <div className="space-y-6 mt-6">
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <p className="text-sm text-gray-400">Загрузка...</p>
-            </div>
-          ) : payments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <p className="text-sm font-medium text-gray-900">Нет выплат</p>
-              <p className="text-xs text-gray-400 mt-1">Выплаты появятся после подтверждения сделок</p>
-            </div>
-          ) : (() => {
-            // Group by auction_id
-            const grouped = new Map<number, Payment[]>();
-            for (const p of payments) {
-              const arr = grouped.get(p.auction_id) ?? [];
-              arr.push(p);
-              grouped.set(p.auction_id, arr);
-            }
-            return Array.from(grouped.entries()).map(([auctionId, group]) => {
-              const brokerTotal = group
-                .filter((p) => p.type === 'developer_commission')
-                .reduce((sum, p) => sum + Number(p.amount), 0);
-              const platformTotal = group
-                .filter((p) => p.type === 'platform_commission')
-                .reduce((sum, p) => sum + Number(p.amount), 0);
-              return (
-                <div key={auctionId}>
-                  {/* Auction group header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900">Аукцион #{auctionId}</h3>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>Брокерам: <span className="font-semibold text-gray-700">{formatPrice(String(brokerTotal.toFixed(2)))}</span></span>
-                      <span>Платформе: <span className="font-semibold text-gray-700">{formatPrice(String(platformTotal.toFixed(2)))}</span></span>
-                      <span>Итого: <span className="font-semibold text-gray-900">{formatPrice(String((brokerTotal + platformTotal).toFixed(2)))}</span></span>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    {group.map((payment) => <AdminPaymentCard key={payment.id} payment={payment} />)}
-                  </div>
-                </div>
-              );
-            });
-          })()}
-        </div>
       </div>
     </div>
   );

@@ -86,6 +86,17 @@ export type RefreshResponse = {
   refresh: string;
 };
 
+// Change password
+export type ChangePasswordRequest = {
+  old_password: string;
+  new_password: string;
+  new_password_confirm: string;
+};
+
+export type ChangePasswordResponse = {
+  message: string;
+};
+
 // Get Code
 export type GetCodeRequest = {
   email: string;

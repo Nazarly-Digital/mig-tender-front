@@ -19,6 +19,8 @@ import type {
   UpdateDocumentNameRequest,
   UpdateDocumentNameResponse,
   UnifiedDocument,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
 } from "@/shared/types/auth";
 
 export const authService = {
@@ -85,4 +87,7 @@ export const authService = {
 
   getAllDocuments: () =>
     apiInstance.get<UnifiedDocument[]>("/auth/documents/all/"),
+
+  changePassword: (data: ChangePasswordRequest) =>
+    apiInstance.post<ChangePasswordResponse>("/auth/change-password/", data),
 };

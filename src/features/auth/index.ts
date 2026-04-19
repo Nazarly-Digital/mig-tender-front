@@ -12,6 +12,7 @@ export {
   useUpdateDocumentName,
   useDeleteDocument,
   useAllDocuments,
+  useChangePassword,
 } from "./model/queries";
 
 export { useBrokerRegistration } from "./model/use-broker-registration";

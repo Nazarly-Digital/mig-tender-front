@@ -7,6 +7,8 @@ export const paymentKeys = {
   all: ["payments"] as const,
   list: (params?: PaymentListParams) => [...paymentKeys.all, "list", params] as const,
   summary: () => [...paymentKeys.all, "summary"] as const,
+  settlements: () => [...paymentKeys.all, "settlements"] as const,
+  settlementSummary: () => [...paymentKeys.all, "settlement-summary"] as const,
 };
 
 export function usePayments(params?: PaymentListParams) {
@@ -34,6 +36,72 @@ export function useUploadReceipt() {
     },
     onError: () => {
       toast.error("Ошибка загрузки чека");
+    },
+  });
+}
+
+// ---------- Settlements ----------
+
+export function useSettlements() {
+  return useQuery({
+    queryKey: paymentKeys.settlements(),
+    queryFn: () => paymentsService.getSettlements().then((res) => res.data),
+  });
+}
+
+export function useSettlementSummary() {
+  return useQuery({
+    queryKey: paymentKeys.settlementSummary(),
+    queryFn: () => paymentsService.getSettlementSummary().then((res) => res.data),
+  });
+}
+
+export function useMarkPaidToBroker() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ settlementId, file }: { settlementId: number; file: File }) =>
+      paymentsService.markPaidToBroker(settlementId, file).then((res) => res.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: paymentKeys.all });
+      toast.success("Выплата брокеру зафиксирована");
+    },
+    onError: (err: unknown) => {
+      const e = err as { response?: { data?: { detail?: string } } };
+      toast.error(e.response?.data?.detail ?? "Ошибка");
+    },
+  });
+}
+
+export function useUploadDeveloperReceipt() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ settlementId, file }: { settlementId: number; file: File }) =>
+      paymentsService
+        .uploadDeveloperReceipt(settlementId, file)
+        .then((res) => res.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: paymentKeys.all });
+      toast.success("Чек загружен, ожидает подтверждения админом");
+    },
+    onError: (err: unknown) => {
+      const e = err as { response?: { data?: { detail?: string } } };
+      toast.error(e.response?.data?.detail ?? "Ошибка");
+    },
+  });
+}
+
+export function useConfirmDeveloperReceipt() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (settlementId: number) =>
+      paymentsService.confirmDeveloperReceipt(settlementId).then((res) => res.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: paymentKeys.all });
+      toast.success("Поступление от девелопера подтверждено");
+    },
+    onError: (err: unknown) => {
+      const e = err as { response?: { data?: { detail?: string } } };
+      toast.error(e.response?.data?.detail ?? "Ошибка");
     },
   });
 }
