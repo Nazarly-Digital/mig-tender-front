@@ -100,7 +100,11 @@ export default function Sidebar() {
     ? [user.first_name?.[0], user.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'
     : '?';
 
-  const roleLabel = isAdmin ? 'Администратор' : isDeveloper ? 'Застройщик' : 'Брокер';
+  const roleLabel = isAdmin
+    ? 'Администратор'
+    : isDeveloper
+      ? (user?.developer?.company_name || 'Застройщик')
+      : 'Брокер';
 
   const verificationStatus = user?.broker?.verification_status;
   const statusLabel = verificationStatus === 'accepted'

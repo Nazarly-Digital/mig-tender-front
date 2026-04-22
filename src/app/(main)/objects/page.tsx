@@ -168,24 +168,27 @@ function CatalogPropertyCard({
   return (
     <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden transition-all duration-150 hover:border-blue-200 hover:shadow-sm'>
       <Link href={`/objects/${property.id}`} className='block'>
-        {/* Carousel */}
-        <PropertyImageCarousel images={property.images ?? []} />
+        {/* Carousel with type/class overlay */}
+        <div className='relative'>
+          <PropertyImageCarousel images={property.images ?? []} />
+          {/* Type + class pills overlaid on image */}
+          <div className='absolute left-3 top-3 flex items-center gap-1.5 flex-wrap'>
+            <span className='rounded-lg bg-white/90 px-2 py-0.5 text-[11px] font-medium text-gray-700 backdrop-blur-sm shadow-sm'>
+              {TYPE_LABELS[property.type as PropertyType]}
+            </span>
+            {property.type !== 'land' && (
+              <span className='rounded-lg bg-white/90 px-2 py-0.5 text-[11px] font-medium text-gray-700 backdrop-blur-sm shadow-sm'>
+                {CLASS_LABELS[property.property_class as PropertyClass]}
+              </span>
+            )}
+          </div>
+        </div>
 
         <div className='p-5'>
-          {/* Header */}
+          {/* Header — address */}
           <div className='min-w-0'>
             <div className='text-[14px] font-medium text-gray-900 truncate'>
               {property.address}
-            </div>
-            <div className='flex items-center gap-1.5 mt-2'>
-              <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
-                {TYPE_LABELS[property.type as PropertyType]}
-              </span>
-              {property.type !== 'land' && (
-              <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
-                {CLASS_LABELS[property.property_class as PropertyClass]}
-              </span>
-              )}
             </div>
           </div>
 
