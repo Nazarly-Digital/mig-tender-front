@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import {
   RiEyeLine,
   RiEyeOffLine,
@@ -57,7 +58,6 @@ PasswordInput.displayName = 'PasswordInput';
 
 function formatPhoneMask(value: string): string {
   const digits = value.replace(/\D/g, '');
-  // Ensure starts with 7
   const d = digits.startsWith('7') ? digits : '7' + digits;
   let result = '+7';
   if (d.length > 1) result += ' (' + d.substring(1, 4);
@@ -68,7 +68,7 @@ function formatPhoneMask(value: string): string {
   return result;
 }
 
-export default function PageRegisterBroker() {
+export default function PageRegister() {
   const {
     emailForm,
     registerForm,
@@ -103,7 +103,6 @@ export default function PageRegisterBroker() {
     <div className='w-full max-w-[472px] px-4'>
       <div className='flex w-full flex-col gap-6 rounded-20 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
         <div className='flex flex-col items-center gap-2'>
-          {/* icon */}
           <div
             className={cn(
               'relative flex size-[68px] shrink-0 items-center justify-center rounded-full backdrop-blur-xl lg:size-24',
@@ -118,7 +117,7 @@ export default function PageRegisterBroker() {
 
           <div className='space-y-1 text-center'>
             <div className='text-title-h6 lg:text-title-h5'>
-              {step === 1 && 'Регистрация брокера'}
+              {step === 1 && 'Регистрация'}
               {step === 2 && 'Подтверждение email'}
               {step === 3 && 'Данные аккаунта'}
             </div>
@@ -411,6 +410,13 @@ export default function PageRegisterBroker() {
           </form>
         )}
       </div>
+
+      <div className='mt-6 flex items-center justify-center gap-1.5'>
+        <span className='text-sm text-gray-500'>Уже есть аккаунт?</span>
+        <LinkButton.Root variant='primary' size='medium' underline asChild>
+          <Link href='/login'>Войти</Link>
+        </LinkButton.Root>
+      </div>
     </div>
 
     {/* Obligation modal — shown once after registration, cannot be dismissed */}
@@ -422,14 +428,12 @@ export default function PageRegisterBroker() {
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <Modal.Body className='flex flex-col gap-5 p-6'>
-          {/* Icon */}
           <div className='flex justify-center'>
             <div className='flex size-14 items-center justify-center rounded-2xl bg-amber-50'>
               <RiAlertLine className='size-7 text-amber-600' />
             </div>
           </div>
 
-          {/* Texts */}
           <div className='space-y-1.5 text-center'>
             <Modal.Title className='text-lg font-semibold text-gray-900'>
               Обязательство при участии в аукционе
@@ -439,7 +443,6 @@ export default function PageRegisterBroker() {
             </p>
           </div>
 
-          {/* Obligation text box */}
           <div className='rounded-xl bg-gray-50 p-4 ring-1 ring-inset ring-gray-200'>
             <p className='text-sm leading-relaxed text-gray-600'>
               Каждая ваша ставка является обязательством приобрести объект на указанных условиях.
@@ -448,7 +451,6 @@ export default function PageRegisterBroker() {
             </p>
           </div>
 
-          {/* Checkbox */}
           <label className='flex cursor-pointer items-center gap-3'>
             <Checkbox.Root
               checked={obligationChecked}
@@ -457,7 +459,6 @@ export default function PageRegisterBroker() {
             <span className='text-sm text-gray-700'>Я понимаю и принимаю условия</span>
           </label>
 
-          {/* Accept button */}
           <FancyButton.Root
             type='button'
             variant='primary'

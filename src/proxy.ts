@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const AUTH_COOKIE = 'has_session';
 
 // Пути, доступные только без авторизации
-const AUTH_ONLY_PATHS = ['/login', '/select-role', '/register'];
+const AUTH_ONLY_PATHS = ['/login', '/register'];
 
 function isAuthOnlyPath(pathname: string) {
   return AUTH_ONLY_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
@@ -26,7 +26,7 @@ export default function proxy(request: NextRequest) {
 
   // Не авторизован + пытается зайти на защищённую страницу → на login
   if (!hasSession && !isAuthOnlyPath(pathname)) {
-    return NextResponse.redirect(new URL('/select-role', request.url));
+    return NextResponse.redirect(new URL('/register', request.url));
   }
 
   return NextResponse.next();

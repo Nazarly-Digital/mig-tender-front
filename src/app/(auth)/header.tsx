@@ -7,13 +7,6 @@ import { usePathname } from 'next/navigation';
 import * as LinkButton from '@/shared/ui/link-button';
 
 const actions = {
-  '/select-role': {
-    text: '',
-    link: {
-      label: '',
-      href: '',
-    },
-  },
   '/login': {
     text: 'Нет аккаунта?',
     link: {
@@ -39,13 +32,6 @@ const actions = {
     text: 'Передумали?',
     link: {
       label: 'Назад',
-      href: '/login',
-    },
-  },
-  '/register/broker': {
-    text: 'Уже есть аккаунт?',
-    link: {
-      label: 'Войти',
       href: '/login',
     },
   },

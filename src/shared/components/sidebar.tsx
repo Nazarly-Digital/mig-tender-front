@@ -119,7 +119,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    router.push('/select-role');
+    router.push('/login');
   };
 
   return (
