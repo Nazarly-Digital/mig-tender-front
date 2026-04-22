@@ -923,10 +923,10 @@ export default function AuctionDetailPage() {
         </div>
       </div>
 
-      {/* Main 50/50: left = object info + carousel, right = all auction functions */}
-      <div className='grid grid-cols-1 gap-4 xl:grid-cols-2'>
+      {/* Main: single col < xl · 2/5 + 3/5 at xl · 50/50 at 2xl */}
+      <div className='grid grid-cols-1 gap-4 xl:grid-cols-5 2xl:grid-cols-2'>
         {/* Left — object info + carousel (moves to bottom on single-col layout) */}
-        <div className='space-y-4 order-last xl:order-first'>
+        <div className='space-y-4 order-last xl:order-first xl:col-span-2 2xl:col-span-1'>
           {auction.properties?.length === 1 && (() => {
             const prop = auction.properties[0];
             return (
@@ -943,14 +943,47 @@ export default function AuctionDetailPage() {
                       Подробнее →
                     </Link>
                   </div>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div className='col-span-2'>
+                  {/* Inline "label ... value" justify-between — only between xl and 2xl (narrow left column) */}
+                  <div className='hidden xl:block 2xl:hidden space-y-5 text-[13px]'>
+                    <div className='flex items-center justify-between gap-4'>
+                      <span className='text-gray-500 shrink-0'>Адрес:</span>
+                      <span className='font-medium text-gray-900 text-right truncate'>{prop.address}</span>
+                    </div>
+                    <div className='flex items-center justify-between gap-4'>
+                      <span className='text-gray-500 shrink-0'>ID:</span>
+                      <span className='font-medium text-gray-900 font-mono text-right truncate'>{prop.reference_id}</span>
+                    </div>
+                    <div className='flex items-center justify-between gap-4'>
+                      <span className='text-gray-500 shrink-0'>Тип:</span>
+                      <span className='font-medium text-gray-900'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</span>
+                    </div>
+                    <div className='flex items-center justify-between gap-4'>
+                      <span className='text-gray-500 shrink-0'>Площадь:</span>
+                      <span className='font-medium text-gray-900'>{prop.area ? `${prop.area} м²` : '—'}</span>
+                    </div>
+                    <div className='flex items-center justify-between gap-4'>
+                      <span className='text-gray-500 shrink-0'>Класс:</span>
+                      <span className='font-medium text-gray-900'>{prop.property_class ? (PROPERTY_CLASS_LABELS[prop.property_class] || prop.property_class) : '—'}</span>
+                    </div>
+                    <div className='flex items-center justify-between gap-4'>
+                      <span className='text-gray-500 shrink-0'>Прайсовая цена:</span>
+                      <span className='font-semibold text-gray-900'>{prop.price != null ? `${formatPrice(prop.price)} ₽` : 'Скрыта'}</span>
+                    </div>
+                    <div className='flex items-center justify-between gap-4'>
+                      <span className='text-gray-500 shrink-0'>Комиссия:</span>
+                      <span className='font-medium text-gray-900'>{prop.commission_rate ? `${prop.commission_rate}%` : '—'}</span>
+                    </div>
+                  </div>
+
+                  {/* 2-column grid with labels on top — default (< xl) and 2xl+ */}
+                  <div className='grid grid-cols-2 gap-4 xl:gap-5 2xl:gap-4 xl:hidden 2xl:grid 2xl:grid-cols-5'>
+                    <div className='col-span-2 2xl:col-span-5'>
                       <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</span>
                       <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.address}</span>
                     </div>
 
                     {/* Left column — 3 items */}
-                    <div className='space-y-4'>
+                    <div className='space-y-4 2xl:col-span-3'>
                       <div>
                         <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>ID</span>
                         <span className='mt-1 block text-[13px] font-medium text-gray-900 font-mono break-all'>{prop.reference_id}</span>
@@ -968,7 +1001,7 @@ export default function AuctionDetailPage() {
                     </div>
 
                     {/* Right column — 3 items */}
-                    <div className='space-y-4'>
+                    <div className='space-y-4 2xl:col-span-2'>
                       <div>
                         <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</span>
                         <span className='mt-1 block text-[13px] font-medium text-gray-900'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</span>
@@ -990,7 +1023,7 @@ export default function AuctionDetailPage() {
         </div>
 
         {/* Right — all auction functions */}
-        <div className='space-y-4'>
+        <div className='space-y-4 xl:col-span-3 2xl:col-span-1'>
           {/* KPI Row — cards render only when data is available (brokers don't see min/current/bids in CLOSED auctions) */}
           {(() => {
             const showCurrentPrice = liveCurrentPrice != null;

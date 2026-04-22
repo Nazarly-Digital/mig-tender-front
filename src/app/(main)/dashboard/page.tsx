@@ -100,12 +100,14 @@ function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
   return (
     <div className='group flex flex-col justify-between rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
       <div>
-        <span className='text-[14px] font-semibold text-gray-900'>Быстрое действие</span>
+        <span className='text-[14px] font-semibold text-gray-900'>
+          {isDeveloper ? 'Создать аукцион' : 'Быстрое действие'}
+        </span>
         <p className='mt-1 text-[13px] text-gray-400'>
-          {isDeveloper ? 'Создайте новый объект' : 'Просмотрите доступные аукционы'}
+          {isDeveloper ? 'Запустите новый аукцион' : 'Просмотрите доступные аукционы'}
         </p>
       </div>
-      <Link href={isDeveloper ? '/properties/create' : '/auctions?tab=active'} className='mt-4'>
+      <Link href={isDeveloper ? '/auctions/create' : '/auctions?tab=active'} className='mt-4'>
         <FancyButton.Root variant='primary' size='small'>
           <HugeiconsIcon
             icon={isDeveloper ? Add01Icon : Award01Icon}
@@ -113,7 +115,7 @@ function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
             color='currentColor'
             strokeWidth={1.5}
           />
-          {isDeveloper ? 'Создать объект' : 'Смотреть аукционы'}
+          {isDeveloper ? 'Создать аукцион' : 'Смотреть аукционы'}
         </FancyButton.Root>
       </Link>
     </div>

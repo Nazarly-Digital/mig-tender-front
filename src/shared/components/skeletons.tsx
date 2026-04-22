@@ -197,10 +197,10 @@ export function AuctionDetailSkeleton() {
         </div>
       </div>
 
-      {/* Main 50/50 grid */}
-      <div className='grid grid-cols-1 gap-4 xl:grid-cols-2'>
+      {/* Main: single col < xl · 2/5 + 3/5 at xl · 50/50 at 2xl */}
+      <div className='grid grid-cols-1 gap-4 xl:grid-cols-5 2xl:grid-cols-2'>
         {/* LEFT — Object info card with carousel */}
-        <div className='space-y-4 order-last xl:order-first'>
+        <div className='space-y-4 order-last xl:order-first xl:col-span-2 2xl:col-span-1'>
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
             {/* Carousel placeholder */}
             <Bone className='h-72 w-full rounded-none sm:h-96' />
@@ -213,13 +213,23 @@ export function AuctionDetailSkeleton() {
                 </div>
                 <Bone className='h-3 w-20' />
               </div>
-              {/* Address — full width */}
-              <div className='space-y-1.5'>
-                <Bone className='h-2.5 w-14' />
-                <Bone className='h-3.5 w-2/3' />
+              {/* Inline rows justify-between — only at xl */}
+              <div className='hidden xl:block 2xl:hidden space-y-2.5'>
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <div key={i} className='flex items-center justify-between gap-4'>
+                    <Bone className='h-3 w-20' />
+                    <Bone className='h-3 w-32' />
+                  </div>
+                ))}
               </div>
-              {/* 2-column field grid */}
-              <div className='grid grid-cols-2 gap-4'>
+
+              {/* 2-column grid — default and 2xl+ */}
+              <div className='grid grid-cols-2 gap-4 xl:hidden 2xl:grid'>
+                {/* Address — full width */}
+                <div className='col-span-2 space-y-1.5'>
+                  <Bone className='h-2.5 w-14' />
+                  <Bone className='h-3.5 w-2/3' />
+                </div>
                 <div className='space-y-4'>
                   {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className='space-y-1.5'>
@@ -242,7 +252,7 @@ export function AuctionDetailSkeleton() {
         </div>
 
         {/* RIGHT — KPI + auction functions */}
-        <div className='space-y-4'>
+        <div className='space-y-4 xl:col-span-3 2xl:col-span-1'>
           {/* KPI cards — 2 per row inside right column */}
           <div className='grid grid-cols-2 gap-3'>
             {Array.from({ length: 4 }).map((_, i) => (
