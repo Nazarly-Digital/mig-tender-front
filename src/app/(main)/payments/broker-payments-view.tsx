@@ -55,17 +55,16 @@ function BrokerSettlementCard({ s }: { s: Settlement }) {
           <p className='text-xs text-gray-500'>Ваша комиссия ({s.broker_rate}%)</p>
           <p className='text-sm font-bold text-emerald-700'>{formatPrice(s.broker_amount)}</p>
         </div>
-        {isPaid ? (
+        <div className='flex items-center justify-between py-3'>
+          <p className='text-xs text-gray-500'>Дедлайн выплаты</p>
+          <p className={cn('text-sm font-medium', isOverdue ? 'text-red-600' : 'text-gray-900')}>
+            {formatDate(s.broker_payout_deadline)}
+          </p>
+        </div>
+        {isPaid && (
           <div className='flex items-center justify-between py-3'>
             <p className='text-xs text-gray-500'>Дата выплаты</p>
             <p className='text-sm font-medium text-gray-900'>{formatDate(s.paid_to_broker_at)}</p>
-          </div>
-        ) : (
-          <div className='flex items-center justify-between py-3'>
-            <p className='text-xs text-gray-500'>Дедлайн выплаты</p>
-            <p className={cn('text-sm font-medium', isOverdue ? 'text-red-600' : 'text-gray-900')}>
-              {formatDate(s.broker_payout_deadline)}
-            </p>
           </div>
         )}
       </div>
@@ -112,43 +111,43 @@ export function BrokerPaymentsView() {
   ];
 
   return (
-    <div className='w-full px-8 py-8 grid grid-cols-4 2xl:grid-cols-2 gap-4'>
-      <div className='col-span-3 2xl:col-span-1'>
-        <div>
-          <h1 className='text-lg font-semibold text-gray-900'>Мои выплаты</h1>
-          <p className='text-sm text-gray-500 mt-0.5'>Платформа выплачивает вам комиссию в течение 3 дней после подтверждения сделки</p>
-        </div>
+    <div className='w-full px-8 py-8'>
+      <div>
+        <h1 className='text-lg font-semibold text-gray-900'>Мои выплаты</h1>
+        <p className='text-sm text-gray-500 mt-0.5'>Платформа выплачивает вам комиссию в течение 3 дней после подтверждения сделки</p>
+      </div>
 
-        {/* Summary — 2 columns, 50/50 */}
-        <div className='mt-6 grid grid-cols-2 gap-4'>
-          {cards.map((c) => (
-            <div
-              key={c.label}
-              className='bg-white rounded-xl border border-gray-200 p-4'
-            >
-              <p className='text-xs text-gray-500'>{c.label}</p>
-              <p className={cn('text-xl font-bold tracking-tight mt-1', c.valueColor)}>
-                {formatPrice(c.value)}
-              </p>
-            </div>
-          ))}
-        </div>
+      {/* Summary */}
+      <div className='mt-6 flex flex-wrap gap-4'>
+        {cards.map((c) => (
+          <div
+            key={c.label}
+            className='bg-white rounded-xl border border-gray-200 p-4 w-full max-w-full lg:w-auto md:flex-1 lg:min-w-[225px] lg:max-w-[300px]'
+          >
+            <p className='text-xs text-gray-500'>{c.label}</p>
+            <p className={cn('text-xl font-bold tracking-tight mt-1', c.valueColor)}>
+              {formatPrice(c.value)}
+            </p>
+          </div>
+        ))}
+      </div>
 
-        {/* Settlements list — full width below */}
-        <div className='mt-6 space-y-4'>
-          {isLoading ? (
-            <div className='flex justify-center py-16'>
-              <p className='text-sm text-gray-400'>Загрузка...</p>
-            </div>
-          ) : settlements.length === 0 ? (
-            <div className='flex flex-col items-center justify-center py-16 text-center'>
-              <p className='text-sm font-medium text-gray-900'>Нет выплат</p>
-              <p className='text-xs text-gray-400 mt-1'>Выплаты появятся после подтверждения сделок</p>
-            </div>
-          ) : (
-            settlements.map((s) => <BrokerSettlementCard key={s.id} s={s} />)
-          )}
-        </div>
+      {/* Settlements list — 2-column grid */}
+      <div className='mt-6'>
+        {isLoading ? (
+          <div className='flex justify-center py-16'>
+            <p className='text-sm text-gray-400'>Загрузка...</p>
+          </div>
+        ) : settlements.length === 0 ? (
+          <div className='flex flex-col items-center justify-center py-16 text-center'>
+            <p className='text-sm font-medium text-gray-900'>Нет выплат</p>
+            <p className='text-xs text-gray-400 mt-1'>Выплаты появятся после подтверждения сделок</p>
+          </div>
+        ) : (
+          <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4'>
+            {settlements.map((s) => <BrokerSettlementCard key={s.id} s={s} />)}
+          </div>
+        )}
       </div>
     </div>
   );

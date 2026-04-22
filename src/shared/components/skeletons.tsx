@@ -119,7 +119,7 @@ export function RecentListSkeleton() {
   );
 }
 
-/* ── Detail page skeleton (Auction detail) ── */
+/* ── Detail page skeleton (Property detail / generic) ── */
 export function DetailPageSkeleton() {
   return (
     <div className='w-full px-8 py-8 space-y-4'>
@@ -168,6 +168,124 @@ export function DetailPageSkeleton() {
                 <Bone className='h-3 w-28' />
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Auction detail skeleton — 50/50 layout (object info | auction functions) ── */
+export function AuctionDetailSkeleton() {
+  return (
+    <div className='w-full px-8 py-8 space-y-4'>
+      {/* Header: back + title/meta + action buttons */}
+      <div className='flex items-start justify-between gap-4'>
+        <div className='flex items-center gap-3'>
+          <Bone className='size-9 rounded-lg' />
+          <div className='space-y-2'>
+            <Bone className='h-5 w-48' />
+            <div className='flex items-center gap-2'>
+              <Bone className='h-3 w-28' />
+              <Bone className='h-4 w-16 rounded-full' />
+            </div>
+          </div>
+        </div>
+        <div className='flex items-center gap-2'>
+          <Bone className='h-9 w-28 rounded-lg' />
+          <Bone className='h-9 w-24 rounded-lg' />
+        </div>
+      </div>
+
+      {/* Main 50/50 grid */}
+      <div className='grid grid-cols-1 gap-4 xl:grid-cols-2'>
+        {/* LEFT — Object info card with carousel */}
+        <div className='space-y-4 order-last xl:order-first'>
+          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
+            {/* Carousel placeholder */}
+            <Bone className='h-72 w-full rounded-none sm:h-96' />
+            {/* Info content */}
+            <div className='p-6 space-y-4'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <Bone className='size-5 rounded' />
+                  <Bone className='h-4 w-40' />
+                </div>
+                <Bone className='h-3 w-20' />
+              </div>
+              {/* Address — full width */}
+              <div className='space-y-1.5'>
+                <Bone className='h-2.5 w-14' />
+                <Bone className='h-3.5 w-2/3' />
+              </div>
+              {/* 2-column field grid */}
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='space-y-4'>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className='space-y-1.5'>
+                      <Bone className='h-2.5 w-16' />
+                      <Bone className='h-3.5 w-32' />
+                    </div>
+                  ))}
+                </div>
+                <div className='space-y-4'>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className='space-y-1.5'>
+                      <Bone className='h-2.5 w-16' />
+                      <Bone className='h-3.5 w-28' />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — KPI + auction functions */}
+        <div className='space-y-4'>
+          {/* KPI cards — 2 per row inside right column */}
+          <div className='grid grid-cols-2 gap-3'>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4 space-y-2'>
+                <Bone className='h-2.5 w-24' />
+                <Bone className='h-5 w-20' />
+              </div>
+            ))}
+          </div>
+
+          {/* Info + progress card */}
+          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6 space-y-4'>
+            <div className='flex items-center justify-between'>
+              <Bone className='h-4 w-32' />
+              <div className='flex gap-2'>
+                <Bone className='h-5 w-20 rounded-full' />
+                <Bone className='h-5 w-16 rounded-full' />
+              </div>
+            </div>
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='space-y-1.5'>
+                <Bone className='h-2.5 w-14' />
+                <Bone className='h-3.5 w-32' />
+              </div>
+              <div className='space-y-1.5'>
+                <Bone className='h-2.5 w-20' />
+                <Bone className='h-3.5 w-28' />
+              </div>
+            </div>
+            <Bone className='h-1.5 w-full rounded-full' />
+          </div>
+
+          {/* Status / participation card */}
+          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6 space-y-3'>
+            <Bone className='h-4 w-28' />
+            <div className='flex items-center justify-between'>
+              <Bone className='h-3 w-20' />
+              <Bone className='h-5 w-24 rounded-full' />
+            </div>
+            <div className='flex items-center justify-between'>
+              <Bone className='h-3 w-20' />
+              <Bone className='h-3 w-16' />
+            </div>
           </div>
         </div>
       </div>
