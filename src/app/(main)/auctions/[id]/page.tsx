@@ -10,14 +10,17 @@ import {
   Clock01Icon,
   UserIcon,
   ArrowLeft01Icon,
+  ArrowRight01Icon,
   ChampionIcon,
   Coins01Icon,
   CheckListIcon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
+  Building03Icon,
+  Image01Icon,
 } from '@hugeicons/core-free-icons';
 
-import { DetailPageSkeleton } from '@/shared/components/skeletons';
+import { AuctionDetailSkeleton } from '@/shared/components/skeletons';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
@@ -38,6 +41,7 @@ import {
 } from '@/features/auctions';
 import { useQueryClient } from '@tanstack/react-query';
 import { dealKeys, useDeals } from '@/features/deals';
+import { useProperty } from '@/features/properties';
 import { useAuctionDocumentRequests } from '@/features/document-requests';
 import {
   BrokerIncomingRequests,
@@ -73,6 +77,13 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   townhouse: 'Таунхаус',
   commercial: 'Коммерция',
   land: 'Земля',
+};
+
+const PROPERTY_CLASS_LABELS: Record<string, string> = {
+  economy: 'Эконом',
+  comfort: 'Комфорт',
+  business: 'Бизнес',
+  premium: 'Премиум',
 };
 
 function formatPrice(value: string | null | undefined) {
@@ -132,6 +143,66 @@ function getProgressColor(progress: number): 'blue' | 'orange' | 'red' {
   if (progress >= 80) return 'red';
   if (progress >= 50) return 'orange';
   return 'blue';
+}
+
+type CarouselImage = { url?: string | null; external_url?: string | null };
+
+function AuctionImageCarousel({ images }: { images: CarouselImage[] }) {
+  const [current, setCurrent] = React.useState(0);
+
+  React.useEffect(() => {
+    if (current >= images.length) setCurrent(0);
+  }, [images.length, current]);
+
+  if (images.length === 0) {
+    return (
+      <div className='flex h-72 items-center justify-center bg-gray-50 sm:h-96'>
+        <HugeiconsIcon icon={Image01Icon} size={48} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+      </div>
+    );
+  }
+
+  const prev = () => setCurrent((c) => (c - 1 + images.length) % images.length);
+  const next = () => setCurrent((c) => (c + 1) % images.length);
+  const src = images[current]?.url || images[current]?.external_url || '';
+
+  return (
+    <div className='group relative h-72 overflow-hidden bg-gray-50 sm:h-96'>
+      <img
+        src={src}
+        alt=''
+        className='h-full w-full object-cover transition-opacity duration-200'
+      />
+      {images.length > 1 && (
+        <>
+          <button
+            type='button'
+            onClick={prev}
+            className='absolute left-3 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 transition-opacity hover:bg-white'
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-900' />
+          </button>
+          <button
+            type='button'
+            onClick={next}
+            className='absolute right-3 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 transition-opacity hover:bg-white'
+          >
+            <HugeiconsIcon icon={ArrowRight01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-900' />
+          </button>
+          <div className='absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5'>
+            {images.map((_, i) => (
+              <button
+                key={i}
+                type='button'
+                onClick={() => setCurrent(i)}
+                className={`h-2 rounded-full transition-all ${i === current ? 'w-5 bg-white' : 'w-2 bg-white/50'}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 function getApiError(error: unknown): string {
@@ -496,6 +567,10 @@ export default function AuctionDetailPage() {
   const { data: participants, isLoading: isParticipantsLoading } = useParticipants(auctionId, { enabled: participantsEnabled });
   const { data: sealedBids, isLoading: isSealedBidsLoading } = useSealedBids(auctionId, { enabled: canViewClosedData });
 
+  // Fetch full property details (images, etc.) for single-property lots
+  const singlePropertyId = auction?.properties?.length === 1 ? auction.properties[0].id : 0;
+  const { data: property } = useProperty(singlePropertyId);
+
   const isActiveOpen = isOpenAuction && auction?.status === 'active';
   const isActiveClosed = !isOpenAuction && auction?.status === 'active';
 
@@ -651,7 +726,7 @@ export default function AuctionDetailPage() {
   }, [hasRealBid]);
 
   if (isLoading) {
-    return <DetailPageSkeleton />;
+    return <AuctionDetailSkeleton />;
   }
 
   if (!auction) {
@@ -848,72 +923,129 @@ export default function AuctionDetailPage() {
         </div>
       </div>
 
-      {/* KPI Row — cards render only when data is available (brokers don't see min/current/bids in CLOSED auctions) */}
-      {(() => {
-        const showCurrentPrice = liveCurrentPrice != null;
-        const showMinPrice = auction.min_price != null;
-        // For OPEN auctions bids_count == number of unique participants (1 bid per broker).
-        // We merge it with the dedicated "Участников" card: one count card per auction.
-        const showBidsCount = liveBidsCount != null;
-        const showLotTotal = auction.lot_total_price != null;
-        const showIncrement = isOpenAuction && auction.min_bid_increment != null;
-        const visibleCount = [
-          showCurrentPrice,
-          showMinPrice,
-          showBidsCount,
-          showLotTotal,
-          showIncrement,
-        ].filter(Boolean).length;
-        if (visibleCount === 0) return null;
-        const cols = Math.min(visibleCount, 5);
-        const colsClass =
-          cols >= 5 ? 'sm:grid-cols-5'
-          : cols === 4 ? 'sm:grid-cols-4'
-          : cols === 3 ? 'sm:grid-cols-3'
-          : cols === 2 ? 'sm:grid-cols-2'
-          : 'sm:grid-cols-1';
-        return (
-          <div className={`grid grid-cols-2 gap-3 ${colsClass}`}>
-            {showCurrentPrice && (
-              <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
-                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
-                <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)} ₽</span>
-              </div>
-            )}
-            {showMinPrice && (
-              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Стартовая цена</span>
-                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_price)} ₽</span>
-              </div>
-            )}
-            {showBidsCount && (
-              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
-                  {isOpenAuction ? 'Участников' : 'Ставок'}
-                </span>
-                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
-              </div>
-            )}
-            {showLotTotal && (
-              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Сумма лота</span>
-                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.lot_total_price)} ₽</span>
-              </div>
-            )}
-            {showIncrement && (
-              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
-                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
-                <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
-              </div>
-            )}
-          </div>
-        );
-      })()}
+      {/* Main 50/50: left = object info + carousel, right = all auction functions */}
+      <div className='grid grid-cols-1 gap-4 xl:grid-cols-2'>
+        {/* Left — object info + carousel (moves to bottom on single-col layout) */}
+        <div className='space-y-4 order-last xl:order-first'>
+          {auction.properties?.length === 1 && (() => {
+            const prop = auction.properties[0];
+            return (
+              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
+                <AuctionImageCarousel images={property?.images ?? []} />
 
-      {/* Main 2/3 + 1/3 */}
-      <div className='grid grid-cols-1 gap-4 xl:grid-cols-3'>
-        {/* Left 2/3 */}
-        <div className='xl:col-span-2 space-y-4'>
+                <div className='p-6'>
+                  <div className='flex items-center justify-between mb-4'>
+                    <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
+                      <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+                      Информация об объекте
+                    </h3>
+                    <Link href={`/objects/${prop.id}`} className='text-xs font-medium text-blue-600 hover:underline'>
+                      Подробнее →
+                    </Link>
+                  </div>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <div className='col-span-2'>
+                      <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</span>
+                      <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.address}</span>
+                    </div>
+
+                    {/* Left column — 3 items */}
+                    <div className='space-y-4'>
+                      <div>
+                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>ID</span>
+                        <span className='mt-1 block text-[13px] font-medium text-gray-900 font-mono break-all'>{prop.reference_id}</span>
+                      </div>
+                      <div>
+                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</span>
+                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.area ? `${prop.area} м²` : '—'}</span>
+                      </div>
+                      <div>
+                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</span>
+                        <span className='mt-1 block text-[13px] font-semibold text-gray-900'>
+                          {prop.price != null ? `${formatPrice(prop.price)} ₽` : 'Скрыта'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Right column — 3 items */}
+                    <div className='space-y-4'>
+                      <div>
+                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</span>
+                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</span>
+                      </div>
+                      <div>
+                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</span>
+                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.property_class ? (PROPERTY_CLASS_LABELS[prop.property_class] || prop.property_class) : '—'}</span>
+                      </div>
+                      <div>
+                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия</span>
+                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.commission_rate ? `${prop.commission_rate}%` : '—'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Right — all auction functions */}
+        <div className='space-y-4'>
+          {/* KPI Row — cards render only when data is available (brokers don't see min/current/bids in CLOSED auctions) */}
+          {(() => {
+            const showCurrentPrice = liveCurrentPrice != null;
+            const showMinPrice = auction.min_price != null;
+            // For OPEN auctions bids_count == number of unique participants (1 bid per broker).
+            // Brokers don't see the participants count on OPEN auctions.
+            const showBidsCount = liveBidsCount != null && !(isOpenAuction && isBroker);
+            const showLotTotal = auction.lot_total_price != null;
+            const showIncrement = isOpenAuction && auction.min_bid_increment != null;
+            const visibleCount = [
+              showCurrentPrice,
+              showMinPrice,
+              showBidsCount,
+              showLotTotal,
+              showIncrement,
+            ].filter(Boolean).length;
+            if (visibleCount === 0) return null;
+            return (
+              <div className='grid grid-cols-2 gap-3'>
+                {showCurrentPrice && (
+                  <div className='rounded-xl border border-blue-200 bg-blue-50/50 p-4'>
+                    <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Лидирующая ставка</span>
+                    <span className='mt-1 block text-[17px] font-bold text-blue-700'>{formatPrice(liveCurrentPrice)} ₽</span>
+                  </div>
+                )}
+                {showMinPrice && (
+                  <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                    <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Стартовая цена</span>
+                    <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_price)} ₽</span>
+                  </div>
+                )}
+                {showBidsCount && (
+                  <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                    <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                      {isOpenAuction ? 'Участников' : 'Ставок'}
+                    </span>
+                    <span className='mt-1 block text-[17px] font-bold text-gray-900'>{liveBidsCount}</span>
+                  </div>
+                )}
+                {showLotTotal && (
+                  <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                    <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Сумма лота</span>
+                    <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.lot_total_price)} ₽</span>
+                  </div>
+                )}
+                {showIncrement && (
+                  <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-4'>
+                    <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Шаг ставки</span>
+                    <span className='mt-1 block text-[17px] font-bold text-gray-900'>{formatPrice(auction.min_bid_increment)} ₽</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Info + Progress */}
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
             <div className='flex items-center justify-between'>
@@ -1208,15 +1340,10 @@ export default function AuctionDetailPage() {
                 <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дата</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(myBid.created_at)}</span></div>
                 <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Обновлена</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(myBid.updated_at)}</span></div>
               </div>
-              {!isOpenAuction && (
-                <p className='mt-3 text-[12px] text-amber-600 font-medium'>В закрытом аукционе можно сделать только 1 ставку.</p>
-              )}
             </div>
           )}
-        </div>
 
-        {/* Right 1/3 */}
-        <div className='space-y-4'>
+
           {/* Live bid input — OPEN auction, broker (participation auto-registered on first bid) */}
           {isActiveOpen && isBroker && (
             <LiveBidInput

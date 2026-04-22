@@ -115,7 +115,7 @@ export function useLogout() {
       logout();
     },
     onSuccess: () => {
-      router.replace("/select-role");
+      router.replace("/login");
     },
   });
 }

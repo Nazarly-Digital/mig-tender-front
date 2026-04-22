@@ -4,17 +4,18 @@ import Link from 'next/link';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Add01Icon,
-  EyeIcon,
   ArrowRight01Icon,
   Building03Icon,
   Award01Icon,
   SecurityCheckIcon,
+  Wallet01Icon,
 } from '@hugeicons/core-free-icons';
 
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { useMyProperties, useProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { usePendingProperties } from '@/features/admin';
+import { usePaymentSummary } from '@/features/payments';
 import { useSessionStore, isUserDeveloper, isUserAdmin } from '@/entities/auth/model/store';
 import {
   TYPE_LABELS,
@@ -23,6 +24,7 @@ import {
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Property } from '@/shared/types/properties';
 import type { Auction } from '@/shared/types/auctions';
+import type { BrokerPaymentSummary } from '@/shared/types/payments';
 
 function StatCard({
   label,
@@ -61,6 +63,39 @@ function StatCard({
   );
 }
 
+function BrokerEarningsCard() {
+  const { data } = usePaymentSummary();
+  const summary = data as BrokerPaymentSummary | undefined;
+  const paid = summary?.paid ?? '0';
+  const pending = summary?.pending ?? '0';
+
+  return (
+    <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
+      <div className='flex items-center gap-2.5'>
+        <div className='flex size-8 items-center justify-center rounded-lg bg-blue-50'>
+          <HugeiconsIcon icon={Wallet01Icon} size={16} color='currentColor' strokeWidth={1.5} className='text-blue-600' />
+        </div>
+        <span className='text-[12px] font-semibold text-gray-500'>Мои выплаты</span>
+      </div>
+      <span className='mt-3 block text-2xl font-bold tracking-tight text-gray-900'>
+        {formatPrice(paid, 'RUB')}
+      </span>
+      <div className='mt-1 text-[12px] text-gray-500'>
+        В ожидании: <span className='font-semibold text-amber-600'>{formatPrice(pending, 'RUB')}</span>
+      </div>
+      <div className='mt-4 border-t border-blue-50 pt-3'>
+        <Link
+          href='/payments'
+          className='inline-flex items-center gap-1 text-[13px] font-medium text-gray-400 transition-colors hover:text-blue-600'
+        >
+          Все выплаты
+          <HugeiconsIcon icon={ArrowRight01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
   return (
     <div className='group flex flex-col justify-between rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
@@ -73,7 +108,7 @@ function QuickActionCard({ isDeveloper }: { isDeveloper: boolean }) {
       <Link href={isDeveloper ? '/properties/create' : '/auctions?tab=active'} className='mt-4'>
         <FancyButton.Root variant='primary' size='small'>
           <HugeiconsIcon
-            icon={isDeveloper ? Add01Icon : EyeIcon}
+            icon={isDeveloper ? Add01Icon : Award01Icon}
             size={16}
             color='currentColor'
             strokeWidth={1.5}
@@ -135,8 +170,14 @@ function RecentAuctionItem({ auction }: { auction: Auction }) {
           Аукцион #{auction.id}
         </span>
         <span className='mt-0.5 flex items-center gap-1.5 text-[12px] text-gray-400'>
-          <span>от {formatPrice(auction.min_price, 'RUB')}</span>
-          <span className='text-gray-300'>·</span>
+          {auction.mode === 'closed' || auction.min_price == null ? (
+            <span>Закрытый</span>
+          ) : (
+            <>
+              <span>от {formatPrice(auction.min_price, 'RUB')}</span>
+              <span className='text-gray-300'>·</span>
+            </>
+          )}
           <span>{formatDateShort(auction.end_date)}</span>
         </span>
       </div>
@@ -159,13 +200,14 @@ export default function DashboardPage() {
   const { data: pendingData } = usePendingProperties({ page_size: 1 }, { enabled: isAdmin });
   const myAuctions = useMyAuctions(isDeveloper ? { page_size: 5, ordering: '-created_at' } : undefined);
   const allAuctions = useAuctions(!isDeveloper ? { page_size: 5, ordering: '-created_at' } : undefined);
+  const activeAuctions = useAuctions({ status: 'active', page_size: 1 }, { enabled: isBroker });
 
   const auctionsData = isDeveloper ? myAuctions.data : allAuctions.data;
 
   const allPropertiesCount = allPropertiesData?.count ?? 0;
   const pendingCount = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
   const propertiesCount = isBroker ? (catalogData?.count ?? 0) : (propertiesData?.count ?? 0);
-  const auctionsCount = auctionsData?.count ?? 0;
+  const auctionsCount = isBroker ? (activeAuctions.data?.count ?? 0) : (auctionsData?.count ?? 0);
   const recentProperties = propertiesData?.results ?? [];
   const recentAuctions = auctionsData?.results ?? [];
 
@@ -181,7 +223,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+        <div className='grid grid-cols-2 gap-4 2xl:grid-cols-4'>
           {isAdmin ? (
             <>
               <StatCard label='Все объекты' value={allPropertiesCount} href='/objects' action='Открыть объекты' icon={Building03Icon} />
@@ -192,7 +234,8 @@ export default function DashboardPage() {
           ) : (
             <>
               <StatCard label='Каталог объектов' value={propertiesCount} href='/objects' action='Открыть каталог' icon={Building03Icon} />
-              <StatCard label='Доступные аукционы' value={auctionsCount} href='/auctions' action='Все аукционы' icon={Award01Icon} />
+              <StatCard label='Активные аукционы' value={auctionsCount} href='/auctions?tab=active' action='Все аукционы' icon={Award01Icon} />
+              <BrokerEarningsCard />
             </>
           )}
           {isDeveloper && (

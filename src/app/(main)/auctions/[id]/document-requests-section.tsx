@@ -365,19 +365,19 @@ export function BrokerIncomingRequests({
   return (
     <>
       {pending.length > 0 && (
-        <div className='rounded-xl border border-amber-300 bg-amber-50/60 p-5 space-y-3'>
+        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 space-y-3'>
           <div>
             <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
-              <HugeiconsIcon icon={FileUploadIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-amber-600' />
+              <HugeiconsIcon icon={FileUploadIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
               Запрос документов ({pending.length})
             </h3>
-            <p className='mt-0.5 text-[12px] text-gray-600'>
+            <p className='mt-0.5 text-[12px] text-gray-500'>
               Девелопер запросил у вас дополнительные документы. Загрузите ответ для каждого запроса.
             </p>
           </div>
           <div className='space-y-2'>
             {pending.map((req) => (
-              <div key={req.id} className='rounded-lg border border-amber-200 bg-white p-3'>
+              <div key={req.id} className='rounded-lg border border-gray-200 bg-white p-3'>
                 <p className='text-[13px] text-gray-900 break-words'>{req.description}</p>
                 <p className='mt-0.5 text-[11px] text-gray-400'>{formatDateTime(req.created_at)}</p>
                 <div className='mt-2.5'>

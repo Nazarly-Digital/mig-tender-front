@@ -20,61 +20,69 @@ function BrokerSettlementCard({ s }: { s: Settlement }) {
   const isOverdue = s.broker_payout_overdue && !isPaid;
 
   return (
-    <div className='bg-white rounded-xl border border-gray-200 p-5'>
-      <div className='flex items-start justify-between gap-4'>
-        <div>
-          <h3 className='text-sm font-semibold text-gray-900'>{s.property_name}</h3>
-          <p className='text-xs text-gray-500 mt-0.5'>Аукцион #{s.auction_id} · Сделка #{s.deal_id}</p>
+    <div className='bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100 px-5'>
+      {/* Header */}
+      <div className='flex items-start justify-between gap-4 py-4'>
+        <div className='min-w-0'>
+          <p className='text-xs text-gray-500'>Аукцион #{s.auction_id} · Сделка #{s.deal_id}</p>
+          <h3 className='text-sm font-semibold text-gray-900 mt-0.5 truncate'>{s.property_name}</h3>
         </div>
         {isPaid ? (
-          <span className='inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700'>
+          <span className='shrink-0 whitespace-nowrap inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700'>
             <HugeiconsIcon icon={CheckmarkCircle02Icon} size={12} color='currentColor' strokeWidth={2} />
             Выплачено
           </span>
         ) : isOverdue ? (
-          <span className='inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700'>
+          <span className='shrink-0 whitespace-nowrap inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700'>
             <HugeiconsIcon icon={AlertCircleIcon} size={12} color='currentColor' strokeWidth={2} />
             Просрочено
           </span>
         ) : (
-          <span className='inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700'>
+          <span className='shrink-0 whitespace-nowrap inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700'>
             <HugeiconsIcon icon={Clock01Icon} size={12} color='currentColor' strokeWidth={2} />
-            Ожидание
+            Ожидает выплаты
           </span>
         )}
       </div>
 
-      <div className='grid grid-cols-4 gap-4 mt-4'>
-        <div>
+      {/* Rows */}
+      <div>
+        <div className='flex items-center justify-between py-3'>
           <p className='text-xs text-gray-500'>Сумма сделки</p>
-          <p className='text-sm font-semibold text-gray-900 mt-0.5'>{formatPrice(s.deal_amount)}</p>
+          <p className='text-sm font-semibold text-gray-900'>{formatPrice(s.deal_amount)}</p>
         </div>
-        <div>
-          <p className='text-xs text-gray-500'>К выплате ({s.broker_rate}%)</p>
-          <p className='text-sm font-bold text-emerald-700 mt-0.5'>{formatPrice(s.broker_amount)}</p>
+        <div className='flex items-center justify-between py-3'>
+          <p className='text-xs text-gray-500'>Ваша комиссия ({s.broker_rate}%)</p>
+          <p className='text-sm font-bold text-emerald-700'>{formatPrice(s.broker_amount)}</p>
         </div>
-        <div>
-          <p className='text-xs text-gray-500'>Дедлайн платформы</p>
-          <p className='text-sm font-medium text-gray-900 mt-0.5'>{formatDate(s.broker_payout_deadline)}</p>
+        <div className='flex items-center justify-between py-3'>
+          <p className='text-xs text-gray-500'>Дедлайн выплаты</p>
+          <p className={cn('text-sm font-medium', isOverdue ? 'text-red-600' : 'text-gray-900')}>
+            {formatDate(s.broker_payout_deadline)}
+          </p>
         </div>
-        <div>
-          <p className='text-xs text-gray-500'>Дата выплаты</p>
-          <p className='text-sm font-medium text-gray-900 mt-0.5'>{formatDate(s.paid_to_broker_at)}</p>
-        </div>
+        {isPaid && (
+          <div className='flex items-center justify-between py-3'>
+            <p className='text-xs text-gray-500'>Дата выплаты</p>
+            <p className='text-sm font-medium text-gray-900'>{formatDate(s.paid_to_broker_at)}</p>
+          </div>
+        )}
       </div>
 
       {s.broker_payout_receipt && (
-        <div className='mt-4 flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2'>
-          <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='text-gray-500' />
-          <span className='text-xs text-gray-600'>Чек платформы</span>
-          <a
-            href={s.broker_payout_receipt}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='ml-auto text-xs font-medium text-blue-600 hover:text-blue-700'
-          >
-            Скачать
-          </a>
+        <div className='py-4'>
+          <div className='flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2'>
+            <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='text-gray-500' />
+            <span className='text-xs text-gray-600'>Чек платформы</span>
+            <a
+              href={s.broker_payout_receipt}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='ml-auto text-xs font-medium text-blue-600 hover:text-blue-700'
+            >
+              Скачать
+            </a>
+          </div>
         </div>
       )}
     </div>
@@ -90,10 +98,16 @@ export function BrokerPaymentsView() {
   const pending = total - paid;
 
   const cards = [
-    { label: 'Всего заработано', value: String(total), color: 'text-gray-900' },
-    { label: 'Выплачено', value: String(paid), color: 'text-emerald-600' },
-    { label: 'В ожидании', value: String(pending), color: 'text-amber-600' },
-    { label: 'Сделок', value: String(settlements.length), color: 'text-blue-600' },
+    {
+      label: 'Ожидает выплаты',
+      value: String(pending),
+      valueColor: 'text-amber-600',
+    },
+    {
+      label: 'Выплачено',
+      value: String(paid),
+      valueColor: 'text-emerald-600',
+    },
   ];
 
   return (
@@ -103,18 +117,23 @@ export function BrokerPaymentsView() {
         <p className='text-sm text-gray-500 mt-0.5'>Платформа выплачивает вам комиссию в течение 3 дней после подтверждения сделки</p>
       </div>
 
-      <div className='grid grid-cols-4 gap-4 mt-5'>
+      {/* Summary */}
+      <div className='mt-6 flex flex-wrap gap-4'>
         {cards.map((c) => (
-          <div key={c.label} className='bg-gray-50 rounded-xl border border-gray-200 p-4'>
+          <div
+            key={c.label}
+            className='bg-white rounded-xl border border-gray-200 p-4 w-full max-w-full lg:w-auto md:flex-1 lg:min-w-[225px] lg:max-w-[300px]'
+          >
             <p className='text-xs text-gray-500'>{c.label}</p>
-            <p className={cn('text-2xl font-bold tracking-tight mt-1', c.color)}>
-              {c.label === 'Сделок' ? c.value : `${formatPrice(c.value)}`}
+            <p className={cn('text-xl font-bold tracking-tight mt-1', c.valueColor)}>
+              {formatPrice(c.value)}
             </p>
           </div>
         ))}
       </div>
 
-      <div className='space-y-4 mt-6'>
+      {/* Settlements list — 2-column grid */}
+      <div className='mt-6'>
         {isLoading ? (
           <div className='flex justify-center py-16'>
             <p className='text-sm text-gray-400'>Загрузка...</p>
@@ -125,7 +144,9 @@ export function BrokerPaymentsView() {
             <p className='text-xs text-gray-400 mt-1'>Выплаты появятся после подтверждения сделок</p>
           </div>
         ) : (
-          settlements.map((s) => <BrokerSettlementCard key={s.id} s={s} />)
+          <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4'>
+            {settlements.map((s) => <BrokerSettlementCard key={s.id} s={s} />)}
+          </div>
         )}
       </div>
     </div>

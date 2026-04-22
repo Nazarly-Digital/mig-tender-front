@@ -58,12 +58,12 @@ export const navigationLinks: NavigationLink[] = [
   { icon: CatalogueIcon, label: 'Каталог объектов', href: '/objects', brokerOnly: true },
   { icon: Building03Icon, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: PlusSignSquareIcon, label: 'Создать объект', href: '/properties/create', developerOnly: true },
-  { icon: UserIcon, label: 'Личный кабинет', href: '/cabinet', brokerOnly: true },
   { icon: Coins01Icon, label: 'Сделки', developerLabel: 'Фиксация сделки', href: '/deals' },
   { icon: Wallet01Icon, label: 'Выплаты / история', developerLabel: 'Выплаты брокерам', href: '/payments' },
   { icon: File01Icon, label: 'Документы', href: '/documents' },
   { icon: UserIcon, label: 'Пользователи', href: '/admin/users', adminOnly: true },
   { icon: SecurityCheckIcon, label: 'Модерация', href: '/admin/properties', adminOnly: true },
+  { icon: UserIcon, label: 'Личный кабинет', href: '/cabinet', brokerOnly: true },
 ];
 
 export default function Sidebar() {
@@ -119,7 +119,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    router.push('/select-role');
+    router.push('/login');
   };
 
   return (

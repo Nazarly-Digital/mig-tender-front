@@ -180,7 +180,7 @@ function PropertyCard({
           <button
             type='button'
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(property); }}
-            className='size-7 rounded-md bg-white/80 flex items-center justify-center text-gray-600 backdrop-blur-sm hover:bg-white hover:text-red-500 transition-colors'
+            className='size-7 rounded-md bg-white/80  flex items-center justify-center text-gray-600 backdrop-blur-sm hover:bg-white hover:text-red-500 transition-colors'
           >
             <HugeiconsIcon icon={Delete01Icon} size={14} />
           </button>

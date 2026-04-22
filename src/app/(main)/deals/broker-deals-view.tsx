@@ -273,7 +273,9 @@ export function BrokerDealsView() {
               <p className="text-xs text-gray-400 mt-1">Сделки появятся после победы в аукционах</p>
             </div>
           ) : (
-            deals.map((deal) => <BrokerDealCard key={deal.id} deal={deal} />)
+            <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4">
+              {deals.map((deal) => <BrokerDealCard key={deal.id} deal={deal} />)}
+            </div>
           )}
         </div>
       </div>

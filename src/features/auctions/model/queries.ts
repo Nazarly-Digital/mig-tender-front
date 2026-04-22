@@ -42,10 +42,14 @@ export function useMyAuctions(params?: AuctionListParams) {
   });
 }
 
-export function useAuctions(params?: AuctionListParams) {
+export function useAuctions(
+  params?: AuctionListParams,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: auctionKeys.list(params),
     queryFn: () => auctionsService.getAll(params).then((res) => res.data),
+    enabled: options?.enabled ?? true,
   });
 }
 

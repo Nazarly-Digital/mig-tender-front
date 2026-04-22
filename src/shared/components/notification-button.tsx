@@ -100,15 +100,21 @@ function NotificationRow({
       <CategoryAvatar category={notification.category} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="truncate text-sm font-semibold text-gray-900">{notification.title}</span>
-        <p className="line-clamp-2 text-sm leading-snug text-gray-500">{notification.message}</p>
-        </div>
-          <span className="shrink-0 text-end text-[11px] text-gray-400">{timeAgo(notification.created_at)}</span>
+        <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">
+          {notification.title}
+        </p>
+        {notification.message && (
+          <p className="line-clamp-2 text-xs leading-snug text-gray-500">
+            {notification.message}
+          </p>
+        )}
+        <span className="mt-0.5 text-[11px] text-gray-400">
+          {timeAgo(notification.created_at)}
+        </span>
       </div>
 
       {!notification.is_read && (
-        <div className="mt-2 size-2 shrink-0 rounded-full bg-emerald-500" />
+        <div className="mt-1.5 size-2 shrink-0 rounded-full bg-emerald-500" />
       )}
     </button>
   );
