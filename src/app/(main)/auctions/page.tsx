@@ -69,10 +69,45 @@ function getProgressColor(progress: number): 'blue' | 'orange' | 'red' {
   return 'blue';
 }
 
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return '0с';
+  const totalSec = Math.floor(ms / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (d > 0) return `${d}д ${h}ч ${m}м`;
+  if (h > 0) return `${h}ч ${m}м ${s}с`;
+  if (m > 0) return `${m}м ${s}с`;
+  return `${s}с`;
+}
+
+function useNow(enabled: boolean, intervalMs = 1000): number {
+  const [now, setNow] = React.useState<number>(() => Date.now());
+  React.useEffect(() => {
+    if (!enabled) return;
+    const id = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(id);
+  }, [enabled, intervalMs]);
+  return now;
+}
+
 function AuctionCard({ auction }: { auction: Auction }) {
   const statusCfg = STATUS_CONFIG[auction.status];
   const isActive = auction.status === 'active';
+  const isScheduled = auction.status === 'scheduled';
+  const needsCountdown = isActive || isScheduled;
   const progress = getTimeProgress(auction.start_date, auction.end_date);
+
+  const now = useNow(needsCountdown);
+  const targetMs = needsCountdown
+    ? new Date(isScheduled ? auction.start_date : auction.end_date).getTime()
+    : 0;
+  const remainingMs = targetMs - now;
+  const countdownLabel = isScheduled ? 'До начала' : 'До конца';
+  const countdownCls = isScheduled
+    ? 'bg-blue-50 text-blue-700'
+    : 'bg-emerald-50 text-emerald-700';
 
   return (
     <Link
@@ -104,6 +139,13 @@ function AuctionCard({ auction }: { auction: Auction }) {
             </>
           )}
         </div>
+
+        {needsCountdown && remainingMs > 0 && (
+          <div className={`mt-2 inline-flex w-fit items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ${countdownCls}`}>
+            <HugeiconsIcon icon={Clock01Icon} size={11} color='currentColor' strokeWidth={1.5} />
+            {countdownLabel}: {formatCountdown(remainingMs)}
+          </div>
+        )}
       </div>
 
       {/* Progress */}

@@ -252,91 +252,14 @@ export default function CatalogDetailPage() {
         </div>
       )}
 
-      {/* Image carousel */}
-      <div className='mt-6'>
+      {/* Property layout: image on the left, info stack on the right */}
+      <div className='mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2'>
+        {/* Image carousel — left */}
         <DetailImageCarousel images={property.images} />
-      </div>
 
-      {/* Property info */}
-      <div className='mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3'>
-        {/* Main details */}
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6 lg:col-span-2'>
-          <div className='text-[15px] font-semibold text-gray-900'>Основная информация</div>
-
-          <div className='mt-5 border-t border-blue-50 pt-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3'>
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</div>
-              <div className='mt-1'>
-                <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
-                  {TYPE_LABELS[property.type]}
-                </span>
-              </div>
-            </div>
-            {property.type !== 'land' && (
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</div>
-              <div className='mt-1'>
-                <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
-                  {CLASS_LABELS[property.property_class]}
-                </span>
-              </div>
-            </div>
-            )}
-            {property.type === 'commercial' && property.commercial_subtype && (
-              <div>
-                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Подтип</div>
-                <div className='mt-1'>
-                  <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
-                    {COMMERCIAL_SUBTYPE_LABELS[property.commercial_subtype]}
-                  </span>
-                </div>
-              </div>
-            )}
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Статус</div>
-              <div className='mt-1'>
-                <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', statusStyle)}>
-                  {STATUS_LABELS[property.status]}
-                </span>
-              </div>
-            </div>
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</div>
-              <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {property.address}
-              </div>
-            </div>
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</div>
-              <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {property.area} {property.type === 'land' ? 'соток' : 'м²'}
-              </div>
-            </div>
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Срок сдачи</div>
-              <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {formatDateShort(property.deadline)}
-              </div>
-            </div>
-            <div>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия брокера</div>
-              <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                {property.commission_rate ? `${property.commission_rate}%` : '—'}
-              </div>
-            </div>
-          </div>
-          {property.project_comment && (
-            <div className='mt-5 border-t border-blue-50 pt-5'>
-              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комментарий к проекту</div>
-              <div className='mt-1.5 whitespace-pre-wrap text-[13px] text-gray-900'>
-                {property.project_comment}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Price & Auction card */}
+        {/* Info stack — right */}
         <div className='flex flex-col gap-4'>
+          {/* Price */}
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
             <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</div>
             <div className='mt-2 text-xl font-semibold text-gray-900'>
@@ -344,6 +267,83 @@ export default function CatalogDetailPage() {
             </div>
           </div>
 
+          {/* Main details */}
+          <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
+            <div className='text-[15px] font-semibold text-gray-900'>Основная информация</div>
+
+            <div className='mt-5 border-t border-blue-50 pt-5 grid grid-cols-2 gap-x-6 gap-y-5'>
+              <div>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</div>
+                <div className='mt-1'>
+                  <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
+                    {TYPE_LABELS[property.type]}
+                  </span>
+                </div>
+              </div>
+              {property.type !== 'land' && (
+                <div>
+                  <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</div>
+                  <div className='mt-1'>
+                    <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
+                      {CLASS_LABELS[property.property_class]}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {property.type === 'commercial' && property.commercial_subtype && (
+                <div>
+                  <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Подтип</div>
+                  <div className='mt-1'>
+                    <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500'>
+                      {COMMERCIAL_SUBTYPE_LABELS[property.commercial_subtype]}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Статус</div>
+                <div className='mt-1'>
+                  <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', statusStyle)}>
+                    {STATUS_LABELS[property.status]}
+                  </span>
+                </div>
+              </div>
+              <div className='col-span-2'>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</div>
+                <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                  {property.address}
+                </div>
+              </div>
+              <div>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</div>
+                <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                  {property.area} {property.type === 'land' ? 'соток' : 'м²'}
+                </div>
+              </div>
+              <div>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Срок сдачи</div>
+                <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                  {formatDateShort(property.deadline)}
+                </div>
+              </div>
+              <div>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия брокера</div>
+                <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                  {property.commission_rate ? `${property.commission_rate}%` : '—'}
+                </div>
+              </div>
+            </div>
+            {property.project_comment && (
+              <div className='mt-5 border-t border-blue-50 pt-5'>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комментарий к проекту</div>
+                <div className='mt-1.5 whitespace-pre-wrap text-[13px] text-gray-900'>
+                  {property.project_comment}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Dates */}
           <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
             <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Даты</div>
             <div className='mt-3 space-y-2'>

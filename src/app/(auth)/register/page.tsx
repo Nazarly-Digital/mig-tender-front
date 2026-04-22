@@ -436,7 +436,9 @@ export default function PageRegister() {
 
           <div className='space-y-1.5 text-center'>
             <Modal.Title className='text-lg font-semibold text-gray-900'>
-              Обязательство при участии в аукционе
+              Обязательство
+              <br />
+              При участии в аукционе
             </Modal.Title>
             <p className='text-sm text-gray-500'>
               Участвуя в аукционах на платформе MIG Tender, вы соглашаетесь с тем, что:

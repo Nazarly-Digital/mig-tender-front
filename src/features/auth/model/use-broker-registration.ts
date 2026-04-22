@@ -18,6 +18,7 @@ import {
   brokerRegisterSchema,
   type BrokerRegisterFormData,
 } from '@/shared/lib/validations';
+import { translateBackendMessage } from '@/shared/lib/translate-backend-error';
 
 export function useBrokerRegistration() {
   const router = useRouter();
@@ -155,7 +156,10 @@ export function useBrokerRegistration() {
           if (err instanceof AxiosError) {
             const errData = err.response?.data;
             if (typeof errData === 'object' && errData !== null) {
-              const messages = Object.values(errData).flat();
+              const messages = Object.values(errData)
+                .flat()
+                .filter((m): m is string => typeof m === 'string')
+                .map(translateBackendMessage);
               setError(messages.join('. ') || 'Произошла ошибка');
             } else {
               setError('Произошла ошибка. Попробуйте позже');

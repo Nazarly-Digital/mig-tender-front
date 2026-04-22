@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Clock01Icon, Award01Icon, UserIcon, LockPasswordIcon } from '@hugeicons/core-free-icons';
+import { Clock01Icon, Award01Icon, UserIcon, LockPasswordIcon, UnavailableIcon } from '@hugeicons/core-free-icons';
 
 import { useAuctions } from '@/features/auctions';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
@@ -17,13 +17,19 @@ function AuctionItem({ auction }: { auction: Auction }) {
       ? 'bg-emerald-50 text-emerald-700'
       : auction.status === 'finished'
         ? 'bg-blue-50 text-blue-700'
-        : 'bg-gray-100 text-gray-600';
+        : auction.status === 'failed' || auction.status === 'cancelled'
+          ? 'bg-red-50 text-red-700'
+          : 'bg-gray-100 text-gray-600';
   const statusLabel =
     auction.status === 'active'
       ? 'Активный'
       : auction.status === 'finished'
         ? 'Завершён'
-        : 'Черновик';
+        : auction.status === 'failed'
+          ? 'Несостоявшийся'
+          : auction.status === 'cancelled'
+            ? 'Отменён'
+            : 'Черновик';
 
   return (
     <Link
@@ -52,9 +58,11 @@ export default function CabinetPage() {
   const [pwdOpen, setPwdOpen] = React.useState(false);
   const { data: activeData } = useAuctions({ status: 'active', page_size: 5 });
   const { data: finishedData } = useAuctions({ status: 'finished', page_size: 5 });
+  const { data: failedData } = useAuctions({ status: 'failed', page_size: 5 });
 
   const activeAuctions = activeData?.results ?? [];
   const finishedAuctions = finishedData?.results ?? [];
+  const failedAuctions = failedData?.results ?? [];
 
   return (
     <div className='w-full px-8 py-8'>
@@ -93,7 +101,7 @@ export default function CabinetPage() {
           <div className='px-5 py-4 border-b border-blue-50 flex items-center justify-between'>
             <div className='flex items-center gap-2'>
               <HugeiconsIcon icon={Clock01Icon} size={16} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-              <span className='text-[14px] font-semibold text-gray-900'>Активные аукционы</span>
+              <span className='text-[14px] font-semibold text-gray-900'>Мои активные аукционы</span>
             </div>
             <Link href='/auctions' className='text-[13px] text-gray-400 hover:text-gray-600 transition-colors'>
               Все аукционы
@@ -116,7 +124,7 @@ export default function CabinetPage() {
         <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
           <div className='px-5 py-4 border-b border-blue-50 flex items-center gap-2'>
             <HugeiconsIcon icon={Award01Icon} size={16} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-            <span className='text-[14px] font-semibold text-gray-900'>Завершённые аукционы</span>
+            <span className='text-[14px] font-semibold text-gray-900'>Мои завершённые аукционы</span>
           </div>
           {finishedAuctions.length === 0 ? (
             <div className='py-8 text-center text-sm text-gray-400'>
@@ -125,6 +133,25 @@ export default function CabinetPage() {
           ) : (
             <div className='flex flex-col'>
               {finishedAuctions.map((a) => (
+                <AuctionItem key={a.id} auction={a} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Failed */}
+        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
+          <div className='px-5 py-4 border-b border-blue-50 flex items-center gap-2'>
+            <HugeiconsIcon icon={UnavailableIcon} size={16} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+            <span className='text-[14px] font-semibold text-gray-900'>Мои несостоявшиеся аукционы</span>
+          </div>
+          {failedAuctions.length === 0 ? (
+            <div className='py-8 text-center text-sm text-gray-400'>
+              Нет несостоявшихся аукционов
+            </div>
+          ) : (
+            <div className='flex flex-col'>
+              {failedAuctions.map((a) => (
                 <AuctionItem key={a.id} auction={a} />
               ))}
             </div>

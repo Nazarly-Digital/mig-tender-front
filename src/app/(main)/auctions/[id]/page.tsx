@@ -15,6 +15,7 @@ import {
   CheckListIcon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
+  Building03Icon,
 } from '@hugeicons/core-free-icons';
 
 import { DetailPageSkeleton } from '@/shared/components/skeletons';
@@ -73,6 +74,13 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   townhouse: 'Таунхаус',
   commercial: 'Коммерция',
   land: 'Земля',
+};
+
+const PROPERTY_CLASS_LABELS: Record<string, string> = {
+  economy: 'Эконом',
+  comfort: 'Комфорт',
+  business: 'Бизнес',
+  premium: 'Премиум',
 };
 
 function formatPrice(value: string | null | undefined) {
@@ -854,7 +862,8 @@ export default function AuctionDetailPage() {
         const showMinPrice = auction.min_price != null;
         // For OPEN auctions bids_count == number of unique participants (1 bid per broker).
         // We merge it with the dedicated "Участников" card: one count card per auction.
-        const showBidsCount = liveBidsCount != null;
+        // Brokers don't see the participants count on OPEN auctions.
+        const showBidsCount = liveBidsCount != null && !(isOpenAuction && isBroker);
         const showLotTotal = auction.lot_total_price != null;
         const showIncrement = isOpenAuction && auction.min_bid_increment != null;
         const visibleCount = [
@@ -1208,11 +1217,64 @@ export default function AuctionDetailPage() {
                 <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дата</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(myBid.created_at)}</span></div>
                 <div><span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Обновлена</span><span className='mt-1 block text-[13px] font-medium text-gray-900'>{formatDateTime(myBid.updated_at)}</span></div>
               </div>
-              {!isOpenAuction && (
-                <p className='mt-3 text-[12px] text-amber-600 font-medium'>В закрытом аукционе можно сделать только 1 ставку.</p>
-              )}
             </div>
           )}
+
+          {/* Object info — rendered last; shown when the auction has a single property in the lot */}
+          {auction.properties?.length === 1 && (() => {
+            const prop = auction.properties[0];
+            return (
+              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
+                <div className='flex items-center justify-between mb-4'>
+                  <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
+                    <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+                    Информация об объекте
+                  </h3>
+                  <Link href={`/objects/${prop.id}`} className='text-xs font-medium text-blue-600 hover:underline'>
+                    Подробнее →
+                  </Link>
+                </div>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div>
+                    <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>ID</span>
+                    <span className='mt-1 block text-[13px] font-medium text-gray-900 font-mono'>{prop.reference_id}</span>
+                  </div>
+                  <div>
+                    <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</span>
+                    <span className='mt-1 block text-[13px] font-medium text-gray-900'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</span>
+                  </div>
+                  <div className='col-span-2'>
+                    <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</span>
+                    <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.address}</span>
+                  </div>
+                  {prop.area && (
+                    <div>
+                      <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</span>
+                      <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.area} м²</span>
+                    </div>
+                  )}
+                  {prop.property_class && (
+                    <div>
+                      <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</span>
+                      <span className='mt-1 block text-[13px] font-medium text-gray-900'>{PROPERTY_CLASS_LABELS[prop.property_class] || prop.property_class}</span>
+                    </div>
+                  )}
+                  {prop.price != null && (
+                    <div>
+                      <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</span>
+                      <span className='mt-1 block text-[13px] font-semibold text-gray-900'>{formatPrice(prop.price)} ₽</span>
+                    </div>
+                  )}
+                  {prop.commission_rate && (
+                    <div>
+                      <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия</span>
+                      <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.commission_rate}%</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Right 1/3 */}
