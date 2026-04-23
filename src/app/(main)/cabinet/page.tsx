@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Clock01Icon, Award01Icon, UserIcon, LockPasswordIcon, UnavailableIcon } from '@hugeicons/core-free-icons';
 
-import { useAuctions } from '@/features/auctions';
+import { useParticipatedAuctions } from '@/features/auctions';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Auction } from '@/shared/types/auctions';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -42,8 +42,16 @@ function AuctionItem({ auction }: { auction: Auction }) {
         </div>
         <div>
           <div className='text-sm font-medium text-gray-900'>Аукцион #{auction.id}</div>
-          <div className='text-xs text-gray-400'>
-            от {formatPrice(auction.min_price)} ₽ · до {formatDateShort(auction.end_date)}
+          <div className='text-xs text-gray-400 flex items-center gap-1.5'>
+            {auction.mode === 'closed' || auction.min_price == null ? (
+              <span>Закрытый</span>
+            ) : (
+              <>
+                <span>от {formatPrice(auction.min_price, 'RUB')}</span>
+                <span className='text-gray-300'>·</span>
+              </>
+            )}
+            <span>{formatDateShort(auction.end_date)}</span>
           </div>
         </div>
       </div>
@@ -56,9 +64,9 @@ function AuctionItem({ auction }: { auction: Auction }) {
 
 export default function CabinetPage() {
   const [pwdOpen, setPwdOpen] = React.useState(false);
-  const { data: activeData } = useAuctions({ status: 'active', page_size: 5 });
-  const { data: finishedData } = useAuctions({ status: 'finished', page_size: 5 });
-  const { data: failedData } = useAuctions({ status: 'failed', page_size: 5 });
+  const { data: activeData } = useParticipatedAuctions({ status: 'active', page_size: 5 });
+  const { data: finishedData } = useParticipatedAuctions({ status: 'finished', page_size: 5 });
+  const { data: failedData } = useParticipatedAuctions({ status: 'failed', page_size: 5 });
 
   const activeAuctions = activeData?.results ?? [];
   const finishedAuctions = finishedData?.results ?? [];
@@ -95,9 +103,9 @@ export default function CabinetPage() {
 
       <ChangePasswordModal open={pwdOpen} onOpenChange={setPwdOpen} />
 
-      <div className='mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2'>
+      <div className='mt-6 grid grid-cols-1 items-start gap-4 lg:grid-cols-2'>
         {/* Active participations */}
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
+        <div className='min-h-90 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
           <div className='px-5 py-4 border-b border-blue-50 flex items-center justify-between'>
             <div className='flex items-center gap-2'>
               <HugeiconsIcon icon={Clock01Icon} size={16} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
@@ -121,7 +129,7 @@ export default function CabinetPage() {
         </div>
 
         {/* Finished */}
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
+        <div className='min-h-90 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
           <div className='px-5 py-4 border-b border-blue-50 flex items-center gap-2'>
             <HugeiconsIcon icon={Award01Icon} size={16} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
             <span className='text-[14px] font-semibold text-gray-900'>Мои завершённые аукционы</span>
@@ -140,7 +148,7 @@ export default function CabinetPage() {
         </div>
 
         {/* Failed */}
-        <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
+        <div className='min-h-90 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
           <div className='px-5 py-4 border-b border-blue-50 flex items-center gap-2'>
             <HugeiconsIcon icon={UnavailableIcon} size={16} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
             <span className='text-[14px] font-semibold text-gray-900'>Мои несостоявшиеся аукционы</span>

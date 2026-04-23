@@ -19,6 +19,7 @@ import { useMyAvailableProperties } from '@/features/properties';
 import { useCreateAuction, useCompatibleProperties } from '@/features/auctions';
 import type { AuctionMode } from '@/shared/types/auctions';
 import type { Property } from '@/shared/types/properties';
+import { CLASS_LABELS } from '@/shared/components/properties-table';
 
 const MODE_LABELS: Record<AuctionMode, string> = {
   open: 'Открытый',
@@ -98,7 +99,7 @@ function PropertySearchDropdown({
           </span>
         )}
         {reference && (
-          <span className='text-[11px] font-medium text-blue-600 shrink-0'>{compatibleCount > 0 ? `${compatibleCount} подходящих объектов` : 'Нет подходящих объектов'} совмест.</span>
+          <span className='text-[11px] font-medium text-blue-600 shrink-0'>{compatibleCount > 0 ? `${compatibleCount} подходящих объектов` : 'Нет подходящих объектов'}</span>
         )}
       </div>
 
@@ -126,7 +127,7 @@ function PropertySearchDropdown({
                   )}
                 </div>
                 <p className='text-xs text-gray-400 mt-0.5'>
-                  {TYPE_LABELS[p.type] ?? p.type} · {p.area} м²{p.property_class ? ` · ${p.property_class}` : ''}
+                  {TYPE_LABELS[p.type] ?? p.type} · {p.area} м²{p.property_class ? ` · ${CLASS_LABELS[p.property_class] ?? p.property_class}` : ''}
                 </p>
               </div>
             ))
@@ -150,12 +151,7 @@ function SelectedPropertyTag({
     <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${isReference ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'
       }`}>
       <div className='flex-1 min-w-0'>
-        <div className='flex items-center gap-1.5'>
-          <span className='text-sm font-medium text-gray-900 truncate'>{property.address}</span>
-          {isReference && (
-            <span className='text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 shrink-0'>эталон</span>
-          )}
-        </div>
+        <span className='block text-sm font-medium text-gray-900 truncate'>{property.address}</span>
         <p className='text-xs text-gray-400 mt-0.5'>
           {TYPE_LABELS[property.type] ?? property.type} · {property.area} м²
         </p>
@@ -390,7 +386,7 @@ export default function CreateAuctionPage() {
                       <HugeiconsIcon icon={InformationCircleIcon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0 text-blue-600 mt-0.5' />
                       <span className='text-xs text-blue-700'>
                         Выберите один или несколько объектов. Если вы
-                        выберите несколько похожих объектов , они будут
+                        выберите несколько похожих объектов, они будут
                         продаваться одним лотом.
                         {/* {(() => {
                           const parts = [TYPE_LABELS[referenceProperty.type] || referenceProperty.type, `${referenceProperty.area} м²`].filter(Boolean);
@@ -522,10 +518,8 @@ export default function CreateAuctionPage() {
                   />
                 )}
               />
-              {errors.start_date ? (
+              {errors.start_date && (
                 <p className='text-xs text-red-500'>{errors.start_date.message}</p>
-              ) : (
-                <p className='text-xs text-gray-400'>Минимум через 1 минуту от текущего времени</p>
               )}
             </div>
             <div className='space-y-1.5'>

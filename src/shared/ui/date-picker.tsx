@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { DayPicker } from 'react-day-picker';
 import { ru } from 'react-day-picker/locale';
-import { format, parse, isValid, startOfDay } from 'date-fns';
+import { format, parse, isValid, startOfDay, isSameDay } from 'date-fns';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Calendar01Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 
@@ -65,6 +65,58 @@ function parseDateString(value?: string | Date | null): Date | undefined {
   const datePart = value.length >= 10 ? value.slice(0, 10) : value;
   const parsed = parse(datePart, 'yyyy-MM-dd', new Date());
   return isValid(parsed) ? parsed : undefined;
+}
+
+// Parse a datetime bound: accepts Date, 'YYYY-MM-DD', or 'YYYY-MM-DDTHH:mm'.
+// Unlike parseDateString this preserves the time portion when present — needed for
+// time-of-day bounds (e.g. prevent picking 22:02 when min is today 22:22).
+function parseDateTimeValue(value?: string | Date | null): Date | undefined {
+  if (!value) return undefined;
+  if (value instanceof Date) return isValid(value) ? value : undefined;
+  if (value.length >= 16) {
+    const parsed = parse(value.slice(0, 16), "yyyy-MM-dd'T'HH:mm", new Date());
+    if (isValid(parsed)) return parsed;
+  }
+  const parsed = parse(value.slice(0, 10), 'yyyy-MM-dd', new Date());
+  return isValid(parsed) ? parsed : undefined;
+}
+
+// Returns the [min, max] total-minutes-of-day window for a given selected date,
+// narrowed to min/max bounds only when selected date falls on the same day.
+function computeTimeBounds(
+  date: Date | undefined,
+  minDT: Date | undefined,
+  maxDT: Date | undefined,
+): { minMinutes: number; maxMinutes: number } {
+  let minMinutes = 0;
+  let maxMinutes = 23 * 60 + 59;
+  if (date && minDT && isSameDay(date, minDT)) {
+    minMinutes = minDT.getHours() * 60 + minDT.getMinutes();
+  }
+  if (date && maxDT && isSameDay(date, maxDT)) {
+    maxMinutes = maxDT.getHours() * 60 + maxDT.getMinutes();
+  }
+  // Guard against bad inputs where min > max (would otherwise trap clamp).
+  if (minMinutes > maxMinutes) minMinutes = maxMinutes;
+  return { minMinutes, maxMinutes };
+}
+
+// Clamps (hour, minute) as total minutes-of-day to the provided bounds.
+// Empty inputs stay empty — preserve the "no time set" state.
+function clampTimeToBounds(
+  hour: string,
+  minute: string,
+  bounds: { minMinutes: number; maxMinutes: number },
+): { hour: string; minute: string } {
+  if (hour === '' && minute === '') return { hour: '', minute: '' };
+  const h = Math.max(0, Math.min(23, parseInt(hour, 10) || 0));
+  const m = Math.max(0, Math.min(59, parseInt(minute, 10) || 0));
+  const total = h * 60 + m;
+  const clamped = Math.max(bounds.minMinutes, Math.min(bounds.maxMinutes, total));
+  return {
+    hour: padNumber(Math.floor(clamped / 60)),
+    minute: padNumber(clamped % 60),
+  };
 }
 
 type CommonProps = {
@@ -222,12 +274,35 @@ export function DateTimePicker({
   const [hourInput, setHourInput] = React.useState(initHour);
   const [minuteInput, setMinuteInput] = React.useState(initMinute);
 
-  // Keep local time fields in sync with external value changes
+  // Sync local time fields from external value — but only while the popover is closed.
+  // While the user is actively typing inside the popover, every keystroke round-trips
+  // through emitChange → padded value → prop change; syncing mid-edit would clobber
+  // partial input (e.g. typing "1" would immediately become "01", blocking "12"/"23").
   React.useEffect(() => {
+    if (open) return;
     const parsed = parseDateTimeString(value);
     setHourInput(parsed.hour);
     setMinuteInput(parsed.minute);
-  }, [value]);
+  }, [value, open]);
+
+  // Pre-fill with current local time when the popover opens with empty time fields,
+  // so the user gets a sensible default to accept or tweak rather than typing from scratch.
+  // Clamp the default to [min, max] — if now is 10:00 but min requires 14:36 today,
+  // we pre-fill 14:36 so the user isn't handed an invalid starting value.
+  React.useEffect(() => {
+    if (!open) return;
+    if (hourInput === '' && minuteInput === '') {
+      const now = new Date();
+      const { hour: h, minute: m } = clampTimeToBounds(
+        padNumber(now.getHours()),
+        padNumber(now.getMinutes()),
+        timeBounds,
+      );
+      setHourInput(h);
+      setMinuteInput(m);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const displayText = selectedDate
     ? `${format(selectedDate, 'dd.MM.yyyy')}${hourInput && minuteInput ? `, ${padNumber(parseInt(hourInput, 10) || 0)}:${padNumber(parseInt(minuteInput, 10) || 0)}` : ''}`
@@ -235,6 +310,9 @@ export function DateTimePicker({
 
   const minDate = parseDateString(min);
   const maxDate = parseDateString(max);
+  // Full datetime bounds (preserves the time portion of min/max for same-day time validation).
+  const minDateTime = parseDateTimeValue(min);
+  const maxDateTime = parseDateTimeValue(max);
 
   const dayPickerDisabled = React.useMemo(() => {
     const rules: { before?: Date; after?: Date }[] = [];
@@ -242,6 +320,8 @@ export function DateTimePicker({
     if (maxDate) rules.push({ after: startOfDay(maxDate) });
     return rules.length ? rules : undefined;
   }, [minDate, maxDate]);
+
+  const timeBounds = computeTimeBounds(selectedDate, minDateTime, maxDateTime);
 
   const emitChange = (date: Date | undefined, h: string, m: string) => {
     onChange?.(combineDateTime(date, h, m));
@@ -299,8 +379,15 @@ export function DateTimePicker({
             locale={ru}
             selected={selectedDate}
             onSelect={(date) => {
-              const h = hourInput || '00';
-              const m = minuteInput || '00';
+              // Re-clamp the current time against the bounds for the newly selected date —
+              // switching from a future day to today (where min might be 22:22) must bump
+              // an out-of-range time (e.g. 10:00) up to the new minimum.
+              const nextBounds = computeTimeBounds(date ?? undefined, minDateTime, maxDateTime);
+              const { hour: h, minute: m } = clampTimeToBounds(
+                hourInput || '00',
+                minuteInput || '00',
+                nextBounds,
+              );
               setHourInput(h);
               setMinuteInput(m);
               emitChange(date ?? undefined, h, m);
@@ -314,36 +401,64 @@ export function DateTimePicker({
           <div className='mt-3 flex items-center gap-2 border-t border-gray-200 pt-3'>
             <span className='text-xs font-medium text-gray-500'>Время</span>
             <input
-              type='number'
-              min={0}
-              max={23}
+              type='text'
+              inputMode='numeric'
               placeholder='чч'
               value={hourInput}
               onChange={(e) => {
-                const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+                // Rolling window: keep the last 2 digits the user typed. Lets them append
+                // on top of the existing value without needing to clear it first — and avoids
+                // programmatic selection (which on macOS can trigger the system Look Up menu
+                // on force-click / two-finger tap).
+                const v = e.target.value.replace(/\D/g, '').slice(-2);
                 setHourInput(v);
                 emitChange(selectedDate, v, minuteInput);
+              }}
+              onBlur={() => {
+                // Normalize against full time bounds (hour + minute combined) — this
+                // catches invalid same-day times like "22:02" when min is today 22:22.
+                const { hour: h, minute: m } = clampTimeToBounds(hourInput, minuteInput, timeBounds);
+                if (h !== hourInput || m !== minuteInput) {
+                  setHourInput(h);
+                  setMinuteInput(m);
+                  emitChange(selectedDate, h, m);
+                }
               }}
               className='w-14 rounded-md border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
             />
             <span className='text-sm text-gray-400'>:</span>
             <input
-              type='number'
-              min={0}
-              max={59}
+              type='text'
+              inputMode='numeric'
               placeholder='мм'
               value={minuteInput}
               onChange={(e) => {
-                const v = e.target.value.replace(/\D/g, '').slice(0, 2);
+                const v = e.target.value.replace(/\D/g, '').slice(-2);
                 setMinuteInput(v);
                 emitChange(selectedDate, hourInput, v);
+              }}
+              onBlur={() => {
+                const { hour: h, minute: m } = clampTimeToBounds(hourInput, minuteInput, timeBounds);
+                if (h !== hourInput || m !== minuteInput) {
+                  setHourInput(h);
+                  setMinuteInput(m);
+                  emitChange(selectedDate, h, m);
+                }
               }}
               className='w-14 rounded-md border border-gray-300 bg-white px-2 py-1 text-center text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
             />
             <button
               type='button'
               className='ml-auto rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700'
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                // Commit current state on explicit confirm — clamped to bounds so closing
+                // without first blurring an input can't escape validation.
+                const { hour: h, minute: m } = clampTimeToBounds(hourInput, minuteInput, timeBounds);
+                if (h !== hourInput) setHourInput(h);
+                if (m !== minuteInput) setMinuteInput(m);
+                emitChange(selectedDate, h, m);
+                setOpen(false);
+              }}
             >
               Готово
             </button>

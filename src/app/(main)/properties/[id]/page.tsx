@@ -832,38 +832,57 @@ export default function PropertyDetailPage() {
         )}
       </div>
 
-      {/* Main Grid */}
-      <div className='grid grid-cols-1 gap-4 xl:grid-cols-3'>
-        {/* Left 2/3 */}
-        <div className='space-y-4 xl:col-span-2'>
-          <ImagesGallery images={property.images} />
-
-          {/* Edit Form */}
-          <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-6'>
-            <h3 className='mb-5 flex items-center gap-2 text-[14px] font-semibold text-gray-900'>
-              <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-              Редактировать объект
-            </h3>
-            {property.is_editable === false ? (
-              <p className='text-sm text-amber-600 font-medium'>Редактирование этого объекта недоступно. Объект привязан к аукциону.</p>
-            ) : (
-              <PropertyEditForm
-                property={property}
-                onSubmit={onSubmit}
-                isSubmitting={updateMutation.isPending}
-              />
-            )}
-          </div>
+      {/* Main Grid — at xl: 2 cols (55/45, info under gallery); at 2xl+: 3 cols (55/30/15) */}
+      <div className='grid grid-cols-1 items-start gap-4 xl:grid-cols-[55fr_45fr] 2xl:grid-cols-[55fr_30fr_15fr]'>
+        {/* Edit Form (left, 55%) */}
+        <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-6'>
+          <h3 className='mb-5 flex items-center gap-2 text-[14px] font-semibold text-gray-900'>
+            <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+            Редактировать объект
+          </h3>
+          {property.is_editable === false ? (
+            <p className='text-sm text-amber-600 font-medium'>Редактирование этого объекта недоступно. Объект привязан к аукциону.</p>
+          ) : (
+            <PropertyEditForm
+              property={property}
+              onSubmit={onSubmit}
+              isSubmitting={updateMutation.isPending}
+            />
+          )}
         </div>
 
-        {/* Right 1/3 */}
+        {/* Center column: gallery + photos upload + Info (Info here only at xl, not 2xl+) */}
         <div className='space-y-4'>
+          <ImagesGallery images={property.images} />
+
           {/* Image Upload */}
           <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Фотографии</h3>
             <ImageUploadSection propertyId={property.id} />
           </div>
 
+          {/* Metadata — shown here below photos on < 2xl; hidden on 2xl+ where it moves to right column */}
+          <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5 2xl:hidden'>
+            <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Информация</h3>
+            <div className='space-y-3'>
+              <div>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Срок сдачи</span>
+                <span className='mt-0.5 block text-[13px] font-medium text-gray-900'>{formatDate(property.deadline)}</span>
+              </div>
+              <div>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Создан</span>
+                <span className='mt-0.5 block text-[13px] font-medium text-gray-900'>{formatDateTime(property.created_at)}</span>
+              </div>
+              <div>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Обновлён</span>
+                <span className='mt-0.5 block text-[13px] font-medium text-gray-900'>{formatDateTime(property.updated_at)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right — Info only (15%, only at 2xl+) */}
+        <div className='hidden 2xl:block'>
           {/* Metadata */}
           <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Информация</h3>
