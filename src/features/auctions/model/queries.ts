@@ -18,6 +18,8 @@ export const auctionKeys = {
   all: ["auctions"] as const,
   my: (params?: AuctionListParams) =>
     [...auctionKeys.all, "my", params] as const,
+  participated: (params?: AuctionListParams) =>
+    [...auctionKeys.all, "participated", params] as const,
   lists: () => [...auctionKeys.all, "list"] as const,
   list: (params?: AuctionListParams) =>
     [...auctionKeys.lists(), params] as const,
@@ -39,6 +41,18 @@ export function useMyAuctions(params?: AuctionListParams) {
     queryKey: auctionKeys.my(params),
     queryFn: () => auctionsService.getMy(params).then((res) => res.data),
     enabled: isDeveloper,
+  });
+}
+
+/** Auctions the current broker participated in (placed at least one bid). */
+export function useParticipatedAuctions(params?: AuctionListParams) {
+  const isBroker = useSessionStore((s) => s.user?.role === "broker");
+
+  return useQuery({
+    queryKey: auctionKeys.participated(params),
+    queryFn: () =>
+      auctionsService.getParticipated(params).then((res) => res.data),
+    enabled: isBroker,
   });
 }
 

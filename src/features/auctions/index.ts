@@ -1,6 +1,7 @@
 export {
   auctionKeys,
   useMyAuctions,
+  useParticipatedAuctions,
   useAuctions,
   useAuctionDetail,
   useCreateAuction,
