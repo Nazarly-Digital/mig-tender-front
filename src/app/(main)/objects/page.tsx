@@ -412,12 +412,14 @@ export default function CatalogPage() {
     const count = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
     totalPages = Math.ceil(count / pageSize);
   } else if (isAllMode) {
-    // Merge published + pending, deduplicate by id
+    // Merge published + pending, deduplicate by id, then sort by created_at desc
+    // so newly-added (pending) properties bubble up to the top of the list.
     const published = propertiesQuery.data?.results ?? [];
     const pendingData = pendingQuery.data;
     const pending: CatalogCardItem[] = Array.isArray(pendingData) ? pendingData : pendingData?.results ?? [];
     const publishedIds = new Set(published.map((p) => p.id));
     const merged = [...published, ...pending.filter((p) => !publishedIds.has(p.id))];
+    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     properties = merged;
     const publishedCount = propertiesQuery.data?.count ?? 0;
     const pendingCount = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;

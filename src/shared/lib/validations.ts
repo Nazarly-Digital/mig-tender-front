@@ -232,7 +232,18 @@ export const adminCreateDeveloperSchema = z
       .min(1, 'Введите ИНН'),
     phoneNumber: z
       .string()
-      .min(1, 'Введите номер телефона'),
+      .min(1, 'Введите номер телефона')
+      .regex(
+        /^[\d+\s\-()]+$/,
+        'Номер может содержать только цифры и символы +, -, (, ), пробел',
+      )
+      .refine(
+        (v) => {
+          const digits = v.replace(/\D/g, '');
+          return digits.length >= 7 && digits.length <= 15;
+        },
+        { message: 'Номер телефона должен содержать от 7 до 15 цифр' },
+      ),
     innDocument: requiredFile,
     passportDocument: requiredFile,
     password: z
