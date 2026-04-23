@@ -84,6 +84,16 @@ const PROPERTY_CLASS_LABELS: Record<string, string> = {
   premium: 'Премиум',
 };
 
+function getPropertyTypeLabel(type: string | null | undefined): string {
+  if (!type) return '—';
+  return PROPERTY_TYPE_LABELS[String(type).toLowerCase().trim()] || type;
+}
+
+function getPropertyClassLabel(cls: string | null | undefined): string {
+  if (!cls) return '—';
+  return PROPERTY_CLASS_LABELS[String(cls).toLowerCase().trim()] || cls;
+}
+
 function formatPrice(value: string | null | undefined) {
   if (value == null) return '—';
   const num = parseFloat(value);
@@ -925,7 +935,7 @@ export default function AuctionDetailPage() {
                     </div>
                     <div className='flex items-center justify-between gap-4'>
                       <span className='text-gray-500 shrink-0'>Тип:</span>
-                      <span className='font-medium text-gray-900'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</span>
+                      <span className='font-medium text-gray-900'>{getPropertyTypeLabel(prop.type)}</span>
                     </div>
                     <div className='flex items-center justify-between gap-4'>
                       <span className='text-gray-500 shrink-0'>Площадь:</span>
@@ -933,7 +943,7 @@ export default function AuctionDetailPage() {
                     </div>
                     <div className='flex items-center justify-between gap-4'>
                       <span className='text-gray-500 shrink-0'>Класс:</span>
-                      <span className='font-medium text-gray-900'>{prop.property_class ? (PROPERTY_CLASS_LABELS[prop.property_class] || prop.property_class) : '—'}</span>
+                      <span className='font-medium text-gray-900'>{getPropertyClassLabel(prop.property_class)}</span>
                     </div>
                     <div className='flex items-center justify-between gap-4'>
                       <span className='text-gray-500 shrink-0'>Прайсовая цена:</span>
@@ -974,11 +984,11 @@ export default function AuctionDetailPage() {
                     <div className='space-y-4 2xl:col-span-2'>
                       <div>
                         <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</span>
-                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</span>
+                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{getPropertyTypeLabel(prop.type)}</span>
                       </div>
                       <div>
                         <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</span>
-                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.property_class ? (PROPERTY_CLASS_LABELS[prop.property_class] || prop.property_class) : '—'}</span>
+                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{getPropertyClassLabel(prop.property_class)}</span>
                       </div>
                       <div>
                         <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия</span>
@@ -1209,7 +1219,7 @@ export default function AuctionDetailPage() {
                     <tr key={prop.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors cursor-pointer' onClick={() => router.push(`/objects/${prop.id}`)}>
                       <td className='py-3 text-gray-500 font-mono text-xs'>{prop.reference_id}</td>
                       <td className='py-3 font-medium text-blue-600 hover:text-blue-800'>{prop.address}</td>
-                      <td className='py-3 text-gray-600'>{PROPERTY_TYPE_LABELS[prop.type] || prop.type}</td>
+                      <td className='py-3 text-gray-600'>{getPropertyTypeLabel(prop.type)}</td>
                       <td className='py-3 text-gray-600'>{prop.area} м²</td>
                       <td className='py-3 font-semibold text-gray-900'>{prop.price == null ? 'Скрыта' : `${formatPrice(prop.price)} ₽`}</td>
                     </tr>

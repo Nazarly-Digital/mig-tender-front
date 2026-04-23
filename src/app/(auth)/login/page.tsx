@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   RiEyeLine,
@@ -145,12 +144,6 @@ export default function PageLogin() {
               {errors.password?.message && (
                 <p className='text-xs text-red-500'>{errors.password.message}</p>
               )}
-              <Link
-                href='/reset-password'
-                className='mt-2 self-start text-xs font-medium text-blue-600 hover:underline'
-              >
-                Забыли пароль?
-              </Link>
             </div>
           </div>
 
