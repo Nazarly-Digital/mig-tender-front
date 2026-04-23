@@ -34,6 +34,7 @@ import type {
   PropertyClass,
   PropertyStatus,
   CommercialSubtype,
+  PropertyCreateRequest,
 } from '@/shared/types/properties';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
 import { DatePicker } from '@/shared/ui/date-picker';
@@ -123,21 +124,13 @@ export default function CreatePropertyPage() {
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleMakePrimary = (index: number) => {
-    if (index === 0) return;
-    setPhotos((prev) => {
-      const next = [...prev];
-      const [item] = next.splice(index, 1);
-      next.unshift(item);
-      return next;
-    });
-    setPreviews((prev) => {
-      const next = [...prev];
-      const [item] = next.splice(index, 1);
-      next.unshift(item);
-      return next;
-    });
-  };
+  // Revoke any remaining blob URLs on unmount to prevent memory leaks when
+  // the user navigates away without submitting.
+  const previewsRef = React.useRef(previews);
+  previewsRef.current = previews;
+  React.useEffect(() => () => {
+    previewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
 
   const handleDragStart = (index: number) => {
     dragIndex.current = index;
@@ -170,9 +163,37 @@ export default function CreatePropertyPage() {
   const onSubmit = async (data: PropertyFormData) => {
     setSubmitting(true);
     try {
-      const property = await createMutation.mutateAsync(
-        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, project_comment: data.project_comment ?? '', commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null, land_number: data.type === 'land' && data.land_number ? data.land_number : null, house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null } as any,
-      );
+      const type = data.type as PropertyType;
+      const needsFloor = type === 'apartment' || type === 'commercial';
+      const needsHouseNumber = type === 'house' || type === 'townhouse';
+
+      const payload: PropertyCreateRequest = {
+        type,
+        address: data.address,
+        area: data.area,
+        property_class: data.property_class
+          ? (data.property_class as PropertyClass)
+          : null,
+        price: data.price,
+        currency: data.currency,
+        deadline: data.deadline || null,
+        commission_rate: data.commission_rate || null,
+        status: data.status as PropertyStatus,
+        floor: needsFloor && data.floor ? parseInt(data.floor, 10) : null,
+        developer_name: data.developer_name,
+        project: data.project,
+        project_comment: data.project_comment ?? '',
+        commercial_subtype:
+          type === 'commercial' && data.commercial_subtype
+            ? (data.commercial_subtype as CommercialSubtype)
+            : null,
+        land_number: type === 'land' && data.land_number ? data.land_number : null,
+        house_number:
+          needsHouseNumber && data.house_number ? data.house_number : null,
+      };
+
+      const property = await createMutation.mutateAsync(payload);
+
       for (let i = 0; i < photos.length; i++) {
         try {
           await propertiesService.addImage(property.id, {
@@ -186,8 +207,11 @@ export default function CreatePropertyPage() {
       }
       toast.success('Объект успешно создан');
       router.push('/properties');
-    } catch {
-      toast.error('Ошибка при создании объекта');
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string | string[] } } })
+        ?.response?.data?.detail;
+      const text = Array.isArray(detail) ? detail[0] : detail;
+      toast.error(text || 'Ошибка при создании объекта');
     } finally {
       setSubmitting(false);
     }
