@@ -370,6 +370,14 @@ function EditDeveloperModal({
                       inputMode='numeric'
                       maxLength={12}
                       placeholder='12 цифр'
+                      onInvalid={(e) => {
+                        e.currentTarget.setCustomValidity(
+                          'Убедитесь, что это значение ИИН содержит не более 12 символов.',
+                        );
+                      }}
+                      onInput={(e) => {
+                        e.currentTarget.setCustomValidity('');
+                      }}
                       {...form.register('innNumber', {
                         setValueAs: (v: string) => (v ?? '').replace(/\D/g, ''),
                       })}
@@ -603,6 +611,14 @@ function EditBrokerModal({
                       inputMode='numeric'
                       maxLength={12}
                       placeholder='12 цифр'
+                      onInvalid={(e) => {
+                        e.currentTarget.setCustomValidity(
+                          'Убедитесь, что это значение ИИН содержит не более 12 символов.',
+                        );
+                      }}
+                      onInput={(e) => {
+                        e.currentTarget.setCustomValidity('');
+                      }}
                       {...form.register('innNumber', {
                         setValueAs: (v: string) => (v ?? '').replace(/\D/g, ''),
                       })}

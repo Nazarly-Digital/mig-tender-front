@@ -4,7 +4,6 @@ import * as React from 'react';
 import toast from 'react-hot-toast';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  File01Icon,
   CheckmarkCircle02Icon,
   Clock01Icon,
   AlertCircleIcon,
@@ -12,7 +11,6 @@ import {
 } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
-import * as FancyButton from '@/shared/ui/fancy-button';
 import { useSettlements, useUploadDeveloperReceipt } from '@/features/payments';
 import type { Settlement } from '@/shared/types/payments';
 
@@ -49,94 +47,111 @@ function DeveloperSettlementCard({ s }: { s: Settlement }) {
   const totalPct = (parseFloat(brokerPct) + parseFloat(platformPct)).toFixed(2);
 
   return (
-    <div className='bg-white rounded-xl border border-gray-200 p-5'>
-      <div className='flex items-start justify-between gap-4'>
-        <div>
-          <h3 className='text-sm font-semibold text-gray-900'>{s.property_name}</h3>
-          <p className='text-xs text-gray-500 mt-0.5'>Аукцион #{s.auction_id} · Сделка #{s.deal_id}</p>
+    <div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
+      {/* Header */}
+      <div className='px-5 pt-4 pb-3 flex items-start justify-between gap-4'>
+        <div className='min-w-0 flex-1'>
+          <p className='text-xs text-gray-500'>
+            Аукцион #{s.auction_id} · Сделка #{s.deal_id}
+          </p>
+          <h3 className='text-sm font-semibold text-gray-900 mt-1 truncate'>
+            {s.property_name}
+          </h3>
         </div>
         {isPaid ? (
-          <span className='inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700'>
+          <span className='inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 shrink-0'>
             <HugeiconsIcon icon={CheckmarkCircle02Icon} size={12} color='currentColor' strokeWidth={2} />
             Оплачено
           </span>
         ) : hasUploaded ? (
-          <span className='inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700'>
+          <span className='inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 shrink-0'>
             <HugeiconsIcon icon={Clock01Icon} size={12} color='currentColor' strokeWidth={2} />
             На проверке
           </span>
         ) : isOverdue ? (
-          <span className='inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700'>
+          <span className='inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700 shrink-0'>
             <HugeiconsIcon icon={AlertCircleIcon} size={12} color='currentColor' strokeWidth={2} />
             Просрочено
           </span>
         ) : (
-          <span className='inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700'>
+          <span className='inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 shrink-0'>
             <HugeiconsIcon icon={Clock01Icon} size={12} color='currentColor' strokeWidth={2} />
-            Ожидает оплаты
+            Ожидает загрузки чека
           </span>
         )}
       </div>
 
-      <div className='grid grid-cols-4 gap-4 mt-4'>
-        <div>
-          <p className='text-xs text-gray-500'>Сумма сделки</p>
-          <p className='text-sm font-semibold text-gray-900 mt-0.5'>{formatPrice(s.deal_amount)}</p>
-        </div>
-        <div>
-          <p className='text-xs text-gray-500'>Брокеру ({brokerPct}%)</p>
-          <p className='text-sm font-medium text-gray-900 mt-0.5'>{formatPrice(s.broker_amount)}</p>
-        </div>
-        <div>
-          <p className='text-xs text-gray-500'>Платформе ({platformPct}%)</p>
-          <p className='text-sm font-medium text-gray-900 mt-0.5'>{formatPrice(s.platform_amount)}</p>
-        </div>
-        <div>
-          <p className='text-xs text-gray-500'>Срок оплаты</p>
-          <p className={cn('text-sm font-medium mt-0.5', isOverdue ? 'text-red-600' : 'text-gray-900')}>
-            {formatDate(s.developer_payment_deadline)}
-          </p>
-        </div>
-      </div>
+      <div className='border-t border-gray-100' />
 
-      <div className='mt-4 rounded-lg bg-blue-50/60 border border-blue-100 p-3 flex items-center justify-between'>
-        <div>
-          <p className='text-[11px] uppercase font-semibold tracking-wider text-blue-900/70'>
-            К оплате одной транзакцией ({totalPct}%)
-          </p>
-          <p className='text-xl font-bold text-blue-700 mt-0.5'>{formatPrice(String(total))}</p>
+      {/* Body */}
+      <div className='px-5 py-4'>
+        <div className='flex items-center justify-between'>
+          <p className='text-sm text-gray-500'>Сумма сделки</p>
+          <p className='text-sm font-medium text-gray-900'>{formatPrice(s.deal_amount)}</p>
         </div>
-        {!isPaid && (
-          <div>
-            <input ref={fileRef} type='file' accept='image/*,.pdf' className='hidden' onChange={handleFile} />
-            <FancyButton.Root
-              variant={hasUploaded ? 'basic' : 'primary'}
-              size='small'
-              onClick={handlePickFile}
-              disabled={upload.isPending}
+
+        <p className='text-[11px] font-semibold text-gray-400 uppercase tracking-wider mt-4'>
+          Разбивка комиссии
+        </p>
+
+        <div className='space-y-2 mt-2'>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-gray-600'>Комиссия брокера ({brokerPct}%)</p>
+            <p className='text-sm text-gray-900'>{formatPrice(s.broker_amount)}</p>
+          </div>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-gray-600'>Комиссия платформы ({platformPct}%)</p>
+            <p className='text-sm text-gray-900'>{formatPrice(s.platform_amount)}</p>
+          </div>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm text-gray-600'>Дедлайн</p>
+            <p className={cn('text-sm', isOverdue ? 'text-red-600 font-medium' : 'text-gray-900')}>
+              {formatDate(s.developer_payment_deadline)}
+            </p>
+          </div>
+          <div className='flex items-center justify-between pt-3 border-t border-gray-100'>
+            <p className='text-sm font-semibold text-gray-900'>Итого ({totalPct}%)</p>
+            <p className='text-base font-bold text-gray-900'>{formatPrice(String(total))}</p>
+          </div>
+        </div>
+
+        {hasUploaded && (
+          <div className='flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 mt-4'>
+            <HugeiconsIcon
+              icon={CheckmarkCircle02Icon}
+              size={14}
+              color='currentColor'
+              strokeWidth={2}
+              className='text-emerald-600 shrink-0'
+            />
+            <span className='text-xs text-emerald-700'>
+              {isPaid ? 'Чек подтверждён администратором' : 'Чек загружен, ожидает подтверждения админа'}
+            </span>
+            <a
+              href={s.developer_receipt!}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='ml-auto text-xs font-medium text-emerald-700 hover:text-emerald-800 shrink-0'
             >
-              <HugeiconsIcon icon={Upload01Icon} size={14} color='currentColor' strokeWidth={1.5} />
-              {upload.isPending ? 'Загрузка...' : hasUploaded ? 'Заменить чек' : 'Загрузить чек'}
-            </FancyButton.Root>
+              Скачать
+            </a>
           </div>
         )}
       </div>
 
-      {hasUploaded && (
-        <div className='mt-3 flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2'>
-          <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='text-gray-500' />
-          <span className='text-xs text-gray-600'>
-            Ваш чек (загружен {formatDate(s.developer_receipt_uploaded_at)})
-          </span>
-          <a
-            href={s.developer_receipt!}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='ml-auto text-xs font-medium text-blue-600 hover:text-blue-700'
+      {!isPaid && (
+        <>
+          <input ref={fileRef} type='file' accept='image/*,.pdf' className='hidden' onChange={handleFile} />
+          <button
+            type='button'
+            onClick={handlePickFile}
+            disabled={upload.isPending}
+            className='w-full bg-blue-600 text-white py-3 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
           >
-            Скачать
-          </a>
-        </div>
+            <HugeiconsIcon icon={Upload01Icon} size={14} color='currentColor' strokeWidth={2} />
+            {upload.isPending ? 'Загрузка...' : hasUploaded ? 'Заменить чек' : 'Загрузить чек об оплате'}
+          </button>
+        </>
       )}
     </div>
   );
@@ -152,13 +167,6 @@ export function DeveloperPaymentsView() {
     .reduce((a, s) => a + parseFloat(s.total_from_developer || '0'), 0);
   const pending = totalOwed - paid;
 
-  const cards = [
-    { label: 'Общая задолженность', value: String(totalOwed), color: 'text-gray-900' },
-    { label: 'Оплачено', value: String(paid), color: 'text-emerald-600' },
-    { label: 'К оплате', value: String(pending), color: 'text-amber-600' },
-    { label: 'Сделок', value: String(settlements.length), color: 'text-blue-600' },
-  ];
-
   return (
     <div className='w-full px-8 py-8'>
       <div>
@@ -168,18 +176,13 @@ export function DeveloperPaymentsView() {
         </p>
       </div>
 
-      <div className='grid grid-cols-4 gap-4 mt-5'>
-        {cards.map((c) => (
-          <div key={c.label} className='bg-gray-50 rounded-xl border border-gray-200 p-4'>
-            <p className='text-xs text-gray-500'>{c.label}</p>
-            <p className={cn('text-2xl font-bold tracking-tight mt-1', c.color)}>
-              {c.label === 'Сделок' ? c.value : `${formatPrice(c.value)}`}
-            </p>
-          </div>
-        ))}
+      <div className='relative bg-white rounded-xl border border-gray-200 p-5 mt-5 overflow-hidden w-full max-w-full lg:min-w-[225px] lg:max-w-[300px]'>
+        <span className='absolute left-0 top-0 bottom-0 w-1 bg-red-500' />
+        <p className='text-xs text-gray-500'>К перечислению</p>
+        <p className='text-2xl font-bold text-gray-900 tracking-tight mt-1'>{formatPrice(String(pending))}</p>
       </div>
 
-      <div className='space-y-4 mt-6'>
+      <div className='mt-5'>
         {isLoading ? (
           <div className='flex justify-center py-16'>
             <p className='text-sm text-gray-400'>Загрузка...</p>
@@ -190,7 +193,9 @@ export function DeveloperPaymentsView() {
             <p className='text-xs text-gray-400 mt-1'>Платежи появятся после подтверждения сделок</p>
           </div>
         ) : (
-          settlements.map((s) => <DeveloperSettlementCard key={s.id} s={s} />)
+          <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 items-start'>
+            {settlements.map((s) => <DeveloperSettlementCard key={s.id} s={s} />)}
+          </div>
         )}
       </div>
     </div>

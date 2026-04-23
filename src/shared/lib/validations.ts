@@ -232,7 +232,18 @@ export const adminCreateDeveloperSchema = z
       .min(1, 'Введите ИНН'),
     phoneNumber: z
       .string()
-      .min(1, 'Введите номер телефона'),
+      .min(1, 'Введите номер телефона')
+      .regex(
+        /^[\d+\s\-()]+$/,
+        'Номер может содержать только цифры и символы +, -, (, ), пробел',
+      )
+      .refine(
+        (v) => {
+          const digits = v.replace(/\D/g, '');
+          return digits.length >= 7 && digits.length <= 15;
+        },
+        { message: 'Номер телефона должен содержать от 7 до 15 цифр' },
+      ),
     innDocument: requiredFile,
     passportDocument: requiredFile,
     password: z
@@ -298,32 +309,77 @@ export type AdminUpdateBrokerFormData = z.infer<typeof adminUpdateBrokerSchema>;
 
 // === Properties ===
 
+// Upper bounds to catch clearly-bogus values (Infinity, overflow) without
+// rejecting realistic data. Generous by design.
+const MAX_AREA = 10_000_000;
+const MAX_PRICE = 1_000_000_000_000;
+const MAX_FLOOR = 250;
+const MAX_COMMISSION_RATE = 100;
+
+const isFiniteInRange = (v: string, lo: number, hi: number, inclusiveLo = false): boolean => {
+  const n = parseFloat(v);
+  if (!Number.isFinite(n)) return false;
+  return inclusiveLo ? n >= lo && n <= hi : n > lo && n < hi;
+};
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 export const propertySchema = z.object({
   type: z.string().min(1, 'Выберите тип'),
-  address: z.string().min(1, 'Введите адрес'),
+  address: z
+    .string()
+    .trim()
+    .min(1, 'Введите адрес')
+    .max(500, 'Слишком длинно'),
   area: z
     .string()
     .min(1, 'Введите площадь')
-    .refine((v) => parseFloat(v) > 0, 'Площадь должна быть больше 0'),
+    .refine((v) => parseFloat(v) > 0, 'Площадь должна быть больше 0')
+    .refine((v) => isFiniteInRange(v, 0, MAX_AREA), 'Некорректное значение'),
   property_class: z.string().optional(),
   price: z
     .string()
     .min(1, 'Введите цену')
-    .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
+    .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0')
+    .refine((v) => isFiniteInRange(v, 0, MAX_PRICE), 'Некорректное значение'),
   currency: z.string().min(1),
-  deadline: z.string().optional(),
-  commission_rate: z.string().min(1, 'Укажите комиссию брокера').refine(
-    (v) => parseFloat(v) >= 0,
-    'Комиссия должна быть >= 0',
-  ),
+  deadline: z
+    .string()
+    .optional()
+    .refine((v) => !v || ISO_DATE_RE.test(v), 'Неверная дата'),
+  commission_rate: z
+    .string()
+    .min(1, 'Укажите комиссию брокера')
+    .refine((v) => parseFloat(v) >= 0, 'Комиссия должна быть >= 0')
+    .refine(
+      (v) => isFiniteInRange(v, 0, MAX_COMMISSION_RATE, true),
+      'Комиссия не может превышать 100%',
+    ),
   status: z.string().min(1, 'Выберите статус'),
   floor: z.string().optional(),
-  developer_name: z.string().min(1, 'Введите название застройщика'),
-  project: z.string().min(1, 'Введите название проекта'),
-  project_comment: z.string().optional(),
+  developer_name: z
+    .string()
+    .trim()
+    .min(1, 'Введите название застройщика')
+    .max(200, 'Слишком длинно'),
+  project: z
+    .string()
+    .trim()
+    .min(1, 'Введите название проекта')
+    .max(200, 'Слишком длинно'),
+  project_comment: z
+    .string()
+    .max(2000, 'Слишком длинный комментарий')
+    .optional(),
   commercial_subtype: z.string().optional(),
-  land_number: z.string().optional(),
-  house_number: z.string().optional(),
+  land_number: z
+    .string()
+    .max(32, 'Слишком длинно')
+    .optional(),
+  house_number: z
+    .string()
+    .max(32, 'Слишком длинно')
+    .optional(),
 }).refine(
   (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),
   { message: 'Выберите класс', path: ['property_class'] },
@@ -337,7 +393,8 @@ export const propertySchema = z.object({
   (data) => {
     if (data.type !== 'apartment' && data.type !== 'commercial') return true;
     if (!data.floor || !data.floor.trim()) return false;
-    return parseInt(data.floor) > 0;
+    const n = parseInt(data.floor, 10);
+    return Number.isInteger(n) && n > 0 && n <= MAX_FLOOR;
   },
   { message: 'Укажите этаж', path: ['floor'] },
 ).refine(

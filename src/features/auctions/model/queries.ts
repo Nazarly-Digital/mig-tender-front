@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { auctionsService } from "@/entities/auctions";
 import { propertyKeys } from "@/features/properties";
 import { dealKeys } from "@/features/deals";
-import { useSessionStore } from "@/entities/auth/model/store";
+import { useSessionStore, isUserBroker } from "@/entities/auth/model/store";
 import type {
   AuctionListParams,
   AuctionCreateRequest,
@@ -18,6 +18,8 @@ export const auctionKeys = {
   all: ["auctions"] as const,
   my: (params?: AuctionListParams) =>
     [...auctionKeys.all, "my", params] as const,
+  participated: (params?: AuctionListParams) =>
+    [...auctionKeys.all, "participated", params] as const,
   lists: () => [...auctionKeys.all, "list"] as const,
   list: (params?: AuctionListParams) =>
     [...auctionKeys.lists(), params] as const,
@@ -50,6 +52,19 @@ export function useAuctions(
     queryKey: auctionKeys.list(params),
     queryFn: () => auctionsService.getAll(params).then((res) => res.data),
     enabled: options?.enabled ?? true,
+  });
+}
+
+// Broker-only: auctions in which the current broker has placed bids.
+// Backend: GET /auctions/participated/ — returns 403 for developers, 401 unauthenticated.
+export function useParticipatedAuctions(params?: AuctionListParams) {
+  const isBroker = useSessionStore((s) => isUserBroker(s.user));
+
+  return useQuery({
+    queryKey: auctionKeys.participated(params),
+    queryFn: () =>
+      auctionsService.getParticipated(params).then((res) => res.data),
+    enabled: isBroker,
   });
 }
 

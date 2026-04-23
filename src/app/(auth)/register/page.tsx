@@ -101,7 +101,7 @@ export default function PageRegister() {
   return (
     <>
     <div className='w-full max-w-[472px] px-4'>
-      <div className='flex w-full flex-col gap-6 rounded-20 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
+      <div className='mt-8 flex w-full flex-col gap-6 rounded-20 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
         <div className='flex flex-col items-center gap-2'>
           <div
             className={cn(
@@ -411,7 +411,7 @@ export default function PageRegister() {
         )}
       </div>
 
-      <div className='mt-6 flex items-center justify-center gap-1.5'>
+      <div className='mb-8 mt-6 flex items-center justify-center gap-1.5'>
         <span className='text-sm text-gray-500'>Уже есть аккаунт?</span>
         <LinkButton.Root variant='primary' size='medium' underline asChild>
           <Link href='/login'>Войти</Link>

@@ -55,11 +55,12 @@ type NavigationLink = {
 export const navigationLinks: NavigationLink[] = [
   { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
   { icon: Award01Icon, label: 'Аукционы', developerLabel: 'Мои аукционы', href: '/auctions' },
+  { icon: PlusSignSquareIcon, label: 'Создать аукцион', href: '/auctions/create', developerOnly: true },
   { icon: CatalogueIcon, label: 'Каталог объектов', href: '/objects', brokerOnly: true },
   { icon: Building03Icon, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: PlusSignSquareIcon, label: 'Создать объект', href: '/properties/create', developerOnly: true },
   { icon: Coins01Icon, label: 'Сделки', developerLabel: 'Фиксация сделки', href: '/deals' },
-  { icon: Wallet01Icon, label: 'Выплаты / история', developerLabel: 'Выплаты брокерам', href: '/payments' },
+  { icon: Wallet01Icon, label: 'Выплаты / история', developerLabel: 'Выплаты', href: '/payments' },
   { icon: File01Icon, label: 'Документы', href: '/documents' },
   { icon: UserIcon, label: 'Пользователи', href: '/admin/users', adminOnly: true },
   { icon: SecurityCheckIcon, label: 'Модерация', href: '/admin/properties', adminOnly: true },
@@ -100,7 +101,11 @@ export default function Sidebar() {
     ? [user.first_name?.[0], user.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'
     : '?';
 
-  const roleLabel = isAdmin ? 'Администратор' : isDeveloper ? 'Застройщик' : 'Брокер';
+  const roleLabel = isAdmin
+    ? 'Администратор'
+    : isDeveloper
+      ? (user?.developer?.company_name || 'Застройщик')
+      : 'Брокер';
 
   const verificationStatus = user?.broker?.verification_status;
   const statusLabel = verificationStatus === 'accepted'

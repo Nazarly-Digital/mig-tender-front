@@ -14,7 +14,6 @@ import {
 } from '@hugeicons/core-free-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { cn } from '@/shared/lib/cn';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
@@ -35,9 +34,10 @@ import type {
   PropertyClass,
   PropertyStatus,
   CommercialSubtype,
+  PropertyCreateRequest,
 } from '@/shared/types/properties';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
-import { clampDateInputYear, enforceNotPastYearOnBlur } from '@/shared/lib/date';
+import { DatePicker } from '@/shared/ui/date-picker';
 
 export default function CreatePropertyPage() {
   const router = useRouter();
@@ -124,21 +124,13 @@ export default function CreatePropertyPage() {
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleMakePrimary = (index: number) => {
-    if (index === 0) return;
-    setPhotos((prev) => {
-      const next = [...prev];
-      const [item] = next.splice(index, 1);
-      next.unshift(item);
-      return next;
-    });
-    setPreviews((prev) => {
-      const next = [...prev];
-      const [item] = next.splice(index, 1);
-      next.unshift(item);
-      return next;
-    });
-  };
+  // Revoke any remaining blob URLs on unmount to prevent memory leaks when
+  // the user navigates away without submitting.
+  const previewsRef = React.useRef(previews);
+  previewsRef.current = previews;
+  React.useEffect(() => () => {
+    previewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
 
   const handleDragStart = (index: number) => {
     dragIndex.current = index;
@@ -171,9 +163,37 @@ export default function CreatePropertyPage() {
   const onSubmit = async (data: PropertyFormData) => {
     setSubmitting(true);
     try {
-      const property = await createMutation.mutateAsync(
-        { ...data, type: data.type as PropertyType, property_class: data.property_class ? data.property_class as PropertyClass : null, status: data.status as PropertyStatus, deadline: data.deadline || null, commission_rate: data.commission_rate || null, floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null, developer_name: data.developer_name, project: data.project, project_comment: data.project_comment ?? '', commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null, land_number: data.type === 'land' && data.land_number ? data.land_number : null, house_number: (data.type === 'house' || data.type === 'townhouse') && data.house_number ? data.house_number : null } as any,
-      );
+      const type = data.type as PropertyType;
+      const needsFloor = type === 'apartment' || type === 'commercial';
+      const needsHouseNumber = type === 'house' || type === 'townhouse';
+
+      const payload: PropertyCreateRequest = {
+        type,
+        address: data.address,
+        area: data.area,
+        property_class: data.property_class
+          ? (data.property_class as PropertyClass)
+          : null,
+        price: data.price,
+        currency: data.currency,
+        deadline: data.deadline || null,
+        commission_rate: data.commission_rate || null,
+        status: data.status as PropertyStatus,
+        floor: needsFloor && data.floor ? parseInt(data.floor, 10) : null,
+        developer_name: data.developer_name,
+        project: data.project,
+        project_comment: data.project_comment ?? '',
+        commercial_subtype:
+          type === 'commercial' && data.commercial_subtype
+            ? (data.commercial_subtype as CommercialSubtype)
+            : null,
+        land_number: type === 'land' && data.land_number ? data.land_number : null,
+        house_number:
+          needsHouseNumber && data.house_number ? data.house_number : null,
+      };
+
+      const property = await createMutation.mutateAsync(payload);
+
       for (let i = 0; i < photos.length; i++) {
         try {
           await propertiesService.addImage(property.id, {
@@ -187,8 +207,11 @@ export default function CreatePropertyPage() {
       }
       toast.success('Объект успешно создан');
       router.push('/properties');
-    } catch {
-      toast.error('Ошибка при создании объекта');
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string | string[] } } })
+        ?.response?.data?.detail;
+      const text = Array.isArray(detail) ? detail[0] : detail;
+      toast.error(text || 'Ошибка при создании объекта');
     } finally {
       setSubmitting(false);
     }
@@ -302,7 +325,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-project'>Название проекта <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.project}>
                     <Input.Wrapper>
-                      <Input.Input id='property-project' type='text' placeholder='Название проекта или ЖК' {...register('project')} />
+                      <Input.Input id='property-project' type='text' placeholder='Название проекта' {...register('project')} />
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.project && <p className='text-xs text-red-500'>{errors.project.message}</p>}
@@ -339,7 +362,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-land-number'>Номер участка <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.land_number}>
                     <Input.Wrapper>
-                      <Input.Input id='property-land-number' type='text' placeholder='Например, 12А' {...register('land_number')} />
+                      <Input.Input id='property-land-number' type='text' placeholder='12А' {...register('land_number')} />
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.land_number && <p className='text-xs text-red-500'>{errors.land_number.message}</p>}
@@ -350,7 +373,7 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-house-number'>Номер дома <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.house_number}>
                     <Input.Wrapper>
-                      <Input.Input id='property-house-number' type='text' placeholder='Например, 15' {...register('house_number')} />
+                      <Input.Input id='property-house-number' type='text' placeholder='15' {...register('house_number')} />
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.house_number && <p className='text-xs text-red-500'>{errors.house_number.message}</p>}
@@ -369,25 +392,26 @@ export default function CreatePropertyPage() {
                 </div>
                 <div className='space-y-1.5'>
                   <Label.Root htmlFor='property-deadline'>Срок сдачи</Label.Root>
-                  <Input.Root>
-                    <Input.Wrapper>
-                      <Input.Input
+                  <Controller
+                    name='deadline'
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
                         id='property-deadline'
-                        type='date'
-                        min={new Date().toISOString().split('T')[0]}
-                        max='9999-12-31'
-                        onInput={clampDateInputYear}
-                        {...register('deadline', { onBlur: enforceNotPastYearOnBlur })}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        min={new Date()}
                       />
-                    </Input.Wrapper>
-                  </Input.Root>
+                    )}
+                  />
                   <Hint.Root>Если неизвестен — пусто</Hint.Root>
                 </div>
                 <div className='space-y-1.5'>
                   <Label.Root htmlFor='property-commission'>Комиссия брокера (%) <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.commission_rate}>
                     <Input.Wrapper>
-                      <Input.Input id='property-commission' type='number' step='0.01' min='0' placeholder='5' {...register('commission_rate')} />
+                      <Input.Input id='property-commission' type='number' step='0.01' min='0' placeholder='3' {...register('commission_rate')} />
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.commission_rate && (
@@ -422,7 +446,7 @@ export default function CreatePropertyPage() {
                       <span className='truncate text-xs text-gray-500'>#{i + 1}</span>
                       {i === 0 && (
                         <span className='inline-flex w-fit items-center rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700'>
-                          Главное
+                          Главная
                         </span>
                       )}
                     </div>
@@ -475,7 +499,7 @@ export default function CreatePropertyPage() {
               className='hidden'
               onChange={(e) => handleAddPhotos(e.target.files)}
             />
-            <p className='text-[11px] text-gray-400'>Перетащите для порядка. Первое — главное. JPG, PNG, WebP.</p>
+            <p className='text-[11px] text-gray-400'>Перетащите для порядка. Первая фотография – главная</p>
           </div>
         </div>
 

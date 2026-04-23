@@ -153,59 +153,87 @@ function PropertyCard({
   const badgeStyle = STATUS_BADGE_STYLES[property.status] || STATUS_BADGE_STYLES.draft;
 
   return (
-    <Link
-      href={`/properties/${property.id}`}
-      className='group block overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'
-    >
-      {/* Image with overlays */}
-      <div className='relative'>
-        <PropertyImageCarousel images={property.images} />
-        {/* Type/Class badges on photo */}
-        <div className='absolute left-3 top-3 flex gap-1.5'>
-          <span className='rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 backdrop-blur-sm shadow-sm'>
-            {TYPE_LABELS[property.type]}
-          </span>
-          {property.type !== 'land' && (
-          <span className='rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 backdrop-blur-sm shadow-sm'>
-            {CLASS_LABELS[property.property_class]}
-          </span>
-          )}
-        </div>
-        {/* Price overlay */}
-        <div className='absolute left-3 bottom-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-[13px] font-bold text-white backdrop-blur-sm'>
-          {formatPrice(property.price, property.currency)}
-        </div>
-        {/* Delete on hover */}
-        <div className='absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity'>
-          <button
-            type='button'
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(property); }}
-            className='size-7 rounded-md bg-white/80  flex items-center justify-center text-gray-600 backdrop-blur-sm hover:bg-white hover:text-red-500 transition-colors'
-          >
-            <HugeiconsIcon icon={Delete01Icon} size={14} />
-          </button>
-        </div>
+    <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden transition-all duration-150 hover:border-blue-200 hover:shadow-sm relative'>
+      {/* Delete on hover — positioned on image */}
+      <div className='absolute right-3 top-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity'>
+        <button
+          type='button'
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(property); }}
+          className='size-7 rounded-md bg-white/90 flex items-center justify-center text-gray-600 backdrop-blur-sm hover:bg-white hover:text-red-500 transition-colors shadow-sm'
+        >
+          <HugeiconsIcon icon={Delete01Icon} size={14} />
+        </button>
       </div>
-      {/* Footer */}
-      <div className='px-4 py-3'>
-        <div className='flex items-center justify-between'>
-          <h3 className='text-[14px] font-semibold text-gray-900 truncate'>{property.address}</h3>
-          <div className='flex items-center gap-1.5 shrink-0 ml-2'>
+
+      <Link href={`/properties/${property.id}`} className='block'>
+        {/* Carousel with type/class overlay */}
+        <div className='relative'>
+          <PropertyImageCarousel images={property.images} />
+          {/* Type + class pills overlaid on image */}
+          <div className='absolute left-3 top-3 flex items-center gap-1.5 flex-wrap'>
+            <span className='rounded-lg bg-white/90 px-2 py-0.5 text-[11px] font-medium text-gray-700 backdrop-blur-sm shadow-sm'>
+              {TYPE_LABELS[property.type]}
+            </span>
+            {property.type !== 'land' && (
+              <span className='rounded-lg bg-white/90 px-2 py-0.5 text-[11px] font-medium text-gray-700 backdrop-blur-sm shadow-sm'>
+                {CLASS_LABELS[property.property_class]}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className='p-5'>
+          {/* Header — address */}
+          <div className='min-w-0'>
+            <div className='text-[14px] font-medium text-gray-900 truncate'>
+              {property.address}
+            </div>
+          </div>
+
+          {/* Status + moderation badges */}
+          <div className='mt-3 flex items-center gap-2 flex-wrap'>
+            <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', badgeStyle)}>
+              {STATUS_LABELS[property.status]}
+            </span>
             {property.moderation_status && (
-              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', MODERATION_STYLES[property.moderation_status])}>
+              <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', MODERATION_STYLES[property.moderation_status])}>
                 {MODERATION_LABELS[property.moderation_status]}
               </span>
             )}
-            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', badgeStyle)}>
-              {STATUS_LABELS[property.status]}
-            </span>
+          </div>
+
+          {/* Details grid */}
+          <div className='mt-4 pt-4 border-t border-blue-50 grid grid-cols-2 gap-x-4 gap-y-3'>
+            <div>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</div>
+              <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                {property.price == null ? 'Скрыта' : formatPrice(property.price, property.currency)}
+              </div>
+            </div>
+            <div>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</div>
+              <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                {property.area} {property.type === 'land' ? 'соток' : 'м²'}
+              </div>
+            </div>
+            {property.deadline && (
+              <div>
+                <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Срок сдачи</div>
+                <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                  {formatDate(property.deadline)}
+                </div>
+              </div>
+            )}
+            <div>
+              <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Создан</div>
+              <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                {formatDate(property.created_at)}
+              </div>
+            </div>
           </div>
         </div>
-        <span className='mt-1 block text-[12px] text-gray-400'>
-          {property.area} {property.type === 'land' ? 'соток' : 'м²'} · до {formatDate(property.deadline)}
-        </span>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
 

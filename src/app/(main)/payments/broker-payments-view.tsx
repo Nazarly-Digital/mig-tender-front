@@ -99,14 +99,14 @@ export function BrokerPaymentsView() {
 
   const cards = [
     {
-      label: 'Ожидает выплаты',
-      value: String(pending),
-      valueColor: 'text-amber-600',
-    },
-    {
       label: 'Выплачено',
       value: String(paid),
       valueColor: 'text-emerald-600',
+    },
+    {
+      label: 'Ожидает выплаты',
+      value: String(pending),
+      valueColor: 'text-amber-600',
     },
   ];
 

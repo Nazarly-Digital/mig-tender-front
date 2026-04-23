@@ -31,7 +31,7 @@ import {
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
-import { clampDateInputYear, enforceNotPastYearOnBlur } from '@/shared/lib/date';
+import { DatePicker } from '@/shared/ui/date-picker';
 import { AreaField, PriceField } from '@/shared/components/property-fields';
 import {
   useProperty,
@@ -303,7 +303,7 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
                 <span className='truncate text-xs text-gray-500'>#{idx + 1}</span>
                 {img.is_primary && (
                   <span className='inline-flex w-fit items-center gap-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700'>
-                    Главное
+                    Главная
                   </span>
                 )}
               </div>
@@ -524,10 +524,10 @@ function PropertyEditForm({
           </Input.Root>
         </div>
         <div className='space-y-1.5'>
-          <Label.Root htmlFor='p-project'>Проект (ЖК) <Label.Asterisk /></Label.Root>
+          <Label.Root htmlFor='p-project'>Название проекта <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.project}>
             <Input.Wrapper>
-              <Input.Input id='p-project' type='text' placeholder='Название проекта или ЖК' {...register('project')} />
+              <Input.Input id='p-project' type='text' placeholder='Название проекта' {...register('project')} />
             </Input.Wrapper>
           </Input.Root>
           {errors.project && <p className='text-[11px] text-red-500'>{errors.project.message}</p>}
@@ -592,7 +592,7 @@ function PropertyEditForm({
           <Label.Root htmlFor='p-land-number'>Номер участка <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.land_number}>
             <Input.Wrapper>
-              <Input.Input id='p-land-number' type='text' placeholder='Например, 12А' {...register('land_number')} />
+              <Input.Input id='p-land-number' type='text' placeholder='12А' {...register('land_number')} />
             </Input.Wrapper>
           </Input.Root>
           {errors.land_number && <p className='text-[11px] text-red-500'>{errors.land_number.message}</p>}
@@ -605,7 +605,7 @@ function PropertyEditForm({
           <Label.Root htmlFor='p-house-number'>Номер дома <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.house_number}>
             <Input.Wrapper>
-              <Input.Input id='p-house-number' type='text' placeholder='Например, 15' {...register('house_number')} />
+              <Input.Input id='p-house-number' type='text' placeholder='15' {...register('house_number')} />
             </Input.Wrapper>
           </Input.Root>
           {errors.house_number && <p className='text-[11px] text-red-500'>{errors.house_number.message}</p>}
@@ -623,7 +623,7 @@ function PropertyEditForm({
           <Label.Root htmlFor='p-commission'>Комиссия брокера (%) <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.commission_rate}>
             <Input.Wrapper>
-              <Input.Input id='p-commission' type='number' step='0.01' min='0' placeholder='Например, 5' {...register('commission_rate')} />
+              <Input.Input id='p-commission' type='number' step='0.01' min='0' placeholder='Например, 3' {...register('commission_rate')} />
             </Input.Wrapper>
           </Input.Root>
           {errors.commission_rate && <p className='text-[11px] text-red-500'>{errors.commission_rate.message}</p>}
@@ -634,18 +634,20 @@ function PropertyEditForm({
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
           <Label.Root htmlFor='p-deadline'>Срок сдачи</Label.Root>
-          <Input.Root size='small'>
-            <Input.Wrapper>
-              <Input.Input
+          <Controller
+            name='deadline'
+            control={control}
+            render={({ field }) => (
+              <DatePicker
                 id='p-deadline'
-                type='date'
-                min={new Date().toISOString().split('T')[0]}
-                max='9999-12-31'
-                onInput={clampDateInputYear}
-                {...register('deadline', { onBlur: enforceNotPastYearOnBlur })}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                min={new Date()}
+                size='small'
               />
-            </Input.Wrapper>
-          </Input.Root>
+            )}
+          />
         </div>
         <div className='space-y-1.5'>
           <Label.Root htmlFor='p-status'>Статус</Label.Root>
@@ -830,38 +832,57 @@ export default function PropertyDetailPage() {
         )}
       </div>
 
-      {/* Main Grid */}
-      <div className='grid grid-cols-1 gap-4 xl:grid-cols-3'>
-        {/* Left 2/3 */}
-        <div className='space-y-4 xl:col-span-2'>
-          <ImagesGallery images={property.images} />
-
-          {/* Edit Form */}
-          <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-6'>
-            <h3 className='mb-5 flex items-center gap-2 text-[14px] font-semibold text-gray-900'>
-              <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-              Редактировать объект
-            </h3>
-            {property.is_editable === false ? (
-              <p className='text-sm text-amber-600 font-medium'>Редактирование этого объекта недоступно. Объект привязан к аукциону.</p>
-            ) : (
-              <PropertyEditForm
-                property={property}
-                onSubmit={onSubmit}
-                isSubmitting={updateMutation.isPending}
-              />
-            )}
-          </div>
+      {/* Main Grid — at xl: 2 cols (55/45, info under gallery); at 2xl+: 3 cols (55/30/15) */}
+      <div className='grid grid-cols-1 items-start gap-4 xl:grid-cols-[55fr_45fr] 2xl:grid-cols-[55fr_30fr_15fr]'>
+        {/* Edit Form (left, 55%) */}
+        <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-6'>
+          <h3 className='mb-5 flex items-center gap-2 text-[14px] font-semibold text-gray-900'>
+            <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+            Редактировать объект
+          </h3>
+          {property.is_editable === false ? (
+            <p className='text-sm text-amber-600 font-medium'>Редактирование этого объекта недоступно. Объект привязан к аукциону.</p>
+          ) : (
+            <PropertyEditForm
+              property={property}
+              onSubmit={onSubmit}
+              isSubmitting={updateMutation.isPending}
+            />
+          )}
         </div>
 
-        {/* Right 1/3 */}
+        {/* Center column: gallery + photos upload + Info (Info here only at xl, not 2xl+) */}
         <div className='space-y-4'>
+          <ImagesGallery images={property.images} />
+
           {/* Image Upload */}
           <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Фотографии</h3>
             <ImageUploadSection propertyId={property.id} />
           </div>
 
+          {/* Metadata — shown here below photos on < 2xl; hidden on 2xl+ where it moves to right column */}
+          <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5 2xl:hidden'>
+            <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Информация</h3>
+            <div className='space-y-3'>
+              <div>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Срок сдачи</span>
+                <span className='mt-0.5 block text-[13px] font-medium text-gray-900'>{formatDate(property.deadline)}</span>
+              </div>
+              <div>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Создан</span>
+                <span className='mt-0.5 block text-[13px] font-medium text-gray-900'>{formatDateTime(property.created_at)}</span>
+              </div>
+              <div>
+                <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Обновлён</span>
+                <span className='mt-0.5 block text-[13px] font-medium text-gray-900'>{formatDateTime(property.updated_at)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right — Info only (15%, only at 2xl+) */}
+        <div className='hidden 2xl:block'>
           {/* Metadata */}
           <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Информация</h3>

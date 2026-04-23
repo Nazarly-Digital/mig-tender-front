@@ -79,7 +79,7 @@ function AdminDealCard({ deal }: { deal: Deal }) {
           </p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">Комиссия платформы</p>
+          <p className="text-xs text-gray-500">Прибыль платформы</p>
           <p className="text-sm font-semibold text-gray-900 mt-0.5">
             {deal.platform_commission_amount ? formatPrice(deal.platform_commission_amount) : '—'}
             {deal.platform_commission_rate && <span className="text-xs text-gray-400 ml-1">({deal.platform_commission_rate}%)</span>}

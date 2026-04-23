@@ -28,6 +28,9 @@ export const auctionsService = {
   getAll: (params?: AuctionListParams) =>
     apiInstance.get<PaginatedResponse<Auction>>("/auctions/", { params }),
 
+  getParticipated: (params?: AuctionListParams) =>
+    apiInstance.get<PaginatedResponse<Auction>>("/auctions/participated/", { params }),
+
   getById: (id: number) =>
     apiInstance.get<AuctionDetail>(`/auctions/${id}/`),
 

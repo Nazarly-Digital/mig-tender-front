@@ -276,7 +276,7 @@ export default function NewDeveloperPage() {
                     id='nd-innNumber'
                     type='text'
                     inputMode='numeric'
-                    placeholder='Например, 7707083893'
+                    placeholder='7707083893'
                     {...register('innNumber')}
                   />
                 </Input.Wrapper>
@@ -289,16 +289,30 @@ export default function NewDeveloperPage() {
               <Label.Root htmlFor='nd-phoneNumber'>
                 Телефон <Label.Asterisk />
               </Label.Root>
-              <Input.Root hasError={!!errors.phoneNumber}>
-                <Input.Wrapper>
-                  <Input.Input
-                    id='nd-phoneNumber'
-                    type='tel'
-                    placeholder='+7 (999) 000-00-00'
-                    {...register('phoneNumber')}
-                  />
-                </Input.Wrapper>
-              </Input.Root>
+              <Controller
+                name='phoneNumber'
+                control={control}
+                render={({ field }) => (
+                  <Input.Root hasError={!!errors.phoneNumber}>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='nd-phoneNumber'
+                        type='tel'
+                        inputMode='tel'
+                        autoComplete='tel'
+                        placeholder='+7 (999) 000-00-00'
+                        value={field.value ?? ''}
+                        onChange={(e) =>
+                          field.onChange(e.target.value.replace(/[^\d+\s\-()]/g, ''))
+                        }
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                )}
+              />
               {errors.phoneNumber && (
                 <p className='text-xs text-red-500'>{errors.phoneNumber.message}</p>
               )}

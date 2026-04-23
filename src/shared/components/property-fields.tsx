@@ -47,7 +47,7 @@ export function PriceField({ control, id = 'property-price', hasError, size }: F
               id={id}
               type='text'
               inputMode='decimal'
-              placeholder='150 000'
+              placeholder='15 000 000'
               value={formatPriceInput(field.value)}
               onChange={(e) => field.onChange(limitDecimal(stripPriceFormat(e.target.value)))}
               onBlur={field.onBlur}

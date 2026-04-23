@@ -8,7 +8,6 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Award01Icon,
   Clock01Icon,
-  UserIcon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
   ChampionIcon,
@@ -37,10 +36,9 @@ import {
   useCancelAuction,
   useConfirmResult,
   useRejectResult,
-  useDeclineResult,
 } from '@/features/auctions';
 import { useQueryClient } from '@tanstack/react-query';
-import { dealKeys, useDeals } from '@/features/deals';
+import { dealKeys } from '@/features/deals';
 import { useProperty } from '@/features/properties';
 import { useAuctionDocumentRequests } from '@/features/document-requests';
 import {
@@ -613,32 +611,6 @@ export default function AuctionDetailPage() {
   const shortlist = useShortlist();
   const confirmResult = useConfirmResult();
   const rejectResult = useRejectResult();
-  const declineResult = useDeclineResult();
-
-  // Deal tied to this auction — needed to know if /decline-result/ is still allowed.
-  // Backend blocks decline once the deal has moved past pending_documents.
-  // Only owner/admin on a finished auction with winner_bid needs this.
-  const needsDealLookup = auction != null
-    && isOwnerOrAdmin
-    && auction.status === 'finished'
-    && !!auction.winner_bid;
-  const { data: relatedDealsPage } = useDeals(
-    { auction_id: auctionId, page_size: 20 },
-    { enabled: needsDealLookup },
-  );
-  // Pick the most recent deal for this auction (declined ones are keptin history, we want the active one).
-  const currentDeal = React.useMemo(() => {
-    const list = relatedDealsPage?.results ?? [];
-    if (list.length === 0) return null;
-    const active = list.find((d) => d.status !== 'declined' && d.status !== 'failed');
-    if (active) return active;
-    return [...list].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0] ?? null;
-  }, [relatedDealsPage]);
-  // Decline is allowed if there's no deal yet OR the existing deal is still at pending_documents.
-  const canDecline = !currentDeal || currentDeal.status === 'pending_documents';
-  const declineBlockedReason = !canDecline && currentDeal
-    ? 'Сделка уже на следующем этапе — используйте отклонение на карточке сделки'
-    : null;
 
   // Document requests: visible to owner/admin (all) or broker (their own).
   const documentRequestsEnabled = auction != null && (isOwnerOrAdmin || isBroker);
@@ -661,8 +633,6 @@ export default function AuctionDetailPage() {
   const [cancelConfirmOpen, setCancelConfirmOpen] = React.useState(false);
   const [rejectModalOpen, setRejectModalOpen] = React.useState(false);
   const [rejectReason, setRejectReason] = React.useState('');
-  const [declineModalOpen, setDeclineModalOpen] = React.useState(false);
-  const [declineReason, setDeclineReason] = React.useState('');
   const [shortlistIds, setShortlistIds] = React.useState<Set<number>>(
     new Set(),
   );
@@ -1151,7 +1121,7 @@ export default function AuctionDetailPage() {
 
             {/* Owner decision panel */}
             {isFinished && isOwnerOrAdmin && auction.owner_decision === 'pending' && auction.winner_bid && !auction.has_failed_deal && (
-              <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50/60 p-4 space-y-3'>
+              <div className='mt-4 rounded-lg border border-gray-200 bg-white p-4 space-y-3'>
                 <div>
                   <p className='text-sm font-semibold text-gray-900'>Требуется ваше решение</p>
                   <p className='text-xs text-gray-500 mt-1'>Подтвердите результат для создания сделки или отклоните с указанием причины.</p>
@@ -1175,22 +1145,6 @@ export default function AuctionDetailPage() {
                     <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color='currentColor' strokeWidth={1.5} />
                     {confirmResult.isPending ? 'Подтверждение...' : 'Подтвердить результат'}
                   </FancyButton.Root>
-                  <div className='relative group'>
-                    <button
-                      type='button'
-                      onClick={() => setDeclineModalOpen(true)}
-                      disabled={!canDecline || declineResult.isPending}
-                      className='inline-flex h-9 items-center gap-2 rounded-lg bg-amber-500 px-3 text-sm font-medium text-white shadow-[0_1px_2px_0_rgba(14,18,27,0.24),0_0_0_1px_#d97706] transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none'
-                    >
-                      <HugeiconsIcon icon={ChampionIcon} size={16} color='currentColor' strokeWidth={1.5} />
-                      Отказаться от кандидата
-                    </button>
-                    {declineBlockedReason && (
-                      <div className='pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs text-white group-hover:block'>
-                        {declineBlockedReason}
-                      </div>
-                    )}
-                  </div>
                   <FancyButton.Root
                     variant='destructive'
                     size='small'
@@ -1396,35 +1350,47 @@ export default function AuctionDetailPage() {
           {/* Participants — owner/admin only (hidden for brokers in both open and closed auctions) */}
           {isOwnerOrAdmin && (
             <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
-              <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
-                <HugeiconsIcon icon={UserIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Участники ({participantIds.length})
+              <h3 className='text-[14px] font-semibold text-gray-900'>
+                Участники ({participantIds.length})
               </h3>
               {participantIds.length === 0 ? (
                 <div className='py-6 text-center text-[13px] text-gray-400'>Пока нет участников</div>
               ) : (
                 <div className='mt-3 space-y-1.5'>
-                  {participantIds.map((pid) => {
-                    const detail = participantDetails.find((d) => d.id === pid);
-                    const name = detail?.name ?? `Участник #${pid}`;
-                    const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
-                    const lockStatus = getRequestLockStatusForBroker(documentRequests, pid);
-                    return (
-                      <div key={pid} className='flex items-center justify-between gap-2 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
-                        <div className='flex items-center gap-2.5 min-w-0'>
-                          <div className='size-7 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                            {initials}
+                  {(() => {
+                    const winnerId = auction.winner_bid?.broker.id ?? null;
+                    const orderedIds = winnerId != null && participantIds.includes(winnerId)
+                      ? [winnerId, ...participantIds.filter((pid) => pid !== winnerId)]
+                      : participantIds;
+                    return orderedIds.map((pid) => {
+                      const detail = participantDetails.find((d) => d.id === pid);
+                      const name = detail?.name ?? `Участник #${pid}`;
+                      const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
+                      const lockStatus = getRequestLockStatusForBroker(documentRequests, pid);
+                      const isWinner = winnerId === pid;
+                      return (
+                        <div key={pid} className='flex items-center justify-between gap-2 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
+                          <div className='flex items-center gap-2.5 min-w-0'>
+                            <div className='size-7 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                              {initials}
+                            </div>
+                            <span className='text-[13px] font-medium text-gray-900 truncate'>{name}</span>
+                            {isWinner && (
+                              <span className='shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>
+                            )}
                           </div>
-                          <span className='text-[13px] font-medium text-gray-900 truncate'>{name}</span>
+                          {isWinner && (
+                            <RequestDocumentsButton
+                              auctionId={auctionId}
+                              brokerId={pid}
+                              brokerName={name}
+                              lockStatus={lockStatus}
+                            />
+                          )}
                         </div>
-                        <RequestDocumentsButton
-                          auctionId={auctionId}
-                          brokerId={pid}
-                          brokerName={name}
-                          lockStatus={lockStatus}
-                        />
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>
@@ -1496,54 +1462,6 @@ export default function AuctionDetailPage() {
             </Modal.Close>
             <FancyButton.Root variant='destructive' size='small' onClick={handleCancel} disabled={cancelAuction.isPending}>
               {cancelAuction.isPending ? 'Отмена...' : 'Да, отменить'}
-            </FancyButton.Root>
-          </Modal.Footer>
-        </Modal.Content>
-      </Modal.Root>
-
-      {/* Decline result modal — TZ 8.5 (skip current winner, promote next candidate) */}
-      <Modal.Root open={declineModalOpen} onOpenChange={(open) => { setDeclineModalOpen(open); if (!open) setDeclineReason(''); }}>
-        <Modal.Content className='max-w-[480px]'>
-          <Modal.Header
-            title='Отказаться от текущего кандидата'
-            description='Будет подобран следующий по очереди кандидат. Если таких нет — аукцион станет несостоявшимся.'
-          />
-          <Modal.Body className='space-y-3'>
-            <textarea
-              value={declineReason}
-              onChange={(e) => setDeclineReason(e.target.value)}
-              placeholder='Причина отказа (обязательно)'
-              rows={3}
-              className='w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors resize-none'
-            />
-          </Modal.Body>
-          <Modal.Footer>
-            <Modal.Close asChild>
-              <FancyButton.Root variant='basic' size='small'>Отмена</FancyButton.Root>
-            </Modal.Close>
-            <FancyButton.Root
-              variant='primary'
-              size='small'
-              disabled={!declineReason.trim() || declineResult.isPending}
-              onClick={() => {
-                declineResult.mutate(
-                  { auctionId, data: { reason: declineReason.trim() } },
-                  {
-                    onSuccess: (data) => {
-                      if (data.auctionFailed) {
-                        toast.success('Кандидатов больше нет — аукцион несостоявшийся');
-                      } else {
-                        toast.success('Кандидат отклонён, выбран следующий');
-                      }
-                      setDeclineModalOpen(false);
-                      setDeclineReason('');
-                    },
-                    onError: (error) => toast.error(getApiError(error)),
-                  },
-                );
-              }}
-            >
-              {declineResult.isPending ? 'Отправка...' : 'Подтвердить отказ'}
             </FancyButton.Root>
           </Modal.Footer>
         </Modal.Content>
