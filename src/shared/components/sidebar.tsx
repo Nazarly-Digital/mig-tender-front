@@ -55,6 +55,7 @@ type NavigationLink = {
 export const navigationLinks: NavigationLink[] = [
   { icon: Home01Icon, label: 'Главная', href: '/dashboard' },
   { icon: Award01Icon, label: 'Аукционы', developerLabel: 'Мои аукционы', href: '/auctions' },
+  { icon: PlusSignSquareIcon, label: 'Создать аукцион', href: '/auctions/create', developerOnly: true },
   { icon: CatalogueIcon, label: 'Каталог объектов', href: '/objects', brokerOnly: true },
   { icon: Building03Icon, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: PlusSignSquareIcon, label: 'Создать объект', href: '/properties/create', developerOnly: true },

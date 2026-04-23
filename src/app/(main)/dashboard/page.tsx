@@ -15,7 +15,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import { useMyProperties, useProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { usePendingProperties } from '@/features/admin';
-import { usePaymentSummary } from '@/features/payments';
+import { useSettlements } from '@/features/payments';
 import { useSessionStore, isUserDeveloper, isUserAdmin } from '@/entities/auth/model/store';
 import {
   TYPE_LABELS,
@@ -24,7 +24,6 @@ import {
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Property } from '@/shared/types/properties';
 import type { Auction } from '@/shared/types/auctions';
-import type { BrokerPaymentSummary } from '@/shared/types/payments';
 
 function StatCard({
   label,
@@ -64,10 +63,14 @@ function StatCard({
 }
 
 function BrokerEarningsCard() {
-  const { data } = usePaymentSummary();
-  const summary = data as BrokerPaymentSummary | undefined;
-  const paid = summary?.paid ?? '0';
-  const pending = summary?.pending ?? '0';
+  const { data } = useSettlements();
+  const settlements = data ?? [];
+  const paid = settlements
+    .filter((s) => s.paid_to_broker)
+    .reduce((acc, s) => acc + parseFloat(s.broker_amount || '0'), 0);
+  const pending = settlements
+    .filter((s) => !s.paid_to_broker)
+    .reduce((acc, s) => acc + parseFloat(s.broker_amount || '0'), 0);
 
   return (
     <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
@@ -75,13 +78,13 @@ function BrokerEarningsCard() {
         <div className='flex size-8 items-center justify-center rounded-lg bg-blue-50'>
           <HugeiconsIcon icon={Wallet01Icon} size={16} color='currentColor' strokeWidth={1.5} className='text-blue-600' />
         </div>
-        <span className='text-[12px] font-semibold text-gray-500'>Мои выплаты</span>
+        <span className='text-[12px] font-semibold text-gray-500'>Заработано</span>
       </div>
       <span className='mt-3 block text-2xl font-bold tracking-tight text-gray-900'>
-        {formatPrice(paid, 'RUB')}
+        {formatPrice(String(paid), 'RUB')}
       </span>
       <div className='mt-1 text-[12px] text-gray-500'>
-        В ожидании: <span className='font-semibold text-amber-600'>{formatPrice(pending, 'RUB')}</span>
+        В ожидании: <span className='font-semibold text-amber-600'>{formatPrice(String(pending), 'RUB')}</span>
       </div>
       <div className='mt-4 border-t border-blue-50 pt-3'>
         <Link

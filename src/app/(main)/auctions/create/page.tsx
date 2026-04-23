@@ -10,7 +10,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowLeft01Icon, CheckmarkCircle02Icon, Search01Icon, Cancel01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { auctionSchema, type AuctionFormData } from '@/shared/lib/validations';
 import { formatPriceInput, stripPriceFormat, formatPrice } from '@/shared/lib/formatters';
-import { clampDateInputYear, enforceNotPastYearOnBlur } from '@/shared/lib/date';
+import { DateTimePicker } from '@/shared/ui/date-picker';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
@@ -508,18 +508,20 @@ export default function CreateAuctionPage() {
 
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-start'>Дата начала <Label.Asterisk /></Label.Root>
-              <Input.Root hasError={!!errors.start_date}>
-                <Input.Wrapper>
-                  <Input.Input
+              <Controller
+                name='start_date'
+                control={control}
+                render={({ field }) => (
+                  <DateTimePicker
                     id='auction-start'
-                    type='datetime-local'
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                     min={minStart}
-                    max='9999-12-31T23:59'
-                    onInput={clampDateInputYear}
-                    {...register('start_date', { onBlur: enforceNotPastYearOnBlur })}
+                    hasError={!!errors.start_date}
                   />
-                </Input.Wrapper>
-              </Input.Root>
+                )}
+              />
               {errors.start_date ? (
                 <p className='text-xs text-red-500'>{errors.start_date.message}</p>
               ) : (
@@ -528,18 +530,20 @@ export default function CreateAuctionPage() {
             </div>
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-end'>Дата окончания <Label.Asterisk /></Label.Root>
-              <Input.Root hasError={!!errors.end_date}>
-                <Input.Wrapper>
-                  <Input.Input
+              <Controller
+                name='end_date'
+                control={control}
+                render={({ field }) => (
+                  <DateTimePicker
                     id='auction-end'
-                    type='datetime-local'
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
                     min={minEnd}
-                    max='9999-12-31T23:59'
-                    onInput={clampDateInputYear}
-                    {...register('end_date', { onBlur: enforceNotPastYearOnBlur })}
+                    hasError={!!errors.end_date}
                   />
-                </Input.Wrapper>
-              </Input.Root>
+                )}
+              />
               {errors.end_date ? (
                 <p className='text-xs text-red-500'>{errors.end_date.message}</p>
               ) : (

@@ -31,7 +31,7 @@ import {
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
-import { clampDateInputYear, enforceNotPastYearOnBlur } from '@/shared/lib/date';
+import { DatePicker } from '@/shared/ui/date-picker';
 import { AreaField, PriceField } from '@/shared/components/property-fields';
 import {
   useProperty,
@@ -303,7 +303,7 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
                 <span className='truncate text-xs text-gray-500'>#{idx + 1}</span>
                 {img.is_primary && (
                   <span className='inline-flex w-fit items-center gap-1 rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700'>
-                    Главное
+                    Главная
                   </span>
                 )}
               </div>
@@ -524,10 +524,10 @@ function PropertyEditForm({
           </Input.Root>
         </div>
         <div className='space-y-1.5'>
-          <Label.Root htmlFor='p-project'>Проект (ЖК) <Label.Asterisk /></Label.Root>
+          <Label.Root htmlFor='p-project'>Название проекта <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.project}>
             <Input.Wrapper>
-              <Input.Input id='p-project' type='text' placeholder='Название проекта или ЖК' {...register('project')} />
+              <Input.Input id='p-project' type='text' placeholder='Название проекта' {...register('project')} />
             </Input.Wrapper>
           </Input.Root>
           {errors.project && <p className='text-[11px] text-red-500'>{errors.project.message}</p>}
@@ -592,7 +592,7 @@ function PropertyEditForm({
           <Label.Root htmlFor='p-land-number'>Номер участка <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.land_number}>
             <Input.Wrapper>
-              <Input.Input id='p-land-number' type='text' placeholder='Например, 12А' {...register('land_number')} />
+              <Input.Input id='p-land-number' type='text' placeholder='12А' {...register('land_number')} />
             </Input.Wrapper>
           </Input.Root>
           {errors.land_number && <p className='text-[11px] text-red-500'>{errors.land_number.message}</p>}
@@ -605,7 +605,7 @@ function PropertyEditForm({
           <Label.Root htmlFor='p-house-number'>Номер дома <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.house_number}>
             <Input.Wrapper>
-              <Input.Input id='p-house-number' type='text' placeholder='Например, 15' {...register('house_number')} />
+              <Input.Input id='p-house-number' type='text' placeholder='15' {...register('house_number')} />
             </Input.Wrapper>
           </Input.Root>
           {errors.house_number && <p className='text-[11px] text-red-500'>{errors.house_number.message}</p>}
@@ -623,7 +623,7 @@ function PropertyEditForm({
           <Label.Root htmlFor='p-commission'>Комиссия брокера (%) <Label.Asterisk /></Label.Root>
           <Input.Root size='small' hasError={!!errors.commission_rate}>
             <Input.Wrapper>
-              <Input.Input id='p-commission' type='number' step='0.01' min='0' placeholder='Например, 5' {...register('commission_rate')} />
+              <Input.Input id='p-commission' type='number' step='0.01' min='0' placeholder='Например, 3' {...register('commission_rate')} />
             </Input.Wrapper>
           </Input.Root>
           {errors.commission_rate && <p className='text-[11px] text-red-500'>{errors.commission_rate.message}</p>}
@@ -634,18 +634,20 @@ function PropertyEditForm({
       <div className='grid grid-cols-2 gap-3'>
         <div className='space-y-1.5'>
           <Label.Root htmlFor='p-deadline'>Срок сдачи</Label.Root>
-          <Input.Root size='small'>
-            <Input.Wrapper>
-              <Input.Input
+          <Controller
+            name='deadline'
+            control={control}
+            render={({ field }) => (
+              <DatePicker
                 id='p-deadline'
-                type='date'
-                min={new Date().toISOString().split('T')[0]}
-                max='9999-12-31'
-                onInput={clampDateInputYear}
-                {...register('deadline', { onBlur: enforceNotPastYearOnBlur })}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                min={new Date()}
+                size='small'
               />
-            </Input.Wrapper>
-          </Input.Root>
+            )}
+          />
         </div>
         <div className='space-y-1.5'>
           <Label.Root htmlFor='p-status'>Статус</Label.Root>
