@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Clock01Icon, Award01Icon, UserIcon, LockPasswordIcon, UnavailableIcon } from '@hugeicons/core-free-icons';
 
-import { useParticipatedAuctions } from '@/features/auctions';
+import { useAuctions } from '@/features/auctions';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Auction } from '@/shared/types/auctions';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -56,9 +56,9 @@ function AuctionItem({ auction }: { auction: Auction }) {
 
 export default function CabinetPage() {
   const [pwdOpen, setPwdOpen] = React.useState(false);
-  const { data: activeData } = useParticipatedAuctions({ status: 'active', page_size: 5 });
-  const { data: finishedData } = useParticipatedAuctions({ status: 'finished', page_size: 5 });
-  const { data: failedData } = useParticipatedAuctions({ status: 'failed', page_size: 5 });
+  const { data: activeData } = useAuctions({ status: 'active', page_size: 5 });
+  const { data: finishedData } = useAuctions({ status: 'finished', page_size: 5 });
+  const { data: failedData } = useAuctions({ status: 'failed', page_size: 5 });
 
   const activeAuctions = activeData?.results ?? [];
   const finishedAuctions = finishedData?.results ?? [];
