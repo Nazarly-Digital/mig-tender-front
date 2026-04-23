@@ -29,19 +29,20 @@ import { useBrokerRegistration } from '@/features/auth';
 
 const PasswordInput = React.forwardRef<
   HTMLInputElement,
-  React.ComponentPropsWithoutRef<typeof Input.Input>
+  React.ComponentPropsWithoutRef<typeof Input.Input> & { hasError?: boolean }
 >((props, ref) => {
   const [showPassword, setShowPassword] = React.useState(false);
+  const { hasError, ...inputProps } = props;
 
   return (
-    <Input.Root>
+    <Input.Root hasError={hasError}>
       <Input.Wrapper>
         <Input.Icon as={RiLock2Line} />
         <Input.Input
           ref={ref}
           type={showPassword ? 'text' : 'password'}
           placeholder='••••••••••'
-          {...props}
+          {...inputProps}
         />
         <button type='button' onClick={() => setShowPassword((s) => !s)}>
           {showPassword ? (
@@ -146,7 +147,7 @@ export default function PageRegister() {
               <Label.Root htmlFor='email'>
                 Email <Label.Asterisk />
               </Label.Root>
-              <Input.Root>
+              <Input.Root hasError={!!emailErrors.email}>
                 <Input.Wrapper>
                   <Input.Icon as={RiMailLine} />
                   <Input.Input
@@ -232,7 +233,7 @@ export default function PageRegister() {
             <div className='flex flex-col gap-3'>
               <div className='flex flex-col gap-1'>
                 <Label.Root htmlFor='firstName'>Имя</Label.Root>
-                <Input.Root>
+                <Input.Root hasError={!!regErrors.firstName}>
                   <Input.Wrapper>
                     <Input.Icon as={RiUserLine} />
                     <Input.Input
@@ -243,11 +244,14 @@ export default function PageRegister() {
                     />
                   </Input.Wrapper>
                 </Input.Root>
+                {regErrors.firstName && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.firstName.message}</p>
+                )}
               </div>
 
               <div className='flex flex-col gap-1'>
                 <Label.Root htmlFor='lastName'>Фамилия</Label.Root>
-                <Input.Root>
+                <Input.Root hasError={!!regErrors.lastName}>
                   <Input.Wrapper>
                     <Input.Icon as={RiUserLine} />
                     <Input.Input
@@ -258,6 +262,9 @@ export default function PageRegister() {
                     />
                   </Input.Wrapper>
                 </Input.Root>
+                {regErrors.lastName && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.lastName.message}</p>
+                )}
               </div>
 
               <div className='flex flex-col gap-1'>
@@ -284,7 +291,7 @@ export default function PageRegister() {
                 <Label.Root htmlFor='phoneNumber'>
                   Номер телефона <Label.Asterisk />
                 </Label.Root>
-                <Input.Root>
+                <Input.Root hasError={!!regErrors.phoneNumber}>
                   <Input.Wrapper>
                     <Input.Icon as={RiPhoneLine} />
                     <Input.Input
@@ -353,6 +360,7 @@ export default function PageRegister() {
                 </Label.Root>
                 <PasswordInput
                   id='password'
+                  hasError={!!regErrors.password}
                   {...registerForm.register('password')}
                 />
                 {regErrors.password && (
@@ -366,6 +374,7 @@ export default function PageRegister() {
                 </Label.Root>
                 <PasswordInput
                   id='passwordConfirm'
+                  hasError={!!regErrors.passwordConfirm}
                   {...registerForm.register('passwordConfirm')}
                 />
                 {regErrors.passwordConfirm && (
