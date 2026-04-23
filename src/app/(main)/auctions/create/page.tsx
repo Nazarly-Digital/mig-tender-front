@@ -491,7 +491,7 @@ export default function CreateAuctionPage() {
                   />
                   <span className='text-[13px] text-gray-700'>
                     Показывать прайсовую цену брокерам
-                    <span className='block text-[11px] text-gray-400'>Если отключено, брокеры увидят «Скрыта» вместо цены в этом аукционе</span>
+                    <span className='block text-[11px] text-gray-400'>Если отключено, брокеры не увидят прайсовую цену</span>
                   </span>
                 </label>
               )}

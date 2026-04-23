@@ -60,7 +60,7 @@ export const navigationLinks: NavigationLink[] = [
   { icon: Building03Icon, label: 'Мои объекты', href: '/properties', developerOnly: true },
   { icon: PlusSignSquareIcon, label: 'Создать объект', href: '/properties/create', developerOnly: true },
   { icon: Coins01Icon, label: 'Сделки', developerLabel: 'Фиксация сделки', href: '/deals' },
-  { icon: Wallet01Icon, label: 'Выплаты / история', developerLabel: 'Выплаты брокерам', href: '/payments' },
+  { icon: Wallet01Icon, label: 'Выплаты / история', developerLabel: 'Выплаты', href: '/payments' },
   { icon: File01Icon, label: 'Документы', href: '/documents' },
   { icon: UserIcon, label: 'Пользователи', href: '/admin/users', adminOnly: true },
   { icon: SecurityCheckIcon, label: 'Модерация', href: '/admin/properties', adminOnly: true },
