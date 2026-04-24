@@ -13,6 +13,10 @@ export {
   useDeleteDocument,
   useAllDocuments,
   useChangePassword,
+  usePasswordResetRequest,
+  usePasswordResetVerify,
+  usePasswordResetConfirm,
 } from "./model/queries";
 
 export { useBrokerRegistration } from "./model/use-broker-registration";
+export { usePasswordReset } from "./model/use-password-reset";
