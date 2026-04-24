@@ -3,6 +3,7 @@
 import * as React from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { DayPicker } from 'react-day-picker';
+import type { Matcher } from 'react-day-picker';
 import { ru } from 'react-day-picker/locale';
 import { format, parse, isValid, startOfDay, isSameDay } from 'date-fns';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -156,7 +157,7 @@ export function DatePicker({
   const maxDate = parseDateString(max);
 
   const dayPickerDisabled = React.useMemo(() => {
-    const rules: { before?: Date; after?: Date }[] = [];
+    const rules: Matcher[] = [];
     if (minDate) rules.push({ before: startOfDay(minDate) });
     if (maxDate) rules.push({ after: startOfDay(maxDate) });
     return rules.length ? rules : undefined;
@@ -315,7 +316,7 @@ export function DateTimePicker({
   const maxDateTime = parseDateTimeValue(max);
 
   const dayPickerDisabled = React.useMemo(() => {
-    const rules: { before?: Date; after?: Date }[] = [];
+    const rules: Matcher[] = [];
     if (minDate) rules.push({ before: startOfDay(minDate) });
     if (maxDate) rules.push({ after: startOfDay(maxDate) });
     return rules.length ? rules : undefined;
