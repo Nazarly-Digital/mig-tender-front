@@ -12,6 +12,9 @@ import type {
   UploadDocumentRequest,
   UpdateDocumentNameRequest,
   ChangePasswordRequest,
+  PasswordResetRequestRequest,
+  PasswordResetVerifyRequest,
+  PasswordResetConfirmRequest,
 } from "@/shared/types/auth";
 
 export const authKeys = {
@@ -172,5 +175,26 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (data: ChangePasswordRequest) =>
       authService.changePassword(data).then((res) => res.data),
+  });
+}
+
+export function usePasswordResetRequest() {
+  return useMutation({
+    mutationFn: (data: PasswordResetRequestRequest) =>
+      authService.passwordResetRequest(data).then((res) => res.data),
+  });
+}
+
+export function usePasswordResetVerify() {
+  return useMutation({
+    mutationFn: (data: PasswordResetVerifyRequest) =>
+      authService.passwordResetVerify(data).then((res) => res.data),
+  });
+}
+
+export function usePasswordResetConfirm() {
+  return useMutation({
+    mutationFn: (data: PasswordResetConfirmRequest) =>
+      authService.passwordResetConfirm(data).then((res) => res.data),
   });
 }

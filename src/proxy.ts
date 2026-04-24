@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const AUTH_COOKIE = 'has_session';
 
 // Пути, доступные только без авторизации
-const AUTH_ONLY_PATHS = ['/login', '/register'];
+const AUTH_ONLY_PATHS = ['/login', '/register', '/forgot-password'];
 
 function isAuthOnlyPath(pathname: string) {
   return AUTH_ONLY_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));

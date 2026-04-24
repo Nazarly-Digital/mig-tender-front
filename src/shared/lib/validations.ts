@@ -165,6 +165,24 @@ export const emailStepSchema = z.object({
 
 export type EmailStepFormData = z.infer<typeof emailStepSchema>;
 
+export const passwordResetConfirmSchema = z
+  .object({
+    new_password: z
+      .string()
+      .min(1, 'Введите пароль')
+      .min(8, 'Минимум 8 символов')
+      .max(128, 'Максимум 128 символов'),
+    new_password_confirm: z
+      .string()
+      .min(1, 'Подтвердите пароль'),
+  })
+  .refine((d) => d.new_password === d.new_password_confirm, {
+    message: 'Пароли не совпадают',
+    path: ['new_password_confirm'],
+  });
+
+export type PasswordResetConfirmFormData = z.infer<typeof passwordResetConfirmSchema>;
+
 export const brokerRegisterSchema = z
   .object({
     firstName: z.string().optional(),

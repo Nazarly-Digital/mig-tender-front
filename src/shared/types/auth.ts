@@ -97,6 +97,36 @@ export type ChangePasswordResponse = {
   message: string;
 };
 
+// Password reset (forgot password)
+export type PasswordResetRequestRequest = {
+  email: string;
+};
+
+export type PasswordResetRequestResponse = {
+  message: string;
+  email: string;
+};
+
+export type PasswordResetVerifyRequest = {
+  email: string;
+  code: string;
+};
+
+export type PasswordResetVerifyResponse = {
+  message: string;
+  email: string;
+};
+
+export type PasswordResetConfirmRequest = {
+  email: string;
+  new_password: string;
+  new_password_confirm: string;
+};
+
+export type PasswordResetConfirmResponse = {
+  message: string;
+};
+
 // Get Code
 export type GetCodeRequest = {
   email: string;

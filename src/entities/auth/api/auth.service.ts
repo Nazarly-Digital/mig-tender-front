@@ -21,6 +21,12 @@ import type {
   UnifiedDocument,
   ChangePasswordRequest,
   ChangePasswordResponse,
+  PasswordResetRequestRequest,
+  PasswordResetRequestResponse,
+  PasswordResetVerifyRequest,
+  PasswordResetVerifyResponse,
+  PasswordResetConfirmRequest,
+  PasswordResetConfirmResponse,
 } from "@/shared/types/auth";
 
 export const authService = {
@@ -90,4 +96,22 @@ export const authService = {
 
   changePassword: (data: ChangePasswordRequest) =>
     apiInstance.post<ChangePasswordResponse>("/auth/change-password/", data),
+
+  passwordResetRequest: (data: PasswordResetRequestRequest) =>
+    apiInstance.post<PasswordResetRequestResponse>(
+      "/auth/password-reset/request/",
+      data,
+    ),
+
+  passwordResetVerify: (data: PasswordResetVerifyRequest) =>
+    apiInstance.post<PasswordResetVerifyResponse>(
+      "/auth/password-reset/verify/",
+      data,
+    ),
+
+  passwordResetConfirm: (data: PasswordResetConfirmRequest) =>
+    apiInstance.post<PasswordResetConfirmResponse>(
+      "/auth/password-reset/confirm/",
+      data,
+    ),
 };

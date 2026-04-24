@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   RiEyeLine,
@@ -19,6 +20,7 @@ import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
+import * as LinkButton from '@/shared/ui/link-button';
 import { useLogin } from '@/features/auth';
 
 const PasswordInput = React.forwardRef<
@@ -144,6 +146,15 @@ export default function PageLogin() {
               {errors.password?.message && (
                 <p className='text-xs text-red-500'>{errors.password.message}</p>
               )}
+              <LinkButton.Root
+                variant='primary'
+                size='small'
+                underline
+                asChild
+                className='mt-1 self-start'
+              >
+                <Link href='/forgot-password'>Забыли пароль?</Link>
+              </LinkButton.Root>
             </div>
           </div>
 
@@ -156,6 +167,13 @@ export default function PageLogin() {
             {login.isPending ? 'Вход...' : 'Войти'}
           </FancyButton.Root>
         </form>
+      </div>
+
+      <div className='mb-8 mt-6 flex items-center justify-center gap-1.5'>
+        <span className='text-sm text-gray-500'>Нет аккаунта?</span>
+        <LinkButton.Root variant='primary' size='medium' underline asChild>
+          <Link href='/register'>Зарегистрироваться</Link>
+        </LinkButton.Root>
       </div>
     </div>
   );
