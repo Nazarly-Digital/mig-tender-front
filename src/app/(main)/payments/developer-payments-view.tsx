@@ -176,10 +176,15 @@ export function DeveloperPaymentsView() {
         </p>
       </div>
 
-      <div className='relative bg-white rounded-xl border border-gray-200 p-5 mt-5 overflow-hidden w-full max-w-full lg:min-w-[225px] lg:max-w-[300px]'>
-        <span className='absolute left-0 top-0 bottom-0 w-1 bg-red-500' />
-        <p className='text-xs text-gray-500'>К перечислению</p>
-        <p className='text-2xl font-bold text-gray-900 tracking-tight mt-1'>{formatPrice(String(pending))}</p>
+      <div className='flex flex-wrap gap-4 mt-5'>
+        <div className='bg-white rounded-xl border border-gray-200 p-5 overflow-hidden w-full max-w-full lg:min-w-[225px] lg:max-w-[300px]'>
+          <p className='text-xs text-gray-500'>К перечислению</p>
+          <p className='text-2xl font-bold text-gray-900 tracking-tight mt-1'>{formatPrice(String(pending))}</p>
+        </div>
+        <div className='bg-white rounded-xl border border-gray-200 p-5 overflow-hidden w-full max-w-full lg:min-w-[225px] lg:max-w-[300px]'>
+          <p className='text-xs text-gray-500'>Кол-во сделок</p>
+          <p className='text-2xl font-bold text-gray-900 tracking-tight mt-1'>{settlements.length}</p>
+        </div>
       </div>
 
       <div className='mt-5'>

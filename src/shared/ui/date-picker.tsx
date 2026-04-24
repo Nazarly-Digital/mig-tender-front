@@ -7,7 +7,7 @@ import type { Matcher } from 'react-day-picker';
 import { ru } from 'react-day-picker/locale';
 import { format, parse, isValid, startOfDay, isSameDay } from 'date-fns';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Calendar01Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { Calendar03Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 
 import { cn } from '@/shared/lib/cn';
 import * as Input from '@/shared/ui/input';
@@ -194,7 +194,7 @@ export function DatePicker({
               {displayText || placeholder}
             </span>
             <HugeiconsIcon
-              icon={Calendar01Icon}
+              icon={Calendar03Icon}
               size={18}
               color='currentColor'
               strokeWidth={1.5}
@@ -359,7 +359,7 @@ export function DateTimePicker({
               {displayText || placeholder}
             </span>
             <HugeiconsIcon
-              icon={Calendar01Icon}
+              icon={Calendar03Icon}
               size={18}
               color='currentColor'
               strokeWidth={1.5}

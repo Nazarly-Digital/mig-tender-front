@@ -16,6 +16,7 @@ import { useMyProperties, useProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { usePendingProperties } from '@/features/admin';
 import { useSettlements } from '@/features/payments';
+import { useDeals } from '@/features/deals';
 import { useSessionStore, isUserDeveloper, isUserAdmin } from '@/entities/auth/model/store';
 import {
   TYPE_LABELS,
@@ -92,6 +93,40 @@ function BrokerEarningsCard() {
           className='inline-flex items-center gap-1 text-[13px] font-medium text-gray-400 transition-colors hover:text-blue-600'
         >
           Все выплаты
+          <HugeiconsIcon icon={ArrowRight01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function DeveloperSalesCard() {
+  // Backend scopes /deals/ by role, so a developer sees only their own deals.
+  // page_size picked high enough to sum all confirmed deals in one request.
+  const { data } = useDeals({ status: 'confirmed', page_size: 500 });
+  const deals = data?.results ?? [];
+  const totalSold = deals.reduce((acc, d) => acc + parseFloat(d.amount || '0'), 0);
+
+  return (
+    <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
+      <div className='flex items-center gap-2.5'>
+        <div className='flex size-8 items-center justify-center rounded-lg bg-blue-50'>
+          <HugeiconsIcon icon={Wallet01Icon} size={16} color='currentColor' strokeWidth={1.5} className='text-blue-600' />
+        </div>
+        <span className='text-[12px] font-semibold text-gray-500'>Продано на сумму</span>
+      </div>
+      <span className='mt-3 block text-2xl font-bold tracking-tight text-gray-900'>
+        {formatPrice(String(totalSold), 'RUB')}
+      </span>
+      <div className='mt-1 text-[12px] text-gray-500'>
+        Завершённых сделок: <span className='font-semibold text-gray-700'>{deals.length}</span>
+      </div>
+      <div className='mt-4 border-t border-blue-50 pt-3'>
+        <Link
+          href='/deals'
+          className='inline-flex items-center gap-1 text-[13px] font-medium text-gray-400 transition-colors hover:text-blue-600'
+        >
+          Все сделки
           <HugeiconsIcon icon={ArrowRight01Icon} size={14} color='currentColor' strokeWidth={1.5} />
         </Link>
       </div>
@@ -244,7 +279,10 @@ export default function DashboardPage() {
             </>
           )}
           {isDeveloper && (
-            <StatCard label='Мои аукционы' value={auctionsCount} href='/auctions' action='Подробнее' icon={Award01Icon} />
+            <>
+              <StatCard label='Мои аукционы' value={auctionsCount} href='/auctions' action='Подробнее' icon={Award01Icon} />
+              <DeveloperSalesCard />
+            </>
           )}
           {!isAdmin && <QuickActionCard isDeveloper={isDeveloper} />}
         </div>
