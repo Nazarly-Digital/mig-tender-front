@@ -45,7 +45,7 @@ function getStatusBadge(deal: Deal): { label: string; tone: BadgeTone; withIcon?
   const map: Record<DealStatus, { label: string; tone: BadgeTone; withIcon?: boolean }> = {
     pending_documents: { label: 'Ожидает документов', tone: 'amber', withIcon: true },
     admin_review: { label: 'На проверке', tone: 'blue' },
-    developer_confirm: { label: 'Ожидает девелопера', tone: 'violet' },
+    developer_confirm: { label: 'Ожидает девелопера', tone: 'blue' },
     confirmed: { label: 'Подтверждена', tone: 'emerald' },
     failed: { label: 'Несостоявшаяся', tone: 'red' },
     declined: { label: 'Отклонена девелопером', tone: 'red' },
@@ -431,7 +431,7 @@ export function AdminDealsView() {
     { label: 'Подтверждены', value: allDeals.filter((d) => d.status === 'confirmed').length, color: 'text-emerald-600' },
     { label: 'Ожидает документов', value: allDeals.filter((d) => d.status === 'pending_documents').length, color: 'text-amber-600' },
     { label: 'На проверке', value: allDeals.filter((d) => d.status === 'admin_review').length, color: 'text-blue-600' },
-    { label: 'Ожидают девелопера', value: allDeals.filter((d) => d.status === 'developer_confirm').length, color: 'text-violet-600' },
+    { label: 'Ожидают девелопера', value: allDeals.filter((d) => d.status === 'developer_confirm').length, color: 'text-blue-600' },
     { label: 'Просрочены', value: allDeals.filter((d) => d.obligation_status === 'overdue').length, color: 'text-red-600' },
     { label: 'Несостоявшиеся', value: allDeals.filter((d) => d.status === 'failed').length, color: 'text-red-600' },
     { label: 'Отклонённые', value: allDeals.filter((d) => d.status === 'declined').length, color: 'text-red-600' },

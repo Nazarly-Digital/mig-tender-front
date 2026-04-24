@@ -44,7 +44,7 @@ function getStatusBadge(status: DealStatus): { label: string; tone: BadgeTone; w
   const map: Record<DealStatus, { label: string; tone: BadgeTone; withIcon?: boolean }> = {
     pending_documents: { label: 'Ожидает документов', tone: 'amber' },
     admin_review: { label: 'На проверке', tone: 'blue' },
-    developer_confirm: { label: 'Требуется подтверждение', tone: 'violet', withIcon: true },
+    developer_confirm: { label: 'Требуется подтверждение', tone: 'blue', withIcon: true },
     confirmed: { label: 'Подтверждена', tone: 'emerald' },
     failed: { label: 'Несостоявшаяся', tone: 'red' },
     declined: { label: 'Отклонена мной', tone: 'red' },
