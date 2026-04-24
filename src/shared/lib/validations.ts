@@ -185,14 +185,29 @@ export type PasswordResetConfirmFormData = z.infer<typeof passwordResetConfirmSc
 
 export const brokerRegisterSchema = z
   .object({
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
+    firstName: z.string().min(1, 'Введите имя'),
+    lastName: z.string().min(1, 'Введите фамилию'),
     innNumber: z
       .string()
-      .min(1, 'Введите ИНН номер'),
+      .min(1, 'Введите ИНН номер')
+      .refine((v) => /^\d+$/.test(v), { message: 'ИНН должен содержать только цифры' })
+      .refine((v) => v.length === 10 || v.length === 12, {
+        message: 'ИНН должен содержать 10 или 12 цифр',
+      }),
     phoneNumber: z
       .string()
-      .min(1, 'Введите номер телефона'),
+      .min(1, 'Введите номер телефона')
+      .refine((v) => v.trim().startsWith('+'), {
+        message: 'Номер должен начинаться с +',
+      })
+      .refine(
+        (v) => {
+          // E.164: 7–15 digits after the leading '+'
+          const digits = v.replace(/\D/g, '');
+          return digits.length >= 7 && digits.length <= 15;
+        },
+        { message: 'Введите корректный номер телефона' },
+      ),
     password: z
       .string()
       .min(1, 'Введите пароль')

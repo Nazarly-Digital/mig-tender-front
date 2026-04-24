@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -12,7 +12,6 @@ import {
   ArrowRight01Icon,
   ChampionIcon,
   Coins01Icon,
-  CheckListIcon,
   Cancel01Icon,
   CheckmarkCircle02Icon,
   Building03Icon,
@@ -51,7 +50,7 @@ import {
 import { useAuctionSocket } from '@/shared/hooks/use-auction-socket';
 import { useSealedBidsSocket } from '@/shared/hooks/use-sealed-bids-socket';
 import { formatPriceInput, stripPriceFormat } from '@/shared/lib/formatters';
-import type { AuctionStatus, AuctionMode, Bid } from '@/shared/types/auctions';
+import type { AuctionStatus, AuctionMode, Bid, AuctionLotProperty } from '@/shared/types/auctions';
 
 // --- Helpers ---
 
@@ -216,6 +215,111 @@ function AuctionImageCarousel({ images }: { images: CarouselImage[] }) {
 function getApiError(error: unknown): string {
   const err = error as { response?: { data?: { error?: string; detail?: string } } };
   return err.response?.data?.error ?? err.response?.data?.detail ?? 'Произошла ошибка';
+}
+
+function LotPropertyCard({ prop, index, total }: { prop: AuctionLotProperty; index?: number; total?: number }) {
+  const { data: property } = useProperty(prop.id);
+  const showIndex = typeof index === 'number' && typeof total === 'number' && total > 1;
+
+  return (
+    <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
+      <AuctionImageCarousel images={property?.images ?? []} />
+
+      <div className='p-6'>
+        {showIndex && (
+          <div className='flex items-center gap-2 mb-3'>
+            <span className='inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-blue-50 text-[11px] font-semibold text-blue-700'>
+              {(index as number) + 1} / {total}
+            </span>
+            <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+              Объект из лота
+            </span>
+          </div>
+        )}
+        <div className='flex items-center justify-between mb-4'>
+          <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
+            <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+            Информация об объекте
+          </h3>
+          <Link href={`/objects/${prop.id}`} className='text-xs font-medium text-blue-600 hover:underline'>
+            Подробнее →
+          </Link>
+        </div>
+
+        {/* Inline "label ... value" — only between xl and 2xl (narrow left column) */}
+        <div className='hidden xl:block 2xl:hidden space-y-5 text-[13px]'>
+          <div className='flex items-center justify-between gap-4'>
+            <span className='text-gray-500 shrink-0'>Адрес:</span>
+            <span className='font-medium text-gray-900 text-right truncate'>{prop.address}</span>
+          </div>
+          <div className='flex items-center justify-between gap-4'>
+            <span className='text-gray-500 shrink-0'>ID:</span>
+            <span className='font-medium text-gray-900 font-mono text-right truncate'>{prop.reference_id}</span>
+          </div>
+          <div className='flex items-center justify-between gap-4'>
+            <span className='text-gray-500 shrink-0'>Тип:</span>
+            <span className='font-medium text-gray-900'>{getPropertyTypeLabel(prop.type)}</span>
+          </div>
+          <div className='flex items-center justify-between gap-4'>
+            <span className='text-gray-500 shrink-0'>Площадь:</span>
+            <span className='font-medium text-gray-900'>{prop.area ? `${prop.area} м²` : '—'}</span>
+          </div>
+          <div className='flex items-center justify-between gap-4'>
+            <span className='text-gray-500 shrink-0'>Класс:</span>
+            <span className='font-medium text-gray-900'>{getPropertyClassLabel(prop.property_class)}</span>
+          </div>
+          <div className='flex items-center justify-between gap-4'>
+            <span className='text-gray-500 shrink-0'>Прайсовая цена:</span>
+            <span className='font-semibold text-gray-900'>{prop.price != null ? `${formatPrice(prop.price)} ₽` : 'Скрыта'}</span>
+          </div>
+          <div className='flex items-center justify-between gap-4'>
+            <span className='text-gray-500 shrink-0'>Комиссия:</span>
+            <span className='font-medium text-gray-900'>{prop.commission_rate ? `${prop.commission_rate}%` : '—'}</span>
+          </div>
+        </div>
+
+        {/* 2-column grid with labels on top — default (< xl) and 2xl+ */}
+        <div className='grid grid-cols-2 gap-4 xl:gap-5 2xl:gap-4 xl:hidden 2xl:grid 2xl:grid-cols-5'>
+          <div className='col-span-2 2xl:col-span-5'>
+            <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</span>
+            <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.address}</span>
+          </div>
+
+          <div className='space-y-4 2xl:col-span-3'>
+            <div>
+              <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>ID</span>
+              <span className='mt-1 block text-[13px] font-medium text-gray-900 font-mono break-all'>{prop.reference_id}</span>
+            </div>
+            <div>
+              <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</span>
+              <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.area ? `${prop.area} м²` : '—'}</span>
+            </div>
+            <div>
+              <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</span>
+              <span className='mt-1 block text-[13px] font-semibold text-gray-900'>
+                {prop.price != null ? `${formatPrice(prop.price)} ₽` : 'Скрыта'}
+              </span>
+            </div>
+          </div>
+
+          <div className='space-y-4 2xl:col-span-2'>
+            <div>
+              <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</span>
+              <span className='mt-1 block text-[13px] font-medium text-gray-900'>{getPropertyTypeLabel(prop.type)}</span>
+            </div>
+            <div>
+              <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</span>
+              <span className='mt-1 block text-[13px] font-medium text-gray-900'>{getPropertyClassLabel(prop.property_class)}</span>
+            </div>
+            <div>
+              <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия</span>
+              <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.commission_rate ? `${prop.commission_rate}%` : '—'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // --- Place Bid Modal ---
@@ -555,7 +659,6 @@ function LiveBidInput({
 
 export default function AuctionDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const auctionId = Number(params.id);
   const user = useSessionStore((s) => s.user);
   const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
@@ -574,10 +677,6 @@ export default function AuctionDetailPage() {
   const participantsEnabled = auction != null && (isOpenAuction || isOwnerOrAdmin);
   const { data: participants, isLoading: isParticipantsLoading } = useParticipants(auctionId, { enabled: participantsEnabled });
   const { data: sealedBids, isLoading: isSealedBidsLoading } = useSealedBids(auctionId, { enabled: canViewClosedData });
-
-  // Fetch full property details (images, etc.) for single-property lots
-  const singlePropertyId = auction?.properties?.length === 1 ? auction.properties[0].id : 0;
-  const { data: property } = useProperty(singlePropertyId);
 
   const isActiveOpen = isOpenAuction && auction?.status === 'active';
   const isActiveClosed = !isOpenAuction && auction?.status === 'active';
@@ -905,101 +1004,16 @@ export default function AuctionDetailPage() {
 
       {/* Main: single col < xl · 2/5 + 3/5 at xl · 50/50 at 2xl */}
       <div className='grid grid-cols-1 gap-4 xl:grid-cols-5 2xl:grid-cols-2'>
-        {/* Left — object info + carousel (moves to bottom on single-col layout) */}
+        {/* Left — object info + carousel (moves to bottom on single-col layout). Renders one card per property in the lot. */}
         <div className='space-y-4 order-last xl:order-first xl:col-span-2 2xl:col-span-1'>
-          {auction.properties?.length === 1 && (() => {
-            const prop = auction.properties[0];
-            return (
-              <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
-                <AuctionImageCarousel images={property?.images ?? []} />
-
-                <div className='p-6'>
-                  <div className='flex items-center justify-between mb-4'>
-                    <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2'>
-                      <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-                      Информация об объекте
-                    </h3>
-                    <Link href={`/objects/${prop.id}`} className='text-xs font-medium text-blue-600 hover:underline'>
-                      Подробнее →
-                    </Link>
-                  </div>
-                  {/* Inline "label ... value" justify-between — only between xl and 2xl (narrow left column) */}
-                  <div className='hidden xl:block 2xl:hidden space-y-5 text-[13px]'>
-                    <div className='flex items-center justify-between gap-4'>
-                      <span className='text-gray-500 shrink-0'>Адрес:</span>
-                      <span className='font-medium text-gray-900 text-right truncate'>{prop.address}</span>
-                    </div>
-                    <div className='flex items-center justify-between gap-4'>
-                      <span className='text-gray-500 shrink-0'>ID:</span>
-                      <span className='font-medium text-gray-900 font-mono text-right truncate'>{prop.reference_id}</span>
-                    </div>
-                    <div className='flex items-center justify-between gap-4'>
-                      <span className='text-gray-500 shrink-0'>Тип:</span>
-                      <span className='font-medium text-gray-900'>{getPropertyTypeLabel(prop.type)}</span>
-                    </div>
-                    <div className='flex items-center justify-between gap-4'>
-                      <span className='text-gray-500 shrink-0'>Площадь:</span>
-                      <span className='font-medium text-gray-900'>{prop.area ? `${prop.area} м²` : '—'}</span>
-                    </div>
-                    <div className='flex items-center justify-between gap-4'>
-                      <span className='text-gray-500 shrink-0'>Класс:</span>
-                      <span className='font-medium text-gray-900'>{getPropertyClassLabel(prop.property_class)}</span>
-                    </div>
-                    <div className='flex items-center justify-between gap-4'>
-                      <span className='text-gray-500 shrink-0'>Прайсовая цена:</span>
-                      <span className='font-semibold text-gray-900'>{prop.price != null ? `${formatPrice(prop.price)} ₽` : 'Скрыта'}</span>
-                    </div>
-                    <div className='flex items-center justify-between gap-4'>
-                      <span className='text-gray-500 shrink-0'>Комиссия:</span>
-                      <span className='font-medium text-gray-900'>{prop.commission_rate ? `${prop.commission_rate}%` : '—'}</span>
-                    </div>
-                  </div>
-
-                  {/* 2-column grid with labels on top — default (< xl) and 2xl+ */}
-                  <div className='grid grid-cols-2 gap-4 xl:gap-5 2xl:gap-4 xl:hidden 2xl:grid 2xl:grid-cols-5'>
-                    <div className='col-span-2 2xl:col-span-5'>
-                      <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</span>
-                      <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.address}</span>
-                    </div>
-
-                    {/* Left column — 3 items */}
-                    <div className='space-y-4 2xl:col-span-3'>
-                      <div>
-                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>ID</span>
-                        <span className='mt-1 block text-[13px] font-medium text-gray-900 font-mono break-all'>{prop.reference_id}</span>
-                      </div>
-                      <div>
-                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</span>
-                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.area ? `${prop.area} м²` : '—'}</span>
-                      </div>
-                      <div>
-                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</span>
-                        <span className='mt-1 block text-[13px] font-semibold text-gray-900'>
-                          {prop.price != null ? `${formatPrice(prop.price)} ₽` : 'Скрыта'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Right column — 3 items */}
-                    <div className='space-y-4 2xl:col-span-2'>
-                      <div>
-                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</span>
-                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{getPropertyTypeLabel(prop.type)}</span>
-                      </div>
-                      <div>
-                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Класс</span>
-                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{getPropertyClassLabel(prop.property_class)}</span>
-                      </div>
-                      <div>
-                        <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия</span>
-                        <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.commission_rate ? `${prop.commission_rate}%` : '—'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
+          {auction.properties?.map((prop, idx) => (
+            <LotPropertyCard
+              key={prop.id}
+              prop={prop}
+              index={idx}
+              total={auction.properties.length}
+            />
+          ))}
         </div>
 
         {/* Right — all auction functions */}
@@ -1197,37 +1211,6 @@ export default function AuctionDetailPage() {
             )}
           </div>
 
-          {/* Lot Properties — for multi-property CLOSED auctions */}
-          {auction.properties?.length > 1 && (
-            <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
-              <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2 mb-4'>
-                <HugeiconsIcon icon={CheckListIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-                Объекты лота ({auction.properties.length})
-              </h3>
-              <table className='w-full text-left'>
-                <thead>
-                  <tr className='border-b border-gray-100'>
-                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>ID</th>
-                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Адрес</th>
-                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Тип</th>
-                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Площадь</th>
-                    <th className='pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Прайсовая цена</th>
-                  </tr>
-                </thead>
-                <tbody className='text-[13px]'>
-                  {auction.properties.map((prop) => (
-                    <tr key={prop.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors cursor-pointer' onClick={() => router.push(`/objects/${prop.id}`)}>
-                      <td className='py-3 text-gray-500 font-mono text-xs'>{prop.reference_id}</td>
-                      <td className='py-3 font-medium text-blue-600 hover:text-blue-800'>{prop.address}</td>
-                      <td className='py-3 text-gray-600'>{getPropertyTypeLabel(prop.type)}</td>
-                      <td className='py-3 text-gray-600'>{prop.area} м²</td>
-                      <td className='py-3 font-semibold text-gray-900'>{prop.price == null ? 'Скрыта' : `${formatPrice(prop.price)} ₽`}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
 
           {/* Sealed Bids — owner */}
           {isOwner && bidsList.length > 0 && (

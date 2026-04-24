@@ -57,16 +57,12 @@ const PasswordInput = React.forwardRef<
 });
 PasswordInput.displayName = 'PasswordInput';
 
-function formatPhoneMask(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  const d = digits.startsWith('7') ? digits : '7' + digits;
-  let result = '+7';
-  if (d.length > 1) result += ' (' + d.substring(1, 4);
-  if (d.length >= 4) result += ') ';
-  if (d.length > 4) result += d.substring(4, 7);
-  if (d.length > 7) result += '-' + d.substring(7, 9);
-  if (d.length > 9) result += '-' + d.substring(9, 11);
-  return result;
+// International phone input: keep a leading '+', digits, and visual separators
+// (space, '-', parens). No country-specific mask — callers from any country.
+function sanitizePhoneInput(value: string): string {
+  const hasLeadingPlus = value.trim().startsWith('+');
+  const cleaned = value.replace(/[^\d\s\-()]/g, '');
+  return hasLeadingPlus ? '+' + cleaned : cleaned;
 }
 
 export default function PageRegister() {
@@ -80,6 +76,7 @@ export default function PageRegister() {
     setInn,
     passport,
     setPassport,
+    fileErrors,
     error,
     timer,
     handleGetCode,
@@ -232,7 +229,9 @@ export default function PageRegister() {
           <form onSubmit={handleRegister} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-3'>
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='firstName'>Имя</Label.Root>
+                <Label.Root htmlFor='firstName'>
+                  Имя <Label.Asterisk />
+                </Label.Root>
                 <Input.Root hasError={!!regErrors.firstName}>
                   <Input.Wrapper>
                     <Input.Icon as={RiUserLine} />
@@ -250,7 +249,9 @@ export default function PageRegister() {
               </div>
 
               <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='lastName'>Фамилия</Label.Root>
+                <Label.Root htmlFor='lastName'>
+                  Фамилия <Label.Asterisk />
+                </Label.Root>
                 <Input.Root hasError={!!regErrors.lastName}>
                   <Input.Wrapper>
                     <Input.Icon as={RiUserLine} />
@@ -271,12 +272,13 @@ export default function PageRegister() {
                 <Label.Root htmlFor='innNumber'>
                   ИНН номер <Label.Asterisk />
                 </Label.Root>
-                <Input.Root>
+                <Input.Root hasError={!!regErrors.innNumber}>
                   <Input.Wrapper>
                     <Input.Icon as={RiFileTextLine} />
                     <Input.Input
                       id='innNumber'
                       type='text'
+                      inputMode='numeric'
                       placeholder='Введите ИНН номер'
                       {...registerForm.register('innNumber')}
                     />
@@ -297,19 +299,15 @@ export default function PageRegister() {
                     <Input.Input
                       id='phoneNumber'
                       type='tel'
-                      placeholder='+7 (999) 123-45-67'
+                      inputMode='tel'
+                      placeholder='+1 234 567 8900'
                       {...registerForm.register('phoneNumber', {
                         onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                          const formatted = formatPhoneMask(e.target.value);
-                          registerForm.setValue('phoneNumber', formatted, { shouldValidate: true });
+                          const sanitized = sanitizePhoneInput(e.target.value);
+                          registerForm.setValue('phoneNumber', sanitized, { shouldValidate: true });
                         },
                       })}
-                      onFocus={(e) => {
-                        if (!e.target.value) {
-                          registerForm.setValue('phoneNumber', '+7');
-                        }
-                      }}
-                      maxLength={18}
+                      maxLength={24}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -322,7 +320,12 @@ export default function PageRegister() {
                 <Label.Root>
                   Документ ИНН <Label.Asterisk />
                 </Label.Root>
-                <label className='flex cursor-pointer items-center gap-2 rounded-10 border border-stroke-soft-200 px-3 py-2.5 transition-colors hover:bg-bg-weak-50'>
+                <label
+                  className={cn(
+                    'flex cursor-pointer items-center gap-2 rounded-10 border px-3 py-2.5 transition-colors hover:bg-bg-weak-50',
+                    fileErrors.inn ? 'border-error-base' : 'border-stroke-soft-200',
+                  )}
+                >
                   <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
                   <span className='truncate text-paragraph-sm text-text-soft-400'>
                     {inn ? inn.name : 'Выберите файл'}
@@ -334,13 +337,21 @@ export default function PageRegister() {
                     onChange={(e) => setInn(e.target.files?.[0] ?? null)}
                   />
                 </label>
+                {fileErrors.inn && (
+                  <p className='text-paragraph-xs text-error-base'>{fileErrors.inn}</p>
+                )}
               </div>
 
               <div className='flex flex-col gap-1'>
                 <Label.Root>
                   Паспорт <Label.Asterisk />
                 </Label.Root>
-                <label className='flex cursor-pointer items-center gap-2 rounded-10 border border-stroke-soft-200 px-3 py-2.5 transition-colors hover:bg-bg-weak-50'>
+                <label
+                  className={cn(
+                    'flex cursor-pointer items-center gap-2 rounded-10 border px-3 py-2.5 transition-colors hover:bg-bg-weak-50',
+                    fileErrors.passport ? 'border-error-base' : 'border-stroke-soft-200',
+                  )}
+                >
                   <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
                   <span className='truncate text-paragraph-sm text-text-soft-400'>
                     {passport ? passport.name : 'Выберите файл'}
@@ -352,6 +363,9 @@ export default function PageRegister() {
                     onChange={(e) => setPassport(e.target.files?.[0] ?? null)}
                   />
                 </label>
+                {fileErrors.passport && (
+                  <p className='text-paragraph-xs text-error-base'>{fileErrors.passport}</p>
+                )}
               </div>
 
               <div className='flex flex-col gap-1'>

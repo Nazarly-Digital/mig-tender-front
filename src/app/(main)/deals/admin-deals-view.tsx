@@ -15,14 +15,15 @@ import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import { useDeals, useAdminApproveDeal, useAdminRejectDeal } from '@/features/deals';
 import type { Deal, DealStatus } from '@/shared/types/deals';
 
-type TabFilter = 'all' | DealStatus;
+type TabFilter = 'all' | DealStatus | 'overdue';
 
 const ADMIN_TABS: { label: string; value: TabFilter }[] = [
   { label: 'Все', value: 'all' },
-  { label: 'На проверке', value: 'admin_review' },
-  { label: 'Ожидает девелопера', value: 'developer_confirm' },
-  { label: 'Подтверждена', value: 'confirmed' },
+  { label: 'Подтверждены', value: 'confirmed' },
   { label: 'Ожидает документов', value: 'pending_documents' },
+  { label: 'На проверке', value: 'admin_review' },
+  { label: 'Ожидают девелопера', value: 'developer_confirm' },
+  { label: 'Просрочены', value: 'overdue' },
   { label: 'Несостоявшиеся', value: 'failed' },
   { label: 'Отклонённые', value: 'declined' },
 ];
@@ -44,7 +45,7 @@ function getStatusBadge(deal: Deal): { label: string; tone: BadgeTone; withIcon?
   const map: Record<DealStatus, { label: string; tone: BadgeTone; withIcon?: boolean }> = {
     pending_documents: { label: 'Ожидает документов', tone: 'amber', withIcon: true },
     admin_review: { label: 'На проверке', tone: 'blue' },
-    developer_confirm: { label: 'Ожидает девелопера', tone: 'violet' },
+    developer_confirm: { label: 'Ожидает девелопера', tone: 'blue' },
     confirmed: { label: 'Подтверждена', tone: 'emerald' },
     failed: { label: 'Несостоявшаяся', tone: 'red' },
     declined: { label: 'Отклонена девелопером', tone: 'red' },
@@ -176,10 +177,10 @@ function AdminDealCard({ deal }: { deal: Deal }) {
   const [showRejectInput, setShowRejectInput] = React.useState(false);
 
   // Top stripe mirrors the status-badge palette: red on terminal/overdue, blue on
-  // admin_review (matches "На проверке" badge), orange on pending_documents.
+  // admin_review or developer_confirm (matches the info-bar), orange on pending_documents.
   const stripeClass = isTerminal || (isOverdue && deal.status === 'pending_documents')
     ? 'bg-red-300'
-    : isReviewable
+    : isReviewable || deal.status === 'developer_confirm'
       ? 'bg-blue-400'
       : deal.status === 'pending_documents'
         ? 'bg-orange-400'
@@ -394,7 +395,7 @@ function AdminDealCard({ deal }: { deal: Deal }) {
 
         {/* Info bar */}
         {info && (
-          <div className={cn('flex items-start gap-2 rounded-lg px-3 py-2 mt-4', INFO_BAR_TONE[info.tone])}>
+          <div className={cn('inline-flex w-fit max-w-full items-start gap-2 rounded-lg px-3 py-2 mt-4', INFO_BAR_TONE[info.tone])}>
             <HugeiconsIcon
               icon={info.icon}
               size={14}
@@ -414,7 +415,11 @@ export function AdminDealsView() {
   const [activeTab, setActiveTab] = React.useState<TabFilter>('all');
 
   const { data, isLoading } = useDeals(
-    activeTab === 'all' ? undefined : { status: activeTab as DealStatus }
+    activeTab === 'all'
+      ? undefined
+      : activeTab === 'overdue'
+        ? { obligation_status: 'overdue' }
+        : { status: activeTab as DealStatus }
   );
   const deals = data?.results ?? [];
 
@@ -423,9 +428,10 @@ export function AdminDealsView() {
 
   // KPI counts
   const kpis = [
-    { label: 'На проверке', value: allDeals.filter((d) => d.status === 'admin_review').length, color: 'text-blue-600' },
-    { label: 'Ожидают девелопера', value: allDeals.filter((d) => d.status === 'developer_confirm').length, color: 'text-violet-600' },
     { label: 'Подтверждены', value: allDeals.filter((d) => d.status === 'confirmed').length, color: 'text-emerald-600' },
+    { label: 'Ожидает документов', value: allDeals.filter((d) => d.status === 'pending_documents').length, color: 'text-amber-600' },
+    { label: 'На проверке', value: allDeals.filter((d) => d.status === 'admin_review').length, color: 'text-blue-600' },
+    { label: 'Ожидают девелопера', value: allDeals.filter((d) => d.status === 'developer_confirm').length, color: 'text-blue-600' },
     { label: 'Просрочены', value: allDeals.filter((d) => d.obligation_status === 'overdue').length, color: 'text-red-600' },
     { label: 'Несостоявшиеся', value: allDeals.filter((d) => d.status === 'failed').length, color: 'text-red-600' },
     { label: 'Отклонённые', value: allDeals.filter((d) => d.status === 'declined').length, color: 'text-red-600' },
@@ -440,7 +446,7 @@ export function AdminDealsView() {
         </div>
 
         {/* KPI */}
-        <div className='grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mt-5'>
+        <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 mt-5'>
           {kpis.map((kpi) => (
             <div key={kpi.label} className='bg-white rounded-xl border border-gray-200 p-4'>
               <p className='text-xs text-gray-500'>{kpi.label}</p>
@@ -452,7 +458,11 @@ export function AdminDealsView() {
         {/* Tabs */}
         <div className='flex items-center gap-0 border-b border-gray-200 mt-5'>
           {ADMIN_TABS.map((tab) => {
-            const count = tab.value === 'all' ? allDeals.length : allDeals.filter((d) => d.status === tab.value).length;
+            const count = tab.value === 'all'
+              ? allDeals.length
+              : tab.value === 'overdue'
+                ? allDeals.filter((d) => d.obligation_status === 'overdue').length
+                : allDeals.filter((d) => d.status === tab.value).length;
             const isActive = activeTab === tab.value;
             return (
               <button
