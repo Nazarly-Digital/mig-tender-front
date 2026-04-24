@@ -33,11 +33,22 @@ export function useBrokerRegistration() {
 
   const [step, setStep] = React.useState(1);
   const [code, setCode] = React.useState('');
-  const [inn, setInn] = React.useState<File | null>(null);
-  const [passport, setPassport] = React.useState<File | null>(null);
+  const [inn, setInnFile] = React.useState<File | null>(null);
+  const [passport, setPassportFile] = React.useState<File | null>(null);
+  const [fileErrors, setFileErrors] = React.useState<{ inn?: string; passport?: string }>({});
   const [error, setError] = React.useState('');
   const [timer, setTimer] = React.useState(0);
   const [showObligationModal, setShowObligationModal] = React.useState(false);
+
+  // Wrap file setters so that selecting a file clears the matching error.
+  const setInn = React.useCallback((f: File | null) => {
+    setInnFile(f);
+    if (f) setFileErrors((prev) => ({ ...prev, inn: undefined }));
+  }, []);
+  const setPassport = React.useCallback((f: File | null) => {
+    setPassportFile(f);
+    if (f) setFileErrors((prev) => ({ ...prev, passport: undefined }));
+  }, []);
 
   const getCode = useGetCode();
   const verifyEmail = useVerifyEmail();
@@ -126,49 +137,54 @@ export function useBrokerRegistration() {
     );
   };
 
-  const handleRegister = registerForm.handleSubmit(() => {
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
 
-    if (!inn || !passport) {
-      setError('Необходимо загрузить документ ИНН и паспорт');
-      return;
-    }
+    // File errors live outside react-hook-form, so surface them next to the
+    // matching inputs at the same moment RHF surfaces its own field errors.
+    const nextFileErrors: { inn?: string; passport?: string } = {};
+    if (!inn) nextFileErrors.inn = 'Загрузите документ ИНН';
+    if (!passport) nextFileErrors.passport = 'Загрузите паспорт';
+    setFileErrors(nextFileErrors);
 
-    const data = registerForm.getValues();
+    registerForm.handleSubmit((data) => {
+      if (nextFileErrors.inn || nextFileErrors.passport) return;
 
-    registerBroker.mutate(
-      {
-        email: emailForm.getValues('email'),
-        password: data.password,
-        password_confirm: data.passwordConfirm,
-        first_name: data.firstName || undefined,
-        last_name: data.lastName || undefined,
-        inn_number: data.innNumber,
-        phone_number: data.phoneNumber.replace(/\D/g, '').replace(/^7/, '+7'),
-        inn: inn!,
-        passport: passport!,
-      },
-      {
-        onSuccess: () => {
-          setShowObligationModal(true);
+      registerBroker.mutate(
+        {
+          email: emailForm.getValues('email'),
+          password: data.password,
+          password_confirm: data.passwordConfirm,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          inn_number: data.innNumber,
+          phone_number: '+' + data.phoneNumber.replace(/\D/g, ''),
+          inn: inn!,
+          passport: passport!,
         },
-        onError: (err) => {
-          if (err instanceof AxiosError) {
-            const errData = err.response?.data;
-            if (typeof errData === 'object' && errData !== null) {
-              const messages = Object.values(errData)
-                .flat()
-                .filter((m): m is string => typeof m === 'string')
-                .map(translateBackendMessage);
-              setError(messages.join('. ') || 'Произошла ошибка');
-            } else {
-              setError('Произошла ошибка. Попробуйте позже');
+        {
+          onSuccess: () => {
+            setShowObligationModal(true);
+          },
+          onError: (err) => {
+            if (err instanceof AxiosError) {
+              const errData = err.response?.data;
+              if (typeof errData === 'object' && errData !== null) {
+                const messages = Object.values(errData)
+                  .flat()
+                  .filter((m): m is string => typeof m === 'string')
+                  .map(translateBackendMessage);
+                setError(messages.join('. ') || 'Произошла ошибка');
+              } else {
+                setError('Произошла ошибка. Попробуйте позже');
+              }
             }
-          }
+          },
         },
-      },
-    );
-  });
+      );
+    })(e);
+  };
 
   const onAcceptObligation = () => {
     setShowObligationModal(false);
@@ -188,6 +204,7 @@ export function useBrokerRegistration() {
     setInn,
     passport,
     setPassport,
+    fileErrors,
     error,
     timer,
 

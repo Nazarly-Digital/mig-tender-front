@@ -9,27 +9,51 @@ import { useParticipatedAuctions } from '@/features/auctions';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Auction } from '@/shared/types/auctions';
 import * as FancyButton from '@/shared/ui/fancy-button';
+import { useSessionStore } from '@/entities/auth/model/store';
 import { ChangePasswordModal } from './change-password-modal';
 
+// Resolves the real outcome of a finished auction from the current broker's point of view
+// (win / loss / waiting for owner decision / rejected / failed / cancelled), not just `status`.
+function getBrokerAuctionStatus(auction: Auction, userId: number | undefined): { label: string; cls: string } {
+  if (auction.status === 'cancelled') {
+    return { label: 'Отменён', cls: 'bg-red-50 text-red-700' };
+  }
+  if (auction.status === 'failed' || auction.owner_decision === 'rejected') {
+    return { label: 'Отклонён', cls: 'bg-red-50 text-red-700' };
+  }
+  if (auction.status === 'active') {
+    return { label: 'Активный', cls: 'bg-emerald-50 text-emerald-700' };
+  }
+  if (auction.status === 'scheduled') {
+    return { label: 'Запланирован', cls: 'bg-gray-100 text-gray-600' };
+  }
+  if (auction.status === 'draft') {
+    return { label: 'Черновик', cls: 'bg-gray-100 text-gray-600' };
+  }
+
+  // status === 'finished' — derive from winner + owner decision + deal outcome
+  const iAmWinner = userId != null && auction.winner_bid?.broker.id === userId;
+
+  if (iAmWinner) {
+    if (auction.has_failed_deal) {
+      return { label: 'Несостоявшийся', cls: 'bg-red-50 text-red-700' };
+    }
+    if (auction.owner_decision === 'confirmed') {
+      return { label: 'Победа', cls: 'bg-emerald-50 text-emerald-700' };
+    }
+    return { label: 'Ожидает решения', cls: 'bg-amber-50 text-amber-700' };
+  }
+
+  if (!auction.winner_bid) {
+    return { label: 'Без победителя', cls: 'bg-gray-100 text-gray-600' };
+  }
+
+  return { label: 'Не выиграл', cls: 'bg-gray-100 text-gray-600' };
+}
+
 function AuctionItem({ auction }: { auction: Auction }) {
-  const statusCls =
-    auction.status === 'active'
-      ? 'bg-emerald-50 text-emerald-700'
-      : auction.status === 'finished'
-        ? 'bg-blue-50 text-blue-700'
-        : auction.status === 'failed' || auction.status === 'cancelled'
-          ? 'bg-red-50 text-red-700'
-          : 'bg-gray-100 text-gray-600';
-  const statusLabel =
-    auction.status === 'active'
-      ? 'Активный'
-      : auction.status === 'finished'
-        ? 'Завершён'
-        : auction.status === 'failed'
-          ? 'Несостоявшийся'
-          : auction.status === 'cancelled'
-            ? 'Отменён'
-            : 'Черновик';
+  const userId = useSessionStore((s) => s.user?.id);
+  const { label: statusLabel, cls: statusCls } = getBrokerAuctionStatus(auction, userId);
 
   return (
     <Link

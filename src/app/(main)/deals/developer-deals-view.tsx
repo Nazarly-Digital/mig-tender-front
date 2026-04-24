@@ -9,6 +9,7 @@ import {
   AlertCircleIcon,
   Clock01Icon,
   CheckmarkCircle02Icon,
+  CancelCircleIcon,
 } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
@@ -172,7 +173,7 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
 
   // Top accent stripe signals what needs attention at a glance.
   const stripeClass = needsAction
-    ? 'bg-orange-400'
+    ? 'bg-blue-400'
     : isTerminal
       ? 'bg-red-300'
       : deal.status === 'confirmed'
@@ -343,8 +344,9 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
                 </button>
                 <button
                   onClick={() => setShowRejectInput(true)}
-                  className='flex-1 px-4 py-2.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors cursor-pointer'
+                  className='flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors cursor-pointer'
                 >
+                  <HugeiconsIcon icon={CancelCircleIcon} size={16} color='currentColor' strokeWidth={2} />
                   Отклонить
                 </button>
               </div>
@@ -354,7 +356,7 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
 
         {/* Info bar */}
         {info && (
-          <div className={cn('flex items-start gap-2 rounded-lg px-3 py-2 mt-4', INFO_BAR_TONE[info.tone])}>
+          <div className={cn('inline-flex w-fit max-w-full items-start gap-2 rounded-lg px-3 py-2 mt-4', INFO_BAR_TONE[info.tone])}>
             <HugeiconsIcon
               icon={info.icon}
               size={14}

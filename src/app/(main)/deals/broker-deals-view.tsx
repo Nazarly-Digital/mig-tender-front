@@ -193,9 +193,11 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
     ? 'bg-orange-400'
     : isTerminal || (isOverdue && deal.status === 'pending_documents')
       ? 'bg-red-300'
-      : deal.status === 'confirmed'
-        ? 'bg-emerald-400'
-        : null;
+      : deal.status === 'developer_confirm'
+        ? 'bg-blue-400'
+        : deal.status === 'confirmed'
+          ? 'bg-emerald-400'
+          : null;
 
   return (
     <div
@@ -405,7 +407,7 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
 
         {/* Info bar */}
         {info && (
-          <div className={cn('flex items-start gap-2 rounded-lg px-3 py-2 mt-4', INFO_BAR_TONE[info.tone])}>
+          <div className={cn('inline-flex w-fit max-w-full items-start gap-2 rounded-lg px-3 py-2 mt-4', INFO_BAR_TONE[info.tone])}>
             <HugeiconsIcon
               icon={info.icon}
               size={14}
