@@ -391,63 +391,6 @@ function PendingAssignmentBanner({ auction }: { auction: Auction }) {
   );
 }
 
-function SectionHeader({ title, count }: { title: string; count: number }) {
-  return (
-    <div className='flex items-center gap-2 mb-3'>
-      <span className='text-[11px] font-semibold uppercase tracking-wider text-gray-500'>{title}</span>
-      <span className='inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-500'>
-        {count}
-      </span>
-    </div>
-  );
-}
-
-function GroupedDeals({ deals }: { deals: Deal[] }) {
-  const needsAction = deals.filter((d) => d.status === 'developer_confirm');
-  const inProgress = deals.filter(
-    (d) => d.status === 'pending_documents' || d.status === 'admin_review',
-  );
-  const completed = deals.filter((d) => d.status === 'confirmed');
-  const closed = deals.filter((d) => d.status === 'failed' || d.status === 'declined');
-
-  return (
-    <div className='space-y-8'>
-      {needsAction.length > 0 && (
-        <section>
-          <SectionHeader title='Требует решения' count={needsAction.length} />
-          <div className='grid grid-cols-1 gap-4'>
-            {needsAction.map((deal) => <DeveloperDealCard key={deal.id} deal={deal} />)}
-          </div>
-        </section>
-      )}
-      {inProgress.length > 0 && (
-        <section>
-          <SectionHeader title='В работе' count={inProgress.length} />
-          <div className='grid grid-cols-1 xl:grid-cols-2 gap-4'>
-            {inProgress.map((deal) => <DeveloperDealCard key={deal.id} deal={deal} />)}
-          </div>
-        </section>
-      )}
-      {completed.length > 0 && (
-        <section>
-          <SectionHeader title='Завершённые' count={completed.length} />
-          <div className='grid grid-cols-1 xl:grid-cols-2 gap-4'>
-            {completed.map((deal) => <DeveloperDealCard key={deal.id} deal={deal} />)}
-          </div>
-        </section>
-      )}
-      {closed.length > 0 && (
-        <section>
-          <SectionHeader title='Закрытые' count={closed.length} />
-          <div className='grid grid-cols-1 xl:grid-cols-2 gap-4'>
-            {closed.map((deal) => <DeveloperDealCard key={deal.id} deal={deal} />)}
-          </div>
-        </section>
-      )}
-    </div>
-  );
-}
-
 export function DeveloperDealsView() {
   const [activeTab, setActiveTab] = React.useState<TabFilter>('all');
 
@@ -488,6 +431,7 @@ export function DeveloperDealsView() {
             const count = tab.value === 'all'
               ? allDeals.length
               : allDeals.filter((d) => d.status === tab.value).length;
+            const isActive = activeTab === tab.value;
             return (
               <button
                 key={tab.value}
@@ -495,12 +439,20 @@ export function DeveloperDealsView() {
                 onClick={() => setActiveTab(tab.value)}
                 className={cn(
                   'px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors border-b-2 -mb-px',
-                  activeTab === tab.value
-                    ? 'border-blue-600 text-gray-900'
+                  isActive
+                    ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700',
                 )}
               >
-                {tab.label}{tab.value === 'all' && count > 0 ? ` (${count})` : ''}
+                {tab.label}
+                <span
+                  className={cn(
+                    'ml-1.5 font-normal',
+                    isActive ? 'text-blue-400' : 'text-gray-400',
+                  )}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
@@ -518,7 +470,9 @@ export function DeveloperDealsView() {
               <p className="text-xs text-gray-400 mt-1">Сделки появятся после завершения аукционов по вашим объектам</p>
             </div>
           ) : (
-            <GroupedDeals deals={deals} />
+            <div className='grid grid-cols-1 xl:grid-cols-2 gap-4'>
+              {deals.map((deal) => <DeveloperDealCard key={deal.id} deal={deal} />)}
+            </div>
           )}
         </div>
       </div>
