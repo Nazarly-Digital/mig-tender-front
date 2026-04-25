@@ -188,28 +188,8 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
     if (file) uploadPaymentProof.mutate({ deal_id: deal.id, payment_proof_document: file });
   };
 
-  // Top accent stripe signals what needs attention at a glance for the broker.
-  const stripeClass = canUpload
-    ? 'bg-orange-400'
-    : isTerminal || (isOverdue && deal.status === 'pending_documents')
-      ? 'bg-red-300'
-      : deal.status === 'developer_confirm'
-        ? 'bg-blue-400'
-        : deal.status === 'confirmed'
-          ? 'bg-emerald-400'
-          : null;
-
   return (
-    <div
-      className={cn(
-        'bg-white rounded-xl border overflow-hidden',
-        isTerminal || (isOverdue && deal.status === 'pending_documents')
-          ? 'border-red-200'
-          : 'border-gray-200',
-      )}
-    >
-      {stripeClass && <div className={cn('h-1 w-full', stripeClass)} />}
-
+    <div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
       <div className='p-5'>
         {/* Header */}
         <div className='flex items-start justify-between gap-4'>
