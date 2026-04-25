@@ -16,7 +16,7 @@ import {
 } from '@remixicon/react';
 
 import { cn } from '@/shared/lib/cn';
-import { formatPhoneInput } from '@/shared/lib/phone';
+import { formatPhoneInputLocked } from '@/shared/lib/phone';
 import * as Alert from '@/shared/ui/alert';
 import * as DigitInput from '@/shared/ui/digit-input';
 import * as Divider from '@/shared/ui/divider';
@@ -296,11 +296,16 @@ export default function PageRegister() {
                       placeholder='+7 (999) 000-00-00'
                       {...registerForm.register('phoneNumber', {
                         onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                          const formatted = formatPhoneInput(e.target.value);
+                          const formatted = formatPhoneInputLocked(e.target.value);
                           registerForm.setValue('phoneNumber', formatted);
                         },
                       })}
-                      maxLength={24}
+                      onFocus={(e) => {
+                        if (!e.target.value) {
+                          registerForm.setValue('phoneNumber', '+7 (');
+                        }
+                      }}
+                      maxLength={18}
                     />
                   </Input.Wrapper>
                 </Input.Root>

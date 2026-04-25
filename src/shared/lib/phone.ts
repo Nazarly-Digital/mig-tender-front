@@ -30,6 +30,25 @@ export function formatPhoneInput(value: string): string {
   return formatted.replace(/^(\+\d{1,3}) (\d{3})(?=$| )/, '$1 ($2)');
 }
 
+// Like formatPhoneInput, but the "+7 (" prefix is undeletable — clearing the
+// field or backspacing past the prefix collapses back to "+7 (". Use this for
+// the broker registration UX where the country code is fixed.
+export function formatPhoneInputLocked(value: string): string {
+  const digits = (value || '').replace(/\D/g, '');
+  // The locked "+7 (" prefix means the leading 7 in the digit stream is always
+  // the country code, so peel it off before treating the rest as the subscriber
+  // body. (Edge case: a user typing a fresh first character of "7" loses that
+  // one keystroke, which is acceptable for RU/KZ where subscriber numbers
+  // don't start with 7.)
+  const body = (digits.startsWith('7') ? digits.slice(1) : digits).slice(0, 10);
+  if (body.length === 0) return '+7 (';
+  if (body.length <= 3) return `+7 (${body}`;
+  if (body.length <= 6) return `+7 (${body.slice(0, 3)}) ${body.slice(3)}`;
+  if (body.length <= 8)
+    return `+7 (${body.slice(0, 3)}) ${body.slice(3, 6)}-${body.slice(6)}`;
+  return `+7 (${body.slice(0, 3)}) ${body.slice(3, 6)}-${body.slice(6, 8)}-${body.slice(8, 10)}`;
+}
+
 // Strip the display formatting back down to E.164 ("+73743443433") for the
 // backend. Returns "" for empty input so PATCH callers can detect "unset".
 export function toE164(value: string): string {
