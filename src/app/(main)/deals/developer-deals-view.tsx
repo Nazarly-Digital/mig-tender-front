@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   File01Icon,
-  ArrowMoveDownRightIcon,
   AlertCircleIcon,
   Clock01Icon,
   CheckmarkCircle02Icon,
@@ -14,9 +13,7 @@ import {
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import { useDeals, useDeveloperConfirmDeal, useDeveloperRejectDeal } from '@/features/deals';
-import { useMyAuctions } from '@/features/auctions';
 import type { Deal, DealStatus } from '@/shared/types/deals';
-import type { Auction } from '@/shared/types/auctions';
 
 type TabFilter = 'all' | 'developer_confirm' | 'pending_documents' | 'admin_review' | 'confirmed' | 'failed' | 'declined';
 
@@ -356,27 +353,6 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
   );
 }
 
-function PendingAssignmentBanner({ auction }: { auction: Auction }) {
-  return (
-    <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-gray-900">
-          Аукцион #{auction.id} — требуется распределение объектов
-        </p>
-        <p className="text-xs text-amber-700 mt-0.5">
-          {auction.properties.length} объектов в лоте. Назначьте объекты победителям для создания сделок.
-        </p>
-      </div>
-      <Link href={`/auctions/${auction.id}`}>
-        <button className="shrink-0 flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer">
-          <HugeiconsIcon icon={ArrowMoveDownRightIcon} size={16} color="currentColor" strokeWidth={1.5} />
-          Распределить
-        </button>
-      </Link>
-    </div>
-  );
-}
-
 export function DeveloperDealsView() {
   const [activeTab, setActiveTab] = React.useState<TabFilter>('all');
 
@@ -388,12 +364,6 @@ export function DeveloperDealsView() {
   const { data: allData } = useDeals();
   const allDeals = allData?.results ?? [];
 
-  // Auctions that need property distribution (finished, winner selected, deals not created, multi-property)
-  const { data: myAuctionsData } = useMyAuctions({ status: 'finished' });
-  const pendingAssignAuctions = (myAuctionsData?.results ?? []).filter(
-    (a) => a.mode === 'closed' && a.winner_bid && !a.deals_created && a.properties?.length > 1
-  );
-
   return (
     <div className="w-full px-8 py-8">
       <div className="">
@@ -401,15 +371,6 @@ export function DeveloperDealsView() {
           <h1 className="text-lg font-semibold text-gray-900">Сделки по моим объектам</h1>
           <p className="text-sm text-gray-500 mt-0.5">Результаты аукционов, подтверждение сделок, статусы</p>
         </div>
-
-        {/* Pending assignment banners */}
-        {pendingAssignAuctions.length > 0 && (
-          <div className="space-y-3 mt-5">
-            {pendingAssignAuctions.map((auction) => (
-              <PendingAssignmentBanner key={auction.id} auction={auction} />
-            ))}
-          </div>
-        )}
 
         {/* Tabs */}
         <div className="flex items-center gap-0 border-b border-gray-200 mt-5">
