@@ -143,10 +143,10 @@ function getInfoBar(deal: Deal): InfoBar | null {
 }
 
 const INFO_BAR_TONE: Record<InfoBar['tone'], string> = {
-  amber: 'bg-amber-50 text-amber-700',
-  blue: 'bg-blue-50 text-blue-700',
-  emerald: 'bg-emerald-50 text-emerald-700',
-  red: 'bg-red-50 text-red-700',
+  amber: 'border border-gray-200 bg-gray-50 text-gray-700',
+  blue: 'border border-gray-200 bg-gray-50 text-gray-700',
+  emerald: 'border border-gray-200 bg-gray-50 text-gray-700',
+  red: 'border border-gray-200 bg-gray-50 text-gray-700',
 };
 
 function extractFileName(url: string): string {
@@ -250,7 +250,7 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
                 href={deal.ddu_document}
                 target='_blank'
                 rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors max-w-full'
+                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
                 <span className='truncate'>{extractFileName(deal.ddu_document)}</span>
@@ -261,7 +261,7 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
                 href={deal.payment_proof_document}
                 target='_blank'
                 rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors max-w-full'
+                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
                 <span className='truncate'>{extractFileName(deal.payment_proof_document)}</span>
