@@ -36,6 +36,7 @@ import {
   adminUpdateBrokerSchema,
   type AdminUpdateBrokerFormData,
 } from '@/shared/lib/validations';
+import { formatPhoneInput, toE164, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
 
 // --- Helpers ---
 
@@ -226,7 +227,7 @@ function EditDeveloperModal({
         lastName: user.last_name ?? '',
         companyName: user.developer?.company_name ?? '',
         innNumber: user.developer?.inn_number ?? '',
-        phoneNumber: user.developer?.phone_number ?? '',
+        phoneNumber: formatPhoneInput(user.developer?.phone_number || PHONE_INPUT_DEFAULT),
       });
     }
   }, [open, user, form]);
@@ -252,8 +253,9 @@ function EditDeveloperModal({
     if (data.innNumber !== (user.developer?.inn_number ?? '')) {
       payload.inn_number = data.innNumber;
     }
-    if (data.phoneNumber !== (user.developer?.phone_number ?? '')) {
-      payload.phone_number = data.phoneNumber;
+    const e164Phone = toE164(data.phoneNumber);
+    if (e164Phone !== (user.developer?.phone_number ?? '')) {
+      payload.phone_number = e164Phone;
     }
 
     if (Object.keys(payload).length === 0) {
@@ -398,9 +400,13 @@ function EditDeveloperModal({
                     <Input.Input
                       id='ed-phoneNumber'
                       type='tel'
-                      maxLength={20}
-                      placeholder='+7 999 000 00 00'
-                      {...form.register('phoneNumber')}
+                      inputMode='tel'
+                      placeholder='+7 (999) 000-00-00'
+                      {...form.register('phoneNumber', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          form.setValue('phoneNumber', formatPhoneInput(e.target.value));
+                        },
+                      })}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -484,7 +490,7 @@ function EditBrokerModal({
         firstName: user.first_name ?? '',
         lastName: user.last_name ?? '',
         innNumber: user.broker?.inn_number ?? '',
-        phoneNumber: user.broker?.phone_number ?? '',
+        phoneNumber: formatPhoneInput(user.broker?.phone_number || PHONE_INPUT_DEFAULT),
       });
     }
   }, [open, user, form]);
@@ -504,8 +510,9 @@ function EditBrokerModal({
     if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName;
     if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName;
     if (data.innNumber !== (user.broker?.inn_number ?? '')) payload.inn_number = data.innNumber;
-    if (data.phoneNumber !== (user.broker?.phone_number ?? '')) {
-      payload.phone_number = data.phoneNumber;
+    const e164Phone = toE164(data.phoneNumber);
+    if (e164Phone !== (user.broker?.phone_number ?? '')) {
+      payload.phone_number = e164Phone;
     }
 
     if (Object.keys(payload).length === 0) {
@@ -639,9 +646,13 @@ function EditBrokerModal({
                     <Input.Input
                       id='eb-phoneNumber'
                       type='tel'
-                      maxLength={20}
-                      placeholder='+7 999 000 00 00'
-                      {...form.register('phoneNumber')}
+                      inputMode='tel'
+                      placeholder='+7 (999) 000-00-00'
+                      {...form.register('phoneNumber', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          form.setValue('phoneNumber', formatPhoneInput(e.target.value));
+                        },
+                      })}
                     />
                   </Input.Wrapper>
                 </Input.Root>

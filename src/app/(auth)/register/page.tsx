@@ -16,6 +16,7 @@ import {
 } from '@remixicon/react';
 
 import { cn } from '@/shared/lib/cn';
+import { formatPhoneInput } from '@/shared/lib/phone';
 import * as Alert from '@/shared/ui/alert';
 import * as DigitInput from '@/shared/ui/digit-input';
 import * as Divider from '@/shared/ui/divider';
@@ -56,14 +57,6 @@ const PasswordInput = React.forwardRef<
   );
 });
 PasswordInput.displayName = 'PasswordInput';
-
-// International phone input: keep a leading '+', digits, and visual separators
-// (space, '-', parens). No country-specific mask — callers from any country.
-function sanitizePhoneInput(value: string): string {
-  const hasLeadingPlus = value.trim().startsWith('+');
-  const cleaned = value.replace(/[^\d\s\-()]/g, '');
-  return hasLeadingPlus ? '+' + cleaned : cleaned;
-}
 
 export default function PageRegister() {
   const {
@@ -300,11 +293,11 @@ export default function PageRegister() {
                       id='phoneNumber'
                       type='tel'
                       inputMode='tel'
-                      placeholder='+1 234 567 8900'
+                      placeholder='+7 (999) 000-00-00'
                       {...registerForm.register('phoneNumber', {
                         onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                          const sanitized = sanitizePhoneInput(e.target.value);
-                          registerForm.setValue('phoneNumber', sanitized, { shouldValidate: true });
+                          const formatted = formatPhoneInput(e.target.value);
+                          registerForm.setValue('phoneNumber', formatted);
                         },
                       })}
                       maxLength={24}

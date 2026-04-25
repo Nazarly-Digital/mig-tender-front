@@ -22,6 +22,7 @@ import {
   adminCreateDeveloperSchema,
   type AdminCreateDeveloperFormData,
 } from '@/shared/lib/validations';
+import { formatPhoneInput, toE164, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
 
 const ACCEPT_MIME = 'image/jpeg,image/png,image/webp,image/heic,application/pdf';
 
@@ -130,7 +131,7 @@ export default function NewDeveloperPage() {
       lastName: '',
       companyName: '',
       innNumber: '',
-      phoneNumber: '',
+      phoneNumber: PHONE_INPUT_DEFAULT,
       innDocument: undefined as unknown as File,
       passportDocument: undefined as unknown as File,
       password: '',
@@ -148,7 +149,7 @@ export default function NewDeveloperPage() {
         first_name: data.firstName,
         last_name: data.lastName,
         inn_number: data.innNumber,
-        phone_number: data.phoneNumber,
+        phone_number: toE164(data.phoneNumber),
         inn: data.innDocument as unknown as File,
         passport: data.passportDocument as unknown as File,
       },
@@ -303,7 +304,7 @@ export default function NewDeveloperPage() {
                         placeholder='+7 (999) 000-00-00'
                         value={field.value ?? ''}
                         onChange={(e) =>
-                          field.onChange(e.target.value.replace(/[^\d+\s\-()]/g, ''))
+                          field.onChange(formatPhoneInput(e.target.value))
                         }
                         onBlur={field.onBlur}
                         name={field.name}

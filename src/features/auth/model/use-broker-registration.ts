@@ -18,6 +18,7 @@ import {
   brokerRegisterSchema,
   type BrokerRegisterFormData,
 } from '@/shared/lib/validations';
+import { toE164, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
 import { translateBackendMessage } from '@/shared/lib/translate-backend-error';
 
 export function useBrokerRegistration() {
@@ -29,6 +30,7 @@ export function useBrokerRegistration() {
 
   const registerForm = useForm<BrokerRegisterFormData>({
     resolver: zodResolver(brokerRegisterSchema),
+    defaultValues: { phoneNumber: PHONE_INPUT_DEFAULT },
   });
 
   const [step, setStep] = React.useState(1);
@@ -159,7 +161,7 @@ export function useBrokerRegistration() {
           first_name: data.firstName,
           last_name: data.lastName,
           inn_number: data.innNumber,
-          phone_number: '+' + data.phoneNumber.replace(/\D/g, ''),
+          phone_number: toE164(data.phoneNumber),
           inn: inn!,
           passport: passport!,
         },
