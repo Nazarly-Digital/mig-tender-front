@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 
 // Strict email validation — two-layer:
 //
@@ -198,16 +199,11 @@ export const brokerRegisterSchema = z
       .string()
       .min(1, 'Введите номер телефона')
       .refine((v) => v.trim().startsWith('+'), {
-        message: 'Номер должен начинаться с +',
+        message: 'Номер должен начинаться с + и кода страны',
       })
-      .refine(
-        (v) => {
-          // E.164: 7–15 digits after the leading '+'
-          const digits = v.replace(/\D/g, '');
-          return digits.length >= 7 && digits.length <= 15;
-        },
-        { message: 'Введите корректный номер телефона' },
-      ),
+      .refine((v) => isValidPhoneNumber(v.trim()), {
+        message: 'Введите корректный номер для выбранной страны',
+      }),
     password: z
       .string()
       .min(1, 'Введите пароль')
@@ -266,17 +262,12 @@ export const adminCreateDeveloperSchema = z
     phoneNumber: z
       .string()
       .min(1, 'Введите номер телефона')
-      .regex(
-        /^[\d+\s\-()]+$/,
-        'Номер может содержать только цифры и символы +, -, (, ), пробел',
-      )
-      .refine(
-        (v) => {
-          const digits = v.replace(/\D/g, '');
-          return digits.length >= 7 && digits.length <= 15;
-        },
-        { message: 'Номер телефона должен содержать от 7 до 15 цифр' },
-      ),
+      .refine((v) => v.trim().startsWith('+'), {
+        message: 'Номер должен начинаться с + и кода страны',
+      })
+      .refine((v) => isValidPhoneNumber(v.trim()), {
+        message: 'Введите корректный номер для выбранной страны',
+      }),
     innDocument: requiredFile,
     passportDocument: requiredFile,
     password: z

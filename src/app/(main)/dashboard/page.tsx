@@ -16,7 +16,7 @@ import { useMyProperties, useProperties } from '@/features/properties';
 import { useMyAuctions, useAuctions } from '@/features/auctions';
 import { usePendingProperties } from '@/features/admin';
 import { useSettlements } from '@/features/payments';
-import { useDeals } from '@/features/deals';
+import { useConfirmedDealsTotal } from '@/features/deals';
 import { useSessionStore, isUserDeveloper, isUserAdmin } from '@/entities/auth/model/store';
 import {
   TYPE_LABELS,
@@ -101,11 +101,9 @@ function BrokerEarningsCard() {
 }
 
 function DeveloperSalesCard() {
-  // Backend scopes /deals/ by role, so a developer sees only their own deals.
-  // page_size picked high enough to sum all confirmed deals in one request.
-  const { data } = useDeals({ status: 'confirmed', page_size: 500 });
-  const deals = data?.results ?? [];
-  const totalSold = deals.reduce((acc, d) => acc + parseFloat(d.amount || '0'), 0);
+  const { data } = useConfirmedDealsTotal();
+  const totalSold = data?.totalAmount ?? 0;
+  const dealsCount = data?.count ?? 0;
 
   return (
     <div className='group rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 transition-all duration-200 hover:border-blue-200 hover:shadow-sm'>
@@ -119,7 +117,7 @@ function DeveloperSalesCard() {
         {formatPrice(String(totalSold), 'RUB')}
       </span>
       <div className='mt-1 text-[12px] text-gray-500'>
-        Завершённых сделок: <span className='font-semibold text-gray-700'>{deals.length}</span>
+        Завершённых сделок: <span className='font-semibold text-gray-700'>{dealsCount}</span>
       </div>
       <div className='mt-4 border-t border-blue-50 pt-3'>
         <Link

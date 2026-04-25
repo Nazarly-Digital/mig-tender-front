@@ -13,6 +13,7 @@ export const dealKeys = {
   list: (params?: DealListParams) => [...dealKeys.all, "list", params] as const,
   detail: (id: number) => [...dealKeys.all, "detail", id] as const,
   logs: (id: number) => [...dealKeys.all, "logs", id] as const,
+  confirmedTotal: () => [...dealKeys.all, "confirmed-total"] as const,
 };
 
 // --- List & Detail ---
@@ -25,6 +26,42 @@ export function useDeals(
     queryKey: dealKeys.list(params),
     queryFn: () => dealsService.getAll(params).then((res) => res.data),
     enabled: options?.enabled ?? true,
+  });
+}
+
+// Sum of `amount` across ALL confirmed deals visible to the caller (backend
+// scopes /deals/ by role). Walks the paginated endpoint so the total is correct
+// regardless of page_size limits.
+export function useConfirmedDealsTotal(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: dealKeys.confirmedTotal(),
+    enabled: options?.enabled ?? true,
+    queryFn: async () => {
+      const PAGE_SIZE = 100;
+      const first = await dealsService
+        .getAll({ status: "confirmed", page_size: PAGE_SIZE })
+        .then((r) => r.data);
+
+      let results = first.results;
+      const totalPages = Math.ceil(first.count / PAGE_SIZE);
+
+      if (totalPages > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: totalPages - 1 }, (_, i) =>
+            dealsService
+              .getAll({ status: "confirmed", page_size: PAGE_SIZE, page: i + 2 })
+              .then((r) => r.data.results),
+          ),
+        );
+        results = results.concat(...rest);
+      }
+
+      const totalAmount = results.reduce(
+        (acc, d) => acc + parseFloat(d.amount || "0"),
+        0,
+      );
+      return { totalAmount, count: first.count };
+    },
   });
 }
 

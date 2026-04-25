@@ -1,6 +1,7 @@
 export {
   dealKeys,
   useDeals,
+  useConfirmedDealsTotal,
   useDealDetail,
   useDealLogs,
   useUploadDDU,
