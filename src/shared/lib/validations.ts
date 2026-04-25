@@ -258,7 +258,11 @@ export const adminCreateDeveloperSchema = z
       .max(55, 'Максимум 55 символов'),
     innNumber: z
       .string()
-      .min(1, 'Введите ИНН'),
+      .min(1, 'Введите ИНН')
+      .refine((v) => /^\d+$/.test(v), { message: 'ИНН должен содержать только цифры' })
+      .refine((v) => v.length === 10 || v.length === 12, {
+        message: 'ИНН должен содержать 10 или 12 цифр',
+      }),
     phoneNumber: z
       .string()
       .min(1, 'Введите номер телефона')
