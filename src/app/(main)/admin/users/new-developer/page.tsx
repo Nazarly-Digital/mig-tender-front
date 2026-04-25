@@ -22,7 +22,7 @@ import {
   adminCreateDeveloperSchema,
   type AdminCreateDeveloperFormData,
 } from '@/shared/lib/validations';
-import { formatPhoneInput, toE164, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
+import { formatPhoneInputLocked, toE164, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
 
 const ACCEPT_MIME = 'image/jpeg,image/png,image/webp,image/heic,application/pdf';
 
@@ -302,10 +302,14 @@ export default function NewDeveloperPage() {
                         inputMode='tel'
                         autoComplete='tel'
                         placeholder='+7 (999) 000-00-00'
+                        maxLength={18}
                         value={field.value ?? ''}
                         onChange={(e) =>
-                          field.onChange(formatPhoneInput(e.target.value))
+                          field.onChange(formatPhoneInputLocked(e.target.value))
                         }
+                        onFocus={() => {
+                          if (!field.value) field.onChange('+7 (');
+                        }}
                         onBlur={field.onBlur}
                         name={field.name}
                         ref={field.ref}
