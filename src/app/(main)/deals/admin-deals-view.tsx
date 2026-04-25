@@ -176,27 +176,8 @@ function AdminDealCard({ deal }: { deal: Deal }) {
   const [rejectReason, setRejectReason] = React.useState('');
   const [showRejectInput, setShowRejectInput] = React.useState(false);
 
-  // Top stripe mirrors the status-badge palette: red on terminal/overdue, blue on
-  // admin_review or developer_confirm (matches the info-bar), orange on pending_documents.
-  const stripeClass = isTerminal || (isOverdue && deal.status === 'pending_documents')
-    ? 'bg-red-300'
-    : isReviewable || deal.status === 'developer_confirm'
-      ? 'bg-blue-400'
-      : deal.status === 'pending_documents'
-        ? 'bg-orange-400'
-        : null;
-
   return (
-    <div
-      className={cn(
-        'bg-white rounded-xl border overflow-hidden',
-        isTerminal || (isOverdue && deal.status === 'pending_documents')
-          ? 'border-red-200'
-          : 'border-gray-200',
-      )}
-    >
-      {stripeClass && <div className={cn('h-1 w-full', stripeClass)} />}
-
+    <div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
       <div className='p-5'>
         {/* Header */}
         <div className='flex items-start justify-between gap-4'>

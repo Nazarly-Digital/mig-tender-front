@@ -171,24 +171,8 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
   const [rejectReason, setRejectReason] = React.useState('');
   const [showRejectInput, setShowRejectInput] = React.useState(false);
 
-  // Top accent stripe signals what needs attention at a glance.
-  const stripeClass = needsAction
-    ? 'bg-blue-400'
-    : isTerminal
-      ? 'bg-red-300'
-      : deal.status === 'confirmed'
-        ? 'bg-emerald-400'
-        : null;
-
   return (
-    <div
-      className={cn(
-        'bg-white rounded-xl border overflow-hidden',
-        isTerminal ? 'border-red-200' : 'border-gray-200',
-      )}
-    >
-      {stripeClass && <div className={cn('h-1 w-full', stripeClass)} />}
-
+    <div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
       <div className='p-5'>
         {/* Header */}
         <div className='flex items-start justify-between gap-4'>
