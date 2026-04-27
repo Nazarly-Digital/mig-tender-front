@@ -19,6 +19,8 @@ export type AdminUser = {
     company_name?: string;
     phone_number?: string;
     inn_number?: string;
+    ddu_template_url?: string | null;
+    has_ddu_template?: boolean;
   } | null;
   documents: UserDocument[];
   is_active?: boolean;
@@ -53,6 +55,7 @@ export type AdminCreateDeveloperRequest = {
   phone_number: string;
   inn: File;
   passport: File;
+  ddu_template: File;
 };
 
 export type AdminUpdateDeveloperRequest = {
@@ -62,6 +65,7 @@ export type AdminUpdateDeveloperRequest = {
   company_name?: string;
   inn_number?: string;
   phone_number?: string;
+  ddu_template?: File;
 };
 
 export type AdminDeveloperResponse = {

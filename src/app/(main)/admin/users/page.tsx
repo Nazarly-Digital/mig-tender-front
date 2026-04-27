@@ -216,6 +216,7 @@ function EditDeveloperModal({
       companyName: '',
       innNumber: '',
       phoneNumber: '',
+      dduTemplate: undefined as unknown as File,
     },
   });
 
@@ -228,6 +229,7 @@ function EditDeveloperModal({
         companyName: user.developer?.company_name ?? '',
         innNumber: user.developer?.inn_number ?? '',
         phoneNumber: formatPhoneInput(user.developer?.phone_number || PHONE_INPUT_DEFAULT),
+        dduTemplate: undefined as unknown as File,
       });
     }
   }, [open, user, form]);
@@ -243,6 +245,7 @@ function EditDeveloperModal({
       company_name?: string;
       inn_number?: string;
       phone_number?: string;
+      ddu_template?: File;
     } = {};
     if (data.email !== user.email) payload.email = data.email;
     if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName;
@@ -256,6 +259,9 @@ function EditDeveloperModal({
     const e164Phone = toE164(data.phoneNumber);
     if (e164Phone !== (user.developer?.phone_number ?? '')) {
       payload.phone_number = e164Phone;
+    }
+    if (data.dduTemplate instanceof File) {
+      payload.ddu_template = data.dduTemplate;
     }
 
     if (Object.keys(payload).length === 0) {
@@ -436,6 +442,42 @@ function EditDeveloperModal({
                   </div>
                 </div>
               )}
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='ed-dduTemplate'>Шаблон ДДУ (PDF)</Label.Root>
+                {user.developer?.ddu_template_url && (
+                  <a
+                    href={user.developer.ddu_template_url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='inline-flex w-fit items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50'
+                  >
+                    <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                    Текущий шаблон
+                  </a>
+                )}
+                <input
+                  id='ed-dduTemplate'
+                  type='file'
+                  accept='application/pdf'
+                  className='block w-full text-[12px] text-gray-600 file:mr-3 file:rounded-md file:border file:border-gray-300 file:bg-white file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-gray-700 hover:file:bg-gray-50'
+                  onChange={(e) =>
+                    form.setValue(
+                      'dduTemplate',
+                      (e.target.files?.[0] ?? undefined) as unknown as File,
+                      { shouldValidate: true },
+                    )
+                  }
+                />
+                <span className='text-[11px] text-gray-400'>
+                  Загрузите PDF, чтобы заменить текущий шаблон. Оставьте пустым, чтобы не менять.
+                </span>
+                {form.formState.errors.dduTemplate && (
+                  <span className='text-paragraph-xs text-error-base'>
+                    {form.formState.errors.dduTemplate.message as string}
+                  </span>
+                )}
+              </div>
             </div>
           </Modal.Body>
           <Modal.Footer>

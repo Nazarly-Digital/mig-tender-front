@@ -2,14 +2,23 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Clock01Icon, Award01Icon, UserIcon, LockPasswordIcon, UnavailableIcon } from '@hugeicons/core-free-icons';
+import {
+  Clock01Icon,
+  Award01Icon,
+  LockPasswordIcon,
+  UnavailableIcon,
+  Download01Icon,
+  File02Icon,
+} from '@hugeicons/core-free-icons';
 
 import { useParticipatedAuctions } from '@/features/auctions';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import type { Auction } from '@/shared/types/auctions';
 import * as FancyButton from '@/shared/ui/fancy-button';
-import { useSessionStore } from '@/entities/auth/model/store';
+import { useSessionStore, isUserDeveloper } from '@/entities/auth/model/store';
+import { useMe, useUploadDeveloperDDUTemplate } from '@/features/auth';
 import { ChangePasswordModal } from './change-password-modal';
 
 // Resolves the real outcome of a finished auction from the current broker's point of view
@@ -86,8 +95,126 @@ function AuctionItem({ auction }: { auction: Auction }) {
   );
 }
 
+function DeveloperDDUTemplateCard() {
+  useMe(); // ensures session.user.developer is fresh
+  const user = useSessionStore((s) => s.user);
+  const upload = useUploadDeveloperDDUTemplate();
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const currentUrl = user?.developer?.ddu_template_url ?? null;
+
+  const onFile = (file: File | undefined) => {
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      toast.error('Файл должен быть в формате PDF');
+      return;
+    }
+    upload.mutate(file, {
+      onSuccess: () => {
+        toast.success('Шаблон ДДУ обновлён');
+        if (inputRef.current) inputRef.current.value = '';
+      },
+      onError: () => {
+        toast.error('Не удалось загрузить шаблон');
+        if (inputRef.current) inputRef.current.value = '';
+      },
+    });
+  };
+
+  return (
+    <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
+      <div className='flex items-center justify-between gap-3'>
+        <div className='flex items-center gap-3'>
+          <div className='flex size-9 items-center justify-center rounded-lg bg-gray-50'>
+            <HugeiconsIcon icon={File02Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-500' />
+          </div>
+          <div>
+            <div className='text-[14px] font-semibold text-gray-900'>Шаблон ДДУ</div>
+            <div className='text-[12px] text-gray-500'>
+              Брокеры скачают этот PDF при оформлении сделки. Только PDF, до 10 МБ.
+            </div>
+          </div>
+        </div>
+        <input
+          ref={inputRef}
+          type='file'
+          accept='application/pdf'
+          className='hidden'
+          onChange={(e) => onFile(e.target.files?.[0])}
+        />
+        <FancyButton.Root
+          variant='basic'
+          size='small'
+          onClick={() => inputRef.current?.click()}
+          disabled={upload.isPending}
+        >
+          <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+          {upload.isPending ? 'Загрузка...' : currentUrl ? 'Заменить шаблон' : 'Загрузить шаблон'}
+        </FancyButton.Root>
+      </div>
+
+      <div className='mt-4 border-t border-blue-50 pt-3'>
+        {currentUrl ? (
+          <a
+            href={currentUrl}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center gap-1.5 text-[13px] font-medium text-blue-600 hover:text-blue-700'
+          >
+            <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+            Скачать текущий шаблон
+          </a>
+        ) : (
+          <span className='text-[13px] text-gray-400'>
+            Шаблон ещё не загружен. Без него брокер не сможет оформить ДДУ по сделке.
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => void }) {
+  const user = useSessionStore((s) => s.user);
+  const fullName = user
+    ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
+    : '';
+
+  return (
+    <div className='w-full px-8 py-8'>
+      <div className='flex items-center gap-3'>
+        <div>
+          <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>Личный кабинет</h1>
+          <p className='mt-1 text-sm text-gray-500'>
+            {fullName} · {user?.developer?.company_name ?? 'Девелопер'}
+          </p>
+        </div>
+      </div>
+
+      <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 flex items-center justify-between'>
+        <div className='flex items-center gap-3'>
+          <div className='flex size-9 items-center justify-center rounded-lg bg-gray-50'>
+            <HugeiconsIcon icon={LockPasswordIcon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-500' />
+          </div>
+          <div>
+            <div className='text-[14px] font-semibold text-gray-900'>Безопасность</div>
+            <div className='text-[12px] text-gray-500'>Смените пароль, если считаете что он скомпрометирован</div>
+          </div>
+        </div>
+        <FancyButton.Root variant='basic' size='small' onClick={onChangePassword}>
+          Сменить пароль
+        </FancyButton.Root>
+      </div>
+
+      <DeveloperDDUTemplateCard />
+    </div>
+  );
+}
+
 export default function CabinetPage() {
   const [pwdOpen, setPwdOpen] = React.useState(false);
+  const user = useSessionStore((s) => s.user);
+  const isDeveloper = isUserDeveloper(user);
+
   const { data: activeData } = useParticipatedAuctions({ status: 'active', page_size: 5 });
   const { data: finishedData } = useParticipatedAuctions({ status: 'finished', page_size: 5 });
   const { data: failedData } = useParticipatedAuctions({ status: 'failed', page_size: 5 });
@@ -95,6 +222,15 @@ export default function CabinetPage() {
   const activeAuctions = activeData?.results ?? [];
   const finishedAuctions = finishedData?.results ?? [];
   const failedAuctions = failedData?.results ?? [];
+
+  if (isDeveloper) {
+    return (
+      <>
+        <DeveloperCabinetView onChangePassword={() => setPwdOpen(true)} />
+        <ChangePasswordModal open={pwdOpen} onOpenChange={setPwdOpen} />
+      </>
+    );
+  }
 
   return (
     <div className='w-full px-8 py-8'>

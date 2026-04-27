@@ -240,6 +240,30 @@ const requiredFile = z
     'Поддерживаются: JPG, PNG, WEBP, HEIC, PDF',
   );
 
+const requiredPdf = z
+  .any()
+  .refine((file) => file instanceof File, 'Загрузите PDF')
+  .refine(
+    (file) => file instanceof File && file.size <= MAX_DOC_SIZE,
+    'Файл должен быть не больше 10 МБ',
+  )
+  .refine(
+    (file) => file instanceof File && file.type === 'application/pdf',
+    'Файл должен быть в формате PDF',
+  );
+
+const optionalPdf = z
+  .any()
+  .optional()
+  .refine(
+    (file) => file === undefined || (file instanceof File && file.size <= MAX_DOC_SIZE),
+    'Файл должен быть не больше 10 МБ',
+  )
+  .refine(
+    (file) => file === undefined || (file instanceof File && file.type === 'application/pdf'),
+    'Файл должен быть в формате PDF',
+  );
+
 // Admin: create developer
 export const adminCreateDeveloperSchema = z
   .object({
@@ -274,6 +298,7 @@ export const adminCreateDeveloperSchema = z
       }),
     innDocument: requiredFile,
     passportDocument: requiredFile,
+    dduTemplate: requiredPdf,
     password: z
       .string()
       .min(8, 'Минимум 8 символов')
@@ -310,6 +335,7 @@ export const adminUpdateDeveloperSchema = z.object({
   phoneNumber: z
     .string()
     .max(20, 'Максимум 20 символов'),
+  dduTemplate: optionalPdf,
 });
 
 export type AdminUpdateDeveloperFormData = z.infer<typeof adminUpdateDeveloperSchema>;

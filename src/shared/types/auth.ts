@@ -44,6 +44,10 @@ export type TokenUser = {
   } | null;
   developer: {
     company_name?: string;
+    phone_number?: string;
+    inn_number?: string;
+    ddu_template_url?: string | null;
+    has_ddu_template?: boolean;
   } | null;
   documents: UserDocument[];
 };
@@ -125,6 +129,12 @@ export type PasswordResetConfirmRequest = {
 
 export type PasswordResetConfirmResponse = {
   message: string;
+};
+
+// Developer DDU template (self-upload)
+export type DeveloperDDUTemplateUploadResponse = {
+  message: string;
+  ddu_template_url: string | null;
 };
 
 // Get Code

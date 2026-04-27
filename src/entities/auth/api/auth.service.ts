@@ -27,6 +27,7 @@ import type {
   PasswordResetVerifyResponse,
   PasswordResetConfirmRequest,
   PasswordResetConfirmResponse,
+  DeveloperDDUTemplateUploadResponse,
 } from "@/shared/types/auth";
 
 export const authService = {
@@ -114,4 +115,14 @@ export const authService = {
       "/auth/password-reset/confirm/",
       data,
     ),
+
+  uploadDeveloperDDUTemplate: (file: File) => {
+    const formData = new FormData();
+    formData.append("ddu_template", file, file.name);
+    return apiInstance.put<DeveloperDDUTemplateUploadResponse>(
+      "/auth/developer/ddu-template/",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+  },
 };
