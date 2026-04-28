@@ -272,7 +272,7 @@ function AdminDealCard({ deal }: { deal: Deal }) {
                 className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
-                <span className='truncate'>{extractFileName(deal.ddu_document)}</span>
+                <span className='truncate'>ДДУ</span>
               </a>
             )}
             {deal.payment_proof_document && (
@@ -283,7 +283,7 @@ function AdminDealCard({ deal }: { deal: Deal }) {
                 className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
-                <span className='truncate'>{extractFileName(deal.payment_proof_document)}</span>
+                <span className='truncate'>Подтверждение оплаты</span>
               </a>
             )}
           </div>

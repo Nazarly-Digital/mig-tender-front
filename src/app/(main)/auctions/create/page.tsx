@@ -216,18 +216,27 @@ export default function CreateAuctionPage() {
     ? toLocalDT(new Date(new Date(startDateValue).getTime() + ONE_MINUTE_MS))
     : toLocalDT(new Date(Date.now() + ONE_MINUTE_MS));
 
+  // Lot compatibility filter — temporarily disabled per business request.
+  // Set this back to true to re-enable filtering "incompatible" properties
+  // out of the closed-lot dropdown (and to re-show the reference banner).
+  const ENABLE_LOT_COMPATIBILITY_FILTER = false;
+
   // For CLOSED mode: load compatible properties based on first selected property
   const referenceProperty = selectedMode === 'closed' && selectedPropertyIds.length > 0
     ? properties.find((p) => String(p.id) === selectedPropertyIds[0]) ?? null
     : null;
   const referencePropertyRefId = referenceProperty?.reference_id ?? '';
   const { data: compatibleProperties } = useCompatibleProperties(referencePropertyRefId, {
-    enabled: selectedMode === 'closed' && !!referencePropertyRefId,
+    enabled:
+      ENABLE_LOT_COMPATIBILITY_FILTER &&
+      selectedMode === 'closed' &&
+      !!referencePropertyRefId,
   });
 
   // Properties available for selection in CLOSED mode
   const closedAvailableProperties = React.useMemo(() => {
     if (selectedMode !== 'closed') return properties;
+    if (!ENABLE_LOT_COMPATIBILITY_FILTER) return properties;
     // No reference selected yet — show all properties
     if (!compatibleProperties || selectedPropertyIds.length === 0) return properties;
     // Show compatible properties + always include the reference (first selected)
@@ -380,18 +389,16 @@ export default function CreateAuctionPage() {
                 </div>
               ) : (
                 <div className='space-y-2'>
-                  {/* Info banner (closed mode, reference selected) */}
-                  {selectedMode === 'closed' && referenceProperty && (
+                  {/* Info banner (closed mode, reference selected).
+                      Hidden while lot-compatibility filter is off — shown again
+                      when ENABLE_LOT_COMPATIBILITY_FILTER is re-enabled above. */}
+                  {ENABLE_LOT_COMPATIBILITY_FILTER && selectedMode === 'closed' && referenceProperty && (
                     <div className='flex items-start gap-2 rounded-lg bg-blue-50 px-3 py-2.5'>
                       <HugeiconsIcon icon={InformationCircleIcon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0 text-blue-600 mt-0.5' />
                       <span className='text-xs text-blue-700'>
                         Выберите один или несколько объектов. Если вы
                         выберите несколько похожих объектов, они будут
                         продаваться одним лотом.
-                        {/* {(() => {
-                          const parts = [TYPE_LABELS[referenceProperty.type] || referenceProperty.type, `${referenceProperty.area} м²`].filter(Boolean);
-                          return parts.length > 0 ? ` (${parts.join(', ')})` : '';
-                        })()}. */}
                       </span>
                     </div>
                   )}
