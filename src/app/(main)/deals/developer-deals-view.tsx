@@ -12,6 +12,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
+import { openAuthedFile } from '@/shared/lib/fetch-file';
 import { useDeals, useDeveloperConfirmDeal, useDeveloperRejectDeal } from '@/features/deals';
 import type { Deal, DealStatus } from '@/shared/types/deals';
 
@@ -226,27 +227,33 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
         {(deal.ddu_document || deal.payment_proof_document) && (
           <div className='flex flex-wrap gap-2 mt-4'>
             {deal.ddu_document && (
-              <a
-                href={deal.ddu_document}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
+              <button
+                type='button'
+                onClick={() => openAuthedFile(deal.ddu_document!)}
+                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
                 <span className='truncate'>{extractFileName(deal.ddu_document)}</span>
-              </a>
+              </button>
             )}
             {deal.payment_proof_document && (
-              <a
-                href={deal.payment_proof_document}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
+              <button
+                type='button'
+                onClick={() => openAuthedFile(deal.payment_proof_document!)}
+                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
                 <span className='truncate'>{extractFileName(deal.payment_proof_document)}</span>
-              </a>
+              </button>
             )}
+          </div>
+        )}
+
+        {/* Broker comment */}
+        {deal.broker_comment?.trim() && (
+          <div className='mt-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2'>
+            <p className='text-[11px] font-semibold uppercase tracking-wide text-gray-500'>Комментарий брокера</p>
+            <p className='mt-1 text-[13px] text-gray-700 whitespace-pre-wrap break-words'>{deal.broker_comment}</p>
           </div>
         )}
 

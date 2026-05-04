@@ -11,6 +11,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
+import { openAuthedFile } from '@/shared/lib/fetch-file';
 import { useSettlements, useUploadDeveloperReceipt } from '@/features/payments';
 import type { Settlement } from '@/shared/types/payments';
 
@@ -127,14 +128,13 @@ function DeveloperSettlementCard({ s }: { s: Settlement }) {
             <span className='text-xs text-emerald-700'>
               {isPaid ? 'Чек подтверждён администратором' : 'Чек загружен, ожидает подтверждения админа'}
             </span>
-            <a
-              href={s.developer_receipt!}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='ml-auto text-xs font-medium text-emerald-700 hover:text-emerald-800 shrink-0'
+            <button
+              type='button'
+              onClick={() => openAuthedFile(s.developer_receipt!)}
+              className='ml-auto text-xs font-medium text-emerald-700 hover:text-emerald-800 shrink-0 cursor-pointer'
             >
-              Скачать
-            </a>
+              Открыть
+            </button>
           </div>
         )}
       </div>

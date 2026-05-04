@@ -47,6 +47,9 @@ export type Deal = {
   document_deadline: string;
   created_at: string;
   updated_at: string;
+  broker_comment?: string;
+  admin_rejection_reason?: string;
+  developer_rejection_reason?: string;
 };
 
 // Deal detail — extended with documents, comments, logs
@@ -66,6 +69,10 @@ export type DealListParams = {
   status?: DealStatus;
   obligation_status?: ObligationStatus;
   auction_id?: number;
+  broker_id?: number;
+  developer_id?: number;
+  date_from?: string;
+  date_to?: string;
   page?: number;
   page_size?: number;
 };

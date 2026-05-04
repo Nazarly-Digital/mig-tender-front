@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSessionStore } from '@/entities/auth/model/store';
 import { useNotificationsStore } from '@/entities/notifications';
-import type { NotificationWsMessage } from '@/shared/types/notifications';
+import type { NotificationItem, NotificationWsMessage } from '@/shared/types/notifications';
 
 function getWsUrl(token: string): string {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
@@ -14,11 +15,38 @@ function getWsUrl(token: string): string {
 const RECONNECT_DELAYS = [1000, 2000, 5000, 10000];
 const PING_INTERVAL = 30000;
 
+// Invalidate domain-specific query caches when a notification implies fresh
+// data (e.g. auction status changed) is needed. This keeps lists / cards in
+// sync without each page having to subscribe to its own websocket.
+function invalidateForNotification(qc: ReturnType<typeof useQueryClient>, n: NotificationItem) {
+  switch (n.category) {
+    case 'auction':
+      qc.invalidateQueries({ queryKey: ['auctions'] });
+      qc.invalidateQueries({ queryKey: ['auction'] });
+      break;
+    case 'deal':
+      qc.invalidateQueries({ queryKey: ['deals'] });
+      break;
+    case 'payment':
+      qc.invalidateQueries({ queryKey: ['settlements'] });
+      qc.invalidateQueries({ queryKey: ['payments'] });
+      break;
+    case 'property':
+      qc.invalidateQueries({ queryKey: ['properties'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'pending-properties'] });
+      break;
+    case 'user':
+      qc.invalidateQueries({ queryKey: ['admin'] });
+      break;
+  }
+}
+
 export function useNotificationsSocket(enabled = true) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const reconnectCount = useRef(0);
+  const queryClient = useQueryClient();
 
   const store = useNotificationsStore;
 
@@ -71,6 +99,7 @@ export function useNotificationsSocket(enabled = true) {
 
           case 'notification_created':
             state.addNotification(msg.notification, msg.unread_count);
+            invalidateForNotification(queryClient, msg.notification);
             break;
 
           case 'notification_read':
@@ -117,7 +146,7 @@ export function useNotificationsSocket(enabled = true) {
     ws.onerror = () => {
       // onclose will fire after onerror
     };
-  }, [store, clearTimers]);
+  }, [store, clearTimers, queryClient]);
 
   // Send mark_read via WebSocket
   const markRead = useCallback((notificationId: number) => {

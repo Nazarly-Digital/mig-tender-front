@@ -12,6 +12,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
+import { openAuthedFile } from '@/shared/lib/fetch-file';
 import { useDeals, useUploadDDU, useUploadPaymentProof, useUpdateDealComment, useSubmitForReview } from '@/features/deals';
 import type { Deal, DealStatus } from '@/shared/types/deals';
 
@@ -122,10 +123,18 @@ type InfoBar = { text: string; tone: 'amber' | 'blue' | 'emerald' | 'red'; icon:
 
 function getInfoBar(deal: Deal): InfoBar | null {
   if (deal.status === 'declined') {
-    return { text: 'Девелопер отказался от результата аукциона. Сделка закрыта без завершения.', tone: 'red', icon: AlertCircleIcon };
+    const reason = (deal.developer_rejection_reason || deal.admin_rejection_reason || '').trim();
+    const text = reason
+      ? `Девелопер отказался от результата аукциона. Причина: ${reason}`
+      : 'Девелопер отказался от результата аукциона. Сделка закрыта без завершения.';
+    return { text, tone: 'red', icon: AlertCircleIcon };
   }
   if (deal.status === 'failed') {
-    return { text: 'Сделка переведена в «Несостоявшийся»: документы не были загружены в течение 5 дней. Восстановить нельзя.', tone: 'red', icon: AlertCircleIcon };
+    const reason = (deal.admin_rejection_reason || '').trim();
+    const text = reason
+      ? `Сделка не состоялась. Причина: ${reason}`
+      : 'Сделка переведена в «Несостоявшийся»: документы не были загружены в течение 5 дней. Восстановить нельзя.';
+    return { text, tone: 'red', icon: AlertCircleIcon };
   }
   if (deal.obligation_status === 'overdue' && deal.status === 'pending_documents') {
     return { text: `Дедлайн загрузки был ${formatDateShort(deal.document_deadline)} · обязательство просрочено`, tone: 'red', icon: AlertCircleIcon };
@@ -222,10 +231,20 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
         </div>
 
         {/* Stats */}
-        <div className='grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100'>
+        <div className='grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-100'>
           <div className='min-w-0'>
             <p className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>Моя ставка</p>
             <p className='mt-1 text-sm font-semibold text-gray-900 truncate'>{formatPrice(deal.amount)}</p>
+          </div>
+          <div className='min-w-0'>
+            <p className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>Комиссия</p>
+            <p className='mt-1 text-sm font-semibold text-gray-900 truncate'>
+              {deal.broker_commission_amount
+                ? `${formatPrice(deal.broker_commission_amount)}${deal.broker_commission_rate ? ` (${deal.broker_commission_rate}%)` : ''}`
+                : deal.broker_commission_rate
+                  ? `${deal.broker_commission_rate}%`
+                  : '—'}
+            </p>
           </div>
           <div className='min-w-0'>
             <p className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>Девелопер</p>
@@ -246,26 +265,24 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
         {(deal.ddu_document || deal.payment_proof_document) && (
           <div className='flex flex-wrap gap-2 mt-4'>
             {deal.ddu_document && (
-              <a
-                href={deal.ddu_document}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
+              <button
+                type='button'
+                onClick={() => openAuthedFile(deal.ddu_document!)}
+                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
                 <span className='truncate'>{extractFileName(deal.ddu_document)}</span>
-              </a>
+              </button>
             )}
             {deal.payment_proof_document && (
-              <a
-                href={deal.payment_proof_document}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
+              <button
+                type='button'
+                onClick={() => openAuthedFile(deal.payment_proof_document!)}
+                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
                 <span className='truncate'>{extractFileName(deal.payment_proof_document)}</span>
-              </a>
+              </button>
             )}
           </div>
         )}
