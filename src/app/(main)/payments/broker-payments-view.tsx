@@ -6,8 +6,11 @@ import { File01Icon, CheckmarkCircle02Icon, Clock01Icon, AlertCircleIcon } from 
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import { useSettlements } from '@/features/payments';
 import type { Settlement } from '@/shared/types/payments';
+
+const BROKER_PAYMENTS_PAGE_SIZE = 12;
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—';
@@ -90,12 +93,16 @@ function BrokerSettlementCard({ s }: { s: Settlement }) {
 }
 
 export function BrokerPaymentsView() {
+  const [page, setPage] = React.useState(1);
   const { data, isLoading } = useSettlements();
   const settlements = data ?? [];
 
   const total = settlements.reduce((acc, s) => acc + parseFloat(s.broker_amount || '0'), 0);
   const paid = settlements.filter((s) => s.paid_to_broker).reduce((acc, s) => acc + parseFloat(s.broker_amount || '0'), 0);
   const pending = total - paid;
+
+  const totalPages = Math.max(1, Math.ceil(settlements.length / BROKER_PAYMENTS_PAGE_SIZE));
+  const pageItems = settlements.slice((page - 1) * BROKER_PAYMENTS_PAGE_SIZE, page * BROKER_PAYMENTS_PAGE_SIZE);
 
   const cards = [
     {
@@ -144,9 +151,20 @@ export function BrokerPaymentsView() {
             <p className='text-xs text-gray-400 mt-1'>Выплаты появятся после подтверждения сделок</p>
           </div>
         ) : (
-          <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4'>
-            {settlements.map((s) => <BrokerSettlementCard key={s.id} s={s} />)}
-          </div>
+          <>
+            <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4'>
+              {pageItems.map((s) => <BrokerSettlementCard key={s.id} s={s} />)}
+            </div>
+            {totalPages > 1 && (
+              <PropertiesTablePagination
+                page={page}
+                totalPages={totalPages}
+                pageSize={BROKER_PAYMENTS_PAGE_SIZE}
+                onPageChange={setPage}
+                onPageSizeChange={() => {}}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
