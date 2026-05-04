@@ -418,6 +418,7 @@ function PropertyEditForm({
       currency: 'RUB',
       deadline: property.deadline ?? '',
       status: property.status,
+      show_price_to_brokers: property.show_price_to_brokers ?? true,
       developer_name: property.developer_name ?? '',
       project: property.project ?? '',
       project_comment: property.project_comment ?? '',
@@ -668,6 +669,25 @@ function PropertyEditForm({
           {errors.status && <p className='text-[11px] text-red-500'>{errors.status.message}</p>}
         </div>
       </div>
+
+      <Controller
+        name='show_price_to_brokers'
+        control={control}
+        render={({ field }) => (
+          <label className='flex items-start gap-3 cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2.5'>
+            <input
+              type='checkbox'
+              checked={field.value !== false}
+              onChange={(e) => field.onChange(e.target.checked)}
+              className='mt-0.5 size-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+            />
+            <div className='flex flex-col'>
+              <span className='text-[13px] font-medium text-gray-900'>Показывать прайсовую цену брокерам</span>
+              <span className='text-[11px] text-gray-500'>Если выключено — цена будет скрыта в каталоге и в открытом аукционе</span>
+            </div>
+          </label>
+        )}
+      />
 
       <div className='pt-2'>
         <FancyButton.Root
