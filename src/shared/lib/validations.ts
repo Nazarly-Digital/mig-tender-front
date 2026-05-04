@@ -251,14 +251,26 @@ const optionalFile = z
 
 const requiredPdf = z
   .any()
-  .refine((file) => file instanceof File, 'Загрузите файл')
+  .refine((file) => file instanceof File, 'Загрузите PDF')
   .refine(
     (file) => file instanceof File && file.size <= MAX_DOC_SIZE,
     'Файл должен быть не больше 10 МБ',
   )
   .refine(
     (file) => file instanceof File && file.type === 'application/pdf',
-    'Только PDF',
+    'Файл должен быть в формате PDF',
+  );
+
+const optionalPdf = z
+  .any()
+  .optional()
+  .refine(
+    (file) => file === undefined || (file instanceof File && file.size <= MAX_DOC_SIZE),
+    'Файл должен быть не больше 10 МБ',
+  )
+  .refine(
+    (file) => file === undefined || (file instanceof File && file.type === 'application/pdf'),
+    'Файл должен быть в формате PDF',
   );
 
 // Admin: create developer
@@ -332,6 +344,7 @@ export const adminUpdateDeveloperSchema = z.object({
   phoneNumber: z
     .string()
     .max(20, 'Максимум 20 символов'),
+  dduTemplate: optionalPdf,
 });
 
 export type AdminUpdateDeveloperFormData = z.infer<typeof adminUpdateDeveloperSchema>;

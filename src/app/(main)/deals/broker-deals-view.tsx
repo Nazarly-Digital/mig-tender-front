@@ -271,7 +271,7 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
                 className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
-                <span className='truncate'>{extractFileName(deal.ddu_document)}</span>
+                <span className='truncate'>ДДУ</span>
               </button>
             )}
             {deal.payment_proof_document && (
@@ -281,7 +281,7 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
                 className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
-                <span className='truncate'>{extractFileName(deal.payment_proof_document)}</span>
+                <span className='truncate'>Подтверждение оплаты</span>
               </button>
             )}
           </div>
@@ -323,6 +323,35 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
         {/* Upload area (pending_documents only, not overdue) */}
         {canUpload && (
           <div className='mt-4 space-y-3'>
+            {deal.developer_ddu_template_url && (
+              <div className='flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50/40 px-3 py-2.5'>
+                <HugeiconsIcon
+                  icon={File01Icon}
+                  size={16}
+                  color='currentColor'
+                  strokeWidth={1.5}
+                  className='mt-0.5 shrink-0 text-blue-600'
+                />
+                <div className='flex-1 min-w-0'>
+                  <div className='text-[13px] font-medium text-gray-900'>
+                    Шаблон ДДУ от {deal.developer_name}
+                  </div>
+                  <div className='text-[12px] text-gray-500'>
+                    Скачайте, подпишите, отсканируйте — затем загрузите как ДДУ ниже.
+                  </div>
+                </div>
+                <a
+                  href={deal.developer_ddu_template_url}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  download
+                  className='inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-[13px] font-medium text-blue-700 hover:bg-blue-50 transition-colors'
+                >
+                  <HugeiconsIcon icon={Upload04Icon} size={14} color='currentColor' strokeWidth={1.5} className='rotate-180' />
+                  Скачать шаблон
+                </a>
+              </div>
+            )}
             <div className='flex flex-wrap gap-2'>
               <label className={cn(
                 'inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer',

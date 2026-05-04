@@ -52,8 +52,26 @@ export const adminService = {
     );
   },
 
-  updateDeveloper: (id: number, data: AdminUpdateDeveloperRequest) =>
-    apiInstance.patch<AdminDeveloperResponse>(`/admin/developers/${id}/`, data),
+  updateDeveloper: (id: number, data: AdminUpdateDeveloperRequest) => {
+    const hasFile = !!data.ddu_template;
+    if (hasFile) {
+      const formData = new FormData();
+      Object.entries(data).forEach(([k, v]) => {
+        if (v === undefined || v === null) return;
+        if (v instanceof File) {
+          formData.append(k, v, v.name);
+        } else {
+          formData.append(k, String(v));
+        }
+      });
+      return apiInstance.patch<AdminDeveloperResponse>(
+        `/admin/developers/${id}/`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+    }
+    return apiInstance.patch<AdminDeveloperResponse>(`/admin/developers/${id}/`, data);
+  },
 
   // Broker management (admin edits via shared /admin/users/<id>/ endpoint)
   updateBroker: (id: number, data: AdminUpdateBrokerRequest) =>

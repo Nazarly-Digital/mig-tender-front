@@ -50,7 +50,7 @@ function FilePicker({
   value,
   onChange,
   hasError,
-  accept,
+  accept = ACCEPT_MIME,
 }: {
   id: string;
   value: File | undefined;
@@ -66,7 +66,7 @@ function FilePicker({
         ref={inputRef}
         id={id}
         type='file'
-        accept={accept ?? ACCEPT_MIME}
+        accept={accept}
         className='hidden'
         onChange={(e) => onChange(e.target.files?.[0])}
       />
@@ -385,13 +385,16 @@ export default function NewDeveloperPage() {
                 render={({ field }) => (
                   <FilePicker
                     id='nd-dduTemplate'
+                    accept='application/pdf'
                     value={field.value as File | undefined}
                     onChange={field.onChange}
                     hasError={!!errors.dduTemplate}
-                    accept='application/pdf'
                   />
                 )}
               />
+              <p className='text-[11px] text-gray-400'>
+                Брокеры будут скачивать этот шаблон при оформлении ДДУ по сделке.
+              </p>
               {errors.dduTemplate && (
                 <p className='text-xs text-red-500'>
                   {errors.dduTemplate.message as string}

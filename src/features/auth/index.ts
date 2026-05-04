@@ -16,6 +16,7 @@ export {
   usePasswordResetRequest,
   usePasswordResetVerify,
   usePasswordResetConfirm,
+  useUploadDeveloperDDUTemplate,
 } from "./model/queries";
 
 export { useBrokerRegistration } from "./model/use-broker-registration";

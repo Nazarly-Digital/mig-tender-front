@@ -62,7 +62,7 @@ export const navigationLinks: NavigationLink[] = [
   { icon: File01Icon, label: 'Документы', href: '/documents' },
   { icon: UserIcon, label: 'Пользователи', href: '/admin/users', adminOnly: true },
   { icon: SecurityCheckIcon, label: 'Модерация', href: '/admin/properties', adminOnly: true },
-  { icon: UserIcon, label: 'Личный кабинет', href: '/cabinet', brokerOnly: true },
+  { icon: UserIcon, label: 'Личный кабинет', href: '/cabinet' },
 ];
 
 export default function Sidebar() {

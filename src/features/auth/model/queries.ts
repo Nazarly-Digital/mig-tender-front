@@ -198,3 +198,15 @@ export function usePasswordResetConfirm() {
       authService.passwordResetConfirm(data).then((res) => res.data),
   });
 }
+
+export function useUploadDeveloperDDUTemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) =>
+      authService.uploadDeveloperDDUTemplate(file).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.me });
+    },
+  });
+}
