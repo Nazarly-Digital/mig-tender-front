@@ -192,15 +192,29 @@ function AuctionCard({ auction }: { auction: Auction }) {
   );
 }
 
-type Tab = 'all' | 'active' | 'finished';
+type Tab = 'all' | 'active' | 'finished' | 'draft';
 
-const TABS: { value: Tab; label: string }[] = [
-  { value: 'all', label: 'Все' },
-  { value: 'active', label: 'Активные' },
-  { value: 'finished', label: 'Завершённые' },
-];
+const ROLE_TABS: Record<'developer' | 'admin' | 'broker', { value: Tab; label: string }[]> = {
+  developer: [
+    { value: 'all', label: 'Все' },
+    { value: 'active', label: 'Активные' },
+    { value: 'finished', label: 'Завершённые' },
+    { value: 'draft', label: 'Черновики' },
+  ],
+  admin: [
+    { value: 'all', label: 'Все' },
+    { value: 'active', label: 'Активные' },
+    { value: 'finished', label: 'Завершённые' },
+    { value: 'draft', label: 'Черновики' },
+  ],
+  broker: [
+    { value: 'all', label: 'Все' },
+    { value: 'active', label: 'Активные' },
+    { value: 'finished', label: 'Завершённые' },
+  ],
+};
 
-const VALID_TABS = new Set<Tab>(['all', 'active', 'finished']);
+const VALID_TABS = new Set<Tab>(['all', 'active', 'finished', 'draft']);
 
 function parseTab(raw: string | null): Tab {
   return raw && VALID_TABS.has(raw as Tab) ? (raw as Tab) : 'all';
@@ -226,9 +240,12 @@ export default function AuctionsPage() {
     router.replace(`/auctions?${params.toString()}`);
   }
   const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
+  const isAdmin = user?.role === 'admin' || user?.is_admin === true;
+  const role = isDeveloper ? 'developer' : isAdmin ? 'admin' : 'broker';
+  const TABS = ROLE_TABS[role];
 
   const params = {
-    ...(tab !== 'all' && { status: tab as 'active' | 'finished' }),
+    ...(tab !== 'all' && { status: tab as 'active' | 'finished' | 'draft' }),
     ordering: '-created_at',
     page,
     page_size: pageSize,

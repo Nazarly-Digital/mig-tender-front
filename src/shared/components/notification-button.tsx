@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
@@ -14,7 +14,7 @@ import {
   Tick02Icon,
 } from '@hugeicons/core-free-icons';
 
-import { useNotificationsStore } from '@/entities/notifications';
+import { useNotificationsStore, notificationsService } from '@/entities/notifications';
 import { useNotificationsSocket } from '@/shared/hooks/use-notifications-socket';
 import type { NotificationItem, NotificationCategory } from '@/shared/types/notifications';
 import * as Popover from '@/shared/ui/popover';
@@ -100,16 +100,26 @@ function NotificationRow({
       <CategoryAvatar category={notification.category} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">
+        <p className="text-sm font-semibold leading-snug text-gray-900 break-words">
           {notification.title}
         </p>
         {notification.message && (
-          <p className="line-clamp-2 text-xs leading-snug text-gray-500">
+          <p className="text-xs leading-snug text-gray-500 break-words whitespace-pre-wrap">
             {notification.message}
           </p>
         )}
-        <span className="mt-0.5 text-[11px] text-gray-400">
-          {timeAgo(notification.created_at)}
+        <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-gray-400">
+          <span>{timeAgo(notification.created_at)}</span>
+          {notification.deal_id && (
+            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
+              Сделка #{notification.deal_id}
+            </span>
+          )}
+          {notification.auction_id && !notification.deal_id && (
+            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">
+              Аукцион #{notification.auction_id}
+            </span>
+          )}
         </span>
       </div>
 
@@ -130,8 +140,49 @@ export default function NotificationButton({
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   const items = useNotificationsStore((s) => s.items);
+  const appendItems = useNotificationsStore((s) => s.appendItems);
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
   const { markRead, markAllRead } = useNotificationsSocket();
+
+  // REST pagination — start by treating the WS snapshot as page 1; pull older
+  // pages on demand. We don't know `count` until the first REST call.
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const initialFetched = useRef(false);
+
+  useEffect(() => {
+    if (!open || initialFetched.current) return;
+    initialFetched.current = true;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await notificationsService.getAll({ page: 1, page_size: 20 });
+        if (cancelled) return;
+        appendItems(res.data.results);
+        setHasMore(!!res.data.next);
+      } catch {
+        // silent — WS data already covers the common case
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, appendItems]);
+
+  const handleLoadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const next = page + 1;
+      const res = await notificationsService.getAll({ page: next, page_size: 20 });
+      appendItems(res.data.results);
+      setPage(next);
+      setHasMore(!!res.data.next);
+    } catch {
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [page, hasMore, loadingMore, appendItems]);
 
   const visibleItems = filter === 'unread' ? items.filter((n) => !n.is_read) : items;
 
@@ -151,13 +202,18 @@ export default function NotificationButton({
     <>
       <Popover.Root open={open} onOpenChange={handleOpenChange}>
       <Popover.Trigger asChild>
-        <TopbarItemButton.Root hasNotification={unreadCount > 0} {...rest}>
+        <TopbarItemButton.Root {...rest}>
           <HugeiconsIcon
             icon={Notification01Icon}
             size={18}
             color="currentColor"
             strokeWidth={1.8}
           />
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </TopbarItemButton.Root>
       </Popover.Trigger>
 
@@ -226,6 +282,16 @@ export default function NotificationButton({
                   onClick={handleClick}
                 />
               ))}
+              {hasMore && filter === 'all' && (
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className="mt-1 mx-2 rounded-lg py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-50 transition-colors"
+                >
+                  {loadingMore ? 'Загрузка…' : 'Загрузить ещё'}
+                </button>
+              )}
             </div>
           )}
         </div>

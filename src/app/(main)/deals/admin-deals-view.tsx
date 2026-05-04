@@ -14,6 +14,8 @@ import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import { useDeals, useAdminApproveDeal, useAdminRejectDeal } from '@/features/deals';
 import type { Deal, DealStatus } from '@/shared/types/deals';
+import { PropertiesTablePagination } from '@/shared/components/properties-table';
+import { openAuthedFile } from '@/shared/lib/fetch-file';
 
 type TabFilter = 'all' | DealStatus | 'overdue';
 
@@ -265,27 +267,33 @@ function AdminDealCard({ deal }: { deal: Deal }) {
         {(deal.ddu_document || deal.payment_proof_document) && (
           <div className='flex flex-wrap gap-2 mt-4'>
             {deal.ddu_document && (
-              <a
-                href={deal.ddu_document}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
+              <button
+                type='button'
+                onClick={() => openAuthedFile(deal.ddu_document!)}
+                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
                 <span className='truncate'>ДДУ</span>
-              </a>
+              </button>
             )}
             {deal.payment_proof_document && (
-              <a
-                href={deal.payment_proof_document}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full'
+              <button
+                type='button'
+                onClick={() => openAuthedFile(deal.payment_proof_document!)}
+                className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors max-w-full cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='shrink-0' />
                 <span className='truncate'>Подтверждение оплаты</span>
-              </a>
+              </button>
             )}
+          </div>
+        )}
+
+        {/* Broker comment */}
+        {deal.broker_comment?.trim() && (
+          <div className='mt-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2'>
+            <p className='text-[11px] font-semibold uppercase tracking-wide text-gray-500'>Комментарий брокера</p>
+            <p className='mt-1 text-[13px] text-gray-700 whitespace-pre-wrap break-words'>{deal.broker_comment}</p>
           </div>
         )}
 
@@ -392,19 +400,44 @@ function AdminDealCard({ deal }: { deal: Deal }) {
   );
 }
 
+const ADMIN_DEALS_PAGE_SIZE = 20;
+
 export function AdminDealsView() {
   const [activeTab, setActiveTab] = React.useState<TabFilter>('all');
+  const [page, setPage] = React.useState(1);
+  const [brokerSearch, setBrokerSearch] = React.useState('');
+  const [developerSearch, setDeveloperSearch] = React.useState('');
+  const [dateFrom, setDateFrom] = React.useState('');
+  const [dateTo, setDateTo] = React.useState('');
 
-  const { data, isLoading } = useDeals(
-    activeTab === 'all'
-      ? undefined
-      : activeTab === 'overdue'
-        ? { obligation_status: 'overdue' }
-        : { status: activeTab as DealStatus }
-  );
-  const deals = data?.results ?? [];
+  React.useEffect(() => {
+    setPage(1);
+  }, [activeTab, brokerSearch, developerSearch, dateFrom, dateTo]);
 
-  const { data: allData } = useDeals();
+  const baseParams = activeTab === 'all'
+    ? {}
+    : activeTab === 'overdue'
+      ? { obligation_status: 'overdue' as const }
+      : { status: activeTab as DealStatus };
+
+  const { data, isLoading } = useDeals({
+    ...baseParams,
+    ...(dateFrom && { date_from: dateFrom }),
+    ...(dateTo && { date_to: dateTo }),
+    page,
+    page_size: ADMIN_DEALS_PAGE_SIZE,
+  });
+  const allDealsForFilter = data?.results ?? [];
+  // Client-side broker/developer name filter (backend has no name search).
+  const deals = allDealsForFilter.filter((d) => {
+    if (brokerSearch && !d.broker_name?.toLowerCase().includes(brokerSearch.toLowerCase())) return false;
+    if (developerSearch && !d.developer_name?.toLowerCase().includes(developerSearch.toLowerCase())) return false;
+    return true;
+  });
+  const totalPages = data?.count ? Math.max(1, Math.ceil(data.count / ADMIN_DEALS_PAGE_SIZE)) : 1;
+
+  // High page_size so the tab counters reflect totals across all pages.
+  const { data: allData } = useDeals({ page_size: 1000 });
   const allDeals = allData?.results ?? [];
 
   // KPI counts
@@ -434,6 +467,46 @@ export function AdminDealsView() {
               <p className={cn('text-2xl font-bold tracking-tight mt-1', kpi.color)}>{kpi.value}</p>
             </div>
           ))}
+        </div>
+
+        {/* Filters */}
+        <div className='mt-5 flex flex-wrap items-center gap-3'>
+          <input
+            type='text'
+            value={brokerSearch}
+            onChange={(e) => setBrokerSearch(e.target.value)}
+            placeholder='Брокер'
+            className='h-9 w-48 rounded-lg border border-gray-300 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+          />
+          <input
+            type='text'
+            value={developerSearch}
+            onChange={(e) => setDeveloperSearch(e.target.value)}
+            placeholder='Девелопер'
+            className='h-9 w-48 rounded-lg border border-gray-300 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+          />
+          <span className='text-[12px] font-medium text-gray-500'>Период:</span>
+          <input
+            type='date'
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+          />
+          <input
+            type='date'
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+          />
+          {(brokerSearch || developerSearch || dateFrom || dateTo) && (
+            <button
+              type='button'
+              onClick={() => { setBrokerSearch(''); setDeveloperSearch(''); setDateFrom(''); setDateTo(''); }}
+              className='h-9 rounded-lg px-3 text-[13px] font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors'
+            >
+              Сбросить
+            </button>
+          )}
         </div>
 
         {/* Tabs */}
@@ -483,9 +556,20 @@ export function AdminDealsView() {
               <p className='text-xs text-gray-400 mt-1'>Сделки с таким статусом отсутствуют</p>
             </div>
           ) : (
-            <div className='grid grid-cols-1 xl:grid-cols-2 gap-4'>
-              {deals.map((deal) => <AdminDealCard key={deal.id} deal={deal} />)}
-            </div>
+            <>
+              <div className='grid grid-cols-1 xl:grid-cols-2 gap-4'>
+                {deals.map((deal) => <AdminDealCard key={deal.id} deal={deal} />)}
+              </div>
+              {totalPages > 1 && (
+                <PropertiesTablePagination
+                  page={page}
+                  totalPages={totalPages}
+                  pageSize={ADMIN_DEALS_PAGE_SIZE}
+                  onPageChange={setPage}
+                  onPageSizeChange={() => {}}
+                />
+              )}
+            </>
           )}
         </div>
       </div>

@@ -43,6 +43,7 @@ import type {
   PropertyType,
   PropertyClass,
   PropertyStatus,
+  CommercialSubtype,
 } from '@/shared/types/properties';
 
 const TYPE_LABELS: Record<PropertyType, string> = {
@@ -62,22 +63,24 @@ const TYPE_COLORS: Record<PropertyType, 'blue' | 'green' | 'purple' | 'orange' |
 };
 
 const CLASS_LABELS: Record<PropertyClass, string> = {
-  economy: 'Эконом',
   comfort: 'Комфорт',
   business: 'Бизнес',
   premium: 'Премиум',
+  elite: 'Элит',
 };
 
-const COMMERCIAL_SUBTYPE_LABELS: Record<'retail' | 'office', string> = {
-  retail: 'Ретейл',
+const COMMERCIAL_SUBTYPE_LABELS: Record<CommercialSubtype, string> = {
   office: 'Офис',
+  warehouse: 'Склад',
+  retail: 'Магазин',
+  other: 'Другое',
 };
 
 const CLASS_COLORS: Record<PropertyClass, 'gray' | 'blue' | 'purple' | 'orange'> = {
-  economy: 'gray',
   comfort: 'blue',
   business: 'purple',
   premium: 'orange',
+  elite: 'gray',
 };
 
 const STATUS_LABELS: Record<PropertyStatus, string> = {

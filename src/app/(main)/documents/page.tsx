@@ -24,24 +24,12 @@ import * as FileFormatIcon from '@/shared/ui/file-format-icon';
 import { useMe, useUploadDocument, useUpdateDocumentName, useDeleteDocument, useAllDocuments } from '@/features/auth';
 import { useSessionStore, isUserBroker } from '@/entities/auth/model/store';
 import type { UserDocument, UnifiedDocument } from '@/shared/types/auth';
+import { downloadAuthedFile } from '@/shared/lib/fetch-file';
 
 // --- Helpers ---
 
 async function downloadFile(url: string, filename: string) {
-  try {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
-  } catch {
-    window.open(url, '_blank');
-  }
+  await downloadAuthedFile(url, filename);
 }
 
 const DOC_TYPE_LABELS: Record<string, string> = {
@@ -422,6 +410,69 @@ export default function DocumentsPage() {
             docType='passport'
             document={passportDoc}
           />
+        </div>
+      )}
+
+      {/* Other documents — broker can add, rename, delete */}
+      {isBroker && (
+        <div className='mt-6 rounded-xl border border-gray-200 bg-white'>
+          <div className='flex items-center justify-between border-b border-gray-100 px-5 py-3'>
+            <div>
+              <p className='text-sm font-semibold text-gray-900'>Прочие документы</p>
+              <p className='mt-0.5 text-[12px] text-gray-500'>Дополнительные документы со свободным названием</p>
+            </div>
+            <FancyButton.Root variant='basic' size='xsmall' onClick={() => setUploadOpen(true)}>
+              <HugeiconsIcon icon={Upload04Icon} size={14} color='currentColor' strokeWidth={1.5} />
+              Загрузить документ
+            </FancyButton.Root>
+          </div>
+          {otherDocs.length === 0 ? (
+            <div className='px-5 py-6 text-center text-[13px] text-gray-500'>
+              Нет прочих документов
+            </div>
+          ) : (
+            <table className='w-full text-left'>
+              <thead>
+                <tr className='bg-gray-50/50'>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Название</th>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Файл</th>
+                  <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Дата</th>
+                  <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {otherDocs.map((doc) => (
+                  <tr key={doc.id} className='border-b border-gray-100 last:border-0 transition-colors hover:bg-gray-50/50'>
+                    <td className='px-5 py-3.5'>
+                      <span className='text-[13px] font-medium text-gray-900'>{doc.document_name || '—'}</span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='text-[13px] text-gray-500 truncate max-w-[260px] inline-block'>{doc.filename}</span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='text-[13px] text-gray-500'>{formatDate(doc.created_at)}</span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <div className='flex items-center justify-end gap-1.5'>
+                        <FancyButton.Root variant='basic' size='xsmall' onClick={() => downloadFile(doc.url, doc.filename)}>
+                          <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                          Скачать
+                        </FancyButton.Root>
+                        <FancyButton.Root variant='basic' size='xsmall' onClick={() => setRenameTarget(doc)}>
+                          <HugeiconsIcon icon={PencilEdit01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                          Переименовать
+                        </FancyButton.Root>
+                        <FancyButton.Root variant='destructive' size='xsmall' onClick={() => setDeleteTarget(doc)}>
+                          <HugeiconsIcon icon={Delete02Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                          Удалить
+                        </FancyButton.Root>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 

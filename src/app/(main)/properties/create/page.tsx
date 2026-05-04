@@ -58,6 +58,7 @@ export default function CreatePropertyPage() {
       property_class: 'comfort',
       currency: 'RUB',
       status: 'published',
+      show_price_to_brokers: true,
       address: '',
       area: '',
       price: '',
@@ -159,6 +160,8 @@ export default function CreatePropertyPage() {
   };
 
   const [submitting, setSubmitting] = React.useState(false);
+  // Tracks which submit button was clicked: 'published' or 'draft'.
+  const submitStatusRef = React.useRef<PropertyStatus>('published');
 
   const onSubmit = async (data: PropertyFormData) => {
     setSubmitting(true);
@@ -166,6 +169,8 @@ export default function CreatePropertyPage() {
       const type = data.type as PropertyType;
       const needsFloor = type === 'apartment' || type === 'commercial';
       const needsHouseNumber = type === 'house' || type === 'townhouse';
+      // Override status with the value chosen by the clicked button.
+      data = { ...data, status: submitStatusRef.current };
 
       const payload: PropertyCreateRequest = {
         type,
@@ -179,6 +184,7 @@ export default function CreatePropertyPage() {
         deadline: data.deadline || null,
         commission_rate: data.commission_rate || null,
         status: data.status as PropertyStatus,
+        show_price_to_brokers: data.show_price_to_brokers ?? true,
         floor: needsFloor && data.floor ? parseInt(data.floor, 10) : null,
         developer_name: data.developer_name,
         project: data.project,
@@ -351,7 +357,18 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-floor'>Этаж <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.floor}>
                     <Input.Wrapper>
-                      <Input.Input id='property-floor' type='number' min='1' placeholder='5' {...register('floor')} />
+                      <Input.Input
+                        id='property-floor'
+                        type='text'
+                        inputMode='numeric'
+                        placeholder='5'
+                        {...register('floor', {
+                          onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                            const filtered = e.target.value.replace(/\D/g, '');
+                            setValue('floor', filtered, { shouldValidate: true });
+                          },
+                        })}
+                      />
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.floor && <p className='text-xs text-red-500'>{errors.floor.message}</p>}
@@ -411,7 +428,23 @@ export default function CreatePropertyPage() {
                   <Label.Root htmlFor='property-commission'>Комиссия брокера (%) <Label.Asterisk /></Label.Root>
                   <Input.Root hasError={!!errors.commission_rate}>
                     <Input.Wrapper>
-                      <Input.Input id='property-commission' type='number' step='0.01' min='0' placeholder='3' {...register('commission_rate')} />
+                      <Input.Input
+                        id='property-commission'
+                        type='text'
+                        inputMode='decimal'
+                        placeholder='3'
+                        {...register('commission_rate', {
+                          onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                            // Allow digits + a single dot only.
+                            let v = e.target.value.replace(/[^\d.]/g, '');
+                            const firstDot = v.indexOf('.');
+                            if (firstDot !== -1) {
+                              v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
+                            }
+                            setValue('commission_rate', v, { shouldValidate: true });
+                          },
+                        })}
+                      />
                     </Input.Wrapper>
                   </Input.Root>
                   {errors.commission_rate && (
@@ -419,6 +452,26 @@ export default function CreatePropertyPage() {
                   ) }
                 </div>
               </div>
+
+              {/* Visibility */}
+              <Controller
+                name='show_price_to_brokers'
+                control={control}
+                render={({ field }) => (
+                  <label className='flex items-start gap-3 cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2.5'>
+                    <input
+                      type='checkbox'
+                      checked={field.value !== false}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      className='mt-0.5 size-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                    />
+                    <div className='flex flex-col'>
+                      <span className='text-[13px] font-medium text-gray-900'>Показывать прайсовую цену брокерам</span>
+                      <span className='text-[11px] text-gray-500'>Если выключено — цена будет скрыта в каталоге и в открытом аукционе</span>
+                    </div>
+                  </label>
+                )}
+              />
             </div>
           </div>
 
@@ -511,12 +564,22 @@ export default function CreatePropertyPage() {
             </FancyButton.Root>
           </Link>
           <FancyButton.Root
+            variant='basic'
+            size='small'
+            type='submit'
+            disabled={submitting}
+            onClick={() => { submitStatusRef.current = 'draft'; }}
+          >
+            {submitting && submitStatusRef.current === 'draft' ? 'Сохранение...' : 'Сохранить как черновик'}
+          </FancyButton.Root>
+          <FancyButton.Root
             variant='primary'
             size='small'
             type='submit'
             disabled={submitting}
+            onClick={() => { submitStatusRef.current = 'published'; }}
           >
-            {submitting ? 'Создание...' : 'Создать объект'}
+            {submitting && submitStatusRef.current === 'published' ? 'Публикация...' : 'Опубликовать'}
           </FancyButton.Root>
         </div>
       </form>

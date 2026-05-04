@@ -9,6 +9,7 @@ type NotificationsState = {
 
 type NotificationsActions = {
   setSnapshot: (items: NotificationItem[], unreadCount: number) => void;
+  appendItems: (items: NotificationItem[]) => void;
   addNotification: (notification: NotificationItem, unreadCount: number) => void;
   markRead: (notificationId: number, readAt: string, unreadCount: number) => void;
   markAllRead: (notificationIds: number[], readAt: string, unreadCount: number) => void;
@@ -29,6 +30,15 @@ export const useNotificationsStore = create<NotificationsState & NotificationsAc
 
     setSnapshot: (items, unreadCount) =>
       set({ items, unreadCount }),
+
+    appendItems: (newItems) =>
+      set((state) => {
+        // Dedupe — REST page may overlap with the WebSocket snapshot.
+        const existingIds = new Set(state.items.map((n) => n.id));
+        const filtered = newItems.filter((n) => !existingIds.has(n.id));
+        if (filtered.length === 0) return {};
+        return { items: [...state.items, ...filtered] };
+      }),
 
     addNotification: (notification, unreadCount) =>
       set((state) => {

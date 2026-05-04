@@ -107,6 +107,7 @@ export default function CatalogDetailPage() {
   const propertyId = Number(params.id);
   const user = useSessionStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.is_admin === true;
+  const isBroker = user?.role === 'broker';
 
   const { data: property, isLoading: isPropertyLoading } = useProperty(propertyId);
 
@@ -320,6 +321,22 @@ export default function CatalogDetailPage() {
                   {property.area} {property.type === 'land' ? 'соток' : 'м²'}
                 </div>
               </div>
+              {(property.type === 'apartment' || property.type === 'commercial') && property.floor != null && (
+                <div>
+                  <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Этаж</div>
+                  <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                    {property.floor}
+                  </div>
+                </div>
+              )}
+              {property.project && (
+                <div>
+                  <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Проект</div>
+                  <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                    {property.project}
+                  </div>
+                </div>
+              )}
               <div>
                 <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Срок сдачи</div>
                 <div className='text-[13px] font-medium text-gray-900 mt-1'>
@@ -332,6 +349,15 @@ export default function CatalogDetailPage() {
                   {property.commission_rate ? `${property.commission_rate}%` : '—'}
                 </div>
               </div>
+              {(isAdmin || user?.role === 'broker') && property.developer_name && (
+                <div className='col-span-2'>
+                  <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Девелопер</div>
+                  <div className='text-[13px] font-medium text-gray-900 mt-1'>
+                    {property.developer_name}
+                    {property.project ? ` · ${property.project}` : ''}
+                  </div>
+                </div>
+              )}
             </div>
             {property.project_comment && (
               <div className='mt-5 border-t border-blue-50 pt-5'>
@@ -393,14 +419,16 @@ export default function CatalogDetailPage() {
                   </span>
                 </div>
               </div>
-              <div className='mt-4'>
-                <Link href={`/auctions/${activeAuction.id}`} className='w-full'>
-                  <FancyButton.Root variant='primary' size='small' className='w-full'>
-                    <HugeiconsIcon icon={Award01Icon} size={16} />
-                    Участвовать в аукционе
-                  </FancyButton.Root>
-                </Link>
-              </div>
+              {isBroker && (
+                <div className='mt-4'>
+                  <Link href={`/auctions/${activeAuction.id}`} className='w-full'>
+                    <FancyButton.Root variant='primary' size='small' className='w-full'>
+                      <HugeiconsIcon icon={Award01Icon} size={16} />
+                      Участвовать в аукционе
+                    </FancyButton.Root>
+                  </Link>
+                </div>
+              )}
             </div>
           )}
         </div>

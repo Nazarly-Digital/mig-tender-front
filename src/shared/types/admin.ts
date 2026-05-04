@@ -29,7 +29,11 @@ export type AdminUser = {
 
 export type AdminUserListParams = {
   role?: string;
-  is_blocked?: boolean;
+  is_active?: boolean;
+  verification_status?: string;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
   ordering?: string;
   page?: number;
   page_size?: number;
@@ -53,8 +57,8 @@ export type AdminCreateDeveloperRequest = {
   last_name: string;
   inn_number: string;
   phone_number: string;
-  inn: File;
-  passport: File;
+  inn?: File;
+  passport?: File;
   ddu_template: File;
 };
 

@@ -7,6 +7,7 @@ import { File01Icon, FileUploadIcon, CheckListIcon } from '@hugeicons/core-free-
 
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
+import { openAuthedFile } from '@/shared/lib/fetch-file';
 import {
   useCreateDocumentRequest,
   useUploadDocumentResponse,
@@ -302,15 +303,14 @@ function DocumentRequestCard({
           <ul className='space-y-1'>
             {request.response_documents.map((doc) => (
               <li key={doc.id}>
-                <a
-                  href={doc.file}
-                  target='_blank'
-                  rel='noreferrer'
-                  className='inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-600 hover:text-blue-700 hover:underline'
+                <button
+                  type='button'
+                  onClick={() => openAuthedFile(doc.file)}
+                  className='inline-flex items-center gap-1.5 text-[12px] font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer'
                 >
                   <HugeiconsIcon icon={File01Icon} size={13} color='currentColor' strokeWidth={1.5} />
                   {fileNameFromUrl(doc.file)}
-                </a>
+                </button>
               </li>
             ))}
           </ul>

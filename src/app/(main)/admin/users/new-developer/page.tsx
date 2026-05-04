@@ -134,8 +134,8 @@ export default function NewDeveloperPage() {
       companyName: '',
       innNumber: '',
       phoneNumber: PHONE_INPUT_DEFAULT,
-      innDocument: undefined as unknown as File,
-      passportDocument: undefined as unknown as File,
+      innDocument: undefined,
+      passportDocument: undefined,
       dduTemplate: undefined as unknown as File,
       password: '',
       passwordConfirm: '',
@@ -153,8 +153,8 @@ export default function NewDeveloperPage() {
         last_name: data.lastName,
         inn_number: data.innNumber,
         phone_number: toE164(data.phoneNumber),
-        inn: data.innDocument as unknown as File,
-        passport: data.passportDocument as unknown as File,
+        inn: data.innDocument as File | undefined,
+        passport: data.passportDocument as File | undefined,
         ddu_template: data.dduTemplate as unknown as File,
       },
       {
@@ -334,9 +334,7 @@ export default function NewDeveloperPage() {
             <div className='text-[14px] font-semibold text-gray-900'>Документы</div>
 
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='nd-innDocument'>
-                Документ ИНН <Label.Asterisk />
-              </Label.Root>
+              <Label.Root htmlFor='nd-innDocument'>Документ ИНН</Label.Root>
               <Controller
                 name='innDocument'
                 control={control}
@@ -357,9 +355,7 @@ export default function NewDeveloperPage() {
             </div>
 
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='nd-passportDocument'>
-                Паспорт <Label.Asterisk />
-              </Label.Root>
+              <Label.Root htmlFor='nd-passportDocument'>Паспорт</Label.Root>
               <Controller
                 name='passportDocument'
                 control={control}

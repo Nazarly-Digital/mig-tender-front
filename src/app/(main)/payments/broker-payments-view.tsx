@@ -5,6 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { File01Icon, CheckmarkCircle02Icon, Clock01Icon, AlertCircleIcon } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
+import { openAuthedFile } from '@/shared/lib/fetch-file';
 import { useSettlements } from '@/features/payments';
 import type { Settlement } from '@/shared/types/payments';
 
@@ -74,14 +75,13 @@ function BrokerSettlementCard({ s }: { s: Settlement }) {
           <div className='flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2'>
             <HugeiconsIcon icon={File01Icon} size={14} color='currentColor' strokeWidth={1.5} className='text-gray-500' />
             <span className='text-xs text-gray-600'>Чек платформы</span>
-            <a
-              href={s.broker_payout_receipt}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='ml-auto text-xs font-medium text-blue-600 hover:text-blue-700'
+            <button
+              type='button'
+              onClick={() => openAuthedFile(s.broker_payout_receipt!)}
+              className='ml-auto text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer'
             >
-              Скачать
-            </a>
+              Открыть
+            </button>
           </div>
         </div>
       )}

@@ -184,10 +184,19 @@ export const passwordResetConfirmSchema = z
 
 export type PasswordResetConfirmFormData = z.infer<typeof passwordResetConfirmSchema>;
 
+// Russian + Latin letters, with optional hyphens/spaces for compound names.
+const NAME_RE = /^[A-Za-zА-Яа-яЁё]+(?:[\s-][A-Za-zА-Яа-яЁё]+)*$/;
+
 export const brokerRegisterSchema = z
   .object({
-    firstName: z.string().min(1, 'Введите имя'),
-    lastName: z.string().min(1, 'Введите фамилию'),
+    firstName: z
+      .string()
+      .min(1, 'Введите имя')
+      .refine((v) => NAME_RE.test(v), 'Только буквы'),
+    lastName: z
+      .string()
+      .min(1, 'Введите фамилию')
+      .refine((v) => NAME_RE.test(v), 'Только буквы'),
     innNumber: z
       .string()
       .min(1, 'Введите ИНН номер')
@@ -228,15 +237,15 @@ const ACCEPTED_DOC_MIME = [
   'application/pdf',
 ];
 
-const requiredFile = z
+const optionalFile = z
   .any()
-  .refine((file) => file instanceof File, 'Загрузите файл')
+  .optional()
   .refine(
-    (file) => file instanceof File && file.size <= MAX_DOC_SIZE,
+    (file) => !file || (file instanceof File && file.size <= MAX_DOC_SIZE),
     'Файл должен быть не больше 10 МБ',
   )
   .refine(
-    (file) => file instanceof File && ACCEPTED_DOC_MIME.includes(file.type),
+    (file) => !file || (file instanceof File && ACCEPTED_DOC_MIME.includes(file.type)),
     'Поддерживаются: JPG, PNG, WEBP, HEIC, PDF',
   );
 
@@ -296,8 +305,8 @@ export const adminCreateDeveloperSchema = z
       .refine((v) => isValidPhoneNumber(v.trim()), {
         message: 'Введите корректный номер для выбранной страны',
       }),
-    innDocument: requiredFile,
-    passportDocument: requiredFile,
+    innDocument: optionalFile,
+    passportDocument: optionalFile,
     dduTemplate: requiredPdf,
     password: z
       .string()
@@ -342,7 +351,6 @@ export type AdminUpdateDeveloperFormData = z.infer<typeof adminUpdateDeveloperSc
 
 // Admin: edit broker (PATCH /admin/users/<id>/)
 export const adminUpdateBrokerSchema = z.object({
-  email: strictEmail(),
   firstName: z
     .string()
     .min(1, 'Введите имя')
@@ -410,6 +418,7 @@ export const propertySchema = z.object({
       'Комиссия не может превышать 100%',
     ),
   status: z.string().min(1, 'Выберите статус'),
+  show_price_to_brokers: z.boolean().optional(),
   floor: z.string().optional(),
   developer_name: z
     .string()
@@ -468,6 +477,24 @@ export const propertySchema = z.object({
 export type PropertyFormData = z.infer<typeof propertySchema>;
 
 // === Auctions ===
+
+// Draft schema — drafts can omit dates and skip min/length validations.
+export const auctionDraftSchema = z.object({
+  propertyIds: z
+    .array(z.string())
+    .min(1, 'Выберите хотя бы один объект'),
+  mode: z.string().min(1, 'Выберите тип аукциона'),
+  min_price: z
+    .string()
+    .min(1, 'Введите минимальную цену')
+    .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
+  min_bid_increment: z.string().optional(),
+  show_price_to_brokers: z.boolean().optional(),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
+});
+
+export type AuctionDraftFormData = z.infer<typeof auctionDraftSchema>;
 
 export const auctionSchema = z.object({
   propertyIds: z

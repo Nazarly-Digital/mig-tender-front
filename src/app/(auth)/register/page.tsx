@@ -16,7 +16,7 @@ import {
 } from '@remixicon/react';
 
 import { cn } from '@/shared/lib/cn';
-import { formatPhoneInputLocked } from '@/shared/lib/phone';
+import { formatPhoneInputLocked, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
 import * as Alert from '@/shared/ui/alert';
 import * as DigitInput from '@/shared/ui/digit-input';
 import * as Divider from '@/shared/ui/divider';
@@ -88,6 +88,18 @@ export default function PageRegister() {
   const [obligationChecked, setObligationChecked] = React.useState(false);
   const emailErrors = emailForm.formState.errors;
   const regErrors = registerForm.formState.errors;
+
+  const watched = registerForm.watch();
+  const allRequiredFilled =
+    !!watched.firstName?.trim() &&
+    !!watched.lastName?.trim() &&
+    !!watched.innNumber?.trim() &&
+    !!watched.phoneNumber?.trim() &&
+    watched.phoneNumber.trim() !== PHONE_INPUT_DEFAULT &&
+    !!watched.password &&
+    !!watched.passwordConfirm &&
+    !!inn &&
+    !!passport;
 
   return (
     <>
@@ -232,7 +244,12 @@ export default function PageRegister() {
                       id='firstName'
                       type='text'
                       placeholder='Введите имя'
-                      {...registerForm.register('firstName')}
+                      {...registerForm.register('firstName', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const filtered = e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, '');
+                          registerForm.setValue('firstName', filtered, { shouldValidate: true });
+                        },
+                      })}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -252,7 +269,12 @@ export default function PageRegister() {
                       id='lastName'
                       type='text'
                       placeholder='Введите фамилию'
-                      {...registerForm.register('lastName')}
+                      {...registerForm.register('lastName', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const filtered = e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, '');
+                          registerForm.setValue('lastName', filtered, { shouldValidate: true });
+                        },
+                      })}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -272,8 +294,14 @@ export default function PageRegister() {
                       id='innNumber'
                       type='text'
                       inputMode='numeric'
+                      maxLength={12}
                       placeholder='Введите ИНН номер'
-                      {...registerForm.register('innNumber')}
+                      {...registerForm.register('innNumber', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const filtered = e.target.value.replace(/\D/g, '').slice(0, 12);
+                          registerForm.setValue('innNumber', filtered, { shouldValidate: true });
+                        },
+                      })}
                     />
                   </Input.Wrapper>
                 </Input.Root>
@@ -375,8 +403,12 @@ export default function PageRegister() {
                   hasError={!!regErrors.password}
                   {...registerForm.register('password')}
                 />
-                {regErrors.password && (
+                {regErrors.password ? (
                   <p className='text-paragraph-xs text-error-base'>{regErrors.password.message}</p>
+                ) : (
+                  <p className='text-paragraph-xs text-text-sub-600'>
+                    Минимум 8 символов. Не должен состоять только из цифр и не должен быть слишком распространённым.
+                  </p>
                 )}
               </div>
 
@@ -424,7 +456,7 @@ export default function PageRegister() {
               variant='primary'
               size='medium'
               className='w-full'
-              disabled={isRegisterPending || !offerAccepted}
+              disabled={isRegisterPending || !offerAccepted || !allRequiredFilled}
             >
               {isRegisterPending ? 'Регистрация...' : 'Зарегистрироваться'}
             </FancyButton.Root>

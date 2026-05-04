@@ -11,6 +11,8 @@ import {
 } from '@hugeicons/core-free-icons';
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
+import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import {
   useSettlements,
   useSettlementSummary,
@@ -155,15 +157,14 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
                 </button>
               </>
             ) : s.broker_payout_receipt ? (
-              <a
-                href={s.broker_payout_receipt}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700'
+              <button
+                type='button'
+                onClick={() => openAuthedFile(s.broker_payout_receipt!)}
+                className='inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer'
               >
                 <HugeiconsIcon icon={File01Icon} size={12} color='currentColor' strokeWidth={1.5} />
                 Чек
-              </a>
+              </button>
             ) : null}
           </div>
         </div>
@@ -193,7 +194,17 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
               ) : null}
             </div>
           </div>
-          <div className='shrink-0 text-right'>
+          <div className='shrink-0 text-right flex items-center gap-3'>
+            {s.developer_receipt && (
+              <button
+                type='button'
+                onClick={() => openAuthedFile(s.developer_receipt!)}
+                className='inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer'
+              >
+                <HugeiconsIcon icon={File01Icon} size={12} color='currentColor' strokeWidth={1.5} />
+                Чек
+              </button>
+            )}
             {!s.paid_to_broker ? (
               <span className='text-xs text-gray-400'>после выплаты</span>
             ) : !s.received_from_developer && s.developer_receipt ? (
@@ -205,16 +216,6 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
               >
                 {confirmRecv.isPending ? 'Подтверждение...' : 'Подтвердить'}
               </button>
-            ) : s.developer_receipt ? (
-              <a
-                href={s.developer_receipt}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700'
-              >
-                <HugeiconsIcon icon={File01Icon} size={12} color='currentColor' strokeWidth={1.5} />
-                Чек
-              </a>
             ) : null}
           </div>
         </div>
@@ -231,11 +232,18 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
   );
 }
 
+const ADMIN_PAYMENTS_PAGE_SIZE = 12;
+
 export function AdminPaymentsView() {
   const [filter, setFilter] = React.useState<StatusFilter>('all');
+  const [page, setPage] = React.useState(1);
   const { data: sum } = useSettlementSummary();
   const { data, isLoading } = useSettlements();
   const all = data ?? [];
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [filter]);
 
   const filtered = all.filter((s) => {
     switch (filter) {
@@ -249,6 +257,9 @@ export function AdminPaymentsView() {
         return true;
     }
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ADMIN_PAYMENTS_PAGE_SIZE));
+  const pageItems = filtered.slice((page - 1) * ADMIN_PAYMENTS_PAGE_SIZE, page * ADMIN_PAYMENTS_PAGE_SIZE);
 
   const toPayBrokers = all
     .filter((s) => !s.paid_to_broker)
@@ -343,9 +354,20 @@ export function AdminPaymentsView() {
             <p className='text-sm font-medium text-gray-900'>Пусто</p>
           </div>
         ) : (
-          <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 items-start'>
-            {filtered.map((s) => <AdminSettlementCard key={s.id} s={s} />)}
-          </div>
+          <>
+            <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 items-start'>
+              {pageItems.map((s) => <AdminSettlementCard key={s.id} s={s} />)}
+            </div>
+            {totalPages > 1 && (
+              <PropertiesTablePagination
+                page={page}
+                totalPages={totalPages}
+                pageSize={ADMIN_PAYMENTS_PAGE_SIZE}
+                onPageChange={setPage}
+                onPageSizeChange={() => {}}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

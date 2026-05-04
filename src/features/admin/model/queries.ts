@@ -48,6 +48,17 @@ export function useAdminVerifyBroker() {
   });
 }
 
+export function useAdminRejectBroker() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+      adminService.rejectBroker(id, reason).then((res) => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.all });
+    },
+  });
+}
+
 // --- Developer management ---
 
 export function useAdminCreateDeveloper() {
