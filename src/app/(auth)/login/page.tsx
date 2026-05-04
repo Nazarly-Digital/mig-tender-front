@@ -65,8 +65,16 @@ export default function PageLogin() {
   });
 
   const [error, setError] = React.useState('');
+  const [timer, setTimer] = React.useState(0);
+
+  React.useEffect(() => {
+    if (timer <= 0) return;
+    const id = setInterval(() => setTimer((p) => p - 1), 1000);
+    return () => clearInterval(id);
+  }, [timer]);
 
   const onSubmit = (data: LoginFormData) => {
+    if (timer > 0) return;
     setError('');
     login.mutate(data, {
       onSuccess: () => {
@@ -74,8 +82,18 @@ export default function PageLogin() {
       },
       onError: (err) => {
         if (err instanceof AxiosError) {
-          if (err.response?.status === 401) {
+          const status = err.response?.status;
+          if (status === 401) {
             setError('Неверный email или пароль');
+          } else if (status === 429) {
+            const data = err.response?.data as { remaining_time?: number; detail?: string } | undefined;
+            const retryAfterHeader = err.response?.headers?.['retry-after'];
+            const seconds =
+              data?.remaining_time ??
+              (typeof retryAfterHeader === 'string' ? parseInt(retryAfterHeader, 10) : NaN);
+            const fallback = Number.isFinite(seconds) && seconds > 0 ? seconds : 60;
+            setTimer(fallback);
+            setError('Слишком много попыток. Подождите и попробуйте снова');
           } else {
             setError('Произошла ошибка. Попробуйте позже');
           }
@@ -162,9 +180,13 @@ export default function PageLogin() {
             type='submit'
             variant='primary'
             size='medium'
-            disabled={login.isPending}
+            disabled={login.isPending || timer > 0}
           >
-            {login.isPending ? 'Вход...' : 'Войти'}
+            {login.isPending
+              ? 'Вход...'
+              : timer > 0
+                ? `Подождите ${timer} сек`
+                : 'Войти'}
           </FancyButton.Root>
         </form>
       </div>

@@ -176,7 +176,8 @@ export function useBrokerRegistration() {
                 const messages = Object.values(errData)
                   .flat()
                   .filter((m): m is string => typeof m === 'string')
-                  .map(translateBackendMessage);
+                  .map(translateBackendMessage)
+                  .map((m) => m.replace(/\.+$/, ''));
                 setError(messages.join('. ') || 'Произошла ошибка');
               } else {
                 setError('Произошла ошибка. Попробуйте позже');

@@ -15,9 +15,7 @@ import {
   UserIcon,
   SecurityCheckIcon,
   Wallet01Icon,
-  HeadphonesIcon,
   Logout01Icon,
-  CogIcon,
   Coins01Icon,
   CatalogueIcon,
 } from '@hugeicons/core-free-icons';
@@ -222,35 +220,6 @@ export default function Sidebar() {
             </>
           )}
         </nav>
-
-        {/* Bottom links */}
-        <div className="border-t border-gray-200 py-2 px-3">
-          <div className="flex flex-col gap-0.5">
-            <Link
-              href="/settings/profile-settings"
-              prefetch={false}
-              aria-disabled
-              className={cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors',
-                'aria-disabled:pointer-events-none aria-disabled:opacity-30',
-                pathname === '/settings/profile-settings'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100',
-              )}
-            >
-              <HugeiconsIcon icon={CogIcon} size={20} color="currentColor" strokeWidth={1.5} className="shrink-0" />
-              <span className="truncate">Настройки</span>
-            </Link>
-            <Link
-              href="#"
-              aria-disabled
-              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-gray-600 transition-colors hover:bg-gray-100 aria-disabled:pointer-events-none aria-disabled:opacity-30"
-            >
-              <HugeiconsIcon icon={HeadphonesIcon} size={20} color="currentColor" strokeWidth={1.5} className="shrink-0" />
-              <span className="truncate">Поддержка</span>
-            </Link>
-          </div>
-        </div>
 
         {/* User profile */}
         <div className="group border-t border-gray-200 p-3">
