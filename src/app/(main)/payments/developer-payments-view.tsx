@@ -12,8 +12,11 @@ import {
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import { useSettlements, useUploadDeveloperReceipt } from '@/features/payments';
 import type { Settlement } from '@/shared/types/payments';
+
+const DEVELOPER_PAYMENTS_PAGE_SIZE = 12;
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—';
@@ -158,6 +161,7 @@ function DeveloperSettlementCard({ s }: { s: Settlement }) {
 }
 
 export function DeveloperPaymentsView() {
+  const [page, setPage] = React.useState(1);
   const { data, isLoading } = useSettlements();
   const settlements = data ?? [];
 
@@ -166,6 +170,9 @@ export function DeveloperPaymentsView() {
     .filter((s) => s.received_from_developer)
     .reduce((a, s) => a + parseFloat(s.total_from_developer || '0'), 0);
   const pending = totalOwed - paid;
+
+  const totalPages = Math.max(1, Math.ceil(settlements.length / DEVELOPER_PAYMENTS_PAGE_SIZE));
+  const pageItems = settlements.slice((page - 1) * DEVELOPER_PAYMENTS_PAGE_SIZE, page * DEVELOPER_PAYMENTS_PAGE_SIZE);
 
   return (
     <div className='w-full px-8 py-8'>
@@ -198,9 +205,20 @@ export function DeveloperPaymentsView() {
             <p className='text-xs text-gray-400 mt-1'>Платежи появятся после подтверждения сделок</p>
           </div>
         ) : (
-          <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 items-start'>
-            {settlements.map((s) => <DeveloperSettlementCard key={s.id} s={s} />)}
-          </div>
+          <>
+            <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4 items-start'>
+              {pageItems.map((s) => <DeveloperSettlementCard key={s.id} s={s} />)}
+            </div>
+            {totalPages > 1 && (
+              <PropertiesTablePagination
+                page={page}
+                totalPages={totalPages}
+                pageSize={DEVELOPER_PAYMENTS_PAGE_SIZE}
+                onPageChange={setPage}
+                onPageSizeChange={() => {}}
+              />
+            )}
+          </>
         )}
       </div>
     </div>
