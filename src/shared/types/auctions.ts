@@ -110,8 +110,9 @@ export type AuctionCreateRequest = {
   min_price: string;
   min_bid_increment?: string;
   show_price_to_brokers?: boolean;
-  start_date: string;
-  end_date: string;
+  start_date?: string;
+  end_date?: string;
+  status?: AuctionStatus;
 };
 
 export type AuctionListParams = {
@@ -144,14 +145,15 @@ export type JoinAuctionResponse = {
   message: string;
 };
 
-// Bids
+// Bids — first_name/last_name are present for owner/admin views and omitted
+// when the backend serialises bids anonymously for brokers.
 export type Bid = {
   id: number;
   auction_id: number;
   broker_id: number;
   amount: string;
-  first_name: string;
-  last_name: string;
+  first_name?: string;
+  last_name?: string;
   created_at: string;
   updated_at: string;
 };

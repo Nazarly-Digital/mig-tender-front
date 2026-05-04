@@ -8,7 +8,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowLeft01Icon, CheckmarkCircle02Icon, Search01Icon, Cancel01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
-import { auctionSchema, type AuctionFormData } from '@/shared/lib/validations';
+import { auctionSchema, auctionDraftSchema, type AuctionFormData } from '@/shared/lib/validations';
 import { formatPriceInput, stripPriceFormat, formatPrice } from '@/shared/lib/formatters';
 import { DateTimePicker } from '@/shared/ui/date-picker';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -185,6 +185,9 @@ export default function CreateAuctionPage() {
   });
   const properties = propertiesData?.results ?? [];
 
+  // Tracks which submit button was clicked: 'draft' or 'publish'.
+  const submitIntentRef = React.useRef<'draft' | 'publish'>('publish');
+
   const {
     register,
     handleSubmit,
@@ -193,7 +196,16 @@ export default function CreateAuctionPage() {
     setValue,
     formState: { errors },
   } = useForm<AuctionFormData>({
-    resolver: zodResolver(auctionSchema),
+    // Pick a relaxed schema for draft submissions, strict one for publishing.
+    // Schemas have slightly different shapes; the cast keeps RHF happy without
+    // sacrificing field-level validation feedback at the UI layer.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: ((values: AuctionFormData, ctx: unknown, opts: unknown) => {
+      const schema = submitIntentRef.current === 'draft' ? auctionDraftSchema : auctionSchema;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (zodResolver(schema) as any)(values, ctx, opts);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any,
     mode: 'onSubmit',
     defaultValues: {
       propertyIds: [],
@@ -259,6 +271,7 @@ export default function CreateAuctionPage() {
 
   const onSubmit = (data: AuctionFormData) => {
     const isOpen = data.mode === 'open';
+    const isDraft = submitIntentRef.current === 'draft';
     createMutation.mutate(
       {
         propertyIds: data.propertyIds.map(Number),
@@ -266,12 +279,13 @@ export default function CreateAuctionPage() {
         min_price: data.min_price,
         ...(isOpen && data.min_bid_increment ? { min_bid_increment: data.min_bid_increment } : {}),
         show_price_to_brokers: data.show_price_to_brokers ?? true,
-        start_date: new Date(data.start_date).toISOString(),
-        end_date: new Date(data.end_date).toISOString(),
+        ...(data.start_date ? { start_date: new Date(data.start_date).toISOString() } : {}),
+        ...(data.end_date ? { end_date: new Date(data.end_date).toISOString() } : {}),
+        ...(isDraft ? { status: 'draft' as const } : {}),
       },
       {
         onSuccess: () => {
-          toast.success('Аукцион успешно создан');
+          toast.success(isDraft ? 'Черновик сохранён' : 'Аукцион успешно создан');
           router.push('/auctions');
         },
         onError: (error: unknown) => {
@@ -316,7 +330,9 @@ export default function CreateAuctionPage() {
                       onClick={() => {
                         field.onChange(v);
                         if (v === 'closed') setValue('min_bid_increment', '');
-                        setValue('propertyIds', [], { shouldValidate: true });
+                        // Reset selection without re-running validation: errors should
+                        // only appear after the user clicks "Создать аукцион".
+                        setValue('propertyIds', [], { shouldValidate: false });
                       }}
                       className={`flex flex-col items-start rounded-lg px-3.5 py-2.5 text-left transition-colors cursor-pointer ${field.value === v
                         ? 'border-[1.5px] border-blue-500 bg-blue-50/60'
@@ -555,12 +571,26 @@ export default function CreateAuctionPage() {
             </FancyButton.Root>
           </Link>
           <FancyButton.Root
+            variant='basic'
+            size='small'
+            type='submit'
+            disabled={createMutation.isPending || properties.length === 0}
+            onClick={() => { submitIntentRef.current = 'draft'; }}
+          >
+            {createMutation.isPending && submitIntentRef.current === 'draft'
+              ? 'Сохранение...'
+              : 'Сохранить как черновик'}
+          </FancyButton.Root>
+          <FancyButton.Root
             variant='primary'
             size='small'
             type='submit'
             disabled={createMutation.isPending || properties.length === 0}
+            onClick={() => { submitIntentRef.current = 'publish'; }}
           >
-            {createMutation.isPending ? 'Создание...' : 'Создать аукцион'}
+            {createMutation.isPending && submitIntentRef.current === 'publish'
+              ? 'Создание...'
+              : 'Создать аукцион'}
           </FancyButton.Root>
         </div>
       </form>

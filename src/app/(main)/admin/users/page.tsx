@@ -14,6 +14,7 @@ import {
   Download01Icon,
   UserAdd01Icon,
   Edit02Icon,
+  Cancel01Icon,
 } from '@hugeicons/core-free-icons';
 
 import { TableSkeleton } from '@/shared/components/skeletons';
@@ -22,10 +23,12 @@ import * as Modal from '@/shared/ui/modal';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import { PageHeader } from '@/shared/components/page-header';
+import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import {
   useAdminUsers,
   useBlockUser,
   useAdminVerifyBroker,
+  useAdminRejectBroker,
   useAdminUpdateDeveloper,
   useAdminUpdateBroker,
 } from '@/features/admin';
@@ -37,6 +40,7 @@ import {
   type AdminUpdateBrokerFormData,
 } from '@/shared/lib/validations';
 import { formatPhoneInput, toE164, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
+import { openAuthedFile } from '@/shared/lib/fetch-file';
 
 // --- Helpers ---
 
@@ -187,6 +191,99 @@ function VerifyBrokerModal({
             disabled={verifyBroker.isPending}
           >
             {verifyBroker.isPending ? 'Загрузка...' : 'Верифицировать'}
+          </FancyButton.Root>
+        </Modal.Footer>
+      </Modal.Content>
+    </Modal.Root>
+  );
+}
+
+// --- Reject Broker Modal ---
+
+function RejectBrokerModal({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: AdminUser | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const rejectBroker = useAdminRejectBroker();
+  const [reason, setReason] = React.useState('');
+
+  React.useEffect(() => {
+    if (!open) setReason('');
+  }, [open]);
+
+  if (!user) return null;
+
+  const trimmed = reason.trim();
+  const tooLong = trimmed.length > 1000;
+
+  const handleConfirm = () => {
+    if (!trimmed) {
+      toast.error('Укажите причину отклонения');
+      return;
+    }
+    if (tooLong) {
+      toast.error('Причина не должна превышать 1000 символов');
+      return;
+    }
+    rejectBroker.mutate(
+      { id: user.id, reason: trimmed },
+      {
+        onSuccess: () => {
+          toast.success('Верификация отклонена');
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          toast.error(getApiError(error));
+        },
+      },
+    );
+  };
+
+  return (
+    <Modal.Root open={open} onOpenChange={onOpenChange}>
+      <Modal.Content>
+        <Modal.Header
+          title='Отклонить верификацию?'
+          description={`${user.first_name} ${user.last_name} (${user.email})`}
+        />
+        <Modal.Body>
+          <div className='flex flex-col gap-1.5'>
+            <Label.Root htmlFor='reject-reason'>
+              Причина отказа <Label.Asterisk />
+            </Label.Root>
+            <textarea
+              id='reject-reason'
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={1100}
+              rows={4}
+              placeholder='Опишите, что нужно исправить'
+              className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors resize-none'
+            />
+            <div className='flex items-center justify-between'>
+              <span className='text-[11px] text-gray-400'>Брокер увидит причину в уведомлении</span>
+              <span className={`text-[11px] ${tooLong ? 'text-red-600' : 'text-gray-400'}`}>{trimmed.length}/1000</span>
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Modal.Close asChild>
+            <FancyButton.Root variant='basic' size='small'>
+              Отмена
+            </FancyButton.Root>
+          </Modal.Close>
+          <FancyButton.Root
+            variant='destructive'
+            size='small'
+            onClick={handleConfirm}
+            disabled={rejectBroker.isPending || !trimmed || tooLong}
+          >
+            {rejectBroker.isPending ? 'Загрузка...' : 'Отклонить'}
           </FancyButton.Root>
         </Modal.Footer>
       </Modal.Content>
@@ -422,16 +519,15 @@ function EditDeveloperModal({
                   <Label.Root>Документы</Label.Root>
                   <div className='flex flex-wrap gap-2'>
                     {user.documents.map((doc) => (
-                      <a
+                      <button
                         key={doc.id}
-                        href={doc.url}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap'
+                        type='button'
+                        onClick={() => openAuthedFile(doc.url)}
+                        className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap cursor-pointer'
                       >
                         <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
                         {doc.document_name || doc.doc_type}
-                      </a>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -475,7 +571,6 @@ function EditBrokerModal({
   const form = useForm<AdminUpdateBrokerFormData>({
     resolver: zodResolver(adminUpdateBrokerSchema),
     defaultValues: {
-      email: '',
       firstName: '',
       lastName: '',
       innNumber: '',
@@ -486,7 +581,6 @@ function EditBrokerModal({
   React.useEffect(() => {
     if (open && user) {
       form.reset({
-        email: user.email ?? '',
         firstName: user.first_name ?? '',
         lastName: user.last_name ?? '',
         innNumber: user.broker?.inn_number ?? '',
@@ -498,15 +592,12 @@ function EditBrokerModal({
   if (!user) return null;
 
   const onSubmit = form.handleSubmit((data) => {
-    // Send only changed fields (PATCH semantics)
     const payload: {
-      email?: string;
       first_name?: string;
       last_name?: string;
       inn_number?: string;
       phone_number?: string;
     } = {};
-    if (data.email !== user.email) payload.email = data.email;
     if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName;
     if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName;
     if (data.innNumber !== (user.broker?.inn_number ?? '')) payload.inn_number = data.innNumber;
@@ -544,27 +635,6 @@ function EditBrokerModal({
         <form onSubmit={onSubmit}>
           <Modal.Body>
             <div className='flex flex-col gap-4'>
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='eb-email'>
-                  Email <Label.Asterisk />
-                </Label.Root>
-                <Input.Root hasError={!!form.formState.errors.email}>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='eb-email'
-                      type='email'
-                      placeholder='example@mail.com'
-                      {...form.register('email')}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {form.formState.errors.email && (
-                  <span className='text-paragraph-xs text-error-base'>
-                    {form.formState.errors.email.message}
-                  </span>
-                )}
-              </div>
-
               <div className='grid grid-cols-2 gap-3'>
                 <div className='flex flex-col gap-1'>
                   <Label.Root htmlFor='eb-firstName'>
@@ -689,21 +759,57 @@ function EditBrokerModal({
 
 type RoleFilter = 'all' | 'developer' | 'broker';
 
+const PAGE_SIZE = 20;
+
+function formatRegistrationDate(value?: string): string {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  return `${day}.${month}.${d.getFullYear()}`;
+}
+
 export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = React.useState<RoleFilter>('all');
+  const [statusFilter, setStatusFilter] = React.useState<'all' | 'active' | 'blocked'>('all');
+  const [verificationFilter, setVerificationFilter] = React.useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
+  const [searchInput, setSearchInput] = React.useState('');
+  const [search, setSearch] = React.useState('');
+  const [dateFrom, setDateFrom] = React.useState('');
+  const [dateTo, setDateTo] = React.useState('');
+  const [page, setPage] = React.useState(1);
   const [blockTarget, setBlockTarget] = React.useState<AdminUser | null>(null);
   const [verifyTarget, setVerifyTarget] = React.useState<AdminUser | null>(null);
+  const [rejectTarget, setRejectTarget] = React.useState<AdminUser | null>(null);
   const [editTarget, setEditTarget] = React.useState<AdminUser | null>(null);
   const [editBrokerTarget, setEditBrokerTarget] = React.useState<AdminUser | null>(null);
 
+  React.useEffect(() => {
+    setPage(1);
+  }, [roleFilter, statusFilter, verificationFilter, search, dateFrom, dateTo]);
+
+  // Debounce search input
+  React.useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
   const params = {
     ...(roleFilter !== 'all' && { role: roleFilter }),
+    ...(statusFilter !== 'all' && { is_active: statusFilter === 'active' }),
+    ...(verificationFilter !== 'all' && roleFilter === 'broker' && { verification_status: verificationFilter }),
+    ...(search && { search }),
+    ...(dateFrom && { date_from: dateFrom }),
+    ...(dateTo && { date_to: dateTo }),
     ordering: '-created_at',
-    page_size: 20,
+    page_size: PAGE_SIZE,
+    page,
   };
 
   const { data, isLoading } = useAdminUsers(params);
   const users = data?.results ?? [];
+  const totalPages = data?.count ? Math.max(1, Math.ceil(data.count / PAGE_SIZE)) : 1;
 
   const filters: { value: RoleFilter; label: string }[] = [
     { value: 'all', label: 'Все' },
@@ -744,6 +850,51 @@ export default function AdminUsersPage() {
         ))}
       </div>
 
+      {/* Secondary filters */}
+      <div className='mt-4 flex flex-wrap items-center gap-3'>
+        <input
+          type='text'
+          placeholder='Поиск по email или имени…'
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className='h-9 w-72 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'blocked')}
+          className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+        >
+          <option value='all'>Любой статус</option>
+          <option value='active'>Активные</option>
+          <option value='blocked'>Заблокированные</option>
+        </select>
+        {roleFilter === 'broker' && (
+          <select
+            value={verificationFilter}
+            onChange={(e) => setVerificationFilter(e.target.value as 'all' | 'pending' | 'accepted' | 'rejected')}
+            className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+          >
+            <option value='all'>Любая верификация</option>
+            <option value='pending'>На проверке</option>
+            <option value='accepted'>Верифицирован</option>
+            <option value='rejected'>Отклонён</option>
+          </select>
+        )}
+        <span className='text-[12px] font-medium text-gray-500'>Период:</span>
+        <input
+          type='date'
+          value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)}
+          className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+        />
+        <input
+          type='date'
+          value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)}
+          className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+        />
+      </div>
+
       {/* Content */}
       {isLoading ? (
         <div className='mt-6'>
@@ -779,6 +930,9 @@ export default function AdminUsersPage() {
                 </th>
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Документы
+                </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Дата регистрации
                 </th>
                 <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Действия
@@ -832,28 +986,27 @@ export default function AdminUsersPage() {
                   </td>
                   <td className='px-5 py-3.5'>
                     <span className='text-[13px] text-gray-500 whitespace-nowrap'>
-                      {user.broker?.inn_number ?? '—'}
+                      {user.broker?.inn_number ?? user.developer?.inn_number ?? '—'}
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>
                     <span className='text-[13px] text-gray-500 whitespace-nowrap'>
-                      {user.broker?.phone_number ?? '—'}
+                      {user.broker?.phone_number ?? user.developer?.phone_number ?? '—'}
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center gap-2'>
                       {user.documents?.length > 0 ? (
                         user.documents.map((doc) => (
-                          <a
+                          <button
                             key={doc.id}
-                            href={doc.url}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap'
+                            type='button'
+                            onClick={() => openAuthedFile(doc.url)}
+                            className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap cursor-pointer'
                           >
                             <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
                             {doc.document_name || doc.doc_type}
-                          </a>
+                          </button>
                         ))
                       ) : (
                         <span className='text-[13px] text-gray-400'>—</span>
@@ -861,11 +1014,22 @@ export default function AdminUsersPage() {
                     </div>
                   </td>
                   <td className='px-5 py-3.5'>
+                    <span className='text-[13px] text-gray-500 whitespace-nowrap'>
+                      {formatRegistrationDate(user.created_at)}
+                    </span>
+                  </td>
+                  <td className='px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
-                      {user.role === 'broker' && !user.broker?.is_verified && (
+                      {user.role === 'broker' && user.broker?.verification_status !== 'accepted' && (
                         <FancyButton.Root variant='primary' size='xsmall' onClick={() => setVerifyTarget(user)}>
                           <HugeiconsIcon icon={SecurityCheckIcon} size={16} color='currentColor' strokeWidth={1.5} />
                           Верифицировать
+                        </FancyButton.Root>
+                      )}
+                      {user.role === 'broker' && user.broker?.verification_status === 'pending' && (
+                        <FancyButton.Root variant='destructive' size='xsmall' onClick={() => setRejectTarget(user)}>
+                          <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                          Отклонить
                         </FancyButton.Root>
                       )}
                       {user.role === 'developer' && (
@@ -897,6 +1061,16 @@ export default function AdminUsersPage() {
         </div>
       )}
 
+      {!isLoading && users.length > 0 && (
+        <PropertiesTablePagination
+          page={page}
+          totalPages={totalPages}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+          onPageSizeChange={() => {}}
+        />
+      )}
+
       {/* Modals */}
       <BlockConfirmModal
         user={blockTarget}
@@ -910,6 +1084,13 @@ export default function AdminUsersPage() {
         open={!!verifyTarget}
         onOpenChange={(open) => {
           if (!open) setVerifyTarget(null);
+        }}
+      />
+      <RejectBrokerModal
+        user={rejectTarget}
+        open={!!rejectTarget}
+        onOpenChange={(open) => {
+          if (!open) setRejectTarget(null);
         }}
       />
       <EditDeveloperModal

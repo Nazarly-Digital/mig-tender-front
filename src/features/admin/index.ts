@@ -3,6 +3,7 @@ export {
   useAdminUsers,
   useBlockUser,
   useAdminVerifyBroker,
+  useAdminRejectBroker,
   useAdminCreateDeveloper,
   useAdminUpdateDeveloper,
   useAdminUpdateBroker,

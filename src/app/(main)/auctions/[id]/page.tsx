@@ -77,10 +77,10 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
 };
 
 const PROPERTY_CLASS_LABELS: Record<string, string> = {
-  economy: 'Эконом',
   comfort: 'Комфорт',
   business: 'Бизнес',
   premium: 'Премиум',
+  elite: 'Элит',
 };
 
 function getPropertyTypeLabel(type: string | null | undefined): string {
@@ -344,12 +344,14 @@ function PlaceBidModal({
   const isUpdate = !!existingBid;
   const mutation = isUpdate ? updateBid : placeBid;
 
+  // Seed the input only on open transitions, not on every existingBid refetch
+  // (otherwise WS updates clobber what the user is typing).
+  const wasOpen = React.useRef(false);
   React.useEffect(() => {
-    if (open && existingBid) {
-      setAmount(existingBid.amount);
-    } else if (open) {
-      setAmount('');
+    if (open && !wasOpen.current) {
+      setAmount(existingBid?.amount ?? '');
     }
+    wasOpen.current = open;
   }, [open, existingBid]);
 
   const numericAmount = parseFloat(stripPriceFormat(amount)) || 0;
@@ -506,7 +508,9 @@ function SelectWinnerModal({
                     </div>
                     <div>
                       <div className='text-sm font-medium text-gray-900'>
-                        {bid.first_name} {bid.last_name}
+                        {bid.first_name || bid.last_name
+                          ? `${bid.first_name ?? ''} ${bid.last_name ?? ''}`.trim()
+                          : `Брокер #${bid.broker_id}`}
                       </div>
                       <div className='text-xs text-gray-500'>
                         {formatDateTime(bid.created_at)}
@@ -1231,7 +1235,9 @@ export default function AuctionDetailPage() {
                   {bidsList.map((bid) => (
                     <tr key={bid.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors'>
                       <td className='py-3 font-medium text-gray-900'>
-                        {bid.first_name} {bid.last_name}
+                        {bid.first_name || bid.last_name
+                          ? `${bid.first_name ?? ''} ${bid.last_name ?? ''}`.trim()
+                          : `Брокер #${bid.broker_id}`}
                       </td>
                       <td className='py-3 font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</td>
                       <td className='py-3 text-gray-400'>{formatDateTime(bid.created_at)}</td>
@@ -1243,22 +1249,22 @@ export default function AuctionDetailPage() {
             </div>
           )}
 
-          {/* Live bids feed — OPEN auction. Shows latest bid per broker (each broker has exactly 1), sorted by amount desc. */}
-          {isActiveOpen && isOwnerOrAdmin && ws.bids.length > 0 && (() => {
-            const latestByBroker = new Map<number, typeof ws.bids[number]>();
-            for (const b of ws.bids) {
-              const prev = latestByBroker.get(b.broker);
-              if (!prev) {
-                latestByBroker.set(b.broker, b);
-                continue;
-              }
-              const prevTs = new Date(prev.updated_at ?? prev.created_at).getTime();
-              const curTs = new Date(b.updated_at ?? b.created_at).getTime();
-              if (curTs >= prevTs) latestByBroker.set(b.broker, b);
-            }
-            const sortedBids = Array.from(latestByBroker.values()).sort(
-              (a, b) => parseFloat(b.amount) - parseFloat(a.amount),
+          {/* Live bids feed — OPEN auction. Owner/admin see full history; brokers see anonymized history. */}
+          {isActiveOpen && ws.bids.length > 0 && (() => {
+            // Show full history, newest first. Anonymize broker IDs for non-owners.
+            const sortedBids = [...ws.bids].sort(
+              (a, b) =>
+                new Date(b.updated_at ?? b.created_at).getTime() -
+                new Date(a.updated_at ?? a.created_at).getTime(),
             );
+            const anonymize = !isOwnerOrAdmin;
+            const brokerAlias = new Map<number, number>();
+            for (const b of [...ws.bids].sort(
+              (a, b) =>
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+            )) {
+              if (!brokerAlias.has(b.broker)) brokerAlias.set(b.broker, brokerAlias.size + 1);
+            }
             return (
               <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
                 <div className='flex items-center justify-between mb-4'>
@@ -1277,12 +1283,16 @@ export default function AuctionDetailPage() {
                   {sortedBids.map((bid, idx) => {
                     const isLeader = idx === 0;
                     const ts = bid.updated_at ?? bid.created_at;
+                    const display = anonymize
+                      ? `Брокер #${brokerAlias.get(bid.broker) ?? '?'}`
+                      : `#${bid.broker}`;
                     return (
                       <div key={bid.id} className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
                         <div className='flex items-center gap-2.5'>
                           <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                            #{bid.broker}
+                            {anonymize ? brokerAlias.get(bid.broker) ?? '?' : `#${bid.broker}`}
                           </div>
+                          {!anonymize && <span className='text-[12px] text-gray-500'>{display}</span>}
                           <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>
                           {isLeader && (
                             <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Лидер</span>

@@ -50,11 +50,13 @@ function FilePicker({
   value,
   onChange,
   hasError,
+  accept,
 }: {
   id: string;
   value: File | undefined;
   onChange: (file: File | undefined) => void;
   hasError?: boolean;
+  accept?: string;
 }) {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -64,7 +66,7 @@ function FilePicker({
         ref={inputRef}
         id={id}
         type='file'
-        accept={ACCEPT_MIME}
+        accept={accept ?? ACCEPT_MIME}
         className='hidden'
         onChange={(e) => onChange(e.target.files?.[0])}
       />
@@ -132,8 +134,9 @@ export default function NewDeveloperPage() {
       companyName: '',
       innNumber: '',
       phoneNumber: PHONE_INPUT_DEFAULT,
-      innDocument: undefined as unknown as File,
-      passportDocument: undefined as unknown as File,
+      innDocument: undefined,
+      passportDocument: undefined,
+      dduTemplate: undefined as unknown as File,
       password: '',
       passwordConfirm: '',
     },
@@ -150,8 +153,9 @@ export default function NewDeveloperPage() {
         last_name: data.lastName,
         inn_number: data.innNumber,
         phone_number: toE164(data.phoneNumber),
-        inn: data.innDocument as unknown as File,
-        passport: data.passportDocument as unknown as File,
+        inn: data.innDocument as File | undefined,
+        passport: data.passportDocument as File | undefined,
+        ddu_template: data.dduTemplate as unknown as File,
       },
       {
         onSuccess: () => {
@@ -330,9 +334,7 @@ export default function NewDeveloperPage() {
             <div className='text-[14px] font-semibold text-gray-900'>Документы</div>
 
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='nd-innDocument'>
-                Документ ИНН <Label.Asterisk />
-              </Label.Root>
+              <Label.Root htmlFor='nd-innDocument'>Документ ИНН</Label.Root>
               <Controller
                 name='innDocument'
                 control={control}
@@ -353,9 +355,7 @@ export default function NewDeveloperPage() {
             </div>
 
             <div className='space-y-1.5'>
-              <Label.Root htmlFor='nd-passportDocument'>
-                Паспорт <Label.Asterisk />
-              </Label.Root>
+              <Label.Root htmlFor='nd-passportDocument'>Паспорт</Label.Root>
               <Controller
                 name='passportDocument'
                 control={control}
@@ -371,6 +371,30 @@ export default function NewDeveloperPage() {
               {errors.passportDocument && (
                 <p className='text-xs text-red-500'>
                   {errors.passportDocument.message as string}
+                </p>
+              )}
+            </div>
+
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='nd-dduTemplate'>
+                Шаблон ДДУ (PDF) <Label.Asterisk />
+              </Label.Root>
+              <Controller
+                name='dduTemplate'
+                control={control}
+                render={({ field }) => (
+                  <FilePicker
+                    id='nd-dduTemplate'
+                    value={field.value as File | undefined}
+                    onChange={field.onChange}
+                    hasError={!!errors.dduTemplate}
+                    accept='application/pdf'
+                  />
+                )}
+              />
+              {errors.dduTemplate && (
+                <p className='text-xs text-red-500'>
+                  {errors.dduTemplate.message as string}
                 </p>
               )}
             </div>

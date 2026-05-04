@@ -28,6 +28,9 @@ export const adminService = {
   verifyBroker: (id: number) =>
     apiInstance.post<VerifyBrokerResponse>("/admin/broker/verify/", { id, action: "accept" }),
 
+  rejectBroker: (id: number, reason: string) =>
+    apiInstance.post<VerifyBrokerResponse>("/admin/broker/verify/", { id, action: "reject", reason }),
+
   // Developer management (admin)
   createDeveloper: (data: AdminCreateDeveloperRequest) => {
     const formData = new FormData();
@@ -39,8 +42,9 @@ export const adminService = {
     formData.append("last_name", data.last_name);
     formData.append("inn_number", data.inn_number);
     formData.append("phone_number", data.phone_number);
-    formData.append("inn", data.inn, data.inn.name);
-    formData.append("passport", data.passport, data.passport.name);
+    if (data.inn) formData.append("inn", data.inn, data.inn.name);
+    if (data.passport) formData.append("passport", data.passport, data.passport.name);
+    formData.append("ddu_template", data.ddu_template, data.ddu_template.name);
     return apiInstance.post<AdminDeveloperResponse>(
       "/admin/developers/",
       formData,

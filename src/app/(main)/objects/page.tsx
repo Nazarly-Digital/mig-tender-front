@@ -12,6 +12,9 @@ import {
   Building03Icon,
   Tick01Icon,
   Cancel01Icon,
+  Home01Icon,
+  Store01Icon,
+  Tree03Icon,
 } from '@hugeicons/core-free-icons';
 
 import * as Select from '@/shared/ui/select';
@@ -142,6 +145,8 @@ type CatalogCardItem = {
   created_at: string;
   images?: Property['images'];
   developer_name?: string;
+  project?: string;
+  floor?: number | null;
   moderation_status?: string;
 };
 
@@ -173,7 +178,21 @@ function CatalogPropertyCard({
           <PropertyImageCarousel images={property.images ?? []} />
           {/* Type + class pills overlaid on image */}
           <div className='absolute left-3 top-3 flex items-center gap-1.5 flex-wrap'>
-            <span className='rounded-lg bg-white/90 px-2 py-0.5 text-[11px] font-medium text-gray-700 backdrop-blur-sm shadow-sm'>
+            <span className='inline-flex items-center gap-1 rounded-lg bg-white/90 px-2 py-0.5 text-[11px] font-medium text-gray-700 backdrop-blur-sm shadow-sm'>
+              <HugeiconsIcon
+                icon={
+                  property.type === 'apartment'
+                    ? Building03Icon
+                    : property.type === 'house' || property.type === 'townhouse'
+                      ? Home01Icon
+                      : property.type === 'commercial'
+                        ? Store01Icon
+                        : Tree03Icon
+                }
+                size={12}
+                color='currentColor'
+                strokeWidth={1.8}
+              />
               {TYPE_LABELS[property.type as PropertyType]}
             </span>
             {property.type !== 'land' && (
@@ -185,11 +204,16 @@ function CatalogPropertyCard({
         </div>
 
         <div className='p-5'>
-          {/* Header — address */}
+          {/* Header — address + project */}
           <div className='min-w-0'>
             <div className='text-[14px] font-medium text-gray-900 truncate'>
               {property.address}
             </div>
+            {property.project && (
+              <div className='mt-0.5 text-[12px] text-gray-500 truncate'>
+                {property.project}
+              </div>
+            )}
           </div>
 
           {/* Status badges */}
@@ -286,6 +310,10 @@ function useFilterParams() {
   const typeFilter = searchParams.get('type') ?? 'all';
   const classFilter = searchParams.get('class') ?? 'all';
   const moderationFilter = searchParams.get('moderation') ?? 'all';
+  const priceMin = searchParams.get('price_min') ?? '';
+  const priceMax = searchParams.get('price_max') ?? '';
+  const areaMin = searchParams.get('area_min') ?? '';
+  const areaMax = searchParams.get('area_max') ?? '';
 
   const setParam = React.useCallback(
     (updates: Record<string, string | null>) => {
@@ -303,13 +331,19 @@ function useFilterParams() {
     [router, searchParams],
   );
 
-  return { page, pageSize, search, typeFilter, classFilter, moderationFilter, setParam };
+  return {
+    page, pageSize, search, typeFilter, classFilter, moderationFilter,
+    priceMin, priceMax, areaMin, areaMax, setParam,
+  };
 }
 
 export default function CatalogPage() {
   const user = useSessionStore((s) => s.user);
   const isAdmin = user?.role === 'admin' || user?.is_admin === true;
-  const { page, pageSize, search, typeFilter, classFilter, moderationFilter, setParam } = useFilterParams();
+  const {
+    page, pageSize, search, typeFilter, classFilter, moderationFilter,
+    priceMin, priceMax, areaMin, areaMax, setParam,
+  } = useFilterParams();
 
   // Debounced search input — local state for display, URL updated after 400ms idle
   const [searchInput, setSearchInput] = React.useState(search);
@@ -334,6 +368,15 @@ export default function CatalogPage() {
 
   const isPendingMode = isAdmin && moderationFilter === 'pending';
   const isAllMode = isAdmin && moderationFilter === 'all';
+  const adminModerationFilter =
+    isAdmin && (moderationFilter === 'approved' || moderationFilter === 'rejected')
+      ? (moderationFilter as 'approved' | 'rejected')
+      : undefined;
+
+  const priceMinNum = priceMin ? Number(priceMin) : undefined;
+  const priceMaxNum = priceMax ? Number(priceMax) : undefined;
+  const areaMinNum = areaMin ? Number(areaMin) : undefined;
+  const areaMaxNum = areaMax ? Number(areaMax) : undefined;
 
   const params: PropertyListParams = {
     page,
@@ -341,6 +384,11 @@ export default function CatalogPage() {
     ...(search && { address: search }),
     ...(typeFilter !== 'all' && { type: typeFilter as PropertyType }),
     ...(classFilter !== 'all' && { property_class: classFilter as PropertyClass }),
+    ...(adminModerationFilter && { moderation_status: adminModerationFilter }),
+    ...(priceMinNum != null && Number.isFinite(priceMinNum) && { price_min: priceMinNum }),
+    ...(priceMaxNum != null && Number.isFinite(priceMaxNum) && { price_max: priceMaxNum }),
+    ...(areaMinNum != null && Number.isFinite(areaMinNum) && { area_min: areaMinNum }),
+    ...(areaMaxNum != null && Number.isFinite(areaMaxNum) && { area_max: areaMaxNum }),
     ordering: '-created_at',
   };
 
@@ -350,6 +398,10 @@ export default function CatalogPage() {
     ...(search && { address: search }),
     ...(typeFilter !== 'all' && { type: typeFilter }),
     ...(classFilter !== 'all' && { property_class: classFilter }),
+    ...(priceMinNum != null && Number.isFinite(priceMinNum) && { price_min: priceMinNum }),
+    ...(priceMaxNum != null && Number.isFinite(priceMaxNum) && { price_max: priceMaxNum }),
+    ...(areaMinNum != null && Number.isFinite(areaMinNum) && { area_min: areaMinNum }),
+    ...(areaMaxNum != null && Number.isFinite(areaMaxNum) && { area_max: areaMaxNum }),
     ordering: '-created_at',
   };
 
@@ -497,10 +549,62 @@ export default function CatalogPage() {
               <Select.Content>
                 <Select.Item value='all'>Все объекты</Select.Item>
                 <Select.Item value='pending'>На модерации</Select.Item>
+                <Select.Item value='approved'>Одобрено</Select.Item>
+                <Select.Item value='rejected'>Отклонено</Select.Item>
               </Select.Content>
             </Select.Root>
           </div>
         )}
+      </div>
+
+      {/* Price/area range filters */}
+      <div className='mt-3 flex flex-wrap items-center gap-2'>
+        <span className='text-[12px] font-medium text-gray-500'>Цена ₽:</span>
+        <input
+          type='text'
+          inputMode='numeric'
+          placeholder='от'
+          value={priceMin}
+          onChange={(e) => {
+            const v = e.target.value.replace(/\D/g, '');
+            setParam({ price_min: v || null, page: null });
+          }}
+          className='h-9 w-28 rounded-lg border border-gray-200 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-300 focus:outline-none'
+        />
+        <input
+          type='text'
+          inputMode='numeric'
+          placeholder='до'
+          value={priceMax}
+          onChange={(e) => {
+            const v = e.target.value.replace(/\D/g, '');
+            setParam({ price_max: v || null, page: null });
+          }}
+          className='h-9 w-28 rounded-lg border border-gray-200 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-300 focus:outline-none'
+        />
+        <span className='ml-3 text-[12px] font-medium text-gray-500'>Площадь:</span>
+        <input
+          type='text'
+          inputMode='decimal'
+          placeholder='от'
+          value={areaMin}
+          onChange={(e) => {
+            const v = e.target.value.replace(/[^\d.]/g, '');
+            setParam({ area_min: v || null, page: null });
+          }}
+          className='h-9 w-24 rounded-lg border border-gray-200 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-300 focus:outline-none'
+        />
+        <input
+          type='text'
+          inputMode='decimal'
+          placeholder='до'
+          value={areaMax}
+          onChange={(e) => {
+            const v = e.target.value.replace(/[^\d.]/g, '');
+            setParam({ area_max: v || null, page: null });
+          }}
+          className='h-9 w-24 rounded-lg border border-gray-200 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-300 focus:outline-none'
+        />
       </div>
 
       {/* Content */}

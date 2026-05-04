@@ -6,9 +6,9 @@ export type PropertyType =
   | "commercial"
   | "land";
 
-export type PropertyClass = "economy" | "comfort" | "business" | "premium";
+export type PropertyClass = "comfort" | "business" | "premium" | "elite";
 
-export type CommercialSubtype = "retail" | "office";
+export type CommercialSubtype = "office" | "warehouse" | "retail" | "other";
 
 export type PropertyStatus = "draft" | "published" | "archived" | "sold";
 
@@ -47,6 +47,7 @@ export type Property = {
   floor?: number | null;
   land_number?: string | null;
   house_number?: string | null;
+  show_price_to_brokers?: boolean;
   images: PropertyImage[];
   created_at: string;
   updated_at: string;
@@ -67,6 +68,7 @@ export type PropertyListParams = {
   price_max?: number;
   property_class?: PropertyClass;
   status?: PropertyStatus;
+  moderation_status?: ModerationStatus;
   type?: PropertyType;
 };
 
@@ -95,6 +97,7 @@ export type PropertyCreateRequest = {
   commercial_subtype?: CommercialSubtype | null;
   land_number?: string | null;
   house_number?: string | null;
+  show_price_to_brokers?: boolean;
 };
 
 // Update (partial)
@@ -115,6 +118,7 @@ export type PropertyUpdateRequest = {
   commercial_subtype?: CommercialSubtype | null;
   land_number?: string | null;
   house_number?: string | null;
+  show_price_to_brokers?: boolean;
 };
 
 // Image create

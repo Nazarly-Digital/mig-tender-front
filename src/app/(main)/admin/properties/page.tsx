@@ -31,10 +31,10 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const CLASS_LABELS: Record<string, string> = {
-  economy: 'Эконом',
   comfort: 'Комфорт',
   business: 'Бизнес',
   premium: 'Премиум',
+  elite: 'Элит',
 };
 
 function formatPrice(value: string, _currency?: string) {
