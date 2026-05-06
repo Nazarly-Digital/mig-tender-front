@@ -354,14 +354,19 @@ function PlaceBidModal({
     wasOpen.current = open;
   }, [open, existingBid]);
 
+  // Hard upper bound (matches MAX_PRICE in shared/lib/validations.ts).
+  const MAX_BID = 1_000_000_000_000; // 1 trillion ₽
+
   const numericAmount = parseFloat(stripPriceFormat(amount)) || 0;
   const isEmpty = !amount.trim();
+  const isAboveMax = !isEmpty && numericAmount > MAX_BID;
   const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
-  const isDisabled = mutation.isPending || isEmpty || isInvalid;
+  const isDisabled = mutation.isPending || isEmpty || isInvalid || isAboveMax;
 
   const getError = (): string | null => {
     if (isEmpty) return null;
     if (isInvalid) return 'Введите корректную сумму';
+    if (isAboveMax) return `Максимальная ставка: ${formatPrice(String(MAX_BID))} ₽`;
     return null;
   };
   const error = getError();
@@ -581,16 +586,22 @@ function LiveBidInput({
     ? parseFloat(minPrice)
     : parseFloat(currentPrice) + (parseFloat(minBidIncrement) || 0);
 
+  // Hard upper bound to keep absurd values out (also matches MAX_PRICE in
+  // shared/lib/validations.ts for property pricing).
+  const MAX_BID = 1_000_000_000_000; // 1 trillion ₽
+
   const numericAmount = parseFloat(amount) || 0;
   const isEmpty = !amount.trim();
   const isBelowMin = !isEmpty && numericAmount < minBid;
+  const isAboveMax = !isEmpty && numericAmount > MAX_BID;
   const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
-  const isDisabled = !connected || isEmpty || isBelowMin || isInvalid;
+  const isDisabled = !connected || isEmpty || isBelowMin || isAboveMax || isInvalid;
 
   const getError = (): string | null => {
     if (isEmpty) return null;
     if (isInvalid) return 'Введите корректную сумму';
     if (isBelowMin) return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))} ₽`;
+    if (isAboveMax) return `Максимальная ставка: ${formatPrice(String(MAX_BID))} ₽`;
     return null;
   };
   const error = getError();
@@ -787,7 +798,7 @@ export default function AuctionDetailPage() {
   // Clear pending open bid once WS confirms it
   React.useEffect(() => {
     if (!pendingOpenBid) return;
-    if (ws.bids.some((b) => b.broker === user?.id)) {
+    if (ws.bids.some((b) => b.broker_id === user?.id)) {
       setPendingOpenBid(null);
     }
   }, [ws.bids, pendingOpenBid, user?.id]);
@@ -798,7 +809,7 @@ export default function AuctionDetailPage() {
     const isOpen = auction.mode === 'open';
     const bids = Array.isArray(auction.bids) ? auction.bids : [];
     if (isOpen) {
-      return ws.bids.some((b) => b.broker === user?.id) || bids.some((b) => b.broker_id === user?.id);
+      return ws.bids.some((b) => b.broker_id === user?.id) || bids.some((b) => b.broker_id === user?.id);
     }
     const sealed = Array.isArray(sealedBids) ? sealedBids : [];
     return sealed.some((b) => b.broker_id === user?.id);
@@ -852,7 +863,7 @@ export default function AuctionDetailPage() {
   // For open auctions: check bids from auction detail REST response (broker_id)
   const auctionBids = Array.isArray(auction.bids) ? auction.bids : [];
   const isHighestBidder = liveHighestBidId != null && (
-    ws.bids.some((b) => b.id === liveHighestBidId && b.broker === user?.id)
+    ws.bids.some((b) => b.id === liveHighestBidId && b.broker_id === user?.id)
     || auctionBids.some((b) => b.id === liveHighestBidId && b.broker_id === user?.id)
   );
 
@@ -879,7 +890,7 @@ export default function AuctionDetailPage() {
   const mySealedBid = bidsList.find((b) => b.broker_id === user?.id);
   const myRestBid = auctionBids.find((b) => b.broker_id === user?.id);
   // Also check WS bids (broker) — first match is the latest bid
-  const myWsBid = ws.bids.find((b) => b.broker === user?.id);
+  const myWsBid = ws.bids.find((b) => b.broker_id === user?.id);
 
   // For open auctions: WS bid → optimistic (pending send) → REST bid
   // For closed auctions: use auction.myBid from API, fallback to sealed bids lookup
@@ -1263,7 +1274,7 @@ export default function AuctionDetailPage() {
               (a, b) =>
                 new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
             )) {
-              if (!brokerAlias.has(b.broker)) brokerAlias.set(b.broker, brokerAlias.size + 1);
+              if (!brokerAlias.has(b.broker_id)) brokerAlias.set(b.broker_id, brokerAlias.size + 1);
             }
             return (
               <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
@@ -1284,13 +1295,13 @@ export default function AuctionDetailPage() {
                     const isLeader = idx === 0;
                     const ts = bid.updated_at ?? bid.created_at;
                     const display = anonymize
-                      ? `Брокер #${brokerAlias.get(bid.broker) ?? '?'}`
-                      : `#${bid.broker}`;
+                      ? `Брокер #${brokerAlias.get(bid.broker_id) ?? '?'}`
+                      : `#${bid.broker_id}`;
                     return (
                       <div key={bid.id} className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
                         <div className='flex items-center gap-2.5'>
                           <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                            {anonymize ? brokerAlias.get(bid.broker) ?? '?' : `#${bid.broker}`}
+                            {anonymize ? brokerAlias.get(bid.broker_id) ?? '?' : `#${bid.broker_id}`}
                           </div>
                           {!anonymize && <span className='text-[12px] text-gray-500'>{display}</span>}
                           <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>

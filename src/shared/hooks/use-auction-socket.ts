@@ -7,8 +7,8 @@ import { useSessionStore } from '@/entities/auth/model/store';
 
 export type WsBid = {
   id: number;
-  auction: number;
-  broker: number;
+  auction_id: number;
+  broker_id: number;
   amount: string;
   created_at: string;
   updated_at?: string;
@@ -124,7 +124,7 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
             // Upsert by broker: replace existing bid from same broker, otherwise prepend.
             setState((s) => {
               const without = s.bids.filter(
-                (b) => b.broker !== msg.bid.broker && b.id !== msg.bid.id,
+                (b) => b.broker_id !== msg.bid.broker_id && b.id !== msg.bid.id,
               );
               return {
                 ...s,
