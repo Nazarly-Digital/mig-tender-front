@@ -366,33 +366,22 @@ export default function CatalogPage() {
     setParam({ [key]: value, page: null });
   };
 
-  const isPendingMode = isAdmin && moderationFilter === 'pending';
-  const isAllMode = isAdmin && moderationFilter === 'all';
-  const adminModerationFilter =
-    isAdmin && (moderationFilter === 'approved' || moderationFilter === 'rejected')
-      ? (moderationFilter as 'approved' | 'rejected')
-      : undefined;
-
   const priceMinNum = priceMin ? Number(priceMin) : undefined;
   const priceMaxNum = priceMax ? Number(priceMax) : undefined;
   const areaMinNum = areaMin ? Number(areaMin) : undefined;
   const areaMaxNum = areaMax ? Number(areaMax) : undefined;
 
-  const params: PropertyListParams = {
-    page,
-    page_size: pageSize,
-    ...(search && { address: search }),
-    ...(typeFilter !== 'all' && { type: typeFilter as PropertyType }),
-    ...(classFilter !== 'all' && { property_class: classFilter as PropertyClass }),
-    ...(adminModerationFilter && { moderation_status: adminModerationFilter }),
-    ...(priceMinNum != null && Number.isFinite(priceMinNum) && { price_min: priceMinNum }),
-    ...(priceMaxNum != null && Number.isFinite(priceMaxNum) && { price_max: priceMaxNum }),
-    ...(areaMinNum != null && Number.isFinite(areaMinNum) && { area_min: areaMinNum }),
-    ...(areaMaxNum != null && Number.isFinite(areaMaxNum) && { area_max: areaMaxNum }),
-    ordering: '-created_at',
-  };
+  // Public catalog (`/properties/`) on the backend hard-filters
+  // moderation_status=APPROVED + status=PUBLISHED|SOLD and ignores any
+  // moderation_status query param. So we *only* hit it for non-admin users.
+  // Admin uses `/admin/properties/?moderation_status=…` which can return
+  // pending/approved/rejected on demand.
+  const adminFilter: 'pending' | 'approved' | 'rejected' | undefined =
+    isAdmin && moderationFilter !== 'all' && moderationFilter !== ''
+      ? (moderationFilter as 'pending' | 'approved' | 'rejected')
+      : undefined;
 
-  const pendingParams = {
+  const commonParams = {
     page,
     page_size: pageSize,
     ...(search && { address: search }),
@@ -405,10 +394,16 @@ export default function CatalogPage() {
     ordering: '-created_at',
   };
 
-  // Fetch published properties (always except pending-only mode)
-  const propertiesQuery = useProperties(params, { enabled: !isPendingMode });
-  // Fetch pending properties (for admin: pending mode OR all mode)
-  const pendingQuery = usePendingProperties(pendingParams, { enabled: isPendingMode || isAllMode });
+  const params: PropertyListParams = commonParams as PropertyListParams;
+  const adminParams = {
+    ...commonParams,
+    ...(adminFilter && { moderation_status: adminFilter }),
+  };
+
+  // Admin → admin endpoint (handles all moderation states).
+  // Non-admin → public catalog (always approved+published).
+  const propertiesQuery = useProperties(params, { enabled: !isAdmin });
+  const pendingQuery = usePendingProperties(adminParams, { enabled: isAdmin });
 
   const approve = useApproveProperty();
   const reject = useRejectProperty();
@@ -449,33 +444,16 @@ export default function CatalogPage() {
     );
   };
 
-  const isLoading = isPendingMode
-    ? pendingQuery.isLoading
-    : isAllMode
-      ? propertiesQuery.isLoading || pendingQuery.isLoading
-      : propertiesQuery.isLoading;
+  const isLoading = isAdmin ? pendingQuery.isLoading : propertiesQuery.isLoading;
 
   let properties: CatalogCardItem[];
   let totalPages: number;
 
-  if (isPendingMode) {
-    const pendingData = pendingQuery.data;
-    properties = Array.isArray(pendingData) ? pendingData : pendingData?.results ?? [];
-    const count = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
+  if (isAdmin) {
+    const data = pendingQuery.data;
+    properties = Array.isArray(data) ? data : data?.results ?? [];
+    const count = Array.isArray(data) ? data.length : data?.count ?? 0;
     totalPages = Math.ceil(count / pageSize);
-  } else if (isAllMode) {
-    // Merge published + pending, deduplicate by id, then sort by created_at desc
-    // so newly-added (pending) properties bubble up to the top of the list.
-    const published = propertiesQuery.data?.results ?? [];
-    const pendingData = pendingQuery.data;
-    const pending: CatalogCardItem[] = Array.isArray(pendingData) ? pendingData : pendingData?.results ?? [];
-    const publishedIds = new Set(published.map((p) => p.id));
-    const merged = [...published, ...pending.filter((p) => !publishedIds.has(p.id))];
-    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    properties = merged;
-    const publishedCount = propertiesQuery.data?.count ?? 0;
-    const pendingCount = Array.isArray(pendingData) ? pendingData.length : pendingData?.count ?? 0;
-    totalPages = Math.ceil((publishedCount + pendingCount) / pageSize);
   } else {
     const propData = propertiesQuery.data;
     properties = propData?.results ?? [];
@@ -632,7 +610,8 @@ export default function CatalogPage() {
                 <CatalogPropertyCard
                   key={property.id}
                   property={property}
-                  showActions={isPendingMode}
+                  // Show approve/reject only for pending items (admin only).
+                  showActions={isAdmin && property.moderation_status === 'pending'}
                   onApprove={handleApprove}
                   onReject={handleReject}
                   approvingId={approvingId}
