@@ -34,6 +34,13 @@ export const auctionKeys = {
 
 // --- Auction CRUD ---
 
+// Status transitions (scheduled → active → finished) happen on the backend
+// via Celery beat. List endpoints don't push WebSocket events for that, so
+// without polling the cards stay frozen on "Запланирован" / "Активный"
+// past the actual state. Refetch every 30s while the tab is focused —
+// cheap, gives near-real-time card status, no need to wire WS per card.
+const AUCTION_LIST_POLL_MS = 30_000;
+
 export function useMyAuctions(params?: AuctionListParams) {
   const isDeveloper = useSessionStore((s) => s.user?.role === "developer");
 
@@ -41,6 +48,8 @@ export function useMyAuctions(params?: AuctionListParams) {
     queryKey: auctionKeys.my(params),
     queryFn: () => auctionsService.getMy(params).then((res) => res.data),
     enabled: isDeveloper,
+    refetchInterval: AUCTION_LIST_POLL_MS,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -52,6 +61,8 @@ export function useAuctions(
     queryKey: auctionKeys.list(params),
     queryFn: () => auctionsService.getAll(params).then((res) => res.data),
     enabled: options?.enabled ?? true,
+    refetchInterval: AUCTION_LIST_POLL_MS,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -65,6 +76,8 @@ export function useParticipatedAuctions(params?: AuctionListParams) {
     queryFn: () =>
       auctionsService.getParticipated(params).then((res) => res.data),
     enabled: isBroker,
+    refetchInterval: AUCTION_LIST_POLL_MS,
+    refetchIntervalInBackground: false,
   });
 }
 
