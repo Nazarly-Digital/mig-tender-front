@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import HeaderMobile from '@/shared/components/header-mobile';
 import Sidebar from '@/shared/components/sidebar';
 import NotificationsConnector from '@/shared/components/notifications-connector';
+import AuctionsGlobalConnector from '@/shared/components/auctions-global-connector';
 import { useSessionStore } from '@/entities/auth/model/store';
 
 const BREADCRUMB_MAP: Record<string, string> = {
@@ -81,6 +82,7 @@ export default function MainLayout({
   return (
     <div className="flex min-h-screen bg-white">
       <NotificationsConnector />
+      <AuctionsGlobalConnector />
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <HeaderMobile />
