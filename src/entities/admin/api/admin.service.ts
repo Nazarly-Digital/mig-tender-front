@@ -78,9 +78,11 @@ export const adminService = {
     apiInstance.patch<AdminUpdateBrokerResponse>(`/admin/users/${id}/`, data),
 
   // Properties moderation
+  // GET /admin/properties/?moderation_status=pending|approved|rejected (default: all)
+  // Backwards-compat: keeps the function name from when it only fetched pending.
   getPendingProperties: (params?: PendingPropertyListParams) =>
     apiInstance.get<PendingProperty[] | PaginatedResponse<PendingProperty>>(
-      "/admin/properties/pending/",
+      "/admin/properties/",
       { params },
     ),
 

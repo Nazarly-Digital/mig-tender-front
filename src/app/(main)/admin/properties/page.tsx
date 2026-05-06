@@ -242,24 +242,68 @@ function RejectModal({
 
 // --- Main Page ---
 
+type ModerationFilter = 'pending' | 'approved' | 'rejected' | 'all';
+
+const MODERATION_TABS: { label: string; value: ModerationFilter }[] = [
+  { label: 'Ожидают', value: 'pending' },
+  { label: 'Одобрены', value: 'approved' },
+  { label: 'Отклонены', value: 'rejected' },
+  { label: 'Все', value: 'all' },
+];
+
+const MODERATION_BADGE: Record<string, { label: string; className: string }> = {
+  pending: { label: 'Ожидает', className: 'bg-amber-50 text-amber-700' },
+  approved: { label: 'Одобрено', className: 'bg-emerald-50 text-emerald-700' },
+  rejected: { label: 'Отклонено', className: 'bg-red-50 text-red-700' },
+};
+
 export default function AdminPropertiesPage() {
   const [approveTarget, setApproveTarget] =
     React.useState<PendingProperty | null>(null);
   const [rejectTarget, setRejectTarget] =
     React.useState<PendingProperty | null>(null);
+  const [tab, setTab] = React.useState<ModerationFilter>('pending');
 
   const { data, isLoading } = usePendingProperties({
     ordering: '-created_at',
     page_size: 20,
+    ...(tab !== 'all' && { moderation_status: tab }),
   });
   const properties = Array.isArray(data) ? data : data?.results ?? [];
+
+  const tabDescription =
+    tab === 'pending'
+      ? 'Объекты, ожидающие проверки и одобрения'
+      : tab === 'approved'
+        ? 'Одобренные объекты'
+        : tab === 'rejected'
+          ? 'Отклонённые объекты'
+          : 'Все объекты в системе (кроме черновиков)';
 
   return (
     <div className='w-full px-8 py-8'>
       <PageHeader
         title='Модерация объектов'
-        description='Объекты, ожидающие проверки и одобрения'
+        description={tabDescription}
       />
+
+      {/* Tabs */}
+      <div className='mt-6 flex gap-1 border-b border-gray-200'>
+        {MODERATION_TABS.map((t) => (
+          <button
+            key={t.value}
+            type='button'
+            onClick={() => setTab(t.value)}
+            className={`px-4 py-2 text-[13px] font-medium transition-colors -mb-px border-b-2 ${
+              tab === t.value
+                ? 'border-blue-600 text-blue-700'
+                : 'border-transparent text-gray-500 hover:text-gray-900'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {/* Content */}
       {isLoading ? (
@@ -269,7 +313,12 @@ export default function AdminPropertiesPage() {
       ) : properties.length === 0 ? (
         <div className='flex flex-col items-center justify-center gap-2 py-20'>
           <HugeiconsIcon icon={Building03Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
-          <span className='text-[13px] font-medium text-gray-500'>Нет объектов на модерации</span>
+          <span className='text-[13px] font-medium text-gray-500'>
+            {tab === 'pending' ? 'Нет объектов на модерации'
+              : tab === 'approved' ? 'Нет одобренных объектов'
+              : tab === 'rejected' ? 'Нет отклонённых объектов'
+              : 'Нет объектов'}
+          </span>
         </div>
       ) : (
         <div className='mt-6 overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40'>
@@ -297,66 +346,90 @@ export default function AdminPropertiesPage() {
                 <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Дата
                 </th>
+                <th className='px-5 py-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
+                  Статус
+                </th>
                 <th className='px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-widest text-gray-400'>
                   Действия
                 </th>
               </tr>
             </thead>
             <tbody>
-              {properties.map((property) => (
-                <tr
-                  key={property.id}
-                  className='border-b border-gray-100 last:border-0 transition-colors hover:bg-blue-50/20'
-                >
-                  <td className='px-5 py-3.5'>
-                    <span className='block max-w-[200px] truncate text-[13px] font-medium text-gray-900'>
-                      {property.address}
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600'>
-                      {TYPE_LABELS[property.type] ?? property.type}
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-700'>
-                      {CLASS_LABELS[property.property_class] ?? property.property_class}
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='text-[13px] text-gray-500'>
-                      {property.area} м²
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='text-[13px] font-medium text-gray-900'>
-                      {formatPrice(property.price, property.currency)}
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='text-[13px] text-gray-500'>
-                      {property.developer_name}
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <span className='text-[13px] text-gray-400'>
-                      {formatDate(property.created_at)}
-                    </span>
-                  </td>
-                  <td className='px-5 py-3.5'>
-                    <div className='flex items-center justify-end gap-1.5'>
-                      <FancyButton.Root variant='primary' size='xsmall' onClick={() => setApproveTarget(property)}>
-                        <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-                        Одобрить
-                      </FancyButton.Root>
-                      <FancyButton.Root variant='basic' size='xsmall' onClick={() => setRejectTarget(property)}>
-                        <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-                        Отклонить
-                      </FancyButton.Root>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {properties.map((property) => {
+                const modStatus = property.moderation_status ?? 'pending';
+                const badge = MODERATION_BADGE[modStatus] ?? MODERATION_BADGE.pending;
+                const isPending = modStatus === 'pending';
+                return (
+                  <tr
+                    key={property.id}
+                    className='border-b border-gray-100 last:border-0 transition-colors hover:bg-blue-50/20'
+                  >
+                    <td className='px-5 py-3.5'>
+                      <span className='block max-w-[200px] truncate text-[13px] font-medium text-gray-900'>
+                        {property.address}
+                      </span>
+                      {modStatus === 'rejected' && property.moderation_rejection_reason && (
+                        <span className='mt-0.5 block max-w-[260px] truncate text-[11px] text-red-600'>
+                          {property.moderation_rejection_reason}
+                        </span>
+                      )}
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600'>
+                        {TYPE_LABELS[property.type] ?? property.type}
+                      </span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-700'>
+                        {CLASS_LABELS[property.property_class] ?? property.property_class}
+                      </span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='text-[13px] text-gray-500'>
+                        {property.area} м²
+                      </span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='text-[13px] font-medium text-gray-900'>
+                        {formatPrice(property.price, property.currency)}
+                      </span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='text-[13px] text-gray-500'>
+                        {property.developer_name}
+                      </span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className='text-[13px] text-gray-400'>
+                        {formatDate(property.created_at)}
+                      </span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium ${badge.className}`}>
+                        {badge.label}
+                      </span>
+                    </td>
+                    <td className='px-5 py-3.5'>
+                      <div className='flex items-center justify-end gap-1.5'>
+                        {isPending ? (
+                          <>
+                            <FancyButton.Root variant='primary' size='xsmall' onClick={() => setApproveTarget(property)}>
+                              <HugeiconsIcon icon={Tick01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                              Одобрить
+                            </FancyButton.Root>
+                            <FancyButton.Root variant='basic' size='xsmall' onClick={() => setRejectTarget(property)}>
+                              <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                              Отклонить
+                            </FancyButton.Root>
+                          </>
+                        ) : (
+                          <span className='text-[12px] text-gray-400'>—</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

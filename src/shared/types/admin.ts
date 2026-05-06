@@ -102,6 +102,8 @@ export type PendingProperty = {
   price: string;
   currency: string;
   status: string;
+  moderation_status?: 'pending' | 'approved' | 'rejected';
+  moderation_rejection_reason?: string | null;
   created_at: string;
 };
 
@@ -119,6 +121,7 @@ export type PendingPropertyListParams = {
   property_class?: string;
   status?: string;
   type?: string;
+  moderation_status?: 'pending' | 'approved' | 'rejected';
 };
 
 export type PropertyActionResponse = {
