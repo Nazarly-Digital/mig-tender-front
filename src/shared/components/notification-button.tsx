@@ -16,6 +16,7 @@ import {
 
 import { useNotificationsStore, notificationsService } from '@/entities/notifications';
 import { useNotificationsSocket } from '@/shared/hooks/use-notifications-socket';
+import { getNotificationRoute } from '@/shared/lib/notification-route';
 import type { NotificationItem, NotificationCategory } from '@/shared/types/notifications';
 import * as Popover from '@/shared/ui/popover';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
@@ -32,23 +33,6 @@ function timeAgo(dateStr: string): string {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days} дн. назад`;
   return new Date(dateStr).toLocaleDateString('ru-RU');
-}
-
-function getNotificationRoute(n: NotificationItem): string | null {
-  switch (n.category) {
-    case 'auction':
-      return n.auction_id ? `/auctions/${n.auction_id}` : '/auctions';
-    case 'deal':
-      return '/deals';
-    case 'payment':
-      return '/payments';
-    case 'property':
-      return n.real_property_id ? `/properties/${n.real_property_id}` : '/properties';
-    case 'user':
-      return '/admin/users';
-    default:
-      return null;
-  }
 }
 
 // --- Category avatar config ---
