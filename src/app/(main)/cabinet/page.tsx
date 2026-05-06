@@ -27,8 +27,14 @@ function getBrokerAuctionStatus(auction: Auction, userId: number | undefined): {
   if (auction.status === 'cancelled') {
     return { label: 'Отменён', cls: 'bg-red-50 text-red-700' };
   }
-  if (auction.status === 'failed' || auction.owner_decision === 'rejected') {
+  // Owner explicitly refused the result — keep "Отклонён".
+  if (auction.owner_decision === 'rejected') {
     return { label: 'Отклонён', cls: 'bg-red-50 text-red-700' };
+  }
+  // Auction died without a confirmed winner (most often: zero bids) —
+  // it wasn't "rejected", it just didn't take place.
+  if (auction.status === 'failed') {
+    return { label: 'Не состоялся', cls: 'bg-red-50 text-red-700' };
   }
   if (auction.status === 'active') {
     return { label: 'Активный', cls: 'bg-emerald-50 text-emerald-700' };

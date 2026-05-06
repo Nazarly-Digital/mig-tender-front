@@ -1226,12 +1226,12 @@ export default function AuctionDetailPage() {
               </div>
             )}
 
-            {/* Decision: rejected / failed */}
-            {(auction.owner_decision === 'rejected' || auction.status === 'failed') && (
+            {/* Decision: rejected by owner — owner had a winner on the table and refused it. */}
+            {auction.owner_decision === 'rejected' && (
               <div className='mt-4 rounded-lg bg-red-50 p-4'>
                 <div className='flex items-center gap-2'>
                   <div className='size-2 rounded-full bg-red-500' />
-                  <p className='text-sm font-medium text-red-700'>Результат отклонён — аукцион несостоявшийся</p>
+                  <p className='text-sm font-medium text-red-700'>Результат отклонён владельцем</p>
                 </div>
                 {auction.owner_rejection_reason && (
                   <p className='text-xs text-gray-600 mt-1.5'>Причина: {auction.owner_rejection_reason}</p>
@@ -1239,6 +1239,22 @@ export default function AuctionDetailPage() {
                 {auction.owner_decided_at && (
                   <p className='text-xs text-gray-400 mt-1'>{formatDateTime(auction.owner_decided_at)}</p>
                 )}
+              </div>
+            )}
+
+            {/* Failed auction (no winner, no rejection) — distinguish "no bids at
+                all" from "all candidates declined" so the banner stops claiming
+                a non-existent result was rejected. */}
+            {auction.status === 'failed' && auction.owner_decision !== 'rejected' && (
+              <div className='mt-4 rounded-lg bg-red-50 p-4'>
+                <div className='flex items-center gap-2'>
+                  <div className='size-2 rounded-full bg-red-500' />
+                  <p className='text-sm font-medium text-red-700'>
+                    {!auction.bids_count
+                      ? 'Аукцион не состоялся — не было ставок'
+                      : 'Аукцион не состоялся'}
+                  </p>
+                </div>
               </div>
             )}
           </div>
