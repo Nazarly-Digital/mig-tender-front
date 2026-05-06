@@ -566,8 +566,8 @@ function LiveBidInput({
 }: {
   sendBid: (amount: string) => void;
   connected: boolean;
-  currentPrice: string;
-  minPrice: string;
+  currentPrice: string | null;
+  minPrice: string | null;
   minBidIncrement: string;
   bidsCount: number;
   hasMyBid: boolean;
@@ -575,16 +575,24 @@ function LiveBidInput({
   isHighestBidder: boolean;
   wsError: string | null;
 }) {
+  // Backend hides min_price / current_price from brokers when the developer
+  // disabled `show_price_to_brokers`. In that case the broker sees no
+  // numeric minimum — the server still validates on submit.
+  const pricesHidden = minPrice == null && currentPrice == null;
+
   // "First bid" in the auction (across all brokers) — starts from min_price.
-  const isFirstGlobalBid = bidsCount === 0 || parseFloat(currentPrice) <= 0;
+  const isFirstGlobalBid = bidsCount === 0 || parseFloat(currentPrice ?? '0') <= 0;
   const [amount, setAmount] = React.useState('');
 
   // Minimum allowed bid:
   // - first bid: >= min_price
   // - subsequent: > current leader + increment
-  const minBid = isFirstGlobalBid
-    ? parseFloat(minPrice)
-    : parseFloat(currentPrice) + (parseFloat(minBidIncrement) || 0);
+  // - hidden: no client-side floor (server enforces).
+  const minBid = pricesHidden
+    ? null
+    : isFirstGlobalBid
+      ? parseFloat(minPrice ?? '0')
+      : parseFloat(currentPrice ?? '0') + (parseFloat(minBidIncrement) || 0);
 
   // Hard upper bound to keep absurd values out (also matches MAX_PRICE in
   // shared/lib/validations.ts for property pricing).
@@ -592,7 +600,7 @@ function LiveBidInput({
 
   const numericAmount = parseFloat(amount) || 0;
   const isEmpty = !amount.trim();
-  const isBelowMin = !isEmpty && numericAmount < minBid;
+  const isBelowMin = !isEmpty && minBid != null && numericAmount < minBid;
   const isAboveMax = !isEmpty && numericAmount > MAX_BID;
   const isInvalid = !isEmpty && (numericAmount <= 0 || isNaN(numericAmount));
   const isDisabled = !connected || isEmpty || isBelowMin || isAboveMax || isInvalid;
@@ -600,7 +608,8 @@ function LiveBidInput({
   const getError = (): string | null => {
     if (isEmpty) return null;
     if (isInvalid) return 'Введите корректную сумму';
-    if (isBelowMin) return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))} ₽`;
+    if (isBelowMin && minBid != null)
+      return `Минимальная ставка: ${formatPrice(String(Math.ceil(minBid)))} ₽`;
     if (isAboveMax) return `Максимальная ставка: ${formatPrice(String(MAX_BID))} ₽`;
     return null;
   };
@@ -641,7 +650,11 @@ function LiveBidInput({
                 id='live-bid-amount'
                 type='text'
                 inputMode='decimal'
-                placeholder={formatPriceInput(String(Math.ceil(minBid))) + ' ₽'}
+                placeholder={
+                  minBid != null
+                    ? formatPriceInput(String(Math.ceil(minBid))) + ' ₽'
+                    : 'Введите вашу ставку'
+                }
                 value={formatPriceInput(amount)}
                 onChange={(e) => setAmount(stripPriceFormat(e.target.value))}
               />
@@ -653,11 +666,15 @@ function LiveBidInput({
             <p className='text-[11px] text-red-500'>{error}</p>
           ) : (
             <p className='text-[11px] text-gray-400'>
-              {isHighestBidder
-                ? `Вы лидер. Можно повысить (минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽)`
-                : isFirstGlobalBid
-                  ? `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽ (стартовая цена)`
-                  : `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽`}
+              {pricesHidden
+                ? 'Стартовая цена скрыта застройщиком'
+                : isHighestBidder && minBid != null
+                  ? `Вы лидер. Можно повысить (минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽)`
+                  : isFirstGlobalBid && minBid != null
+                    ? `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽ (стартовая цена)`
+                    : minBid != null
+                      ? `Минимум: ${formatPrice(String(Math.ceil(minBid)))} ₽`
+                      : 'Введите вашу ставку'}
             </p>
           )}
         </div>
@@ -1350,8 +1367,8 @@ export default function AuctionDetailPage() {
             <LiveBidInput
               sendBid={handleSendBid}
               connected={ws.connected}
-              currentPrice={liveCurrentPrice ?? '0'}
-              minPrice={auction.min_price ?? '0'}
+              currentPrice={liveCurrentPrice ?? null}
+              minPrice={auction.min_price ?? null}
               minBidIncrement={auction.min_bid_increment ?? '0'}
               bidsCount={liveBidsCount ?? 0}
               hasMyBid={!!myBid}
