@@ -139,6 +139,28 @@ function getInfoBar(deal: Deal): InfoBar | null {
   if (deal.obligation_status === 'overdue' && deal.status === 'pending_documents') {
     return { text: `Дедлайн загрузки был ${formatDateShort(deal.document_deadline)} · обязательство просрочено`, tone: 'red', icon: AlertCircleIcon };
   }
+  // After admin or developer rejected the previous submission the deal goes
+  // back to pending_documents so the broker can re-upload. Surface the
+  // reason directly on the card — the broker already gets it as a
+  // notification, but the card showed no context for the re-upload.
+  if (deal.status === 'pending_documents') {
+    const adminReason = (deal.admin_rejection_reason || '').trim();
+    const devReason = (deal.developer_rejection_reason || '').trim();
+    if (adminReason) {
+      return {
+        text: `Документы отклонены администратором. Причина: ${adminReason}. Загрузите повторно.`,
+        tone: 'red',
+        icon: AlertCircleIcon,
+      };
+    }
+    if (devReason) {
+      return {
+        text: `Документы отклонены девелопером. Причина: ${devReason}. Загрузите повторно.`,
+        tone: 'red',
+        icon: AlertCircleIcon,
+      };
+    }
+  }
   switch (deal.status) {
     case 'admin_review':
       return { text: 'Администратор проверяет · обычно до 2 рабочих дней', tone: 'blue', icon: Clock01Icon };
