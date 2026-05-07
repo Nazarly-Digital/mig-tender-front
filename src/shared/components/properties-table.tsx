@@ -71,9 +71,7 @@ const CLASS_LABELS: Record<PropertyClass, string> = {
 
 const COMMERCIAL_SUBTYPE_LABELS: Record<CommercialSubtype, string> = {
   office: 'Офис',
-  warehouse: 'Склад',
-  retail: 'Магазин',
-  other: 'Другое',
+  retail: 'Ритейл',
 };
 
 const CLASS_COLORS: Record<PropertyClass, 'gray' | 'blue' | 'purple' | 'orange'> = {

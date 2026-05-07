@@ -8,7 +8,7 @@ export type PropertyType =
 
 export type PropertyClass = "comfort" | "business" | "premium" | "elite";
 
-export type CommercialSubtype = "office" | "warehouse" | "retail" | "other";
+export type CommercialSubtype = "office" | "retail";
 
 export type PropertyStatus = "draft" | "published" | "archived" | "sold";
 
