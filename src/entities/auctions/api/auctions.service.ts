@@ -3,6 +3,7 @@ import type {
   Auction,
   AuctionDetail,
   AuctionCreateRequest,
+  AuctionPublishRequest,
   AuctionListParams,
   PaginatedResponse,
   JoinAuctionResponse,
@@ -39,6 +40,9 @@ export const auctionsService = {
 
   cancel: (auctionId: number) =>
     apiInstance.delete(`/auctions/${auctionId}/cancel/`),
+
+  publish: (auctionId: number, data: AuctionPublishRequest) =>
+    apiInstance.post<AuctionDetail>(`/auctions/${auctionId}/publish/`, data),
 
   // Participants
   join: (auctionId: number) =>

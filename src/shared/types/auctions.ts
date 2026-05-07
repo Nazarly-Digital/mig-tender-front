@@ -115,6 +115,19 @@ export type AuctionCreateRequest = {
   status?: AuctionStatus;
 };
 
+// Body for POST /auctions/<id>/publish/. All fields are optional —
+// the backend merges them on top of the existing draft. Provide only
+// what was missing or what the developer wants to change.
+export type AuctionPublishRequest = {
+  start_date?: string;
+  end_date?: string;
+  mode?: AuctionMode;
+  min_price?: string;
+  min_bid_increment?: string | null;
+  show_price_to_brokers?: boolean;
+  propertyIds?: number[];
+};
+
 export type AuctionListParams = {
   mode?: AuctionMode;
   status?: AuctionStatus;

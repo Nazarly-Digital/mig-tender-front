@@ -22,6 +22,7 @@ import { AuctionDetailSkeleton } from '@/shared/components/skeletons';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
+import { DateTimePicker } from '@/shared/ui/date-picker';
 import * as Modal from '@/shared/ui/modal';
 import { useSessionStore } from '@/entities/auth/model/store';
 import {
@@ -33,6 +34,7 @@ import {
   useShortlist,
   useSelectWinner,
   useCancelAuction,
+  usePublishAuction,
   useConfirmResult,
   useRejectResult,
 } from '@/features/auctions';
@@ -749,6 +751,7 @@ export default function AuctionDetailPage() {
     || (isActiveOpen && !ws.auction);
 
   const cancelAuction = useCancelAuction();
+  const publishAuction = usePublishAuction();
   const shortlist = useShortlist();
   const confirmResult = useConfirmResult();
   const rejectResult = useRejectResult();
@@ -772,8 +775,62 @@ export default function AuctionDetailPage() {
   const [bidModalOpen, setBidModalOpen] = React.useState(false);
   const [winnerModalOpen, setWinnerModalOpen] = React.useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = React.useState(false);
+  const [publishModalOpen, setPublishModalOpen] = React.useState(false);
+  const [publishStart, setPublishStart] = React.useState('');
+  const [publishEnd, setPublishEnd] = React.useState('');
+  const [publishIncrement, setPublishIncrement] = React.useState('');
+  const [publishError, setPublishError] = React.useState<string | null>(null);
   const [rejectModalOpen, setRejectModalOpen] = React.useState(false);
   const [rejectReason, setRejectReason] = React.useState('');
+
+  // Pre-fill the publish modal with whatever's already on the draft so
+  // the developer only fills what's missing. DateTimePicker expects
+  // 'YYYY-MM-DDTHH:mm' (no seconds, no offset).
+  React.useEffect(() => {
+    if (!publishModalOpen || !auction) return;
+    const toLocalInput = (iso: string | null | undefined) =>
+      iso ? iso.slice(0, 16) : '';
+    setPublishStart(toLocalInput(auction.start_date));
+    setPublishEnd(toLocalInput(auction.end_date));
+    setPublishIncrement(auction.min_bid_increment ?? '');
+    setPublishError(null);
+  }, [publishModalOpen, auction]);
+
+  const handlePublish = React.useCallback(() => {
+    if (!auction) return;
+    setPublishError(null);
+    if (!publishStart) {
+      setPublishError('Укажите дату начала');
+      return;
+    }
+    if (!publishEnd) {
+      setPublishError('Укажите дату окончания');
+      return;
+    }
+    if (auction.mode === 'open' && !publishIncrement) {
+      setPublishError('Укажите шаг ставки');
+      return;
+    }
+    publishAuction.mutate(
+      {
+        auctionId,
+        data: {
+          start_date: publishStart,
+          end_date: publishEnd,
+          ...(auction.mode === 'open' && publishIncrement
+            ? { min_bid_increment: publishIncrement }
+            : {}),
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Аукцион опубликован');
+          setPublishModalOpen(false);
+        },
+        onError: (err) => setPublishError(getApiError(err)),
+      },
+    );
+  }, [auction, auctionId, publishAuction, publishStart, publishEnd, publishIncrement]);
   const [shortlistIds, setShortlistIds] = React.useState<Set<number>>(
     new Set(),
   );
@@ -1029,6 +1086,12 @@ export default function AuctionDetailPage() {
             <FancyButton.Root variant='destructive' size='small' onClick={() => setCancelConfirmOpen(true)} disabled={cancelAuction.isPending}>
               <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
               {cancelAuction.isPending ? 'Отмена...' : 'Отменить'}
+            </FancyButton.Root>
+          )}
+          {isOwner && auction.status === 'draft' && (
+            <FancyButton.Root variant='primary' size='small' onClick={() => setPublishModalOpen(true)} disabled={publishAuction.isPending}>
+              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color='currentColor' strokeWidth={1.5} />
+              {publishAuction.isPending ? 'Публикация...' : 'Опубликовать'}
             </FancyButton.Root>
           )}
         </div>
@@ -1509,6 +1572,68 @@ export default function AuctionDetailPage() {
             </Modal.Close>
             <FancyButton.Root variant='destructive' size='small' onClick={handleCancel} disabled={cancelAuction.isPending}>
               {cancelAuction.isPending ? 'Отмена...' : 'Да, отменить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
+
+      {/* Publish draft modal — owner promotes draft → scheduled. */}
+      <Modal.Root open={publishModalOpen} onOpenChange={setPublishModalOpen}>
+        <Modal.Content className='max-w-[480px]'>
+          <Modal.Header
+            title='Опубликовать аукцион'
+            description='Аукцион станет запланированным и появится в каталоге для брокеров.'
+          />
+          <Modal.Body className='space-y-3'>
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='pub-start'>Дата начала <Label.Asterisk /></Label.Root>
+              <DateTimePicker
+                id='pub-start'
+                value={publishStart}
+                onChange={setPublishStart}
+                min={new Date()}
+              />
+            </div>
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='pub-end'>Дата окончания <Label.Asterisk /></Label.Root>
+              <DateTimePicker
+                id='pub-end'
+                value={publishEnd}
+                onChange={setPublishEnd}
+                min={publishStart || new Date()}
+              />
+            </div>
+            {auction.mode === 'open' && (
+              <div className='space-y-1.5'>
+                <Label.Root htmlFor='pub-increment'>Минимальный шаг ставки <Label.Asterisk /></Label.Root>
+                <input
+                  id='pub-increment'
+                  type='text'
+                  inputMode='decimal'
+                  placeholder='100000'
+                  value={publishIncrement}
+                  onChange={(e) =>
+                    setPublishIncrement(e.target.value.replace(/[^\d.]/g, ''))
+                  }
+                  className='w-full h-10 px-3 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors'
+                />
+              </div>
+            )}
+            {publishError && (
+              <p className='text-xs text-red-500'>{publishError}</p>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>Отмена</FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='primary'
+              size='small'
+              onClick={handlePublish}
+              disabled={publishAuction.isPending}
+            >
+              {publishAuction.isPending ? 'Публикация...' : 'Опубликовать'}
             </FancyButton.Root>
           </Modal.Footer>
         </Modal.Content>

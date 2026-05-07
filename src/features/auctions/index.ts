@@ -13,6 +13,7 @@ export {
   useShortlist,
   useSelectWinner,
   useCancelAuction,
+  usePublishAuction,
   useCompatibleProperties,
   useConfirmResult,
   useRejectResult,

@@ -6,6 +6,7 @@ import { useSessionStore, isUserBroker } from "@/entities/auth/model/store";
 import type {
   AuctionListParams,
   AuctionCreateRequest,
+  AuctionPublishRequest,
   BidCreateRequest,
   BidUpdateRequest,
   ShortlistRequest,
@@ -229,6 +230,32 @@ export function useSelectWinner() {
         queryKey: auctionKeys.detail(auctionId),
       });
       queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
+  });
+}
+
+// POST /auctions/<id>/publish/ — owner promotes their DRAFT to SCHEDULED.
+// Body is optional overrides; missing fields fall back to whatever the
+// draft already has.
+export function usePublishAuction() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      auctionId,
+      data,
+    }: {
+      auctionId: number;
+      data: AuctionPublishRequest;
+    }) => auctionsService.publish(auctionId, data).then((res) => res.data),
+    onSuccess: (_data, { auctionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: auctionKeys.detail(auctionId),
+      });
+      // Status flipped draft → scheduled — every list (my / catalog /
+      // participated) needs to refresh and the property catalog might
+      // have flipped between blocking and free.
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+      queryClient.invalidateQueries({ queryKey: propertyKeys.all });
     },
   });
 }
