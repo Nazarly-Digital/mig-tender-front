@@ -16,22 +16,29 @@ const CALENDAR_CLASS_NAMES = {
   root: 'p-0',
   months: 'flex flex-col',
   month: 'space-y-3',
-  month_caption: 'relative flex h-8 items-center justify-center',
-  caption_label: 'text-[13px] font-semibold capitalize text-gray-900',
-  // captionLayout="dropdown" replaces the static caption_label with two
-  // <select>-backed pickers (month + year). Style them like our other
-  // inputs so they don't fall back to native chrome rendering.
-  dropdowns: 'flex items-center justify-center gap-1.5',
+  // Caption now hosts BOTH the dropdowns and the prev/next chevrons in
+  // the same flex row (gap-2). Previously `nav` was absolutely positioned
+  // which caused the chevrons to render on top of the dropdown selects.
+  month_caption: 'flex h-8 items-center justify-center gap-2',
+  // captionLayout="dropdown" already renders month/year selects.
+  // react-day-picker still mounts `caption_label` in the same row for
+  // a11y; without sr-only it produces duplicate "Март 2014" text next
+  // to the dropdowns. Visually hide it, leave it for screen readers.
+  caption_label: 'sr-only',
+  dropdowns: 'flex items-center gap-1.5',
   dropdown_root: 'relative inline-flex items-center',
   dropdown:
     'cursor-pointer appearance-none rounded-md border border-gray-200 bg-white pl-2 pr-6 py-1 text-[13px] font-medium capitalize text-gray-900 outline-none transition-colors hover:bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
   months_dropdown: '',
   years_dropdown: '',
-  nav: 'absolute inset-x-0 top-0 flex items-center justify-between',
+  // Inline nav (no longer absolute) — chevrons flank the dropdowns.
+  // `order-*` classes pin prev to the far left and next to the far right
+  // even though the dropdowns sit between them in DOM order.
+  nav: 'contents',
   button_previous:
-    'inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
+    'order-first inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
   button_next:
-    'inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
+    'order-last inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
   chevron: 'size-4',
   month_grid: 'w-full border-collapse',
   weekdays: 'flex',
