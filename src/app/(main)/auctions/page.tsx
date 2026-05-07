@@ -9,7 +9,11 @@ import { Award01Icon, Clock01Icon, Add01Icon } from '@hugeicons/core-free-icons'
 import { AuctionGridSkeleton } from '@/shared/components/skeletons';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
-import { useMyAuctions, useAuctions } from '@/features/auctions';
+import {
+  useMyAuctions,
+  useAuctions,
+  useParticipatedAuctions,
+} from '@/features/auctions';
 import { useSessionStore } from '@/entities/auth/model/store';
 import type {
   Auction,
@@ -192,7 +196,12 @@ function AuctionCard({ auction }: { auction: Auction }) {
   );
 }
 
-type Tab = 'all' | 'active' | 'finished' | 'draft';
+// Developer/admin keep status-based top tabs (their full feed).
+// Broker tabs follow the spec: «Все активные» (the catalog of joinable
+// auctions) + «Мои» (where the broker has placed a bid) with sub-tabs
+// active / finished / failed.
+type Tab = 'all' | 'active' | 'finished' | 'draft' | 'mine';
+type BrokerSubTab = 'active' | 'finished' | 'failed';
 
 const ROLE_TABS: Record<'developer' | 'admin' | 'broker', { value: Tab; label: string }[]> = {
   developer: [
@@ -208,26 +217,45 @@ const ROLE_TABS: Record<'developer' | 'admin' | 'broker', { value: Tab; label: s
     { value: 'draft', label: 'Черновики' },
   ],
   broker: [
-    { value: 'all', label: 'Все' },
-    { value: 'active', label: 'Активные' },
-    { value: 'finished', label: 'Завершённые' },
+    { value: 'all', label: 'Все активные' },
+    { value: 'mine', label: 'Мои' },
   ],
 };
 
-const VALID_TABS = new Set<Tab>(['all', 'active', 'finished', 'draft']);
+const BROKER_SUB_TABS: { value: BrokerSubTab; label: string }[] = [
+  { value: 'active', label: 'Активные' },
+  { value: 'finished', label: 'Завершённые' },
+  { value: 'failed', label: 'Несостоявшиеся' },
+];
+
+const VALID_TABS = new Set<Tab>(['all', 'active', 'finished', 'draft', 'mine']);
+const VALID_BROKER_SUB = new Set<BrokerSubTab>(['active', 'finished', 'failed']);
 
 function parseTab(raw: string | null): Tab {
   return raw && VALID_TABS.has(raw as Tab) ? (raw as Tab) : 'all';
+}
+
+function parseBrokerSub(raw: string | null): BrokerSubTab {
+  return raw && VALID_BROKER_SUB.has(raw as BrokerSubTab)
+    ? (raw as BrokerSubTab)
+    : 'active';
 }
 
 export default function AuctionsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = parseTab(searchParams.get('tab'));
+  const brokerSub = parseBrokerSub(searchParams.get('sub'));
   const user = useSessionStore((s) => s.user);
 
   const [page, setPage] = React.useState(1);
   const pageSize = 20;
+
+  const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
+  const isAdmin = user?.role === 'admin' || user?.is_admin === true;
+  const isBroker = !isDeveloper && !isAdmin;
+  const role = isDeveloper ? 'developer' : isAdmin ? 'admin' : 'broker';
+  const TABS = ROLE_TABS[role];
 
   function handleTabChange(next: Tab) {
     const params = new URLSearchParams(searchParams.toString());
@@ -236,24 +264,75 @@ export default function AuctionsPage() {
     } else {
       params.set('tab', next);
     }
+    // Subtabs only make sense under «Мои» — drop them otherwise.
+    if (next !== 'mine') {
+      params.delete('sub');
+    }
     setPage(1);
     router.replace(`/auctions?${params.toString()}`);
   }
-  const isDeveloper = user?.role === 'developer' || user?.is_developer === true;
-  const isAdmin = user?.role === 'admin' || user?.is_admin === true;
-  const role = isDeveloper ? 'developer' : isAdmin ? 'admin' : 'broker';
-  const TABS = ROLE_TABS[role];
 
-  const params = {
-    ...(tab !== 'all' && { status: tab as 'active' | 'finished' | 'draft' }),
-    ordering: '-created_at',
-    page,
-    page_size: pageSize,
-  };
+  function handleBrokerSubChange(next: BrokerSubTab) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', 'mine');
+    if (next === 'active') {
+      params.delete('sub'); // active is the default — keep URL clean
+    } else {
+      params.set('sub', next);
+    }
+    setPage(1);
+    router.replace(`/auctions?${params.toString()}`);
+  }
 
-  const myAuctions = useMyAuctions(isDeveloper ? params : undefined);
-  const allAuctions = useAuctions(!isDeveloper ? params : undefined);
-  const { data, isLoading } = isDeveloper ? myAuctions : allAuctions;
+  // Developer / admin: top tab encodes status directly.
+  // Broker:
+  //   tab=all  → only ACTIVE auctions joinable by anyone
+  //              (the «Все активные» catalog from the spec).
+  //   tab=mine → auctions where the broker placed a bid, filtered by
+  //              the secondary tab (active / finished / failed).
+  let fetchParams: Record<string, unknown>;
+  if (isBroker) {
+    if (tab === 'mine') {
+      fetchParams = {
+        status: brokerSub,
+        ordering: '-created_at',
+        page,
+        page_size: pageSize,
+      };
+    } else {
+      fetchParams = {
+        status: 'active',
+        ordering: '-created_at',
+        page,
+        page_size: pageSize,
+      };
+    }
+  } else {
+    fetchParams = {
+      ...(tab !== 'all' && { status: tab as 'active' | 'finished' | 'draft' }),
+      ordering: '-created_at',
+      page,
+      page_size: pageSize,
+    };
+  }
+
+  const myAuctions = useMyAuctions(
+    isDeveloper ? fetchParams : undefined,
+  );
+  const allAuctions = useAuctions(
+    !isDeveloper && !(isBroker && tab === 'mine') ? fetchParams : undefined,
+    { enabled: !isDeveloper && !(isBroker && tab === 'mine') },
+  );
+  const participatedAuctions = useParticipatedAuctions(
+    isBroker && tab === 'mine' ? fetchParams : undefined,
+  );
+
+  const activeQuery = isDeveloper
+    ? myAuctions
+    : isBroker && tab === 'mine'
+      ? participatedAuctions
+      : allAuctions;
+  const { data, isLoading } = activeQuery;
   const auctions = data?.results ?? [];
   const totalPages = data ? Math.ceil(data.count / pageSize) : 0;
 
@@ -296,6 +375,26 @@ export default function AuctionsPage() {
         ))}
       </div>
 
+      {/* Broker secondary tabs — visible only under «Мои». */}
+      {isBroker && tab === 'mine' && (
+        <div className='mt-3 flex items-center gap-2'>
+          {BROKER_SUB_TABS.map((s) => (
+            <button
+              key={s.value}
+              type='button'
+              onClick={() => handleBrokerSubChange(s.value)}
+              className={`px-3 py-1.5 cursor-pointer text-xs font-medium rounded-full transition-colors ${
+                brokerSub === s.value
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Content */}
       {isLoading ? (
         <div className='mt-6'>
@@ -307,7 +406,21 @@ export default function AuctionsPage() {
             <HugeiconsIcon icon={Award01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
           </div>
           <div className='text-base font-semibold text-gray-900'>
-            {tab === 'all' ? 'Нет аукционов' : tab === 'active' ? 'Нет активных аукционов' : 'Нет завершённых аукционов'}
+            {isBroker && tab === 'mine'
+              ? brokerSub === 'active'
+                ? 'Вы не участвуете в активных аукционах'
+                : brokerSub === 'finished'
+                  ? 'Нет завершённых аукционов с вашими ставками'
+                  : 'Нет несостоявшихся аукционов с вашими ставками'
+              : isBroker && tab === 'all'
+                ? 'Нет активных аукционов'
+                : tab === 'all'
+                  ? 'Нет аукционов'
+                  : tab === 'active'
+                    ? 'Нет активных аукционов'
+                    : tab === 'draft'
+                      ? 'Нет черновиков'
+                      : 'Нет завершённых аукционов'}
           </div>
           {isDeveloper && tab === 'all' && (
             <>
