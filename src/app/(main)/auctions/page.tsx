@@ -210,11 +210,13 @@ const ROLE_TABS: Record<'developer' | 'admin' | 'broker', { value: Tab; label: s
     { value: 'finished', label: 'Завершённые' },
     { value: 'draft', label: 'Черновики' },
   ],
+  // Per spec the admin auctions catalog excludes drafts — those are
+  // private to their owning developer. Backend enforces it now;
+  // dropping the «Черновики» tab keeps the UI honest.
   admin: [
     { value: 'all', label: 'Все' },
     { value: 'active', label: 'Активные' },
     { value: 'finished', label: 'Завершённые' },
-    { value: 'draft', label: 'Черновики' },
   ],
   broker: [
     { value: 'all', label: 'Все активные' },
