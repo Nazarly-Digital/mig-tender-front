@@ -14,15 +14,20 @@ import * as Input from '@/shared/ui/input';
 
 const CALENDAR_CLASS_NAMES = {
   root: 'p-0',
-  months: 'flex flex-col',
+  // `relative` anchors the absolutely-positioned `nav` row below.
+  // Without it the chevrons fall through to the popover container and
+  // end up in random corners of the popup.
+  months: 'relative flex flex-col',
   month: 'space-y-3',
-  // Caption now hosts BOTH the dropdowns and the prev/next chevrons in
-  // the same flex row (gap-2). Previously `nav` was absolutely positioned
-  // which caused the chevrons to render on top of the dropdown selects.
+  // Caption hosts the month/year dropdowns. Chevrons are NOT siblings
+  // of these dropdowns in the DOM (react-day-picker renders `nav` as a
+  // sibling of `.month`, not of `.month_caption`), so we position them
+  // absolutely on top — they sit at the row's left/right corners while
+  // dropdowns stay centered, no overlap.
   month_caption: 'flex h-8 items-center justify-center gap-2',
-  // captionLayout="dropdown" already renders month/year selects.
+  // captionLayout="dropdown" already renders <select>s for month/year.
   // react-day-picker still mounts `caption_label` in the same row for
-  // a11y; without sr-only it produces duplicate "Март 2014" text next
+  // a11y; without sr-only it produces duplicate "Март 2026" text next
   // to the dropdowns. Visually hide it, leave it for screen readers.
   caption_label: 'sr-only',
   dropdowns: 'flex items-center gap-1.5',
@@ -31,14 +36,15 @@ const CALENDAR_CLASS_NAMES = {
     'cursor-pointer appearance-none rounded-md border border-gray-200 bg-white pl-2 pr-6 py-1 text-[13px] font-medium capitalize text-gray-900 outline-none transition-colors hover:bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
   months_dropdown: '',
   years_dropdown: '',
-  // Inline nav (no longer absolute) — chevrons flank the dropdowns.
-  // `order-*` classes pin prev to the far left and next to the far right
-  // even though the dropdowns sit between them in DOM order.
-  nav: 'contents',
+  // Absolute, full-width row pinned to the top of `.months`. The flex
+  // wrapper itself is pointer-events:none so it doesn't block clicks
+  // through to the dropdowns underneath; the buttons re-enable
+  // pointer-events on themselves.
+  nav: 'pointer-events-none absolute inset-x-0 top-0 z-10 flex h-8 items-center justify-between',
   button_previous:
-    'order-first inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
+    'pointer-events-auto inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
   button_next:
-    'order-last inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
+    'pointer-events-auto inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
   chevron: 'size-4',
   month_grid: 'w-full border-collapse',
   weekdays: 'flex',
