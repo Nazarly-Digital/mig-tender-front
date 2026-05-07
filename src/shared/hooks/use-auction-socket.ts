@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSessionStore } from '@/entities/auth/model/store';
+import { auctionKeys } from '@/features/auctions/model/queries';
 
 // --- Types ---
 
@@ -70,6 +72,7 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectCount = useRef(0);
+  const queryClient = useQueryClient();
 
   const [state, setState] = useState<AuctionSocketState>({
     connected: false,
@@ -132,6 +135,19 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
                 bids: [msg.bid, ...without].slice(0, 50),
               };
             });
+            // If THIS broker just placed/updated their bid, the
+            // /auctions «Мои» list needs to know — otherwise the
+            // freshly-bid auction won't show up there until the
+            // 30 s poll. Invalidate only when the event is about us;
+            // bids from other brokers don't change our participation.
+            {
+              const myId = useSessionStore.getState().user?.id;
+              if (myId != null && msg.bid.broker_id === myId) {
+                queryClient.invalidateQueries({
+                  queryKey: [...auctionKeys.all, 'participated'],
+                });
+              }
+            }
             break;
 
           case 'participant_joined':
@@ -196,7 +212,7 @@ export function useAuctionSocket(auctionId: number, enabled = true) {
     ws.onerror = () => {
       // onclose will fire after onerror
     };
-  }, [auctionId]);
+  }, [auctionId, queryClient]);
 
   // Send bid
   const sendBid = useCallback((amount: string) => {

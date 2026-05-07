@@ -157,6 +157,12 @@ export function usePlaceBid() {
       queryClient.invalidateQueries({
         queryKey: auctionKeys.detail(auctionId),
       });
+      // Just placed a bid — the broker is now a participant, so the
+      // /auctions «Мои» tab needs to refetch or the auction won't show up
+      // there until the next 30 s poll.
+      queryClient.invalidateQueries({
+        queryKey: [...auctionKeys.all, 'participated'],
+      });
     },
   });
 }
@@ -177,6 +183,11 @@ export function useUpdateBid() {
       });
       queryClient.invalidateQueries({
         queryKey: auctionKeys.detail(auctionId),
+      });
+      // Updating an existing bid keeps the broker in «Мои», but bid
+      // count / status / current_price changed — refresh anyway.
+      queryClient.invalidateQueries({
+        queryKey: [...auctionKeys.all, 'participated'],
       });
     },
   });
