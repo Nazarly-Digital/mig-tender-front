@@ -18,6 +18,15 @@ const CALENDAR_CLASS_NAMES = {
   month: 'space-y-3',
   month_caption: 'relative flex h-8 items-center justify-center',
   caption_label: 'text-[13px] font-semibold capitalize text-gray-900',
+  // captionLayout="dropdown" replaces the static caption_label with two
+  // <select>-backed pickers (month + year). Style them like our other
+  // inputs so they don't fall back to native chrome rendering.
+  dropdowns: 'flex items-center justify-center gap-1.5',
+  dropdown_root: 'relative inline-flex items-center',
+  dropdown:
+    'cursor-pointer appearance-none rounded-md border border-gray-200 bg-white pl-2 pr-6 py-1 text-[13px] font-medium capitalize text-gray-900 outline-none transition-colors hover:bg-gray-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+  months_dropdown: '',
+  years_dropdown: '',
   nav: 'absolute inset-x-0 top-0 flex items-center justify-between',
   button_previous:
     'inline-flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40',
@@ -39,6 +48,27 @@ const CALENDAR_CLASS_NAMES = {
   disabled: '[&>button]:cursor-not-allowed [&>button]:text-gray-300 [&>button]:hover:bg-transparent [&>button]:hover:text-gray-300',
   hidden: 'invisible',
 } as const;
+
+// Dropdown range — anchor on min/max when supplied, otherwise default to a
+// generous past (resale of decades-old buildings is a real catalog use case)
+// and a sensible future. Using full Date objects so react-day-picker can
+// derive the year list from `startMonth`/`endMonth`.
+const DEFAULT_DROPDOWN_PAST_YEARS = 100;
+const DEFAULT_DROPDOWN_FUTURE_YEARS = 30;
+
+function dropdownBounds(
+  minDate: Date | undefined,
+  maxDate: Date | undefined,
+): { startMonth: Date; endMonth: Date } {
+  const now = new Date();
+  const startMonth =
+    minDate ??
+    new Date(now.getFullYear() - DEFAULT_DROPDOWN_PAST_YEARS, 0, 1);
+  const endMonth =
+    maxDate ??
+    new Date(now.getFullYear() + DEFAULT_DROPDOWN_FUTURE_YEARS, 11, 31);
+  return { startMonth, endMonth };
+}
 
 function CalendarChevron({ orientation }: { orientation?: 'left' | 'right' | 'up' | 'down' }) {
   return (
@@ -221,6 +251,9 @@ export function DatePicker({
             disabled={dayPickerDisabled}
             weekStartsOn={1}
             showOutsideDays
+            captionLayout='dropdown'
+            startMonth={dropdownBounds(minDate, maxDate).startMonth}
+            endMonth={dropdownBounds(minDate, maxDate).endMonth}
             classNames={CALENDAR_CLASS_NAMES}
             components={{ Chevron: CalendarChevron }}
           />
@@ -396,6 +429,9 @@ export function DateTimePicker({
             disabled={dayPickerDisabled}
             weekStartsOn={1}
             showOutsideDays
+            captionLayout='dropdown'
+            startMonth={dropdownBounds(minDate, maxDate).startMonth}
+            endMonth={dropdownBounds(minDate, maxDate).endMonth}
             classNames={CALENDAR_CLASS_NAMES}
             components={{ Chevron: CalendarChevron }}
           />
