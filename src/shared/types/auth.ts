@@ -87,7 +87,11 @@ export type RefreshRequest = {
 
 export type RefreshResponse = {
   access: string;
-  refresh: string;
+  // SimpleJWT only includes a new `refresh` here when ROTATE_REFRESH_TOKENS
+  // is enabled on the backend. Today rotation is OFF, so the response is
+  // `{access}` only — keep this field optional so the interceptor can
+  // detect rotation-off mode and preserve the existing refresh token.
+  refresh?: string;
 };
 
 // Change password

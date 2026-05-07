@@ -80,7 +80,12 @@ apiInstance.interceptors.response.use(
         { refresh: refreshToken },
       );
 
-      setTokens(data.access, data.refresh);
+      // Backend has ROTATE_REFRESH_TOKENS=False → response is `{access}`
+      // only and `data.refresh` is undefined. Without this fallback we
+      // would clobber the stored refresh token on every refresh, and
+      // the next 401 would forcibly log the user out (the "random
+      // logout" QA report).
+      setTokens(data.access, data.refresh ?? refreshToken);
       processQueue(null, data.access);
 
       originalRequest.headers.Authorization = `Bearer ${data.access}`;
