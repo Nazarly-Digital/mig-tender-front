@@ -62,12 +62,27 @@ const TYPE_COLORS: Record<PropertyType, 'blue' | 'green' | 'purple' | 'orange' |
   land: 'teal',
 };
 
+// Label table covers all five values so legacy rows (`elite`) still
+// render correctly on read. The dropdown source is FORM_CLASS_VALUES
+// below — keep the two in sync with backend's PROPERTY_CLASS_FORM_CHOICES.
 const CLASS_LABELS: Record<PropertyClass, string> = {
+  economy: 'Эконом',
   comfort: 'Комфорт',
   business: 'Бизнес',
   premium: 'Премиум',
   elite: 'Элит',
 };
+
+// Values exposed to the developer in property create/edit dropdowns
+// and in the catalog filter. Mirrors backend
+// `PROPERTY_CLASS_FORM_CHOICES` — `elite` is intentionally excluded
+// (spec).
+const FORM_CLASS_VALUES: PropertyClass[] = [
+  'economy',
+  'comfort',
+  'business',
+  'premium',
+];
 
 const COMMERCIAL_SUBTYPE_LABELS: Record<CommercialSubtype, string> = {
   office: 'Офис',
@@ -75,6 +90,7 @@ const COMMERCIAL_SUBTYPE_LABELS: Record<CommercialSubtype, string> = {
 };
 
 const CLASS_COLORS: Record<PropertyClass, 'gray' | 'blue' | 'purple' | 'orange'> = {
+  economy: 'gray',
   comfort: 'blue',
   business: 'purple',
   premium: 'orange',
@@ -497,6 +513,7 @@ export function PropertiesTablePagination({
 export {
   TYPE_LABELS,
   CLASS_LABELS,
+  FORM_CLASS_VALUES,
   COMMERCIAL_SUBTYPE_LABELS,
   STATUS_LABELS,
   STATUS_MAP,

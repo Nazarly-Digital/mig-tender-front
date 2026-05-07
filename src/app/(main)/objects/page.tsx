@@ -24,6 +24,7 @@ import {
   PropertiesTablePagination,
   TYPE_LABELS,
   CLASS_LABELS,
+  FORM_CLASS_VALUES,
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
 import toast from 'react-hot-toast';
@@ -510,8 +511,8 @@ export default function CatalogPage() {
             </Select.Trigger>
             <Select.Content>
               <Select.Item value='all'>Все классы</Select.Item>
-              {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([value, label]) => (
-                <Select.Item key={value} value={value}>{label}</Select.Item>
+              {FORM_CLASS_VALUES.map((value) => (
+                <Select.Item key={value} value={value}>{CLASS_LABELS[value]}</Select.Item>
               ))}
             </Select.Content>
           </Select.Root>

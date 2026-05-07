@@ -27,6 +27,7 @@ import * as Modal from '@/shared/ui/modal';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
+  FORM_CLASS_VALUES,
   COMMERCIAL_SUBTYPE_LABELS,
   STATUS_LABELS,
 } from '@/shared/components/properties-table';
@@ -563,8 +564,8 @@ function PropertyEditForm({
               <Select.Root size='small' value={field.value} onValueChange={field.onChange} disabled={isLand}>
                 <Select.Trigger id='p-class'><Select.Value placeholder={isLand ? '—' : undefined} /></Select.Trigger>
                 <Select.Content>
-                  {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([v, l]) => (
-                    <Select.Item key={v} value={v}>{l}</Select.Item>
+                  {FORM_CLASS_VALUES.map((v) => (
+                    <Select.Item key={v} value={v}>{CLASS_LABELS[v]}</Select.Item>
                   ))}
                 </Select.Content>
               </Select.Root>

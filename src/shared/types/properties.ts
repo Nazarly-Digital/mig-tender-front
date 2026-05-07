@@ -6,7 +6,15 @@ export type PropertyType =
   | "commercial"
   | "land";
 
-export type PropertyClass = "comfort" | "business" | "premium" | "elite";
+// All five values are kept in the union so legacy rows stay typed.
+// `elite` was removed from the form (per spec) but may exist on rows
+// created before the change; UI maps it to its label for display only.
+export type PropertyClass =
+  | "economy"
+  | "comfort"
+  | "business"
+  | "premium"
+  | "elite";
 
 export type CommercialSubtype = "office" | "retail";
 

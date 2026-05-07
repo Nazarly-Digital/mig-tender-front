@@ -27,6 +27,7 @@ import { propertiesService } from '@/entities/properties';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
+  FORM_CLASS_VALUES,
   COMMERCIAL_SUBTYPE_LABELS,
 } from '@/shared/components/properties-table';
 import type {
@@ -267,8 +268,8 @@ export default function CreatePropertyPage() {
                     <Select.Root value={field.value} onValueChange={field.onChange} disabled={isLand}>
                       <Select.Trigger id='property-class' className='cursor-pointer'><Select.Value placeholder={isLand ? '—' : undefined} /></Select.Trigger>
                       <Select.Content>
-                        {(Object.entries(CLASS_LABELS) as [PropertyClass, string][]).map(([v, l]) => (
-                          <Select.Item key={v} value={v}>{l}</Select.Item>
+                        {FORM_CLASS_VALUES.map((v) => (
+                          <Select.Item key={v} value={v}>{CLASS_LABELS[v]}</Select.Item>
                         ))}
                       </Select.Content>
                     </Select.Root>
