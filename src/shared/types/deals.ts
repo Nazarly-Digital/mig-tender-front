@@ -72,6 +72,15 @@ export type DealListParams = {
   auction_id?: number;
   broker_id?: number;
   developer_id?: number;
+  // Free-text search against broker / developer (email + name + company).
+  // Backend handles via DealFilter.filter_broker_search /
+  // filter_developer_search, so the page doesn't have to fetch every
+  // deal client-side.
+  broker_search?: string;
+  developer_search?: string;
+  // Date-only bounds — backend extracts `created_at::date` for the
+  // comparison, so passing the same value in both fields returns the
+  // entire day.
   date_from?: string;
   date_to?: string;
   page?: number;

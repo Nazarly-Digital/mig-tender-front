@@ -16,6 +16,7 @@ import { useDeals, useAdminApproveDeal, useAdminRejectDeal } from '@/features/de
 import type { Deal, DealStatus } from '@/shared/types/deals';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { useDebouncedValue } from '@/shared/hooks/use-debounced-value';
 
 type TabFilter = 'all' | DealStatus | 'overdue';
 
@@ -410,9 +411,14 @@ export function AdminDealsView() {
   const [dateFrom, setDateFrom] = React.useState('');
   const [dateTo, setDateTo] = React.useState('');
 
+  // Debounce free-text search so we don't hit /deals/ on every keystroke.
+  // Date / tab inputs are committed instantly — they're discrete picks.
+  const debouncedBrokerSearch = useDebouncedValue(brokerSearch, 300);
+  const debouncedDeveloperSearch = useDebouncedValue(developerSearch, 300);
+
   React.useEffect(() => {
     setPage(1);
-  }, [activeTab, brokerSearch, developerSearch, dateFrom, dateTo]);
+  }, [activeTab, debouncedBrokerSearch, debouncedDeveloperSearch, dateFrom, dateTo]);
 
   const baseParams = activeTab === 'all'
     ? {}
@@ -422,18 +428,16 @@ export function AdminDealsView() {
 
   const { data, isLoading } = useDeals({
     ...baseParams,
+    ...(debouncedBrokerSearch && { broker_search: debouncedBrokerSearch }),
+    ...(debouncedDeveloperSearch && { developer_search: debouncedDeveloperSearch }),
     ...(dateFrom && { date_from: dateFrom }),
     ...(dateTo && { date_to: dateTo }),
     page,
     page_size: ADMIN_DEALS_PAGE_SIZE,
   });
-  const allDealsForFilter = data?.results ?? [];
-  // Client-side broker/developer name filter (backend has no name search).
-  const deals = allDealsForFilter.filter((d) => {
-    if (brokerSearch && !d.broker_name?.toLowerCase().includes(brokerSearch.toLowerCase())) return false;
-    if (developerSearch && !d.developer_name?.toLowerCase().includes(developerSearch.toLowerCase())) return false;
-    return true;
-  });
+  // Server already filtered by broker/developer/date — render the page
+  // straight from the response.
+  const deals = data?.results ?? [];
   const totalPages = data?.count ? Math.max(1, Math.ceil(data.count / ADMIN_DEALS_PAGE_SIZE)) : 1;
 
   // High page_size so the tab counters reflect totals across all pages.
