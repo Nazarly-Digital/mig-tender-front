@@ -418,7 +418,6 @@ export default function CreatePropertyPage() {
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
-                        min={new Date()}
                       />
                     )}
                   />

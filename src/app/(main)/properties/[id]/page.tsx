@@ -644,7 +644,6 @@ function PropertyEditForm({
                 value={field.value}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
-                min={new Date()}
                 size='small'
               />
             )}
