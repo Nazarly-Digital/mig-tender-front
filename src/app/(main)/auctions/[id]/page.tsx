@@ -784,12 +784,24 @@ export default function AuctionDetailPage() {
   const [rejectReason, setRejectReason] = React.useState('');
 
   // Pre-fill the publish modal with whatever's already on the draft so
-  // the developer only fills what's missing. DateTimePicker expects
-  // 'YYYY-MM-DDTHH:mm' (no seconds, no offset).
+  // the developer only fills what's missing. DateTimePicker expects a
+  // naive local 'YYYY-MM-DDTHH:mm' string, but the backend stores
+  // start_date / end_date as ISO UTC. Slicing the raw ISO would show
+  // the developer the UTC wall clock — they'd see "08:01" for a draft
+  // they actually scheduled at "16:01" local. Convert through Date so
+  // the picker reflects local time consistently.
   React.useEffect(() => {
     if (!publishModalOpen || !auction) return;
-    const toLocalInput = (iso: string | null | undefined) =>
-      iso ? iso.slice(0, 16) : '';
+    const toLocalInput = (iso: string | null | undefined): string => {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return '';
+      const pad = (n: number) => String(n).padStart(2, '0');
+      return (
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+        `T${pad(d.getHours())}:${pad(d.getMinutes())}`
+      );
+    };
     setPublishStart(toLocalInput(auction.start_date));
     setPublishEnd(toLocalInput(auction.end_date));
     setPublishIncrement(auction.min_bid_increment ?? '');
@@ -811,12 +823,19 @@ export default function AuctionDetailPage() {
       setPublishError('Укажите шаг ставки');
       return;
     }
+    // DateTimePicker outputs naive 'YYYY-MM-DDTHH:mm' (no offset);
+    // backend has TIME_ZONE='UTC' + USE_TZ=True, so a naive string is
+    // interpreted as UTC and the displayed time ends up shifted by the
+    // user's offset. Convert to ISO with offset so the chosen wall
+    // clock is preserved — same trick the create form uses (see
+    // auctions/create/page.tsx).
+    const toIso = (local: string) => new Date(local).toISOString();
     publishAuction.mutate(
       {
         auctionId,
         data: {
-          start_date: publishStart,
-          end_date: publishEnd,
+          start_date: toIso(publishStart),
+          end_date: toIso(publishEnd),
           ...(auction.mode === 'open' && publishIncrement
             ? { min_bid_increment: publishIncrement }
             : {}),
