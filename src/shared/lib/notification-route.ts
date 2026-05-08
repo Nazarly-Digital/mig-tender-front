@@ -12,6 +12,11 @@ export function getNotificationRoute(
     case 'payment':
       return '/payments';
     case 'property':
+      // Admins get «новый объект на модерации» — отправлять их на
+      // /properties/{id} (страницу редактирования девелопера) бесполезно:
+      // у админа там нет прав сохранять, любая правка возвращает 500.
+      // Их место — очередь модерации.
+      if (recipientRole === 'admin') return '/admin/properties';
       return n.real_property_id ? `/properties/${n.real_property_id}` : '/properties';
     case 'user':
       return recipientRole === 'admin' ? '/admin/users' : '/cabinet';
