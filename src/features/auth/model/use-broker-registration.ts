@@ -40,7 +40,9 @@ export function useBrokerRegistration() {
   const [fileErrors, setFileErrors] = React.useState<{ inn?: string; passport?: string }>({});
   const [error, setError] = React.useState('');
   const [timer, setTimer] = React.useState(0);
-  const [showObligationModal, setShowObligationModal] = React.useState(false);
+  const [offerAccepted, setOfferAccepted] = React.useState(false);
+  const [auctionObligationAccepted, setAuctionObligationAccepted] =
+    React.useState(false);
 
   // Wrap file setters so that selecting a file clears the matching error.
   const setInn = React.useCallback((f: File | null) => {
@@ -164,10 +166,11 @@ export function useBrokerRegistration() {
           phone_number: toE164(data.phoneNumber),
           inn: inn!,
           passport: passport!,
+          auction_obligation_accepted: auctionObligationAccepted,
         },
         {
           onSuccess: () => {
-            setShowObligationModal(true);
+            router.replace('/dashboard');
           },
           onError: (err) => {
             if (err instanceof AxiosError) {
@@ -189,11 +192,6 @@ export function useBrokerRegistration() {
     })(e);
   };
 
-  const onAcceptObligation = () => {
-    setShowObligationModal(false);
-    router.replace('/dashboard');
-  };
-
   return {
     // forms
     emailForm,
@@ -210,16 +208,16 @@ export function useBrokerRegistration() {
     fileErrors,
     error,
     timer,
+    offerAccepted,
+    setOfferAccepted,
+    auctionObligationAccepted,
+    setAuctionObligationAccepted,
 
     // handlers
     handleGetCode,
     handleVerifyEmail,
     handleResendCode,
     handleRegister,
-    onAcceptObligation,
-
-    // modal
-    showObligationModal,
 
     // loading states
     isGetCodePending: getCode.isPending,

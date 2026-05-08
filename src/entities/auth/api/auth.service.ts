@@ -55,6 +55,10 @@ export const authService = {
     formData.append("phone_number", data.phone_number);
     formData.append("inn", data.inn);
     formData.append("passport", data.passport);
+    formData.append(
+      "auction_obligation_accepted",
+      data.auction_obligation_accepted ? "true" : "false",
+    );
     if (data.first_name) formData.append("first_name", data.first_name);
     if (data.last_name) formData.append("last_name", data.last_name);
 

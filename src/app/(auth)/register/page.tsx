@@ -12,7 +12,6 @@ import {
   RiUploadCloud2Line,
   RiUserLine,
   RiUserAddFill,
-  RiAlertLine,
 } from '@remixicon/react';
 
 import { cn } from '@/shared/lib/cn';
@@ -25,7 +24,6 @@ import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Checkbox from '@/shared/ui/checkbox';
 import * as LinkButton from '@/shared/ui/link-button';
-import * as Modal from '@/shared/ui/modal';
 import { useBrokerRegistration } from '@/features/auth';
 
 const PasswordInput = React.forwardRef<
@@ -76,16 +74,15 @@ export default function PageRegister() {
     handleVerifyEmail,
     handleResendCode,
     handleRegister,
-    onAcceptObligation,
-    showObligationModal,
+    offerAccepted,
+    setOfferAccepted,
+    auctionObligationAccepted,
+    setAuctionObligationAccepted,
     isGetCodePending,
     isVerifyPending,
     isResendPending,
     isRegisterPending,
   } = useBrokerRegistration();
-
-  const [offerAccepted, setOfferAccepted] = React.useState(false);
-  const [obligationChecked, setObligationChecked] = React.useState(false);
   const emailErrors = emailForm.formState.errors;
   const regErrors = registerForm.formState.errors;
 
@@ -102,7 +99,6 @@ export default function PageRegister() {
     !!passport;
 
   return (
-    <>
     <div className='w-full max-w-[472px] px-4'>
       <div className='mt-8 flex w-full flex-col gap-6 rounded-20 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
         <div className='flex flex-col items-center gap-2'>
@@ -427,36 +423,59 @@ export default function PageRegister() {
               </div>
             </div>
 
-            <label className='flex cursor-pointer items-start gap-3 rounded-xl bg-bg-weak-50 p-4'>
-              <div className='flex-1'>
-                <span className='text-paragraph-sm font-medium text-text-strong-950'>
-                  Соглашаюсь с условиями{' '}
-                  <a
-                    href='/offer.pdf'
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='text-primary-base underline'
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    оферты
-                  </a>
-                </span>
-                <p className='mt-0.5 text-paragraph-xs text-text-sub-600'>
-                  Это нужно для обработки и хранения документов. Одно согласие — для всех типов.
-                </p>
-              </div>
-              <Checkbox.Root
-                checked={offerAccepted}
-                onCheckedChange={(v) => setOfferAccepted(v === true)}
-              />
-            </label>
+            <div className='flex flex-col gap-2'>
+              <label className='flex cursor-pointer items-start gap-3 rounded-xl bg-bg-weak-50 p-4'>
+                <div className='flex-1'>
+                  <span className='text-paragraph-sm font-medium text-text-strong-950'>
+                    Соглашаюсь с условиями{' '}
+                    <a
+                      href='/offer.pdf'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-primary-base underline'
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      оферты
+                    </a>
+                  </span>
+                  <p className='mt-0.5 text-paragraph-xs text-text-sub-600'>
+                    Это нужно для обработки и хранения документов. Одно согласие — для всех типов.
+                  </p>
+                </div>
+                <Checkbox.Root
+                  checked={offerAccepted}
+                  onCheckedChange={(v) => setOfferAccepted(v === true)}
+                />
+              </label>
+
+              <label className='flex cursor-pointer items-start gap-3 rounded-xl bg-bg-weak-50 p-4'>
+                <div className='flex-1'>
+                  <span className='text-paragraph-sm font-medium text-text-strong-950'>
+                    Принимаю обязательство при участии в аукционе
+                  </span>
+                  <p className='mt-0.5 text-paragraph-xs text-text-sub-600'>
+                    Каждая ставка — обязательство приобрести объект на указанных условиях.
+                    При победе обязуюсь завершить сделку: загрузить ДДУ и подтверждение оплаты в установленный срок.
+                  </p>
+                </div>
+                <Checkbox.Root
+                  checked={auctionObligationAccepted}
+                  onCheckedChange={(v) => setAuctionObligationAccepted(v === true)}
+                />
+              </label>
+            </div>
 
             <FancyButton.Root
               type='submit'
               variant='primary'
               size='medium'
               className='w-full'
-              disabled={isRegisterPending || !offerAccepted || !allRequiredFilled}
+              disabled={
+                isRegisterPending ||
+                !offerAccepted ||
+                !auctionObligationAccepted ||
+                !allRequiredFilled
+              }
             >
               {isRegisterPending ? 'Регистрация...' : 'Зарегистрироваться'}
             </FancyButton.Root>
@@ -471,62 +490,5 @@ export default function PageRegister() {
         </LinkButton.Root>
       </div>
     </div>
-
-    {/* Obligation modal — shown once after registration, cannot be dismissed */}
-    <Modal.Root open={showObligationModal}>
-      <Modal.Content
-        showClose={false}
-        className='bg-white shadow-lg ring-1 ring-inset ring-gray-200'
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <Modal.Body className='flex flex-col gap-5 p-6'>
-          <div className='flex justify-center'>
-            <div className='flex size-14 items-center justify-center rounded-2xl bg-amber-50'>
-              <RiAlertLine className='size-7 text-amber-600' />
-            </div>
-          </div>
-
-          <div className='space-y-1.5 text-center'>
-            <Modal.Title className='text-lg font-semibold text-gray-900'>
-              Обязательство
-              <br />
-              При участии в аукционе
-            </Modal.Title>
-            <p className='text-sm text-gray-500'>
-              Участвуя в аукционах на платформе MIG Tender, вы соглашаетесь с тем, что:
-            </p>
-          </div>
-
-          <div className='rounded-xl bg-gray-50 p-4 ring-1 ring-inset ring-gray-200'>
-            <p className='text-sm leading-relaxed text-gray-600'>
-              Каждая ваша ставка является обязательством приобрести объект на указанных условиях.
-              Если ваша ставка выигрывает — вы обязаны завершить сделку: загрузить ДДУ и
-              подтверждение оплаты в установленный срок.
-            </p>
-          </div>
-
-          <label className='flex cursor-pointer items-center gap-3'>
-            <Checkbox.Root
-              checked={obligationChecked}
-              onCheckedChange={(v) => setObligationChecked(v === true)}
-            />
-            <span className='text-sm text-gray-700'>Я понимаю и принимаю условия</span>
-          </label>
-
-          <FancyButton.Root
-            type='button'
-            variant='primary'
-            size='medium'
-            className='w-full'
-            onClick={onAcceptObligation}
-            disabled={!obligationChecked}
-          >
-            Принимаю
-          </FancyButton.Root>
-        </Modal.Body>
-      </Modal.Content>
-    </Modal.Root>
-    </>
   );
 }
