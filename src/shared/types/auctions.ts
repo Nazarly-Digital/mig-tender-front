@@ -131,6 +131,10 @@ export type AuctionPublishRequest = {
 export type AuctionListParams = {
   mode?: AuctionMode;
   status?: AuctionStatus;
+  // Comma-separated list of statuses for one-shot multi-filter.
+  // Example: `status_in: 'scheduled,active'` — broker's «Все
+  // активные» tab uses this to show upcoming + live in one grid.
+  status_in?: string;
   property_id?: number;
   owner_id?: number;
   active?: boolean;

@@ -302,8 +302,12 @@ export default function AuctionsPage() {
         page_size: pageSize,
       };
     } else {
+      // «Все активные» surfaces BOTH live auctions and ones that
+      // are about to start — brokers want to plan ahead, not just
+      // see what's currently open. Backend supports comma-separated
+      // values via the `status_in` filter (apps/auctions/filters.py).
       fetchParams = {
-        status: 'active',
+        status_in: 'scheduled,active',
         ordering: '-created_at',
         page,
         page_size: pageSize,
