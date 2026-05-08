@@ -1377,20 +1377,15 @@ export default function AuctionDetailPage() {
 
           {/* Live bids feed — OPEN auction. Owner/admin see full history; brokers see anonymized history. */}
           {isActiveOpen && ws.bids.length > 0 && (() => {
-            // Show full history, newest first. Anonymize broker IDs for non-owners.
+            // Show full history, newest first. For non-owner viewers
+            // (brokers, admin staff browsing) bids are fully anonymized —
+            // only amount + time + leader badge. Owner/admin see broker IDs.
             const sortedBids = [...ws.bids].sort(
               (a, b) =>
                 new Date(b.updated_at ?? b.created_at).getTime() -
                 new Date(a.updated_at ?? a.created_at).getTime(),
             );
             const anonymize = !isOwnerOrAdmin;
-            const brokerAlias = new Map<number, number>();
-            for (const b of [...ws.bids].sort(
-              (a, b) =>
-                new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-            )) {
-              if (!brokerAlias.has(b.broker_id)) brokerAlias.set(b.broker_id, brokerAlias.size + 1);
-            }
             return (
               <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
                 <div className='flex items-center justify-between mb-4'>
@@ -1409,17 +1404,23 @@ export default function AuctionDetailPage() {
                   {sortedBids.map((bid, idx) => {
                     const isLeader = idx === 0;
                     const ts = bid.updated_at ?? bid.created_at;
-                    const display = anonymize
-                      ? `Брокер #${brokerAlias.get(bid.broker_id) ?? '?'}`
-                      : `#${bid.broker_id}`;
                     return (
                       <div key={bid.id} className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
                         <div className='flex items-center gap-2.5'>
-                          <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                            {anonymize ? brokerAlias.get(bid.broker_id) ?? '?' : `#${bid.broker_id}`}
-                          </div>
-                          {!anonymize && <span className='text-[12px] text-gray-500'>{display}</span>}
-                          <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>
+                          {anonymize ? (
+                            // Брокеры видят только сумму и время — никакого
+                            // алиаса/номера/аватара, чтобы нельзя было
+                            // сопоставить ставки с одним и тем же участником.
+                            <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>
+                          ) : (
+                            <>
+                              <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
+                                {`#${bid.broker_id}`}
+                              </div>
+                              <span className='text-[12px] text-gray-500'>{`#${bid.broker_id}`}</span>
+                              <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>
+                            </>
+                          )}
                           {isLeader && (
                             <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Лидер</span>
                           )}
