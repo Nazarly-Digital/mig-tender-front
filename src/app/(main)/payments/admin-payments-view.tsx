@@ -238,9 +238,12 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
                 Чек
               </button>
             )}
-            {!s.paid_to_broker ? (
-              <span className='text-xs text-gray-400'>после выплаты</span>
-            ) : !s.received_from_developer && s.developer_receipt ? (
+            {!s.received_from_developer && s.developer_receipt ? (
+              // Чек девелопера лежит — рендерим кнопки даже если брокеру
+              // ещё не выплатили, но «Подтвердить» в этом случае disabled
+              // с тултипом. Раньше при !paid_to_broker мы показывали только
+              // hint «после выплаты», и админ не понимал почему действия
+              // не появляются — путал с «ничего не пришло».
               <div className='flex items-center gap-1.5'>
                 <button
                   type='button'
@@ -253,12 +256,19 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
                 <button
                   type='button'
                   onClick={handleOpenConfirm}
-                  disabled={confirmRecv.isPending || rejectRecv.isPending}
+                  disabled={!s.paid_to_broker || confirmRecv.isPending || rejectRecv.isPending}
+                  title={
+                    !s.paid_to_broker
+                      ? 'Сначала выплатите брокеру и загрузите чек выплаты'
+                      : undefined
+                  }
                   className='bg-blue-600 text-white px-3 py-1.5 text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                 >
                   Подтвердить
                 </button>
               </div>
+            ) : !s.paid_to_broker ? (
+              <span className='text-xs text-gray-400'>после выплаты</span>
             ) : null}
           </div>
         </div>
