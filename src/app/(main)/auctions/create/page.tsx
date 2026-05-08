@@ -287,7 +287,9 @@ export default function CreateAuctionPage() {
         mode: data.mode as AuctionMode,
         // CLOSED-аукциону min_price не показывается в форме (sealed-bid
         // против собственной оценки брокера), бэк требует число — шлём 0.
-        min_price: isOpen ? data.min_price : '0',
+        // schema сделал поле optional, поэтому coalesce на пустую строку
+        // для open-mode (zod refine всё равно отсечёт пустое значение).
+        min_price: isOpen ? (data.min_price ?? '') : '0',
         ...(isOpen && data.min_bid_increment ? { min_bid_increment: data.min_bid_increment } : {}),
         // `show_price_to_brokers` only applies to OPEN auctions — for
         // CLOSED skip the field entirely so a stale `false` left over
