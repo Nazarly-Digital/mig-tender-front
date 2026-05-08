@@ -1234,17 +1234,66 @@ export default function AuctionDetailPage() {
               </div>
             )}
 
-            {auction.winner_bid && (
-              <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
-                <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
-                <div>
-                  <div className='text-sm font-medium text-gray-900'>
-                    {isOpenAuction ? 'Победитель определён' : 'Победитель определён автоматически'}
+            {auction.winner_bid && (() => {
+              // Раньше плашка с ФИО + суммой победителя рендерилась
+              // одинаково для всех — проигравший брокер видел и имя
+              // конкурента, и его выигрышную ставку (для closed это
+              // полная утечка sealed-bid). Делим по роли:
+              //   - owner/admin → ФИО + сумма (как было);
+              //   - брокер-победитель → «Вы выиграли — N ₽» + следующие шаги;
+              //   - брокер-проигравший → нейтральная серая плашка
+              //     «Вы не выиграли», без ФИО и без суммы.
+              const winnerId = auction.winner_bid.broker.id;
+              const isWinningBroker = isBroker && winnerId === user?.id;
+              const isLosingBroker =
+                isBroker && isParticipant && winnerId !== user?.id;
+
+              if (isOwnerOrAdmin) {
+                return (
+                  <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
+                    <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
+                    <div>
+                      <div className='text-sm font-medium text-gray-900'>
+                        {isOpenAuction ? 'Победитель определён' : 'Победитель определён автоматически'}
+                      </div>
+                      <div className='text-xs text-gray-500'>{auction.winner_bid.broker.fullname} — {formatPrice(auction.winner_bid.amount)} ₽</div>
+                    </div>
                   </div>
-                  <div className='text-xs text-gray-500'>{auction.winner_bid.broker.fullname} — {formatPrice(auction.winner_bid.amount)} ₽</div>
-                </div>
-              </div>
-            )}
+                );
+              }
+
+              if (isWinningBroker) {
+                return (
+                  <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
+                    <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
+                    <div>
+                      <div className='text-sm font-medium text-gray-900'>
+                        Вы выиграли аукцион — {formatPrice(auction.winner_bid.amount)} ₽
+                      </div>
+                      <div className='text-xs text-gray-500'>
+                        Загрузите ДДУ и подтверждение оплаты в установленный срок.
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (isLosingBroker) {
+                return (
+                  <div className='mt-4 flex items-center gap-3 rounded-lg bg-gray-50 p-4'>
+                    <HugeiconsIcon icon={Cancel01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+                    <div>
+                      <div className='text-sm font-medium text-gray-900'>Вы не выиграли</div>
+                      <div className='text-xs text-gray-500'>
+                        Аукцион завершён, победителем выбран другой участник.
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
 
             {/* Deal failed — documents not uploaded in time */}
             {auction.has_failed_deal && (
