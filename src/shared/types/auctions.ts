@@ -44,10 +44,14 @@ export type Auction = {
   bids_count: number | null;
   current_price: string | null;
   highest_bid_id: number | null;
+  // Backend маскирует broker и amount для проигравших брокеров —
+  // оба поля могут быть null. id и is_sealed остаются для того,
+  // чтобы фронт мог отличить «есть победитель» от «нет победителя»
+  // и нарисовать соответствующую плашку.
   winner_bid: {
     id: number;
-    broker: { id: number; fullname: string };
-    amount: string;
+    broker: { id: number; fullname: string } | null;
+    amount: string | null;
     is_sealed: boolean;
   } | null;
   lot_total_price: string | null;

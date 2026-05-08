@@ -1243,7 +1243,9 @@ export default function AuctionDetailPage() {
               //   - брокер-победитель → «Вы выиграли — N ₽» + следующие шаги;
               //   - брокер-проигравший → нейтральная серая плашка
               //     «Вы не выиграли», без ФИО и без суммы.
-              const winnerId = auction.winner_bid.broker.id;
+              // Backend masks winner_bid.broker для проигравшего брокера —
+              // optional chain на случай null.
+              const winnerId = auction.winner_bid.broker?.id ?? null;
               const isWinningBroker = isBroker && winnerId === user?.id;
               const isLosingBroker =
                 isBroker && isParticipant && winnerId !== user?.id;
@@ -1256,7 +1258,7 @@ export default function AuctionDetailPage() {
                       <div className='text-sm font-medium text-gray-900'>
                         {isOpenAuction ? 'Победитель определён' : 'Победитель определён автоматически'}
                       </div>
-                      <div className='text-xs text-gray-500'>{auction.winner_bid.broker.fullname} — {formatPrice(auction.winner_bid.amount)} ₽</div>
+                      <div className='text-xs text-gray-500'>{auction.winner_bid.broker?.fullname ?? '—'} — {formatPrice(auction.winner_bid.amount ?? '0')} ₽</div>
                     </div>
                   </div>
                 );
@@ -1532,7 +1534,7 @@ export default function AuctionDetailPage() {
               ) : (
                 <div className='mt-3 space-y-1.5'>
                   {(() => {
-                    const winnerId = auction.winner_bid?.broker.id ?? null;
+                    const winnerId = auction.winner_bid?.broker?.id ?? null;
                     const orderedIds = winnerId != null && participantIds.includes(winnerId)
                       ? [winnerId, ...participantIds.filter((pid) => pid !== winnerId)]
                       : participantIds;
@@ -1591,7 +1593,10 @@ export default function AuctionDetailPage() {
                 {auction.winner_bid && myBid && (
                   <div className='flex justify-between'>
                     <span className='text-gray-500'>Результат</span>
-                    {auction.winner_bid.broker.id === (myBid.broker_id ?? user?.id)
+                    {/* broker может быть null если бэк замаскировал winner_bid
+                        для проигравшего — null !== user.id даёт корректную
+                        ветку «Не выиграли». */}
+                    {auction.winner_bid.broker?.id === (myBid.broker_id ?? user?.id)
                       ? <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700'>Победа</span>
                       : <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'>Не выиграли</span>
                     }
