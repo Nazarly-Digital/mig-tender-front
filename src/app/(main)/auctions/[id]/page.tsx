@@ -518,12 +518,10 @@ function SelectWinnerModal({
                       {isSelected && <div className='size-2.5 rounded-full bg-blue-600' />}
                     </div>
                     <div>
-                      {/* FIO участников скрыто от девелопера. Выбор
-                          победителя идёт по сумме + анонимному id —
-                          закрытый аукцион должен оставаться слепым,
-                          даже когда владелец сам assign-ит winner. */}
                       <div className='text-sm font-medium text-gray-900'>
-                        Брокер #{bid.broker_id}
+                        {bid.first_name || bid.last_name
+                          ? `${bid.first_name ?? ''} ${bid.last_name ?? ''}`.trim()
+                          : `Брокер #${bid.broker_id}`}
                       </div>
                       <div className='text-xs text-gray-500'>
                         {formatDateTime(bid.created_at)}
@@ -1417,10 +1415,11 @@ export default function AuctionDetailPage() {
                 <tbody className='text-[13px]'>
                   {bidsList.map((bid) => (
                     <tr key={bid.id} className='border-b border-gray-100 last:border-0 hover:bg-blue-50/20 transition-colors'>
-                      {/* FIO участников скрыто от owner — видно только
-                          анонимный id и сумму. ФИО победителя остаётся
-                          в верхней зелёной плашке «Победитель определён». */}
-                      <td className='py-3 font-medium text-gray-900'>Брокер #{bid.broker_id}</td>
+                      <td className='py-3 font-medium text-gray-900'>
+                        {bid.first_name || bid.last_name
+                          ? `${bid.first_name ?? ''} ${bid.last_name ?? ''}`.trim()
+                          : `Брокер #${bid.broker_id}`}
+                      </td>
                       <td className='py-3 font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</td>
                       <td className='py-3 text-gray-400'>{formatDateTime(bid.created_at)}</td>
                       <td className='py-3'>{auction.winner_bid?.id === bid.id && <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>}</td>
@@ -1543,11 +1542,9 @@ export default function AuctionDetailPage() {
                       ? [winnerId, ...participantIds.filter((pid) => pid !== winnerId)]
                       : participantIds;
                     return orderedIds.map((pid) => {
-                      // FIO участников скрыто от owner-а: показываем только
-                      // анонимный «Брокер #pid». ФИО победителя остаётся
-                      // в зелёной плашке «Победитель определён» наверху.
-                      const anonName = `Брокер #${pid}`;
-                      const initials = `#${pid}`;
+                      const detail = participantDetails.find((d) => d.id === pid);
+                      const name = detail?.name ?? `Брокер #${pid}`;
+                      const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
                       const lockStatus = getRequestLockStatusForBroker(documentRequests, pid);
                       const isWinner = winnerId === pid;
                       return (
@@ -1556,7 +1553,7 @@ export default function AuctionDetailPage() {
                             <div className='size-7 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
                               {initials}
                             </div>
-                            <span className='text-[13px] font-medium text-gray-900 truncate'>{anonName}</span>
+                            <span className='text-[13px] font-medium text-gray-900 truncate'>{name}</span>
                             {isWinner && (
                               <span className='shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>
                             )}
@@ -1565,7 +1562,7 @@ export default function AuctionDetailPage() {
                             <RequestDocumentsButton
                               auctionId={auctionId}
                               brokerId={pid}
-                              brokerName={anonName}
+                              brokerName={name}
                               lockStatus={lockStatus}
                             />
                           )}
