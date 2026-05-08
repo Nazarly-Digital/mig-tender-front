@@ -18,7 +18,7 @@ import toast from 'react-hot-toast';
 import { PropertyDetailSkeleton } from '@/shared/components/skeletons';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import { cn } from '@/shared/lib/cn';
-import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
+import { formatPrice, formatDateShort, isMeaningfulText } from '@/shared/lib/formatters';
 import {
   TYPE_LABELS,
   CLASS_LABELS,
@@ -329,11 +329,11 @@ export default function CatalogDetailPage() {
                   </div>
                 </div>
               )}
-              {property.project && (
+              {isMeaningfulText(property.project) && (
                 <div>
                   <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Проект</div>
                   <div className='text-[13px] font-medium text-gray-900 mt-1'>
-                    {property.project}
+                    {property.project!.trim()}
                   </div>
                 </div>
               )}
@@ -354,7 +354,11 @@ export default function CatalogDetailPage() {
                   <div className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Девелопер</div>
                   <div className='text-[13px] font-medium text-gray-900 mt-1'>
                     {property.developer_name}
-                    {property.project ? ` · ${property.project}` : ''}
+                    {/* `project` is free text on the developer side and
+                        often arrives as «-» / empty when not filled —
+                        skip the separator in that case so we don't
+                        render «ООО ПРИМЕР · -». */}
+                    {isMeaningfulText(property.project) && ` · ${property.project!.trim()}`}
                   </div>
                 </div>
               )}

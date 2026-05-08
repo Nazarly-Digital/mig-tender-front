@@ -19,7 +19,7 @@ import {
 
 import * as Select from '@/shared/ui/select';
 import { cn } from '@/shared/lib/cn';
-import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
+import { formatPrice, formatDateShort, isMeaningfulText } from '@/shared/lib/formatters';
 import {
   PropertiesTablePagination,
   TYPE_LABELS,
@@ -210,9 +210,9 @@ function CatalogPropertyCard({
             <div className='text-[14px] font-medium text-gray-900 truncate'>
               {property.address}
             </div>
-            {property.project && (
+            {isMeaningfulText(property.project) && (
               <div className='mt-0.5 text-[12px] text-gray-500 truncate'>
-                {property.project}
+                {property.project!.trim()}
               </div>
             )}
           </div>

@@ -62,3 +62,17 @@ export function formatDateLong(dateStr: string | null | undefined): string {
     year: 'numeric',
   });
 }
+
+/**
+ * Checks whether a free-text field is actually meaningful or just a
+ * placeholder users sometimes type when they don't want to fill the
+ * field — empty string, whitespace, or one or more dashes («-», «—»).
+ * Treat such values as missing so they don't render as «· -» chips
+ * next to other content.
+ */
+export function isMeaningfulText(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return !/^[—–-]+$/.test(trimmed);
+}
