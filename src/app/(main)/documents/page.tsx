@@ -28,6 +28,13 @@ import { downloadAuthedFile } from '@/shared/lib/fetch-file';
 
 // --- Helpers ---
 
+// Backend caps `document_name` at 255 chars (UserDocument.document_name).
+// Without a hard cap on the client a broker could type 300 chars, hit
+// «Загрузить», get a generic «Произошла ошибка» toast and have no idea
+// what's wrong. Mirror the limit + show a counter so the constraint is
+// visible up-front.
+const DOCUMENT_NAME_MAX = 255;
+
 async function downloadFile(url: string, filename: string) {
   await downloadAuthedFile(url, filename);
 }
@@ -229,9 +236,15 @@ function UploadDocumentModal({
                     placeholder='Необязательное название'
                     value={documentName}
                     onChange={(e) => setDocumentName(e.target.value)}
+                    maxLength={DOCUMENT_NAME_MAX}
                   />
                 </Input.Wrapper>
               </Input.Root>
+              <div className='flex justify-end'>
+                <span className={`text-[11px] ${documentName.length >= DOCUMENT_NAME_MAX ? 'text-red-500' : 'text-gray-400'}`}>
+                  {documentName.length} / {DOCUMENT_NAME_MAX}
+                </span>
+              </div>
             </div>
 
             {/* File Input */}
@@ -333,12 +346,18 @@ function RenameDocumentModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder='Введите название'
+                  maxLength={DOCUMENT_NAME_MAX}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSave();
                   }}
                 />
               </Input.Wrapper>
             </Input.Root>
+            <div className='flex justify-end'>
+              <span className={`text-[11px] ${name.length >= DOCUMENT_NAME_MAX ? 'text-red-500' : 'text-gray-400'}`}>
+                {name.length} / {DOCUMENT_NAME_MAX}
+              </span>
+            </div>
           </div>
         </Modal.Body>
         <Modal.Footer>
