@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from './properties';
+import type { PaginatedResponse, PropertyImage } from './properties';
 import type { UserDocument, TokenUser } from './auth';
 
 export type AdminUser = {
@@ -98,8 +98,12 @@ export type AdminUpdateBrokerResponse = {
 
 export type PendingProperty = {
   id: number;
-  developer: number;
+  // Backend renamed `developer` → `owner_id` in the response, kept the
+  // existing field for back-compat with older callers.
+  developer?: number;
+  owner_id?: number;
   developer_name: string;
+  developer_email?: string;
   type: string;
   address: string;
   area: string;
@@ -109,6 +113,7 @@ export type PendingProperty = {
   status: string;
   moderation_status?: 'pending' | 'approved' | 'rejected';
   moderation_rejection_reason?: string | null;
+  images?: PropertyImage[];
   created_at: string;
 };
 
