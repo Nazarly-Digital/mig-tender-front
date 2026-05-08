@@ -287,7 +287,10 @@ export default function CreateAuctionPage() {
         mode: data.mode as AuctionMode,
         min_price: data.min_price,
         ...(isOpen && data.min_bid_increment ? { min_bid_increment: data.min_bid_increment } : {}),
-        show_price_to_brokers: data.show_price_to_brokers ?? true,
+        // `show_price_to_brokers` only applies to OPEN auctions — for
+        // CLOSED skip the field entirely so a stale `false` left over
+        // from an earlier mode toggle doesn't leak through.
+        ...(isOpen ? { show_price_to_brokers: data.show_price_to_brokers ?? true } : {}),
         ...(data.start_date ? { start_date: new Date(data.start_date).toISOString() } : {}),
         ...(data.end_date ? { end_date: new Date(data.end_date).toISOString() } : {}),
         ...(isDraft ? { status: 'draft' as const } : {}),
@@ -501,24 +504,32 @@ export default function CreateAuctionPage() {
               </div>
             )}
 
-            <Controller
-              name='show_price_to_brokers'
-              control={control}
-              render={({ field }) => (
-                <label className='flex items-start gap-2 cursor-pointer select-none'>
-                  <input
-                    type='checkbox'
-                    checked={field.value ?? true}
-                    onChange={(e) => field.onChange(e.target.checked)}
-                    className='mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20'
-                  />
-                  <span className='text-[13px] text-gray-700'>
-                    Показывать прайсовую цену брокерам
-                    <span className='block text-[11px] text-gray-400'>Если отключено, брокеры не увидят прайсовую цену</span>
-                  </span>
-                </label>
-              )}
-            />
+            {/* Per spec the «Показывать прайсовую цену брокерам»
+                toggle only applies to OPEN auctions — closed lots
+                are sealed-bid by definition, brokers never see other
+                bids or the developer's reference price either way.
+                Hide the checkbox when mode === 'closed' so the form
+                doesn't expose a knob that wouldn't do anything. */}
+            {selectedMode === 'open' && (
+              <Controller
+                name='show_price_to_brokers'
+                control={control}
+                render={({ field }) => (
+                  <label className='flex items-start gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={field.value ?? true}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      className='mt-0.5 size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20'
+                    />
+                    <span className='text-[13px] text-gray-700'>
+                      Показывать прайсовую цену брокерам
+                      <span className='block text-[11px] text-gray-400'>Если отключено, брокеры не увидят прайсовую цену</span>
+                    </span>
+                  </label>
+                )}
+              />
+            )}
           </div>
 
           {/* Right — Dates */}
