@@ -844,7 +844,7 @@ export default function AdminUsersPage() {
     ...(search && { search }),
     ...(dateFrom && { date_from: dateFrom }),
     ...(dateTo && { date_to: dateTo }),
-    ordering: '-created_at',
+    ordering: '-date_joined',
     page_size: PAGE_SIZE,
     page,
   };
@@ -1057,7 +1057,7 @@ export default function AdminUsersPage() {
                   </td>
                   <td className='px-5 py-3.5'>
                     <span className='text-[13px] text-gray-500 whitespace-nowrap'>
-                      {formatRegistrationDate(user.created_at)}
+                      {formatRegistrationDate(user.date_joined)}
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>

@@ -24,6 +24,10 @@ export type AdminUser = {
   } | null;
   documents: UserDocument[];
   is_active?: boolean;
+  // Backend uses Django's standard `date_joined` (auto-populated by
+  // the User model with `default=timezone.now`). `created_at` is kept
+  // for backward compat in case any older code path reads it.
+  date_joined?: string;
   created_at?: string;
 };
 
