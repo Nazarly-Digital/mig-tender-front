@@ -462,11 +462,21 @@ export default function DocumentsPage() {
               <tbody>
                 {otherDocs.map((doc) => (
                   <tr key={doc.id} className='border-b border-gray-100 last:border-0 transition-colors hover:bg-gray-50/50'>
-                    <td className='px-5 py-3.5'>
-                      <span className='text-[13px] font-medium text-gray-900'>{doc.document_name || '—'}</span>
+                    <td className='px-5 py-3.5 max-w-[420px]'>
+                      <span
+                        className='block truncate text-[13px] font-medium text-gray-900'
+                        title={doc.document_name || undefined}
+                      >
+                        {doc.document_name || '—'}
+                      </span>
                     </td>
                     <td className='px-5 py-3.5'>
-                      <span className='text-[13px] text-gray-500 truncate max-w-[260px] inline-block'>{doc.filename}</span>
+                      <span
+                        className='text-[13px] text-gray-500 truncate max-w-[260px] inline-block'
+                        title={doc.filename}
+                      >
+                        {doc.filename}
+                      </span>
                     </td>
                     <td className='px-5 py-3.5'>
                       <span className='text-[13px] text-gray-500'>{formatDate(doc.created_at)}</span>
