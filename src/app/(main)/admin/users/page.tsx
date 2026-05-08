@@ -22,6 +22,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
+import { DatePicker } from '@/shared/ui/date-picker';
 import { PageHeader } from '@/shared/components/page-header';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import {
@@ -1019,18 +1020,12 @@ export default function AdminUsersPage() {
           </select>
         )}
         <span className='text-[12px] font-medium text-gray-500'>Период:</span>
-        <input
-          type='date'
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
-        />
-        <input
-          type='date'
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
-        />
+        {/* Нативный <input type='date'> ставит placeholder из локали
+            браузера (dd.mm.yyyy на английских системах). DatePicker
+            из shared/ui всегда рисует «дд.мм.гггг» и календарь на
+            русском (react-day-picker locale=ru). */}
+        <DatePicker size='small' value={dateFrom} onChange={setDateFrom} />
+        <DatePicker size='small' value={dateTo} onChange={setDateTo} min={dateFrom || undefined} />
       </div>
 
       {/* Content */}

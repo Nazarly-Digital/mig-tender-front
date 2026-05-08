@@ -16,6 +16,7 @@ import { useDeals, useAdminApproveDeal, useAdminRejectDeal } from '@/features/de
 import type { Deal, DealStatus } from '@/shared/types/deals';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { DatePicker } from '@/shared/ui/date-picker';
 import { useDebouncedValue } from '@/shared/hooks/use-debounced-value';
 
 type TabFilter = 'all' | DealStatus | 'overdue';
@@ -490,18 +491,11 @@ export function AdminDealsView() {
             className='h-9 w-48 rounded-lg border border-gray-300 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
           />
           <span className='text-[12px] font-medium text-gray-500'>Период:</span>
-          <input
-            type='date'
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
-          />
-          <input
-            type='date'
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
-          />
+          {/* DatePicker из shared/ui — рисует «дд.мм.гггг» и
+              русский календарь, нативный <input type='date'>
+              брал placeholder из локали браузера. */}
+          <DatePicker size='small' value={dateFrom} onChange={setDateFrom} />
+          <DatePicker size='small' value={dateTo} onChange={setDateTo} min={dateFrom || undefined} />
           {(brokerSearch || developerSearch || dateFrom || dateTo) && (
             <button
               type='button'
