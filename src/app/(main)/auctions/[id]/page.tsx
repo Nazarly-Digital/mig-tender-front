@@ -1465,13 +1465,26 @@ export default function AuctionDetailPage() {
                   {sortedBids.map((bid, idx) => {
                     const isLeader = idx === 0;
                     const ts = bid.updated_at ?? bid.created_at;
+                    // ФИО приходит из WS payload (OwnerBidSerializer +
+                    // фильтр в AuctionLiveBidConsumer для не-owner). Если
+                    // вдруг null — фолбэк на «Брокер #id», но в норме
+                    // девелопер видит «Имя Фамилия».
+                    const fullName = `${bid.first_name ?? ''} ${bid.last_name ?? ''}`.trim();
+                    const displayName = fullName || `Брокер #${bid.broker_id}`;
+                    const initials = fullName
+                      ? fullName
+                          .split(' ')
+                          .map((part) => part[0]?.toUpperCase() ?? '')
+                          .join('')
+                          .slice(0, 2)
+                      : `#${bid.broker_id}`;
                     return (
                       <div key={bid.id} className='flex items-center justify-between rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
                         <div className='flex items-center gap-2.5'>
                           <div className='size-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600'>
-                            {`#${bid.broker_id}`}
+                            {initials}
                           </div>
-                          <span className='text-[12px] text-gray-500'>{`#${bid.broker_id}`}</span>
+                          <span className='text-[13px] font-medium text-gray-900'>{displayName}</span>
                           <span className='text-[13px] font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</span>
                           {isLeader && (
                             <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Лидер</span>

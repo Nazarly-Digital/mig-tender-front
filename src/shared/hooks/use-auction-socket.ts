@@ -12,6 +12,11 @@ export type WsBid = {
   auction_id: number;
   broker_id: number;
   amount: string;
+  // ФИО приходит с бэка ТОЛЬКО для owner/admin. Брокеры получают
+  // payload без этих полей (фильтр в AuctionLiveBidConsumer на
+  // уровне consumer.bid_created/bid_updated/snapshot).
+  first_name?: string;
+  last_name?: string;
   created_at: string;
   updated_at?: string;
 };
