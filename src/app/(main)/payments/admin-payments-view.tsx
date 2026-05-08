@@ -13,6 +13,8 @@ import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
+import * as Modal from '@/shared/ui/modal';
+import * as FancyButton from '@/shared/ui/fancy-button';
 import {
   useSettlements,
   useSettlementSummary,
@@ -56,6 +58,10 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
   const fileRef = React.useRef<HTMLInputElement>(null);
   const markPaid = useMarkPaidToBroker();
   const confirmRecv = useConfirmDeveloperReceipt();
+  // QA: «нет возможности просмотреть чек до подтверждения». Force the
+  // admin through a confirmation modal that surfaces the receipt link
+  // — clicking «Подтвердить» on the card no longer confirms blindly.
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
 
   const handlePickFile = () => fileRef.current?.click();
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,12 +75,17 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
     markPaid.mutate({ settlementId: s.id, file });
   };
 
-  const handleConfirm = () => {
+  const handleOpenConfirm = () => {
     if (!s.developer_receipt) {
       toast.error('Девелопер ещё не загрузил чек');
       return;
     }
-    confirmRecv.mutate(s.id);
+    setConfirmOpen(true);
+  };
+  const handleConfirm = () => {
+    confirmRecv.mutate(s.id, {
+      onSuccess: () => setConfirmOpen(false),
+    });
   };
 
   const totalRate = (parseFloat(s.broker_rate || '0') + parseFloat(s.platform_rate || '0')).toFixed(2);
@@ -210,11 +221,11 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
             ) : !s.received_from_developer && s.developer_receipt ? (
               <button
                 type='button'
-                onClick={handleConfirm}
+                onClick={handleOpenConfirm}
                 disabled={confirmRecv.isPending}
                 className='bg-blue-600 text-white px-3 py-1.5 text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
               >
-                {confirmRecv.isPending ? 'Подтверждение...' : 'Подтвердить'}
+                Подтвердить
               </button>
             ) : null}
           </div>
@@ -228,6 +239,55 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
         <p className='text-sm font-semibold text-gray-900'>Доход платформы ({s.platform_rate}%)</p>
         <p className='text-base font-bold text-emerald-600'>{formatPrice(s.platform_amount)}</p>
       </div>
+
+      {/* Confirm modal — admin must see the receipt before confirming. */}
+      <Modal.Root open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <Modal.Content className='max-w-[480px]'>
+          <Modal.Header
+            title='Подтвердить получение от девелопера'
+            description='Проверьте загруженный девелопером чек. После подтверждения отменить действие будет нельзя.'
+          />
+          <Modal.Body className='space-y-3'>
+            <div className='rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm'>
+              <div className='flex items-center justify-between gap-3'>
+                <span className='text-gray-500'>Сумма к получению</span>
+                <span className='font-semibold text-gray-900'>{formatPrice(s.total_from_developer)}</span>
+              </div>
+              {s.developer_receipt_uploaded_at && (
+                <div className='mt-1.5 flex items-center justify-between gap-3'>
+                  <span className='text-gray-500'>Чек загружен</span>
+                  <span className='text-gray-900'>{new Date(s.developer_receipt_uploaded_at).toLocaleDateString('ru-RU')}</span>
+                </div>
+              )}
+            </div>
+            {s.developer_receipt ? (
+              <button
+                type='button'
+                onClick={() => openAuthedFile(s.developer_receipt!)}
+                className='flex w-full items-center justify-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100'
+              >
+                <HugeiconsIcon icon={File01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                Открыть чек
+              </button>
+            ) : (
+              <p className='text-xs text-gray-500'>Чек недоступен для предпросмотра.</p>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>Отмена</FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='primary'
+              size='small'
+              onClick={handleConfirm}
+              disabled={confirmRecv.isPending}
+            >
+              {confirmRecv.isPending ? 'Подтверждение...' : 'Подтвердить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
     </div>
   );
 }
