@@ -235,7 +235,14 @@ export default function DashboardPage() {
   const { data: propertiesData } = useMyProperties({ page_size: 5, ordering: '-created_at' });
   const { data: allPropertiesData } = useProperties({ page_size: 1 }, { enabled: isAdmin });
   const { data: catalogData } = useProperties({ page_size: 1 }, { enabled: isBroker });
-  const { data: pendingData } = usePendingProperties({ page_size: 1 }, { enabled: isAdmin });
+  // Endpoint /admin/properties/ возвращает все объекты с поддержкой
+  // фильтра по moderation_status. Без явного 'pending' счётчик
+  // «Объекты на модерации» считал total (включая approved/rejected) —
+  // в админке висели сотни вместо реальных пары неподтверждённых.
+  const { data: pendingData } = usePendingProperties(
+    { page_size: 1, moderation_status: 'pending' },
+    { enabled: isAdmin },
+  );
   const myAuctions = useMyAuctions(isDeveloper ? { page_size: 5, ordering: '-created_at' } : undefined);
   const allAuctions = useAuctions(!isDeveloper ? { page_size: 5, ordering: '-created_at' } : undefined);
   const activeAuctions = useAuctions({ status: 'active', page_size: 1 }, { enabled: isBroker });
