@@ -56,4 +56,10 @@ export const paymentsService = {
     apiInstance.post<Settlement>(
       `/payments/settlements/${settlementId}/confirm-developer-receipt/`,
     ),
+
+  rejectDeveloperReceipt: (settlementId: number, reason: string) =>
+    apiInstance.post<Settlement>(
+      `/payments/settlements/${settlementId}/reject-developer-receipt/`,
+      { reason },
+    ),
 };

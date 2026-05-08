@@ -8,4 +8,5 @@ export {
   useMarkPaidToBroker,
   useUploadDeveloperReceipt,
   useConfirmDeveloperReceipt,
+  useRejectDeveloperReceipt,
 } from "./model/queries";

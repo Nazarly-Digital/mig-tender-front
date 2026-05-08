@@ -142,6 +142,20 @@ function DeveloperSettlementCard({ s }: { s: Settlement }) {
         )}
       </div>
 
+      {/* Admin-rejection notice — shown only while there's no fresh
+          receipt yet AND a previous one was rejected. The reason is
+          cleared when admin confirms the next upload. */}
+      {!isPaid && !hasUploaded && s.developer_receipt_rejection_reason && (
+        <div className='mx-3 mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5'>
+          <div className='text-[12px] font-semibold text-red-700'>
+            Чек отклонён администратором
+          </div>
+          <div className='mt-0.5 text-[12px] text-red-600 whitespace-pre-wrap break-words'>
+            {s.developer_receipt_rejection_reason}
+          </div>
+        </div>
+      )}
+
       {!isPaid && (
         <>
           <input ref={fileRef} type='file' accept='image/*,.pdf' className='hidden' onChange={handleFile} />

@@ -105,3 +105,25 @@ export function useConfirmDeveloperReceipt() {
     },
   });
 }
+
+export function useRejectDeveloperReceipt() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ settlementId, reason }: { settlementId: number; reason: string }) =>
+      paymentsService
+        .rejectDeveloperReceipt(settlementId, reason)
+        .then((res) => res.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: paymentKeys.all });
+      toast.success("Чек отклонён, девелопер уведомлён");
+    },
+    onError: (err: unknown) => {
+      const e = err as { response?: { data?: { detail?: string; reason?: string[] } } };
+      const data = e.response?.data;
+      toast.error(
+        (Array.isArray(data?.reason) ? data?.reason[0] : data?.detail) ??
+          "Не удалось отклонить чек",
+      );
+    },
+  });
+}

@@ -20,6 +20,7 @@ import {
   useSettlementSummary,
   useMarkPaidToBroker,
   useConfirmDeveloperReceipt,
+  useRejectDeveloperReceipt,
 } from '@/features/payments';
 import type { Settlement } from '@/shared/types/payments';
 
@@ -58,10 +59,14 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
   const fileRef = React.useRef<HTMLInputElement>(null);
   const markPaid = useMarkPaidToBroker();
   const confirmRecv = useConfirmDeveloperReceipt();
+  const rejectRecv = useRejectDeveloperReceipt();
   // QA: «нет возможности просмотреть чек до подтверждения». Force the
   // admin through a confirmation modal that surfaces the receipt link
   // — clicking «Подтвердить» on the card no longer confirms blindly.
   const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [rejectOpen, setRejectOpen] = React.useState(false);
+  const [rejectReason, setRejectReason] = React.useState('');
+  const REJECT_REASON_MAX = 1000;
 
   const handlePickFile = () => fileRef.current?.click();
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +91,23 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
     confirmRecv.mutate(s.id, {
       onSuccess: () => setConfirmOpen(false),
     });
+  };
+
+  const handleOpenReject = () => {
+    if (!s.developer_receipt) {
+      toast.error('Чек ещё не загружен');
+      return;
+    }
+    setRejectReason('');
+    setRejectOpen(true);
+  };
+  const handleReject = () => {
+    const reason = rejectReason.trim();
+    if (!reason) return;
+    rejectRecv.mutate(
+      { settlementId: s.id, reason },
+      { onSuccess: () => setRejectOpen(false) },
+    );
   };
 
   const totalRate = (parseFloat(s.broker_rate || '0') + parseFloat(s.platform_rate || '0')).toFixed(2);
@@ -219,14 +241,24 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
             {!s.paid_to_broker ? (
               <span className='text-xs text-gray-400'>после выплаты</span>
             ) : !s.received_from_developer && s.developer_receipt ? (
-              <button
-                type='button'
-                onClick={handleOpenConfirm}
-                disabled={confirmRecv.isPending}
-                className='bg-blue-600 text-white px-3 py-1.5 text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-              >
-                Подтвердить
-              </button>
+              <div className='flex items-center gap-1.5'>
+                <button
+                  type='button'
+                  onClick={handleOpenReject}
+                  disabled={rejectRecv.isPending || confirmRecv.isPending}
+                  className='border border-red-200 bg-white text-red-600 px-3 py-1.5 text-xs font-medium rounded-md hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                >
+                  Отклонить
+                </button>
+                <button
+                  type='button'
+                  onClick={handleOpenConfirm}
+                  disabled={confirmRecv.isPending || rejectRecv.isPending}
+                  className='bg-blue-600 text-white px-3 py-1.5 text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                >
+                  Подтвердить
+                </button>
+              </div>
             ) : null}
           </div>
         </div>
@@ -284,6 +316,44 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
               disabled={confirmRecv.isPending}
             >
               {confirmRecv.isPending ? 'Подтверждение...' : 'Подтвердить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
+
+      {/* Reject modal — clears the receipt so developer can re-upload. */}
+      <Modal.Root open={rejectOpen} onOpenChange={setRejectOpen}>
+        <Modal.Content className='max-w-[480px]'>
+          <Modal.Header
+            title='Отклонить чек девелопера'
+            description='Чек будет удалён. Девелопер увидит причину и сможет загрузить новый чек.'
+          />
+          <Modal.Body className='space-y-2'>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value.slice(0, REJECT_REASON_MAX))}
+              placeholder='Причина отклонения (обязательно)'
+              rows={4}
+              maxLength={REJECT_REASON_MAX}
+              className='w-full px-3 py-2.5 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-gray-400 transition-colors resize-none'
+            />
+            <div className='flex justify-end'>
+              <span className={`text-[11px] ${rejectReason.length >= REJECT_REASON_MAX ? 'text-red-500' : 'text-gray-400'}`}>
+                {rejectReason.length} / {REJECT_REASON_MAX}
+              </span>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>Отмена</FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='destructive'
+              size='small'
+              onClick={handleReject}
+              disabled={!rejectReason.trim() || rejectRecv.isPending}
+            >
+              {rejectRecv.isPending ? 'Отклонение...' : 'Отклонить'}
             </FancyButton.Root>
           </Modal.Footer>
         </Modal.Content>

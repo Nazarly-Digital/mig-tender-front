@@ -77,6 +77,10 @@ export type Settlement = {
   received_from_developer_at: string | null;
   developer_receipt: string | null;
   developer_receipt_uploaded_at: string | null;
+  // Set when admin rejects the developer's uploaded receipt; cleared
+  // back to "" once a new receipt is accepted. Surfaced to the
+  // developer in the «Загрузить чек» card so they know what to fix.
+  developer_receipt_rejection_reason?: string;
   developer_payment_deadline: string;
   developer_payment_overdue: boolean;
 
