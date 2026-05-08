@@ -41,6 +41,7 @@ export type TokenUser = {
     phone_number?: string;
     verified_at?: string | null;
     rejected_at?: string | null;
+    rejection_reason?: string | null;
   } | null;
   developer: {
     company_name?: string;
@@ -184,6 +185,7 @@ export type RegisterBrokerRequest = {
   phone_number: string;
   inn: File;
   passport: File;
+  auction_obligation_accepted: boolean;
 };
 
 export type RegisterResponse = {

@@ -799,7 +799,7 @@ function EditBrokerModal({
 
 // --- Main Page ---
 
-type RoleFilter = 'all' | 'developer' | 'broker';
+type RoleFilter = 'all' | 'developer' | 'broker' | 'admin';
 
 const PAGE_SIZE = 20;
 
@@ -857,6 +857,7 @@ export default function AdminUsersPage() {
     { value: 'all', label: 'Все' },
     { value: 'developer', label: 'Девелоперы' },
     { value: 'broker', label: 'Брокеры' },
+    { value: 'admin', label: 'Админы' },
   ];
 
   return (
@@ -1013,17 +1014,37 @@ export default function AdminUsersPage() {
                           Активен
                         </span>
                       )}
-                      {user.role === 'broker' && (
-                        user.broker?.is_verified ? (
-                          <span className='rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 whitespace-nowrap'>
-                            Верифицирован
-                          </span>
-                        ) : (
+                      {user.role === 'broker' && (() => {
+                        // Three real verification states — spec covers
+                        // accepted / pending / rejected. Earlier we only
+                        // looked at `is_verified` so a rejected broker
+                        // shared the «Не верифицирован» badge with one
+                        // who hadn't been reviewed yet, hiding admin
+                        // rejection from the list view.
+                        const vs = user.broker?.verification_status;
+                        if (vs === 'accepted') {
+                          return (
+                            <span className='rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 whitespace-nowrap'>
+                              Верифицирован
+                            </span>
+                          );
+                        }
+                        if (vs === 'rejected') {
+                          return (
+                            <span
+                              className='rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700 whitespace-nowrap'
+                              title={user.broker?.rejection_reason ?? undefined}
+                            >
+                              Отклонён
+                            </span>
+                          );
+                        }
+                        return (
                           <span className='rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 whitespace-nowrap'>
-                            Не верифицирован
+                            На проверке
                           </span>
-                        )
-                      )}
+                        );
+                      })()}
                     </div>
                   </td>
                   <td className='px-5 py-3.5'>
