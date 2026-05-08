@@ -978,8 +978,11 @@ export default function AuctionDetailPage() {
     auction_id: b.auction_id,
     broker_id: b.broker_id,
     amount: b.amount,
-    first_name: '',
-    last_name: '',
+    // ФИО прокидываем из WS-payload (OwnerBidSerializer на бэке).
+    // Раньше тут стояли '' — после переключения с REST на WS таблица
+    // «Ставки» теряла имена и ставила фолбэк «Брокер #id».
+    first_name: b.first_name ?? '',
+    last_name: b.last_name ?? '',
     created_at: b.created_at,
     updated_at: b.created_at,
   }));

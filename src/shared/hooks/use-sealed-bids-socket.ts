@@ -10,6 +10,11 @@ export type WsSealedBid = {
   auction_id: number;
   broker_id: number;
   amount: string;
+  // ФИО приходит с бэка только для owner/admin (см. OwnerBidSerializer
+  // на backend). Брокеры к этому WS не подключаются — гейт в
+  // ClosedAuctionBidsConsumer.connect рубит их с code 4403.
+  first_name?: string;
+  last_name?: string;
   created_at: string;
 };
 
