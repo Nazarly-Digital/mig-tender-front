@@ -476,7 +476,9 @@ export const propertySchema = z.object({
   { message: 'Укажите номер участка', path: ['land_number'] },
 ).refine(
   (data) => {
-    if (data.type !== 'house' && data.type !== 'townhouse') return true;
+    // Townhouse адресуется этажом, а не номером дома — поле обязательно
+    // только для частных домов.
+    if (data.type !== 'house') return true;
     return !!data.house_number && data.house_number.trim().length > 0;
   },
   { message: 'Укажите номер дома', path: ['house_number'] },
