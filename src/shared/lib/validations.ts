@@ -484,10 +484,11 @@ export const auctionDraftSchema = z.object({
     .array(z.string())
     .min(1, 'Выберите хотя бы один объект'),
   mode: z.string().min(1, 'Выберите тип аукциона'),
-  min_price: z
-    .string()
-    .min(1, 'Введите минимальную цену')
-    .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
+  // Стартовая цена — концепция OPEN-аукциона (минимум для первой ставки).
+  // В CLOSED брокеры подают запечатанные ставки против собственной оценки,
+  // стартовая цена там просто не существует. Поэтому строка может быть
+  // пустой; refine ниже требует число только в open-mode.
+  min_price: z.string().optional(),
   min_bid_increment: z.string().optional(),
   show_price_to_brokers: z.boolean().optional(),
   start_date: z.string().optional(),
@@ -501,10 +502,7 @@ export const auctionSchema = z.object({
     .array(z.string())
     .min(1, 'Выберите хотя бы один объект'),
   mode: z.string().min(1, 'Выберите тип аукциона'),
-  min_price: z
-    .string()
-    .min(1, 'Введите минимальную цену')
-    .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0'),
+  min_price: z.string().optional(),
   min_bid_increment: z.string().optional(),
   show_price_to_brokers: z.boolean().optional(),
   start_date: z
@@ -540,6 +538,15 @@ export const auctionSchema = z.object({
   },
   { message: 'Введите шаг ставки (минимум 1)',
     path: ['min_bid_increment'] },
+).refine(
+  (data) => {
+    // В open-mode стартовая цена — обязательное поле, минимум первой ставки.
+    if (data.mode !== 'open') return true;
+    if (!data.min_price || !data.min_price.trim()) return false;
+    return parseFloat(data.min_price) > 0;
+  },
+  { message: 'Введите стартовую цену',
+    path: ['min_price'] },
 );
 
 export type AuctionFormData = z.infer<typeof auctionSchema>;

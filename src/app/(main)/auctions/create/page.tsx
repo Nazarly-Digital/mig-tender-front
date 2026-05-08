@@ -285,7 +285,9 @@ export default function CreateAuctionPage() {
       {
         propertyIds: data.propertyIds.map(Number),
         mode: data.mode as AuctionMode,
-        min_price: data.min_price,
+        // CLOSED-аукциону min_price не показывается в форме (sealed-bid
+        // против собственной оценки брокера), бэк требует число — шлём 0.
+        min_price: isOpen ? data.min_price : '0',
         ...(isOpen && data.min_bid_increment ? { min_bid_increment: data.min_bid_increment } : {}),
         // `show_price_to_brokers` only applies to OPEN auctions — for
         // CLOSED skip the field entirely so a stale `false` left over
@@ -360,25 +362,30 @@ export default function CreateAuctionPage() {
               {errors.mode && <p className='text-xs text-red-500'>{errors.mode.message}</p>}
             </div>
 
-            <div className='space-y-1.5'>
-              <Label.Root htmlFor='auction-min-price'>Стартовая цена <Label.Asterisk /></Label.Root>
-              <Controller control={control} name='min_price' render={({ field }) => (
-                <Input.Root>
-                  <Input.Wrapper>
-                    <Input.Input
-                      id='auction-min-price'
-                      type='text'
-                      inputMode='decimal'
-                      placeholder='10 000 000 ₽'
-                      value={formatPriceInput(field.value)}
-                      onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
-                      onBlur={field.onBlur}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-              )} />
-              {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
-            </div>
+            {selectedMode === 'open' && (
+              // CLOSED-mode не использует min_price (брокеры подают
+              // запечатанные ставки против собственной оценки), поле
+              // в спеке для них не показывается.
+              <div className='space-y-1.5'>
+                <Label.Root htmlFor='auction-min-price'>Стартовая цена <Label.Asterisk /></Label.Root>
+                <Controller control={control} name='min_price' render={({ field }) => (
+                  <Input.Root>
+                    <Input.Wrapper>
+                      <Input.Input
+                        id='auction-min-price'
+                        type='text'
+                        inputMode='decimal'
+                        placeholder='10 000 000 ₽'
+                        value={formatPriceInput(field.value)}
+                        onChange={(e) => field.onChange(stripPriceFormat(e.target.value))}
+                        onBlur={field.onBlur}
+                      />
+                    </Input.Wrapper>
+                  </Input.Root>
+                )} />
+                {errors.min_price && <p className='text-xs text-red-500'>{errors.min_price.message}</p>}
+              </div>
+            )}
 
             {/* Property selection */}
             <div className='space-y-2'>
