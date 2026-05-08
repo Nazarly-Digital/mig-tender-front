@@ -46,8 +46,11 @@ function getBrokerAuctionStatus(auction: Auction, userId: number | undefined): {
     return { label: 'Черновик', cls: 'bg-gray-100 text-gray-600' };
   }
 
-  // status === 'finished' — derive from winner + owner decision + deal outcome
-  const iAmWinner = userId != null && auction.winner_bid?.broker.id === userId;
+  // status === 'finished' — derive from winner + owner decision + deal outcome.
+  // Backend маскирует winner_bid.broker = null для проигравшего брокера
+  // (см. бэк-фикс 6308404 — sealed-bid privacy). Победитель видит свои
+  // данные в реальном виде. Optional chain нужен на оба уровня.
+  const iAmWinner = userId != null && auction.winner_bid?.broker?.id === userId;
 
   if (iAmWinner) {
     if (auction.has_failed_deal) {
