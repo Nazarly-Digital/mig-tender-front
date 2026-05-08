@@ -200,14 +200,25 @@ function AuctionCard({ auction }: { auction: Auction }) {
 // Broker tabs follow the spec: «Все активные» (the catalog of joinable
 // auctions) + «Мои» (where the broker has placed a bid) with sub-tabs
 // active / finished / failed.
-type Tab = 'all' | 'active' | 'finished' | 'draft' | 'mine';
+type Tab =
+  | 'all'
+  | 'scheduled'
+  | 'active'
+  | 'finished'
+  | 'failed'
+  | 'cancelled'
+  | 'draft'
+  | 'mine';
 type BrokerSubTab = 'active' | 'finished' | 'failed';
 
 const ROLE_TABS: Record<'developer' | 'admin' | 'broker', { value: Tab; label: string }[]> = {
   developer: [
     { value: 'all', label: 'Все' },
+    { value: 'scheduled', label: 'Запланированные' },
     { value: 'active', label: 'Активные' },
     { value: 'finished', label: 'Завершённые' },
+    { value: 'failed', label: 'Несостоявшиеся' },
+    { value: 'cancelled', label: 'Отменённые' },
     { value: 'draft', label: 'Черновики' },
   ],
   // Per spec the admin auctions catalog excludes drafts — those are
@@ -230,7 +241,16 @@ const BROKER_SUB_TABS: { value: BrokerSubTab; label: string }[] = [
   { value: 'failed', label: 'Несостоявшиеся' },
 ];
 
-const VALID_TABS = new Set<Tab>(['all', 'active', 'finished', 'draft', 'mine']);
+const VALID_TABS = new Set<Tab>([
+  'all',
+  'scheduled',
+  'active',
+  'finished',
+  'failed',
+  'cancelled',
+  'draft',
+  'mine',
+]);
 const VALID_BROKER_SUB = new Set<BrokerSubTab>(['active', 'finished', 'failed']);
 
 function parseTab(raw: string | null): Tab {
@@ -315,7 +335,16 @@ export default function AuctionsPage() {
     }
   } else {
     fetchParams = {
-      ...(tab !== 'all' && { status: tab as 'active' | 'finished' | 'draft' }),
+      ...(tab !== 'all' &&
+        tab !== 'mine' && {
+          status: tab as
+            | 'scheduled'
+            | 'active'
+            | 'finished'
+            | 'failed'
+            | 'cancelled'
+            | 'draft',
+        }),
       ordering: '-created_at',
       page,
       page_size: pageSize,
