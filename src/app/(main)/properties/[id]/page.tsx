@@ -434,7 +434,12 @@ function PropertyEditForm({
   const selectedType = watch('type');
   const isLand = selectedType === 'land';
   const isCommercial = selectedType === 'commercial';
-  const hasFloor = selectedType === 'apartment' || selectedType === 'commercial';
+  // Townhouse имеет и номер дома, и этажность — должны быть оба поля,
+  // как и в форме создания (см. properties/create/page.tsx).
+  const hasFloor =
+    selectedType === 'apartment' ||
+    selectedType === 'commercial' ||
+    selectedType === 'townhouse';
   const hasHouseNumber = selectedType === 'house' || selectedType === 'townhouse';
 
   React.useEffect(() => {
@@ -730,7 +735,12 @@ export default function PropertyDetailPage() {
           property_class: data.property_class ? data.property_class as PropertyClass : null,
           status: data.status as PropertyStatus,
           deadline: data.deadline || null,
-          floor: (data.type === 'apartment' || data.type === 'commercial') && data.floor ? parseInt(data.floor) : null,
+          floor:
+            (data.type === 'apartment' ||
+              data.type === 'commercial' ||
+              data.type === 'townhouse') && data.floor
+              ? parseInt(data.floor)
+              : null,
           developer_name: data.developer_name,
           project: data.project,
           commercial_subtype: data.type === 'commercial' && data.commercial_subtype ? (data.commercial_subtype as CommercialSubtype) : null,

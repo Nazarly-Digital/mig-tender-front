@@ -454,7 +454,15 @@ export const propertySchema = z.object({
   { message: 'Выберите подтип', path: ['commercial_subtype'] },
 ).refine(
   (data) => {
-    if (data.type !== 'apartment' && data.type !== 'commercial') return true;
+    // Townhouse теперь тоже требует этаж — у двух/трёхэтажных корпусов
+    // девелоперу нужно показать брокеру, на каком этаже квартира.
+    if (
+      data.type !== 'apartment' &&
+      data.type !== 'commercial' &&
+      data.type !== 'townhouse'
+    ) {
+      return true;
+    }
     if (!data.floor || !data.floor.trim()) return false;
     const n = parseInt(data.floor, 10);
     return Number.isInteger(n) && n > 0 && n <= MAX_FLOOR;

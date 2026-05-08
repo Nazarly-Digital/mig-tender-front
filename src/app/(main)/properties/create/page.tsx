@@ -78,7 +78,13 @@ export default function CreatePropertyPage() {
   const selectedType = watch('type');
   const isLand = selectedType === 'land';
   const isCommercial = selectedType === 'commercial';
-  const hasFloor = selectedType === 'apartment' || selectedType === 'commercial';
+  // У таунхауса есть и номер дома (какой именно из кластера), и этажность —
+  // двух- или трёхэтажные постройки нормальная история; девелоперу нужно
+  // указывать оба поля, иначе брокер не понимает «дом 5, какой этаж?».
+  const hasFloor =
+    selectedType === 'apartment' ||
+    selectedType === 'commercial' ||
+    selectedType === 'townhouse';
   const hasHouseNumber = selectedType === 'house' || selectedType === 'townhouse';
 
   // Sync company name after zustand persist rehydration
@@ -168,7 +174,8 @@ export default function CreatePropertyPage() {
     setSubmitting(true);
     try {
       const type = data.type as PropertyType;
-      const needsFloor = type === 'apartment' || type === 'commercial';
+      const needsFloor =
+        type === 'apartment' || type === 'commercial' || type === 'townhouse';
       const needsHouseNumber = type === 'house' || type === 'townhouse';
       // Override status with the value chosen by the clicked button.
       data = { ...data, status: submitStatusRef.current };
