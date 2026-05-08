@@ -79,6 +79,10 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
 };
 
 const PROPERTY_CLASS_LABELS: Record<string, string> = {
+  // Канон спеки: эконом / комфорт / бизнес / премиум.
+  // `elite` — legacy-значение из ранней версии модели, оставляю
+  // для обратной совместимости со старыми строками в БД.
+  economy: 'Эконом',
   comfort: 'Комфорт',
   business: 'Бизнес',
   premium: 'Премиум',

@@ -31,6 +31,9 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const CLASS_LABELS: Record<string, string> = {
+  // Канон спеки: эконом / комфорт / бизнес / премиум.
+  // `elite` — legacy для старых строк в БД.
+  economy: 'Эконом',
   comfort: 'Комфорт',
   business: 'Бизнес',
   premium: 'Премиум',
