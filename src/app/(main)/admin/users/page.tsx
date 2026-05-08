@@ -291,6 +291,100 @@ function RejectBrokerModal({
   );
 }
 
+// --- Documents Modal ---
+
+const DOC_TYPE_LABELS: Record<string, string> = {
+  passport: 'Паспорт',
+  inn: 'ИНН',
+  others: 'Прочие',
+};
+
+// Render order — passport/inn first (verification-critical), then others.
+const DOC_TYPE_ORDER: Array<'passport' | 'inn' | 'others'> = ['passport', 'inn', 'others'];
+
+function DocumentsModal({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: AdminUser | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  if (!user) return null;
+
+  const grouped = DOC_TYPE_ORDER.map((type) => ({
+    type,
+    label: DOC_TYPE_LABELS[type],
+    docs: (user.documents ?? []).filter((d) => d.doc_type === type),
+  })).filter((g) => g.docs.length > 0);
+
+  return (
+    <Modal.Root open={open} onOpenChange={onOpenChange}>
+      <Modal.Content className='max-w-[520px]'>
+        <Modal.Header
+          title='Документы'
+          description={`${user.first_name} ${user.last_name} (${user.email})`}
+        />
+        <Modal.Body>
+          {grouped.length === 0 ? (
+            <p className='text-[13px] text-gray-500'>У пользователя нет загруженных документов.</p>
+          ) : (
+            <div className='flex flex-col gap-5'>
+              {grouped.map((group) => (
+                <section key={group.type} className='flex flex-col gap-2'>
+                  <div className='flex items-center gap-2'>
+                    <h4 className='text-[12px] font-semibold uppercase tracking-wide text-gray-500'>
+                      {group.label}
+                    </h4>
+                    <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'>
+                      {group.docs.length}
+                    </span>
+                  </div>
+                  <ul className='flex flex-col gap-1.5'>
+                    {group.docs.map((doc) => (
+                      <li
+                        key={doc.id}
+                        className='flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2.5'
+                      >
+                        <div className='min-w-0 flex-1'>
+                          <p className='truncate text-[13px] font-medium text-gray-900'>
+                            {doc.document_name || doc.filename || group.label}
+                          </p>
+                          {doc.extension && (
+                            <p className='text-[11px] text-gray-400'>
+                              {doc.extension.replace(/^\./, '').toUpperCase()}
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type='button'
+                          onClick={() => openAuthedFile(doc.url)}
+                          className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 cursor-pointer whitespace-nowrap'
+                        >
+                          <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                          Скачать
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Modal.Close asChild>
+            <FancyButton.Root variant='basic' size='small'>
+              Закрыть
+            </FancyButton.Root>
+          </Modal.Close>
+        </Modal.Footer>
+      </Modal.Content>
+    </Modal.Root>
+  );
+}
+
 // --- Edit Developer Modal ---
 
 function EditDeveloperModal({
@@ -826,6 +920,7 @@ export default function AdminUsersPage() {
   const [rejectTarget, setRejectTarget] = React.useState<AdminUser | null>(null);
   const [editTarget, setEditTarget] = React.useState<AdminUser | null>(null);
   const [editBrokerTarget, setEditBrokerTarget] = React.useState<AdminUser | null>(null);
+  const [documentsTarget, setDocumentsTarget] = React.useState<AdminUser | null>(null);
 
   React.useEffect(() => {
     setPage(1);
@@ -1058,23 +1153,18 @@ export default function AdminUsersPage() {
                     </span>
                   </td>
                   <td className='px-5 py-3.5'>
-                    <div className='flex items-center gap-2'>
-                      {user.documents?.length > 0 ? (
-                        user.documents.map((doc) => (
-                          <button
-                            key={doc.id}
-                            type='button'
-                            onClick={() => openAuthedFile(doc.url)}
-                            className='inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap cursor-pointer'
-                          >
-                            <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
-                            {doc.document_name || doc.doc_type}
-                          </button>
-                        ))
-                      ) : (
-                        <span className='text-[13px] text-gray-400'>—</span>
-                      )}
-                    </div>
+                    {user.documents?.length > 0 ? (
+                      <button
+                        type='button'
+                        onClick={() => setDocumentsTarget(user)}
+                        className='inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 whitespace-nowrap cursor-pointer'
+                      >
+                        <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
+                        Документы ({user.documents.length})
+                      </button>
+                    ) : (
+                      <span className='text-[13px] text-gray-400'>—</span>
+                    )}
                   </td>
                   <td className='px-5 py-3.5'>
                     <span className='text-[13px] text-gray-500 whitespace-nowrap'>
@@ -1168,6 +1258,13 @@ export default function AdminUsersPage() {
         open={!!editBrokerTarget}
         onOpenChange={(open) => {
           if (!open) setEditBrokerTarget(null);
+        }}
+      />
+      <DocumentsModal
+        user={documentsTarget}
+        open={!!documentsTarget}
+        onOpenChange={(open) => {
+          if (!open) setDocumentsTarget(null);
         }}
       />
     </div>
