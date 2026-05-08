@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useNotificationsSocket } from '@/shared/hooks/use-notifications-socket';
 import { useNotificationsStore } from '@/entities/notifications';
 import { getNotificationRoute } from '@/shared/lib/notification-route';
+import { useSessionStore } from '@/entities/auth/model/store';
 
 /**
  * Headless component that opens the notifications WebSocket
@@ -19,6 +20,7 @@ export default function NotificationsConnector() {
   const pathname = usePathname();
   const items = useNotificationsStore((s) => s.items);
   const isConnected = useNotificationsStore((s) => s.isConnected);
+  const userRole = useSessionStore((s) => s.user?.role);
 
   // Track which IDs we've already requested to mark read in this session,
   // so that the optimistic-then-server-confirm window doesn't trigger
@@ -30,13 +32,13 @@ export default function NotificationsConnector() {
     for (const n of items) {
       if (n.is_read) continue;
       if (sentRef.current.has(n.id)) continue;
-      const route = getNotificationRoute(n);
+      const route = getNotificationRoute(n, userRole);
       if (route && pathname === route) {
         sentRef.current.add(n.id);
         markRead(n.id);
       }
     }
-  }, [pathname, items, isConnected, markRead]);
+  }, [pathname, items, isConnected, markRead, userRole]);
 
   return null;
 }

@@ -1,6 +1,9 @@
 import type { NotificationItem } from '@/shared/types/notifications';
 
-export function getNotificationRoute(n: NotificationItem): string | null {
+export function getNotificationRoute(
+  n: NotificationItem,
+  recipientRole?: string,
+): string | null {
   switch (n.category) {
     case 'auction':
       return n.auction_id ? `/auctions/${n.auction_id}` : '/auctions';
@@ -11,7 +14,7 @@ export function getNotificationRoute(n: NotificationItem): string | null {
     case 'property':
       return n.real_property_id ? `/properties/${n.real_property_id}` : '/properties';
     case 'user':
-      return '/admin/users';
+      return recipientRole === 'admin' ? '/admin/users' : '/cabinet';
     default:
       return null;
   }

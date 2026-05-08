@@ -17,6 +17,7 @@ import {
 import { useNotificationsStore, notificationsService } from '@/entities/notifications';
 import { useNotificationsSocket } from '@/shared/hooks/use-notifications-socket';
 import { getNotificationRoute } from '@/shared/lib/notification-route';
+import { useSessionStore } from '@/entities/auth/model/store';
 import type { NotificationItem, NotificationCategory } from '@/shared/types/notifications';
 import * as Popover from '@/shared/ui/popover';
 import * as TopbarItemButton from '@/shared/components/topbar-item-button';
@@ -126,6 +127,7 @@ export default function NotificationButton({
   const items = useNotificationsStore((s) => s.items);
   const appendItems = useNotificationsStore((s) => s.appendItems);
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
+  const userRole = useSessionStore((s) => s.user?.role);
   const { markRead, markAllRead } = useNotificationsSocket();
 
   // REST pagination — start by treating the WS snapshot as page 1; pull older
@@ -176,10 +178,10 @@ export default function NotificationButton({
 
   const handleClick = useCallback(
     (n: NotificationItem) => {
-      const route = getNotificationRoute(n);
+      const route = getNotificationRoute(n, userRole);
       if (route) router.push(route);
     },
-    [router],
+    [router, userRole],
   );
 
   return (
