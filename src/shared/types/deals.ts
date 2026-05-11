@@ -32,6 +32,14 @@ export type Deal = {
   broker_name: string;
   developer_name: string;
   property_address: string;
+  // Все объекты сделки. Для одиночной = 1 элемент (== real_property),
+  // для multi-property после consolidation/distribute — N элементов
+  // с адресами всех объектов, забранных этим брокером.
+  properties: Array<{
+    id: number;
+    address: string;
+    price: string | null;
+  }>;
   auction_mode: "open" | "closed";
   amount: string;
   status: DealStatus;

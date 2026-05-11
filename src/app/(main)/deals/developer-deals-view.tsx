@@ -188,6 +188,19 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
             <h3 className='mt-1 text-base font-semibold text-gray-900 truncate'>
               {deal.property_address}
             </h3>
+            {/* Multi-property сделка (после consolidation single-winner на
+                multi-объектный лот, или distribute-lot когда брокер забрал
+                несколько объектов): показываем все адреса под основным,
+                чтобы девелопер видел весь набор. */}
+            {deal.properties && deal.properties.length > 1 && (
+              <ul className='mt-1.5 space-y-0.5'>
+                {deal.properties.slice(1).map((p) => (
+                  <li key={p.id} className='text-xs text-gray-500 truncate'>
+                    + {p.address}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <span
             className={cn(
