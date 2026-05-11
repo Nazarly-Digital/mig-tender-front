@@ -13,6 +13,7 @@ import type {
   SelectWinnerRequest,
   RejectResultRequest,
   DeclineResultRequest,
+  DistributeLotRequest,
 } from "@/shared/types/auctions";
 
 export const auctionKeys = {
@@ -305,6 +306,28 @@ export function useRejectResult() {
     onSuccess: (_data, { auctionId }) => {
       queryClient.invalidateQueries({ queryKey: auctionKeys.detail(auctionId) });
       queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+    },
+  });
+}
+
+// Multi-winner closed lot — owner вручную сопоставляет каждый объект
+// одной из тай-ставок шортлиста. Бэк создаёт по сделке на брокера
+// (validation: 1:1 покрытие лота, bid_id из shortlist'а).
+export function useDistributeLot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      auctionId,
+      data,
+    }: {
+      auctionId: number;
+      data: DistributeLotRequest;
+    }) => auctionsService.distributeLot(auctionId, data).then((res) => res.data),
+    onSuccess: (_data, { auctionId }) => {
+      queryClient.invalidateQueries({ queryKey: auctionKeys.detail(auctionId) });
+      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
+      // Создаются новые сделки — обновим списки deals везде.
+      queryClient.invalidateQueries({ queryKey: dealKeys.all });
     },
   });
 }

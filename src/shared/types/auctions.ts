@@ -62,6 +62,11 @@ export type Auction = {
   owner_decided_at: string | null;
   // Populated by backend after /decline-result/ — IDs of bids that the owner already rejected as winner.
   declined_bids?: number[];
+  // Шортлист тай-кандидатов на multi-winner closed-аукционе. Если
+  // winner_bid пуст и shortlisted_bid_ids.length > 0 — нужна модалка
+  // распределения (POST /distribute-lot/). Для одиночного winner-а
+  // содержит [winner_bid_id], для FAILED/CANCELLED обычно [].
+  shortlisted_bid_ids: number[];
   created_at: string;
   updated_at: string;
 };
@@ -80,6 +85,25 @@ export type RejectResultResponse = {
   auctionId: number;
   status: "failed";
   ownerDecision: "rejected";
+};
+
+// --- Distribute lot (multi-winner closed auction) ---
+// Используется когда несколько брокеров поставили одинаковую максимальную
+// ставку на лот из нескольких объектов: владелец сопоставляет каждый
+// объект одной из тай-ставок шортлиста. Бэк создаёт по сделке на брокера.
+export type DistributeLotAssignment = {
+  propertyId: number;
+  bidId: number;
+};
+
+export type DistributeLotRequest = {
+  assignments: DistributeLotAssignment[];
+};
+
+export type DistributeLotResponse = {
+  auctionId: number;
+  ownerDecision: "confirmed";
+  createdDealIds: number[];
 };
 
 // --- Decline result (TZ 8.5) — skip current winner, try next candidate ---

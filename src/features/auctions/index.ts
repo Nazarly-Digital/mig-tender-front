@@ -18,4 +18,5 @@ export {
   useConfirmResult,
   useRejectResult,
   useDeclineResult,
+  useDistributeLot,
 } from "./model/queries";

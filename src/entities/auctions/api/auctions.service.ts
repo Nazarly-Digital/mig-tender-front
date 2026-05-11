@@ -20,6 +20,8 @@ import type {
   RejectResultResponse,
   DeclineResultRequest,
   DeclineResultResponse,
+  DistributeLotRequest,
+  DistributeLotResponse,
 } from "@/shared/types/auctions";
 
 export const auctionsService = {
@@ -78,6 +80,15 @@ export const auctionsService = {
   // TZ 8.5 — decline current winner, auto-promote next candidate
   declineResult: (auctionId: number, data: DeclineResultRequest) =>
     apiInstance.post<DeclineResultResponse>(`/auctions/${auctionId}/decline-result/`, data),
+
+  // Multi-winner closed lot: distribute objects among tied top-bidders.
+  // Only callable when auction.winner_bid is null and shortlist is non-empty
+  // (server validates the rest).
+  distributeLot: (auctionId: number, data: DistributeLotRequest) =>
+    apiInstance.post<DistributeLotResponse>(
+      `/auctions/${auctionId}/distribute-lot/`,
+      data,
+    ),
 
   // Compatible properties for lot
   getCompatibleProperties: (referenceId: string) =>

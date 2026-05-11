@@ -37,6 +37,7 @@ import {
   usePublishAuction,
   useConfirmResult,
   useRejectResult,
+  useDistributeLot,
 } from '@/features/auctions';
 import { useQueryClient } from '@tanstack/react-query';
 import { dealKeys } from '@/features/deals';
@@ -556,6 +557,167 @@ function SelectWinnerModal({
   );
 }
 
+// --- Distribute Lot Modal (multi-winner closed auction) ---
+//
+// Срабатывает когда несколько брокеров поставили одинаковую максимальную
+// ставку на лот из нескольких объектов. Бэк в этом случае оставил
+// auction.winner_bid пустым и заполнил shortlisted_bid_ids тай-кандидатами
+// (с отсечением по числу объектов в лоте). Владелец сопоставляет
+// каждый объект одной из тай-ставок шортлиста — endpoint создаст по
+// сделке на каждого уникального брокера в назначениях.
+
+function DistributeLotModal({
+  auctionId,
+  properties,
+  shortlistBids,
+  open,
+  onOpenChange,
+}: {
+  auctionId: number;
+  properties: AuctionLotProperty[];
+  shortlistBids: Bid[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  // Map property.id → выбранный bid.id (или null если ещё не назначен).
+  const [assignments, setAssignments] = React.useState<Record<number, number | null>>({});
+  const distribute = useDistributeLot();
+
+  // Сбрасываем стейт при открытии/смене лота.
+  React.useEffect(() => {
+    if (!open) return;
+    setAssignments(
+      Object.fromEntries(properties.map((p) => [p.id, null])),
+    );
+  }, [open, properties]);
+
+  const allAssigned = properties.every((p) => assignments[p.id] != null);
+  const orderedShortlist = React.useMemo(() => {
+    // Сортируем по сумме ставки, потом по ID — стабильный порядок,
+    // чтобы select'ы не «прыгали» при перерендере.
+    return [...shortlistBids].sort(
+      (a, b) =>
+        parseFloat(b.amount) - parseFloat(a.amount) || a.id - b.id,
+    );
+  }, [shortlistBids]);
+
+  const handleSubmit = () => {
+    if (!allAssigned) return;
+    const payload = properties.map((p) => ({
+      propertyId: p.id,
+      bidId: assignments[p.id] as number,
+    }));
+    distribute.mutate(
+      { auctionId, data: { assignments: payload } },
+      {
+        onSuccess: (data) => {
+          toast.success(
+            `Распределение подтверждено. Создано сделок: ${data.createdDealIds.length}.`,
+          );
+          onOpenChange(false);
+        },
+        onError: (error) => toast.error(getApiError(error)),
+      },
+    );
+  };
+
+  return (
+    <Modal.Root open={open} onOpenChange={onOpenChange}>
+      <Modal.Content className='max-w-[640px]'>
+        <Modal.Header
+          title='Распределить объекты лота'
+          description='Несколько брокеров поставили одинаковую максимальную ставку. Назначьте каждому объекту брокера из шортлиста — будет создана сделка на каждого уникального брокера.'
+        />
+        <Modal.Body className='max-h-[480px] space-y-3 overflow-y-auto'>
+          {properties.length === 0 ? (
+            <p className='text-sm text-gray-500'>В лоте нет объектов.</p>
+          ) : (
+            properties.map((prop) => (
+              <div
+                key={prop.id}
+                className='rounded-xl border border-gray-200 p-4 space-y-2'
+              >
+                <div className='flex items-start justify-between gap-3'>
+                  <div className='min-w-0 flex-1'>
+                    <p className='text-sm font-medium text-gray-900 truncate'>
+                      {prop.address || `Объект #${prop.id}`}
+                    </p>
+                    <p className='text-xs text-gray-500 mt-0.5'>
+                      {getPropertyTypeLabel(prop.type)}
+                      {prop.area ? ` · ${prop.area} м²` : ''}
+                      {prop.price ? ` · ${formatPrice(prop.price)} ₽` : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className='space-y-1.5'>
+                  {orderedShortlist.map((bid) => {
+                    const isSelected = assignments[prop.id] === bid.id;
+                    const fullName =
+                      `${bid.first_name ?? ''} ${bid.last_name ?? ''}`.trim()
+                      || `Брокер #${bid.broker_id}`;
+                    return (
+                      <button
+                        key={bid.id}
+                        type='button'
+                        role='radio'
+                        aria-checked={isSelected}
+                        onClick={() =>
+                          setAssignments((prev) => ({
+                            ...prev,
+                            [prop.id]: bid.id,
+                          }))
+                        }
+                        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors ${
+                          isSelected
+                            ? 'border-blue-600 bg-blue-50'
+                            : 'border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className='flex items-center gap-2 min-w-0'>
+                          <div
+                            className={`flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                              isSelected ? 'border-blue-600' : 'border-gray-300'
+                            }`}
+                          >
+                            {isSelected && (
+                              <div className='size-2 rounded-full bg-blue-600' />
+                            )}
+                          </div>
+                          <span className='text-[13px] font-medium text-gray-900 truncate'>
+                            {fullName}
+                          </span>
+                        </div>
+                        <span className='text-[13px] font-semibold text-gray-900 shrink-0'>
+                          {formatPrice(bid.amount)} ₽
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Modal.Close asChild>
+            <FancyButton.Root variant='basic' size='small'>
+              Отмена
+            </FancyButton.Root>
+          </Modal.Close>
+          <FancyButton.Root
+            variant='primary'
+            size='small'
+            disabled={!allAssigned || distribute.isPending}
+            onClick={handleSubmit}
+          >
+            {distribute.isPending ? 'Распределение…' : 'Подтвердить'}
+          </FancyButton.Root>
+        </Modal.Footer>
+      </Modal.Content>
+    </Modal.Root>
+  );
+}
+
 // --- Live Bid Input for OPEN auction ---
 
 function LiveBidInput({
@@ -778,6 +940,7 @@ export default function AuctionDetailPage() {
   const [pendingOpenBid, setPendingOpenBid] = React.useState<Bid | null>(null);
   const [bidModalOpen, setBidModalOpen] = React.useState(false);
   const [winnerModalOpen, setWinnerModalOpen] = React.useState(false);
+  const [distributeModalOpen, setDistributeModalOpen] = React.useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = React.useState(false);
   const [publishModalOpen, setPublishModalOpen] = React.useState(false);
   const [publishStart, setPublishStart] = React.useState('');
@@ -1102,11 +1265,26 @@ export default function AuctionDetailPage() {
               )}
             </div>
           )}
-          {isOwner && isFinished && !auction.winner_bid && bidsList.length > 0 && (
-            <FancyButton.Root variant='primary' size='small' onClick={() => setWinnerModalOpen(true)}>
-              <HugeiconsIcon icon={ChampionIcon} size={16} color='currentColor' strokeWidth={1.5} />
-              Выбрать победителя
-            </FancyButton.Root>
+          {/*
+            Owner-кнопки в header'е после finish:
+            - shortlist > 1 → multi-winner случай (несколько одинаковых
+              максимальных ставок на multi-объектный лот). Открываем
+              модалку распределения по объектам.
+            - shortlist <= 1 + bidsList есть, но winner_bid пуст →
+              legacy-flow ручного выбора единственного победителя.
+          */}
+          {isOwner && isFinished && !auction.winner_bid && (
+            (auction.shortlisted_bid_ids?.length ?? 0) > 1 ? (
+              <FancyButton.Root variant='primary' size='small' onClick={() => setDistributeModalOpen(true)}>
+                <HugeiconsIcon icon={ChampionIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                Распределить объекты
+              </FancyButton.Root>
+            ) : bidsList.length > 0 ? (
+              <FancyButton.Root variant='primary' size='small' onClick={() => setWinnerModalOpen(true)}>
+                <HugeiconsIcon icon={ChampionIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                Выбрать победителя
+              </FancyButton.Root>
+            ) : null
           )}
           {isOwnerOrAdmin && auction.status === 'scheduled' && (
             <FancyButton.Root variant='destructive' size='small' onClick={() => setCancelConfirmOpen(true)} disabled={cancelAuction.isPending}>
@@ -1238,6 +1416,55 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
             )}
+
+            {/*
+              Multi-winner closed lot: winner_bid пуст, но shortlist >1 —
+              бэк ждёт что владелец распределит объекты по тай-кандидатам
+              через POST /distribute-lot/. Брокеру в этом состоянии видна
+              нейтральная плашка («не выиграл» рендерить ещё рано —
+              распределения нет, у него ещё может быть объект).
+            */}
+            {isFinished
+              && !auction.winner_bid
+              && (auction.shortlisted_bid_ids?.length ?? 0) > 1
+              && (
+                isOwnerOrAdmin ? (
+                  <div className='mt-4 flex items-start gap-3 rounded-lg bg-amber-50 p-4'>
+                    <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-amber-500 shrink-0' />
+                    <div className='flex-1'>
+                      <div className='text-sm font-medium text-gray-900'>
+                        Требуется распределение
+                      </div>
+                      <div className='text-xs text-gray-500 mt-0.5'>
+                        Несколько брокеров ({auction.shortlisted_bid_ids.length}) поставили одинаковую максимальную ставку. Распределите объекты лота между ними.
+                      </div>
+                      {isOwner && (
+                        <div className='mt-2.5'>
+                          <FancyButton.Root
+                            variant='primary'
+                            size='small'
+                            onClick={() => setDistributeModalOpen(true)}
+                          >
+                            Распределить объекты
+                          </FancyButton.Root>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : isBroker ? (
+                  <div className='mt-4 flex items-center gap-3 rounded-lg bg-gray-50 p-4'>
+                    <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
+                    <div>
+                      <div className='text-sm font-medium text-gray-900'>
+                        Аукцион завершён
+                      </div>
+                      <div className='text-xs text-gray-500'>
+                        Несколько участников поставили одинаковую максимальную ставку. Девелопер распределит объекты — результат появится здесь.
+                      </div>
+                    </div>
+                  </div>
+                ) : null
+              )}
 
             {auction.winner_bid && (() => {
               // Раньше плашка с ФИО + суммой победителя рендерилась
@@ -1646,6 +1873,20 @@ export default function AuctionDetailPage() {
         }}
       />
       {isOwner && <SelectWinnerModal auctionId={auctionId} bids={bidsList} open={winnerModalOpen} onOpenChange={setWinnerModalOpen} />}
+      {isOwner && (
+        <DistributeLotModal
+          auctionId={auctionId}
+          properties={auction.properties ?? []}
+          // Шортлист тай-кандидатов — фильтруем bidsList по
+          // shortlisted_bid_ids от бэка. bidsList уже содержит ФИО
+          // (OwnerBidSerializer для closed sealed-bids).
+          shortlistBids={bidsList.filter((b) =>
+            (auction.shortlisted_bid_ids ?? []).includes(b.id),
+          )}
+          open={distributeModalOpen}
+          onOpenChange={setDistributeModalOpen}
+        />
+      )}
 
       {/* Cancel confirmation */}
       <Modal.Root open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
