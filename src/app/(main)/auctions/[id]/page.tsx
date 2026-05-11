@@ -1483,6 +1483,32 @@ export default function AuctionDetailPage() {
                 isBroker && isParticipant && winnerId !== user?.id;
 
               if (isOwnerOrAdmin) {
+                // Multi-winner: после distribute-lot бэк создаёт несколько
+                // сделок (по одной на брокера), а auction.winner_bid
+                // указывает только на «репрезентативного» (того кто
+                // забрал больше объектов). Чтобы не вводить в заблуждение,
+                // показываем всех из auction.winners.
+                const winners = auction.winners ?? [];
+                if (winners.length > 1) {
+                  return (
+                    <div className='mt-4 flex items-start gap-3 rounded-lg bg-emerald-50 p-4'>
+                      <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500 shrink-0' />
+                      <div className='flex-1 min-w-0'>
+                        <div className='text-sm font-medium text-gray-900'>
+                          Победители ({winners.length})
+                        </div>
+                        <ul className='mt-1.5 space-y-1'>
+                          {winners.map((w) => (
+                            <li key={w.deal_id} className='text-xs text-gray-700'>
+                              <span className='font-medium'>{w.fullname}</span>
+                              <span className='text-gray-500'> — {formatPrice(w.amount)} ₽</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
                     <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />

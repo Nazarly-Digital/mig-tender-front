@@ -67,6 +67,16 @@ export type Auction = {
   // распределения (POST /distribute-lot/). Для одиночного winner-а
   // содержит [winner_bid_id], для FAILED/CANCELLED обычно [].
   shortlisted_bid_ids: number[];
+  // Список всех победителей с их сделками (owner/admin only). Для
+  // single-winner — [{один победитель}], для multi-winner после
+  // distribute-lot — несколько записей (по числу уникальных брокеров,
+  // получивших объекты). Брокерам приходит [].
+  winners: Array<{
+    broker_id: number;
+    fullname: string;
+    amount: string;
+    deal_id: number;
+  }>;
   created_at: string;
   updated_at: string;
 };
