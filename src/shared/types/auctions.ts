@@ -77,6 +77,14 @@ export type Auction = {
     amount: string;
     deal_id: number;
   }>;
+  // Сделка текущего пользователя по этому аукциону (если он победил).
+  // Используется на winner-banner для брокера: my_deal != null →
+  // «Вы выиграли — N ₽». Покрывает и single-winner (id один) и
+  // multi-winner (брокер из списка тай-победителей) кейсы.
+  my_deal: {
+    id: number;
+    amount: string;
+  } | null;
   created_at: string;
   updated_at: string;
 };

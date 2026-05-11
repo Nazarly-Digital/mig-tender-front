@@ -1474,10 +1474,14 @@ export default function AuctionDetailPage() {
               //     «Вы не выиграли», без ФИО и без суммы.
               // Backend masks winner_bid.broker для проигравшего брокера —
               // optional chain на случай null.
-              const winnerId = auction.winner_bid.broker?.id ?? null;
-              const isWinningBroker = isBroker && winnerId === user?.id;
+              // Multi-winner safe детект: для брокера полагаемся на
+              // auction.my_deal (бэк отдаёт сделку именно этого
+              // пользователя если он победитель). winner_bid в multi-
+              // winner случае указывает на одного «репрезентативного»
+              // — нельзя по нему судить о других тай-победителях.
+              const isWinningBroker = isBroker && auction.my_deal != null;
               const isLosingBroker =
-                isBroker && isParticipant && winnerId !== user?.id;
+                isBroker && isParticipant && auction.my_deal == null;
 
               if (isOwnerOrAdmin) {
                 // Multi-winner: после distribute-lot бэк создаёт несколько
@@ -1520,12 +1524,19 @@ export default function AuctionDetailPage() {
               }
 
               if (isWinningBroker) {
+                // В multi-winner случае auction.winner_bid.amount — это
+                // сумма «репрезентативного» победителя, не текущего
+                // брокера. Берём свою сумму из my_deal (правильна и для
+                // single-winner, т.к. там my_deal.amount == winner_bid.amount).
+                const myAmount = auction.my_deal?.amount
+                  ?? auction.winner_bid.amount
+                  ?? '0';
                 return (
                   <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
                     <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
                     <div>
                       <div className='text-sm font-medium text-gray-900'>
-                        Вы выиграли аукцион — {formatPrice(auction.winner_bid.amount)} ₽
+                        Вы выиграли аукцион — {formatPrice(myAmount)} ₽
                       </div>
                       <div className='text-xs text-gray-500'>
                         Загрузите ДДУ и подтверждение оплаты в установленный срок.
@@ -1857,13 +1868,14 @@ export default function AuctionDetailPage() {
                   <span className='text-gray-500'>Ваша ставка</span>
                   {myBid ? <span className='font-semibold text-gray-900'>{formatPrice(myBid.amount)} ₽</span> : <span className='text-gray-400'>—</span>}
                 </div>
-                {auction.winner_bid && myBid && (
+                {(auction.winner_bid || auction.my_deal) && myBid && (
                   <div className='flex justify-between'>
                     <span className='text-gray-500'>Результат</span>
-                    {/* broker может быть null если бэк замаскировал winner_bid
-                        для проигравшего — null !== user.id даёт корректную
-                        ветку «Не выиграли». */}
-                    {auction.winner_bid.broker?.id === (myBid.broker_id ?? user?.id)
+                    {/* Multi-winner safe: my_deal != null означает что
+                        текущий пользователь среди победителей (свой
+                        Deal в этом аукционе), независимо от того
+                        указывает ли winner_bid именно на него. */}
+                    {auction.my_deal != null
                       ? <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700'>Победа</span>
                       : <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'>Не выиграли</span>
                     }
