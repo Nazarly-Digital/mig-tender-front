@@ -1452,15 +1452,12 @@ export default function AuctionDetailPage() {
                     </div>
                   </div>
                 ) : isBroker ? (
-                  <div className='mt-4 flex items-center gap-3 rounded-lg bg-gray-50 p-4'>
-                    <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
-                    <div>
-                      <div className='text-sm font-medium text-gray-900'>
-                        Аукцион завершён
-                      </div>
-                      <div className='text-xs text-gray-500'>
-                        Несколько участников поставили одинаковую максимальную ставку. Девелопер распределит объекты — результат появится здесь.
-                      </div>
+                  <div className='mt-4 rounded-lg bg-gray-50 p-4'>
+                    <div className='text-sm font-medium text-gray-900'>
+                      Аукцион завершён
+                    </div>
+                    <div className='mt-0.5 text-xs text-gray-500'>
+                      Несколько участников поставили одинаковую максимальную ставку. Девелопер распределит объекты — результат появится здесь.
                     </div>
                   </div>
                 ) : null
