@@ -18,6 +18,7 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
 };
 
 type PropertyLike = {
+  id?: number | null;
   area?: string | null;
   floor?: number | null;
   house_number?: string | null;
@@ -50,6 +51,15 @@ export function formatPropertyDiscriminator(p: PropertyLike): string {
     // правильная единица, передавай через type выше.
     const unit = p.type === 'land' ? 'сот' : 'м²';
     parts.push(`${p.area} ${unit}`);
+  }
+
+  // Если ни одного дискриминатора нет — ID объекта как fallback,
+  // чтобы два РАЗНЫХ property с одинаковым address не выглядели
+  // как дубликат строки (см. QA: Ростовская обл + Ростовская обл
+  // у одного брокера — это разные объекты в M2M, у обоих не
+  // заполнен этаж/площадь/тип, дискриминатор пустой).
+  if (parts.length === 0 && p.id != null) {
+    parts.push(`объект #${p.id}`);
   }
 
   return parts.join(' · ');
