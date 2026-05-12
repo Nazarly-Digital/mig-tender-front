@@ -1855,19 +1855,43 @@ export default function AuctionDetailPage() {
               ) : (
                 <div className='mt-3 space-y-1.5'>
                   {(() => {
-                    // Multi-winner: множество ID всех победителей из
-                    // auction.winners (broker_id каждой сделки). Раньше
-                    // тут был единственный winner_bid_id — тай-победители
-                    // оставались без бейджа и без кнопки «Запросить
-                    // документы», хотя должны её иметь.
+                    // ID реальных победителей (Deal уже создан) — показываем
+                    // зелёный бейдж «Победитель». До confirm-result/distribute
+                    // никого не помечаем — статус ещё в подвешенном состоянии.
                     const winnerBrokerIds = new Set<number>(
                       (auction.winners ?? []).map((w) => w.broker_id),
                     );
-                    // Победителей сверху (если они среди участников),
-                    // остальных снизу — в любом порядке.
+                    // ID кандидатов на «Запросить документы» — шире чем
+                    // winnerBrokerIds. Девелоперу нужно иметь возможность
+                    // запросить документы ДО решения (подтвердить/отклонить),
+                    // чтобы оценить контрагента и принять решение по факту.
+                    // Состояния:
+                    //   — После confirm-result/distribute-lot → реальные
+                    //     победители (auction.winners);
+                    //   — Вариант А/Б (winner_bid set, но Deal'а ещё нет) →
+                    //     winner_bid.broker.id;
+                    //   — Вариант В (winner_bid пуст, shortlist > 1) → все
+                    //     брокеры из шортлиста (broker_id из bidsList).
+                    const requestableBrokerIds = new Set<number>(winnerBrokerIds);
+                    if (isFinished && requestableBrokerIds.size === 0) {
+                      if (auction.winner_bid?.broker?.id != null) {
+                        requestableBrokerIds.add(auction.winner_bid.broker.id);
+                      }
+                      const shortlistBidIds = new Set(auction.shortlisted_bid_ids ?? []);
+                      if (shortlistBidIds.size > 0) {
+                        for (const b of bidsList) {
+                          if (shortlistBidIds.has(b.id)) {
+                            requestableBrokerIds.add(b.broker_id);
+                          }
+                        }
+                      }
+                    }
+                    // Сортировка: реальные победители → запрашиваемые
+                    // кандидаты → все остальные.
                     const orderedIds = [
                       ...participantIds.filter((pid) => winnerBrokerIds.has(pid)),
-                      ...participantIds.filter((pid) => !winnerBrokerIds.has(pid)),
+                      ...participantIds.filter((pid) => !winnerBrokerIds.has(pid) && requestableBrokerIds.has(pid)),
+                      ...participantIds.filter((pid) => !requestableBrokerIds.has(pid)),
                     ];
                     return orderedIds.map((pid) => {
                       const detail = participantDetails.find((d) => d.id === pid);
@@ -1875,6 +1899,7 @@ export default function AuctionDetailPage() {
                       const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
                       const lockStatus = getRequestLockStatusForBroker(documentRequests, pid);
                       const isWinner = winnerBrokerIds.has(pid);
+                      const canRequest = requestableBrokerIds.has(pid);
                       return (
                         <div key={pid} className='flex items-center justify-between gap-2 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
                           <div className='flex items-center gap-2.5 min-w-0'>
@@ -1886,7 +1911,7 @@ export default function AuctionDetailPage() {
                               <span className='shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>
                             )}
                           </div>
-                          {isWinner && (
+                          {canRequest && (
                             <RequestDocumentsButton
                               auctionId={auctionId}
                               brokerId={pid}
