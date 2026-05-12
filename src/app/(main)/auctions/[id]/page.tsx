@@ -1662,7 +1662,16 @@ export default function AuctionDetailPage() {
 
 
           {/* Sealed Bids — owner */}
-          {isOwner && bidsList.length > 0 && (
+          {isOwner && bidsList.length > 0 && (() => {
+            // Multi-winner: используем broker_id всех победителей из
+            // auction.winners. Раньше бейдж «Победитель» висел только
+            // на bid.id == winner_bid_id (репрезентативный) — остальные
+            // тай-победители оставались без отметки, что путало
+            // девелопера.
+            const winnerBrokerIds = new Set<number>(
+              (auction.winners ?? []).map((w) => w.broker_id),
+            );
+            return (
             <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-6'>
               <h3 className='text-[14px] font-semibold text-gray-900 flex items-center gap-2 mb-4'>
                 <HugeiconsIcon icon={Coins01Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />Ставки
@@ -1686,13 +1695,14 @@ export default function AuctionDetailPage() {
                       </td>
                       <td className='py-3 font-semibold text-gray-900'>{formatPrice(bid.amount)} ₽</td>
                       <td className='py-3 text-gray-400'>{formatDateTime(bid.created_at)}</td>
-                      <td className='py-3'>{auction.winner_bid?.id === bid.id && <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>}</td>
+                      <td className='py-3'>{winnerBrokerIds.has(bid.broker_id) && <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700'>Победитель</span>}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}
+            );
+          })()}
 
           {/* Live bids feed — OPEN auction. Owner/admin only.
               Брокеру блок «Ставки» не показываем вообще — симметрично
@@ -1814,16 +1824,26 @@ export default function AuctionDetailPage() {
               ) : (
                 <div className='mt-3 space-y-1.5'>
                   {(() => {
-                    const winnerId = auction.winner_bid?.broker?.id ?? null;
-                    const orderedIds = winnerId != null && participantIds.includes(winnerId)
-                      ? [winnerId, ...participantIds.filter((pid) => pid !== winnerId)]
-                      : participantIds;
+                    // Multi-winner: множество ID всех победителей из
+                    // auction.winners (broker_id каждой сделки). Раньше
+                    // тут был единственный winner_bid_id — тай-победители
+                    // оставались без бейджа и без кнопки «Запросить
+                    // документы», хотя должны её иметь.
+                    const winnerBrokerIds = new Set<number>(
+                      (auction.winners ?? []).map((w) => w.broker_id),
+                    );
+                    // Победителей сверху (если они среди участников),
+                    // остальных снизу — в любом порядке.
+                    const orderedIds = [
+                      ...participantIds.filter((pid) => winnerBrokerIds.has(pid)),
+                      ...participantIds.filter((pid) => !winnerBrokerIds.has(pid)),
+                    ];
                     return orderedIds.map((pid) => {
                       const detail = participantDetails.find((d) => d.id === pid);
                       const name = detail?.name ?? `Брокер #${pid}`;
                       const initials = name.startsWith('#') ? `#${pid}` : name.slice(0, 2).toUpperCase();
                       const lockStatus = getRequestLockStatusForBroker(documentRequests, pid);
-                      const isWinner = winnerId === pid;
+                      const isWinner = winnerBrokerIds.has(pid);
                       return (
                         <div key={pid} className='flex items-center justify-between gap-2 rounded-lg px-3 py-2 hover:bg-blue-50/20 transition-colors'>
                           <div className='flex items-center gap-2.5 min-w-0'>
