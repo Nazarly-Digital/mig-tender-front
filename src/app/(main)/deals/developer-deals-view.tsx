@@ -186,19 +186,21 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
               <span className='mx-1.5 text-gray-300'>•</span>
               <span>{deal.auction_mode === 'open' ? 'Открытый' : 'Закрытый'}</span>
             </p>
-            <h3 className='mt-1 text-base font-semibold text-gray-900 truncate'>
-              {deal.property_address}
-            </h3>
-            {/* Multi-property сделка: несколько объектов в M2M.
-                Объекты часто имеют одинаковый address (один комплекс) —
-                чтобы они визуально не сливались, к каждому добавляем
-                дискриминатор: тип, площадь, этаж, номер квартиры. */}
-            {deal.properties && deal.properties.length > 0 && (() => {
+            {/* Заголовок берём из properties[0].address, НЕ из legacy
+                deal.property_address (= real_property.address). Иначе
+                для сделок где real_property не совпадает с первым объектом
+                M2M, заголовок и дискриминатор под ним указывают на разные
+                объекты — первый M2M-объект теряется. См. broker-deals-view
+                комментарий. */}
+            {deal.properties && deal.properties.length > 0 ? (() => {
               const primary = deal.properties[0];
               const primaryDescr = formatPropertyDiscriminator(primary);
               const rest = deal.properties.slice(1);
               return (
                 <>
+                  <h3 className='mt-1 text-base font-semibold text-gray-900 truncate'>
+                    {primary.address}
+                  </h3>
                   {primaryDescr && (
                     <p className='mt-0.5 text-xs text-gray-500'>{primaryDescr}</p>
                   )}
@@ -217,7 +219,11 @@ function DeveloperDealCard({ deal }: { deal: Deal }) {
                   )}
                 </>
               );
-            })()}
+            })() : (
+              <h3 className='mt-1 text-base font-semibold text-gray-900 truncate'>
+                {deal.property_address}
+              </h3>
+            )}
           </div>
           <span
             className={cn(

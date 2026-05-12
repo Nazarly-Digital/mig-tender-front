@@ -236,18 +236,25 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
               <span className='mx-1.5 text-gray-300'>•</span>
               <span>{deal.auction_mode === 'open' ? 'Открытый' : 'Закрытый'}</span>
             </p>
-            <h3 className='mt-1 text-base font-semibold text-gray-900 truncate'>
-              {deal.property_address}
-            </h3>
-            {/* Multi-property сделка с дискриминаторами: квартиры в одном
-                комплексе имеют одинаковый address, отличаются по
-                площади/этажу — без этих полей выглядят как один объект. */}
-            {deal.properties && deal.properties.length > 0 && (() => {
+            {/* Заголовок берём из properties[0].address, НЕ из legacy
+                deal.property_address (= real_property.address). Бывает
+                что real_property указывает не на тот же объект что
+                properties[0] — например после fix_orphan_lot_properties
+                --attach или distribute-lot с измененным порядком M2M.
+                Тогда заголовок показывал один адрес, а дискриминатор под
+                ним — от ДРУГОГО объекта; первый объект M2M (с не тем
+                адресом) терялся, а второй дублировался в «+ ...» строке.
+                Фолбэк на deal.property_address — на случай legacy сделок
+                до миграции 0005 (M2M пустой). */}
+            {deal.properties && deal.properties.length > 0 ? (() => {
               const primary = deal.properties[0];
               const primaryDescr = formatPropertyDiscriminator(primary);
               const rest = deal.properties.slice(1);
               return (
                 <>
+                  <h3 className='mt-1 text-base font-semibold text-gray-900 truncate'>
+                    {primary.address}
+                  </h3>
                   {primaryDescr && (
                     <p className='mt-0.5 text-xs text-gray-500'>{primaryDescr}</p>
                   )}
@@ -266,7 +273,11 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
                   )}
                 </>
               );
-            })()}
+            })() : (
+              <h3 className='mt-1 text-base font-semibold text-gray-900 truncate'>
+                {deal.property_address}
+              </h3>
+            )}
           </div>
           <span
             className={cn(
