@@ -85,6 +85,12 @@ export type Auction = {
     id: number;
     amount: string;
   } | null;
+  // True если CLOSED-аукцион в финале имел тай (>=2 ставок на максимум) на
+  // multi-property лоте — и владелец вручную выбирал победителя через
+  // select-winner или distribute-lot. Используется в winner-banner чтобы
+  // не врать «определён автоматически» когда это был ручной выбор.
+  // Single-property тай auto-picks earliest, считается как auto.
+  winner_selected_manually: boolean;
   created_at: string;
   updated_at: string;
 };

@@ -1510,13 +1510,22 @@ export default function AuctionDetailPage() {
                     </div>
                   );
                 }
+                // Заголовок банера зависит от того, был ли выбор ручным:
+                //   - OPEN: всегда auto-finalize, говорим "Победитель определён";
+                //   - CLOSED auto (нет тая или single-property лот): "...автоматически";
+                //   - CLOSED manual (тай на multi-property лоте, владелец выбрал
+                //     через select-winner / distribute-lot): "...вручную выбран
+                //     владельцем" — иначе UI врёт что результат пришёл сам собой.
+                const winnerHeading = isOpenAuction
+                  ? 'Победитель определён'
+                  : auction.winner_selected_manually
+                  ? 'Победитель выбран владельцем'
+                  : 'Победитель определён автоматически';
                 return (
                   <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
                     <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
                     <div>
-                      <div className='text-sm font-medium text-gray-900'>
-                        {isOpenAuction ? 'Победитель определён' : 'Победитель определён автоматически'}
-                      </div>
+                      <div className='text-sm font-medium text-gray-900'>{winnerHeading}</div>
                       <div className='text-xs text-gray-500'>{auction.winner_bid.broker?.fullname ?? '—'} — {formatPrice(auction.winner_bid.amount ?? '0')} ₽</div>
                     </div>
                   </div>
