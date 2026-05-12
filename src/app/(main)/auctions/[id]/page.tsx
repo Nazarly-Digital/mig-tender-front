@@ -1474,14 +1474,24 @@ export default function AuctionDetailPage() {
               //     «Вы не выиграли», без ФИО и без суммы.
               // Backend masks winner_bid.broker для проигравшего брокера —
               // optional chain на случай null.
-              // Multi-winner safe детект: для брокера полагаемся на
-              // auction.my_deal (бэк отдаёт сделку именно этого
-              // пользователя если он победитель). winner_bid в multi-
-              // winner случае указывает на одного «репрезентативного»
-              // — нельзя по нему судить о других тай-победителях.
-              const isWinningBroker = isBroker && auction.my_deal != null;
+              // Детект victory:
+              //   1) auction.my_deal != null — Deal уже создан (post
+              //      confirm-result или distribute-lot). Покрывает и
+              //      multi-winner случай (тай-победители получают свои
+              //      сделки независимо от winner_bid'а).
+              //   2) auction.winner_bid.broker.id === user.id — fallback
+              //      для single-winner closed между finish_auction и
+              //      confirm-result. В этом окне winner_bid установлен,
+              //      Deal ещё нет, и без этой проверки победитель видит
+              //      «Вы не выиграли» пока девелопер не нажмёт кнопку.
+              //      Для проигравших бэк маскирует winner_bid.broker → null,
+              //      так что comparison не сматчится.
+              const isWinningBroker = isBroker && (
+                auction.my_deal != null
+                || auction.winner_bid?.broker?.id === user?.id
+              );
               const isLosingBroker =
-                isBroker && isParticipant && auction.my_deal == null;
+                isBroker && isParticipant && !isWinningBroker;
 
               if (isOwnerOrAdmin) {
                 // Multi-winner: после distribute-lot бэк создаёт несколько
@@ -1900,11 +1910,15 @@ export default function AuctionDetailPage() {
                 {(auction.winner_bid || auction.my_deal) && myBid && (
                   <div className='flex justify-between'>
                     <span className='text-gray-500'>Результат</span>
-                    {/* Multi-winner safe: my_deal != null означает что
-                        текущий пользователь среди победителей (свой
-                        Deal в этом аукционе), независимо от того
-                        указывает ли winner_bid именно на него. */}
-                    {auction.my_deal != null
+                    {/* Детект «Победа» зеркалит логику винер-баннера выше:
+                          1) my_deal != null (Deal создан — multi-winner
+                             сразу, single-winner после confirm-result);
+                          2) winner_bid.broker.id == user.id (single-winner
+                             closed в окне между finish и confirm — Deal
+                             ещё не создан, но мы уже знаем что выиграли).
+                        Без второго условия в этом окне отображалось
+                        «Не выиграли» хотя winner_bid указывает на нас. */}
+                    {(auction.my_deal != null || auction.winner_bid?.broker?.id === user?.id)
                       ? <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700'>Победа</span>
                       : <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'>Не выиграли</span>
                     }
