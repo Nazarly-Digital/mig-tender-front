@@ -1436,16 +1436,28 @@ export default function AuctionDetailPage() {
                         Требуется распределение
                       </div>
                       <div className='text-xs text-gray-500 mt-0.5'>
-                        Несколько брокеров ({auction.shortlisted_bid_ids.length}) поставили одинаковую максимальную ставку. Распределите объекты лота между ними.
+                        Несколько брокеров ({auction.shortlisted_bid_ids.length}) поставили одинаковую максимальную ставку. Распределите объекты лота между ними или отклоните результат.
                       </div>
                       {isOwner && (
-                        <div className='mt-2.5'>
+                        <div className='mt-2.5 flex flex-wrap items-center gap-2'>
                           <FancyButton.Root
                             variant='primary'
                             size='small'
                             onClick={() => setDistributeModalOpen(true)}
                           >
                             Распределить объекты
+                          </FancyButton.Root>
+                          {/* Симметрично варианту А/Б — владелец может отклонить
+                              результат и в multi-winner кейсе. Бэк reject_auction_result
+                              переводит аукцион в FAILED + REJECTED и не требует
+                              winner_bid'а, так что reuse того же reject-модала. */}
+                          <FancyButton.Root
+                            variant='destructive'
+                            size='small'
+                            onClick={() => setRejectModalOpen(true)}
+                          >
+                            <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                            Отклонить результат
                           </FancyButton.Root>
                         </div>
                       )}
