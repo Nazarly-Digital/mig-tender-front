@@ -1491,19 +1491,30 @@ export default function AuctionDetailPage() {
               //      confirm-result или distribute-lot). Покрывает и
               //      multi-winner случай (тай-победители получают свои
               //      сделки независимо от winner_bid'а).
-              //   2) auction.winner_bid.broker.id === user.id — fallback
-              //      для single-winner closed между finish_auction и
-              //      confirm-result. В этом окне winner_bid установлен,
-              //      Deal ещё нет, и без этой проверки победитель видит
-              //      «Вы не выиграли» пока девелопер не нажмёт кнопку.
-              //      Для проигравших бэк маскирует winner_bid.broker → null,
-              //      так что comparison не сматчится.
+              //   2) auction.winner_bid.broker.id === user.id ТОЛЬКО ЕСЛИ
+              //      решение ещё не отклонено — fallback для single-winner
+              //      closed между finish_auction и confirm-result. После
+              //      reject_auction_result у этого брокера сделки не
+              //      будет, банер «Вы выиграли» становится враньём
+              //      (предложение развернули). Для отклонённого
+              //      кандидата ниже отдельный банер.
+              //   Для проигравших бэк маскирует winner_bid.broker → null,
+              //   так что fallback не сматчится.
+              const isRejected = auction.owner_decision === 'rejected';
+              const isProposedWinnerByBid =
+                auction.winner_bid?.broker?.id === user?.id;
               const isWinningBroker = isBroker && (
                 auction.my_deal != null
-                || auction.winner_bid?.broker?.id === user?.id
+                || (isProposedWinnerByBid && !isRejected)
               );
+              // Отклонённый кандидат — proposed winner до reject'а. Его
+              // нужно отделить от обычных проигравших: это его конкретный
+              // bid развернули, а не «он проиграл выбор». Получает свой
+              // банер с причиной (вместо «Вы не выиграли»).
+              const isRejectedCandidate =
+                isBroker && isRejected && isProposedWinnerByBid;
               const isLosingBroker =
-                isBroker && isParticipant && !isWinningBroker;
+                isBroker && isParticipant && !isWinningBroker && !isRejectedCandidate;
 
               if (isOwnerOrAdmin) {
                 // Multi-winner: после distribute-lot бэк создаёт несколько
@@ -1571,6 +1582,25 @@ export default function AuctionDetailPage() {
                       </div>
                       <div className='text-xs text-gray-500'>
                         Загрузите ДДУ и подтверждение оплаты в установленный срок.
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (isRejectedCandidate) {
+                // Это его bid выбрали как победителя, но девелопер отклонил
+                // и аукцион ушёл в FAILED. Показываем «Ваше предложение
+                // отклонено» вместо «Вы выиграли». Причину дублировать
+                // не надо — её рендерит общий «Результат отклонён владельцем»
+                // банер ниже (для кандидата он содержит причину).
+                return (
+                  <div className='mt-4 flex items-center gap-3 rounded-lg bg-red-50 p-4'>
+                    <HugeiconsIcon icon={Cancel01Icon} size={20} color='currentColor' strokeWidth={1.5} className='text-red-500' />
+                    <div>
+                      <div className='text-sm font-medium text-gray-900'>Ваше предложение отклонено владельцем</div>
+                      <div className='text-xs text-gray-500'>
+                        Аукцион завершён без сделки. Подробности — в блоке ниже.
                       </div>
                     </div>
                   </div>
@@ -1658,21 +1688,43 @@ export default function AuctionDetailPage() {
               </div>
             )}
 
-            {/* Decision: rejected by owner — owner had a winner on the table and refused it. */}
-            {auction.owner_decision === 'rejected' && (
-              <div className='mt-4 rounded-lg bg-red-50 p-4'>
-                <div className='flex items-center gap-2'>
-                  <div className='size-2 rounded-full bg-red-500' />
-                  <p className='text-sm font-medium text-red-700'>Результат отклонён владельцем</p>
+            {/* Decision: rejected by owner — owner had a winner (or shortlist
+                of candidates) on the table and refused. Сама плашка
+                «отклонён» видна всем — это объясняет почему аукцион
+                Несостоявшийся. Но текст причины видно только тем, к
+                кому это реально относится: владельцу/админу и
+                брокеру-кандидату (winner_bid или шортлист). Иначе
+                проигравший участник аукциона читает feedback, который
+                девелопер адресовал победителю — это лишняя утечка. */}
+            {auction.owner_decision === 'rejected' && (() => {
+              // Backend в _hide_winner_details_for_losers маскирует
+              // winner_bid.broker → null для тех брокеров кто НЕ
+              // победитель, так что comparison естественно исключает
+              // проигравших. Для multi-winner кейса (вариант В: reject
+              // без winner_bid) разрешаем причину всем шортлист-брокерам —
+              // они все были равноправными кандидатами.
+              const isCandidateBroker = isBroker && (
+                auction.winner_bid?.broker?.id === user?.id
+                || (auction.shortlisted_bid_ids ?? []).some((bidId) =>
+                  bidsList.find((b) => b.id === bidId)?.broker_id === user?.id,
+                )
+              );
+              const canSeeReason = isOwnerOrAdmin || isCandidateBroker;
+              return (
+                <div className='mt-4 rounded-lg bg-red-50 p-4'>
+                  <div className='flex items-center gap-2'>
+                    <div className='size-2 rounded-full bg-red-500' />
+                    <p className='text-sm font-medium text-red-700'>Результат отклонён владельцем</p>
+                  </div>
+                  {canSeeReason && auction.owner_rejection_reason && (
+                    <p className='text-xs text-gray-600 mt-1.5'>Причина: {auction.owner_rejection_reason}</p>
+                  )}
+                  {auction.owner_decided_at && (
+                    <p className='text-xs text-gray-400 mt-1'>{formatDateTime(auction.owner_decided_at)}</p>
+                  )}
                 </div>
-                {auction.owner_rejection_reason && (
-                  <p className='text-xs text-gray-600 mt-1.5'>Причина: {auction.owner_rejection_reason}</p>
-                )}
-                {auction.owner_decided_at && (
-                  <p className='text-xs text-gray-400 mt-1'>{formatDateTime(auction.owner_decided_at)}</p>
-                )}
-              </div>
-            )}
+              );
+            })()}
 
             {/* Failed auction (no winner, no rejection) — distinguish "no bids at
                 all" from "all candidates declined" so the banner stops claiming
@@ -1950,15 +2002,25 @@ export default function AuctionDetailPage() {
                     {/* Детект «Победа» зеркалит логику винер-баннера выше:
                           1) my_deal != null (Deal создан — multi-winner
                              сразу, single-winner после confirm-result);
-                          2) winner_bid.broker.id == user.id (single-winner
-                             closed в окне между finish и confirm — Deal
-                             ещё не создан, но мы уже знаем что выиграли).
-                        Без второго условия в этом окне отображалось
-                        «Не выиграли» хотя winner_bid указывает на нас. */}
-                    {(auction.my_deal != null || auction.winner_bid?.broker?.id === user?.id)
-                      ? <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700'>Победа</span>
-                      : <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'>Не выиграли</span>
-                    }
+                          2) winner_bid.broker.id == user.id ТОЛЬКО ЕСЛИ
+                             owner_decision !== 'rejected'. После reject'а
+                             у этого брокера сделки не будет, статус
+                             «Победа» — враньё (это и есть отклонённый
+                             кандидат). Покажем «Отклонено».
+                    */}
+                    {(() => {
+                      const isReject = auction.owner_decision === 'rejected';
+                      const isProposedWin = auction.winner_bid?.broker?.id === user?.id;
+                      const wonForReal = auction.my_deal != null
+                        || (isProposedWin && !isReject);
+                      if (wonForReal) {
+                        return <span className='rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700'>Победа</span>;
+                      }
+                      if (isReject && isProposedWin) {
+                        return <span className='rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700'>Отклонено</span>;
+                      }
+                      return <span className='rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600'>Не выиграли</span>;
+                    })()}
                   </div>
                 )}
               </div>
