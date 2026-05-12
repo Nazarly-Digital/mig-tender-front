@@ -12,6 +12,7 @@ import {
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { formatPropertyDiscriminator } from '@/shared/lib/property-label';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import * as Modal from '@/shared/ui/modal';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -135,7 +136,28 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
           <h3 className='text-sm font-semibold text-gray-900'>
             Аукцион #{s.auction_id} · Сделка #{s.deal_id}
           </h3>
-          <p className='text-xs text-gray-500 mt-0.5 truncate'>{s.property_name}</p>
+          {s.properties && s.properties.length > 0 ? (
+            <div className='mt-0.5 space-y-0.5'>
+              {s.properties.map((p) => {
+                const discriminator = formatPropertyDiscriminator(p);
+                return (
+                  <div key={p.id} className='flex items-baseline gap-2 min-w-0'>
+                    <p className='text-xs text-gray-500 truncate'>{p.address}</p>
+                    {discriminator && (
+                      <span className='shrink-0 text-[11px] text-gray-400'>{discriminator}</span>
+                    )}
+                  </div>
+                );
+              })}
+              {s.properties.length > 1 && (
+                <p className='text-[11px] text-gray-400'>
+                  Сделка по {s.properties.length} объектам
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className='text-xs text-gray-500 mt-0.5 truncate'>{s.property_name}</p>
+          )}
           <p className='text-[11px] text-gray-400 mt-0.5 truncate'>
             {s.broker_name} → {s.developer_name}
           </p>

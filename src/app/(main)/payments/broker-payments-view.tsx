@@ -6,6 +6,7 @@ import { File01Icon, CheckmarkCircle02Icon, Clock01Icon, AlertCircleIcon } from 
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { formatPropertyDiscriminator } from '@/shared/lib/property-label';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import { useSettlements } from '@/features/payments';
 import type { Settlement } from '@/shared/types/payments';
@@ -22,6 +23,11 @@ function formatDate(iso: string | null | undefined): string {
 function BrokerSettlementCard({ s }: { s: Settlement }) {
   const isPaid = s.paid_to_broker;
   const isOverdue = s.broker_payout_overdue && !isPaid;
+  // Backend всегда отдаёт массив `properties` (фолбэк на real_property
+  // если M2M пуст у legacy-сделок), но для устойчивости к промежуточным
+  // версиям фронт-бэк страхуемся на пустоту.
+  const properties = s.properties ?? [];
+  const hasMulti = properties.length > 1;
 
   return (
     <div className='bg-white rounded-xl border border-gray-200 overflow-hidden divide-y divide-gray-100 px-5'>
@@ -29,7 +35,30 @@ function BrokerSettlementCard({ s }: { s: Settlement }) {
       <div className='flex items-start justify-between gap-4 py-4'>
         <div className='min-w-0'>
           <p className='text-xs text-gray-500'>Аукцион #{s.auction_id} · Сделка #{s.deal_id}</p>
-          <h3 className='text-sm font-semibold text-gray-900 mt-0.5 truncate'>{s.property_name}</h3>
+          {properties.length === 0 ? (
+            // Фолбэк на legacy property_name — если по какой-то причине
+            // properties пуст (старый бэк, не задеплоился ещё).
+            <h3 className='text-sm font-semibold text-gray-900 mt-0.5 truncate'>{s.property_name}</h3>
+          ) : (
+            <div className='mt-0.5 space-y-0.5'>
+              {properties.map((p) => {
+                const discriminator = formatPropertyDiscriminator(p);
+                return (
+                  <div key={p.id} className='flex items-baseline gap-2 min-w-0'>
+                    <h3 className='text-sm font-semibold text-gray-900 truncate'>{p.address}</h3>
+                    {discriminator && (
+                      <span className='shrink-0 text-xs text-gray-500'>{discriminator}</span>
+                    )}
+                  </div>
+                );
+              })}
+              {hasMulti && (
+                <p className='text-[11px] text-gray-400 pt-0.5'>
+                  Сделка по {properties.length} объектам
+                </p>
+              )}
+            </div>
+          )}
         </div>
         {isPaid ? (
           <span className='shrink-0 whitespace-nowrap inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700'>

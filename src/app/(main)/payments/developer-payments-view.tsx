@@ -12,6 +12,7 @@ import {
 import { cn } from '@/shared/lib/cn';
 import { formatPrice } from '@/shared/lib/formatters';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { formatPropertyDiscriminator } from '@/shared/lib/property-label';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
 import { useSettlements, useUploadDeveloperReceipt } from '@/features/payments';
 import type { Settlement } from '@/shared/types/payments';
@@ -58,9 +59,30 @@ function DeveloperSettlementCard({ s }: { s: Settlement }) {
           <p className='text-xs text-gray-500'>
             Аукцион #{s.auction_id} · Сделка #{s.deal_id}
           </p>
-          <h3 className='text-sm font-semibold text-gray-900 mt-1 truncate'>
-            {s.property_name}
-          </h3>
+          {s.properties && s.properties.length > 0 ? (
+            <div className='mt-1 space-y-0.5'>
+              {s.properties.map((p) => {
+                const discriminator = formatPropertyDiscriminator(p);
+                return (
+                  <div key={p.id} className='flex items-baseline gap-2 min-w-0'>
+                    <h3 className='text-sm font-semibold text-gray-900 truncate'>{p.address}</h3>
+                    {discriminator && (
+                      <span className='shrink-0 text-xs text-gray-500'>{discriminator}</span>
+                    )}
+                  </div>
+                );
+              })}
+              {s.properties.length > 1 && (
+                <p className='text-[11px] text-gray-400 pt-0.5'>
+                  Сделка по {s.properties.length} объектам
+                </p>
+              )}
+            </div>
+          ) : (
+            <h3 className='text-sm font-semibold text-gray-900 mt-1 truncate'>
+              {s.property_name}
+            </h3>
+          )}
         </div>
         {isPaid ? (
           <span className='inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 shrink-0'>

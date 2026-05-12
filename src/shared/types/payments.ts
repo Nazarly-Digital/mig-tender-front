@@ -49,10 +49,30 @@ export type PaymentListParams = {
 
 // ---------- Transit settlement (new model) ----------
 
+// Дискриминаторное поле объекта в составе сделки. Тот же shape что у
+// DealListItem.properties — используется в карточке выплаты чтобы
+// отрисовать все объекты сделки (а не только real_property), когда
+// broker забрал несколько объектов одного лота.
+export type SettlementProperty = {
+  id: number;
+  address: string;
+  price: string | null;
+  area: string | null;
+  floor: number | null;
+  house_number: string | null;
+  land_number: string | null;
+  type: string | null;
+  rooms: number | null;
+};
+
 export type Settlement = {
   id: number;
   deal_id: number;
   property_name: string;
+  // Полный список объектов сделки. Для legacy-сделок (до M2M-миграции)
+  // backend фолбэчит на real_property — будет 1 элемент. Для multi-
+  // property сделок будет N элементов.
+  properties: SettlementProperty[];
   auction_id: number;
   broker_id: number;
   broker_name: string;
