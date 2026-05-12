@@ -35,10 +35,19 @@ export type Deal = {
   // Все объекты сделки. Для одиночной = 1 элемент (== real_property),
   // для multi-property после consolidation/distribute — N элементов
   // с адресами всех объектов, забранных этим брокером.
+  // Поля area/floor/house_number/land_number/rooms/type — дискриминаторы
+  // для случая, когда несколько объектов в лоте имеют одинаковый
+  // address (один комплекс, разные квартиры/секции).
   properties: Array<{
     id: number;
     address: string;
     price: string | null;
+    area: string | null;
+    floor: number | null;
+    house_number: string | null;
+    land_number: string | null;
+    type: string | null;
+    rooms: number | null;
   }>;
   auction_mode: "open" | "closed";
   amount: string;

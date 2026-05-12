@@ -13,6 +13,7 @@ import {
 import { cn } from '@/shared/lib/cn';
 import { formatPrice, formatDateShort } from '@/shared/lib/formatters';
 import { openAuthedFile } from '@/shared/lib/fetch-file';
+import { formatPropertyDiscriminator } from '@/shared/lib/property-label';
 import { useDeals, useUploadDDU, useUploadPaymentProof, useUpdateDealComment, useSubmitForReview } from '@/features/deals';
 import type { Deal, DealStatus } from '@/shared/types/deals';
 
@@ -238,17 +239,34 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
             <h3 className='mt-1 text-base font-semibold text-gray-900 truncate'>
               {deal.property_address}
             </h3>
-            {/* Если сделка покрывает несколько объектов (multi-property
-                после consolidation/distribute) — показываем все адреса. */}
-            {deal.properties && deal.properties.length > 1 && (
-              <ul className='mt-1.5 space-y-0.5'>
-                {deal.properties.slice(1).map((p) => (
-                  <li key={p.id} className='text-xs text-gray-500 truncate'>
-                    + {p.address}
-                  </li>
-                ))}
-              </ul>
-            )}
+            {/* Multi-property сделка с дискриминаторами: квартиры в одном
+                комплексе имеют одинаковый address, отличаются по
+                площади/этажу — без этих полей выглядят как один объект. */}
+            {deal.properties && deal.properties.length > 0 && (() => {
+              const primary = deal.properties[0];
+              const primaryDescr = formatPropertyDiscriminator(primary);
+              const rest = deal.properties.slice(1);
+              return (
+                <>
+                  {primaryDescr && (
+                    <p className='mt-0.5 text-xs text-gray-500'>{primaryDescr}</p>
+                  )}
+                  {rest.length > 0 && (
+                    <ul className='mt-1.5 space-y-0.5'>
+                      {rest.map((p) => {
+                        const descr = formatPropertyDiscriminator(p);
+                        return (
+                          <li key={p.id} className='text-xs text-gray-500 truncate'>
+                            + {p.address}
+                            {descr && <span className='text-gray-400'> · {descr}</span>}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </>
+              );
+            })()}
           </div>
           <span
             className={cn(
