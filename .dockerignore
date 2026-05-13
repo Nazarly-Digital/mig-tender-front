@@ -1,0 +1,28 @@
+node_modules
+.next
+.turbo
+out
+dist
+coverage
+
+# IDE / OS
+.idea
+.vscode
+*.swp
+.DS_Store
+
+# Local env — попадают через build args в build stage, в финальный образ
+# не нужны (NEXT_PUBLIC_* инлайнятся при сборке).
+.env
+.env.*
+!.env.example
+
+# Git / CI / docs
+.git
+.gitignore
+.github
+*.md
+README*
+
+# Logs
+*.log

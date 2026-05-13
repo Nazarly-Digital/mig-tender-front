@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Standalone-сборка для Docker: бандл сервера + минимальный набор
+  // node_modules в .next/standalone. Финальный образ ~150 MB вместо
+  // ~1.5 GB с полным node_modules.
+  output: 'standalone',
+
   // Turbopack configuration for SVG support
   turbopack: {
     rules: {

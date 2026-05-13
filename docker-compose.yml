@@ -1,0 +1,22 @@
+# MIG Tender Frontend stack — Next.js standalone в одном контейнере.
+#
+# Запуск на сервере:
+#   cd /opt/migtender/frontend
+#   cp .env.example .env  # заполни NEXT_PUBLIC_*
+#   docker compose up -d --build
+#
+# Слушает на 127.0.0.1:3000 — nginx на хосте проксирует
+# migntender.app -> 127.0.0.1:3000.
+
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        # NEXT_PUBLIC_* нужно во время билда (инлайнятся в клиент-бандл),
+        # а не в runtime. Тянем их из .env через docker-compose.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_DADATA_TOKEN: ${NEXT_PUBLIC_DADATA_TOKEN}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
