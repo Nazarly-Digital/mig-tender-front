@@ -1,0 +1,27 @@
+# Auto-deploy на push в main: подключаемся по SSH к прод-серверу,
+# запускаем `migtender-deploy frontend` который делает git pull +
+# docker compose up -d --build (включая npm ci + npm run build внутри).
+#
+# Требуется один раз настроить в Settings → CI/CD → Variables:
+#   SSH_PRIVATE_KEY (тип File, masked, protected) — приватный ключ
+#     ~/.ssh/migtender_ci_deploy. Публичная половина уже в authorized_keys
+#     на сервере 178.72.129.232.
+
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  image: alpine:3.20
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    # Жёстко прописанный host key сервера — никаких MITM-сюрпризов.
+    - echo "178.72.129.232 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKU/i1fK+JA3nMxT+kuvCfsSAWGFomVkzb+XHjctwlZM" > ~/.ssh/known_hosts
+    - chmod 600 ~/.ssh/known_hosts
+    - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+  script:
+    - ssh root@178.72.129.232 'migtender-deploy frontend'
