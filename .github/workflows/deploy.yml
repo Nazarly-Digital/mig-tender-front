@@ -27,6 +27,12 @@ jobs:
             git reset --hard origin/main
             echo "▶︎ Installing deps..."
             npm i
+            # Без чистки .next Next.js может переиспользовать старые
+            # бандлы pages/chunks даже после новой сборки — деплой
+            # говорит "successfully compiled", но прод грузит вчерашний
+            # chunk. Чистим явно.
+            echo "▶︎ Clearing Next.js cache..."
+            rm -rf .next
             echo "▶︎ Building..."
             npm run build
             echo "▶︎ Restarting PM2..."
