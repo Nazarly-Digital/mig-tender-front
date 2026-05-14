@@ -1,344 +1,493 @@
 'use client';
 
-/**
- * Регистрация по ТЗ от 2026-05-14:
- *  Минимальный набор полей — Имя, Телефон, Пароль (×2), Роль, два чекбокса
- *  согласия. Без email-кода.
- *
- *  После успешной регистрации — статус «Не верифицирован», пользователь
- *  перенаправляется в `/cabinet` где заполняет остальное и нажимает
- *  «Отправить на проверку».
- *
- *  Бэк генерит placeholder email из телефона (`<digits>@noemail.local`),
- *  поэтому запасной путь логина по email через JWT работает без переделки.
- */
-
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
 import {
   RiEyeLine,
   RiEyeOffLine,
-  RiInformationLine,
+  RiFileTextLine,
   RiLock2Line,
+  RiMailLine,
   RiPhoneLine,
-  RiUserAddFill,
+  RiUploadCloud2Line,
   RiUserLine,
+  RiUserAddFill,
 } from '@remixicon/react';
 
-import { useSimpleRegister } from '@/features/auth';
+import { cn } from '@/shared/lib/cn';
 import { formatPhoneInputLocked, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
 import * as Alert from '@/shared/ui/alert';
-import * as Checkbox from '@/shared/ui/checkbox';
+import * as DigitInput from '@/shared/ui/digit-input';
+import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
+import * as Checkbox from '@/shared/ui/checkbox';
 import * as LinkButton from '@/shared/ui/link-button';
-import * as Select from '@/shared/ui/select';
-
-type FormValues = {
-  firstName: string;
-  phoneNumber: string;
-  password: string;
-  passwordConfirm: string;
-  role: 'broker' | 'developer';
-  offerAccepted: boolean;
-  obligationAccepted: boolean;
-};
-
-const ROLE_TOOLTIP =
-  'Брокер — участвую в аукционах и приобретаю объекты.\nДевелопер — размещаю объекты для аукциона.';
+import { useBrokerRegistration } from '@/features/auth';
 
 const PasswordInput = React.forwardRef<
   HTMLInputElement,
   React.ComponentPropsWithoutRef<typeof Input.Input> & { hasError?: boolean }
->(function PasswordInput(props, ref) {
-  const [show, setShow] = React.useState(false);
+>((props, ref) => {
+  const [showPassword, setShowPassword] = React.useState(false);
   const { hasError, ...inputProps } = props;
+
   return (
     <Input.Root hasError={hasError}>
       <Input.Wrapper>
         <Input.Icon as={RiLock2Line} />
         <Input.Input
           ref={ref}
-          type={show ? 'text' : 'password'}
-          placeholder='••••••••'
+          type={showPassword ? 'text' : 'password'}
+          placeholder='••••••••••'
           {...inputProps}
         />
-        <button type='button' onClick={() => setShow((s) => !s)}>
-          {show ? (
-            <RiEyeOffLine className='size-5 text-text-soft-400' />
+        <button type='button' onClick={() => setShowPassword((s) => !s)}>
+          {showPassword ? (
+            <RiEyeOffLine className='size-5 text-text-soft-400 group-has-[disabled]:text-text-disabled-300' />
           ) : (
-            <RiEyeLine className='size-5 text-text-soft-400' />
+            <RiEyeLine className='size-5 text-text-soft-400 group-has-[disabled]:text-text-disabled-300' />
           )}
         </button>
       </Input.Wrapper>
     </Input.Root>
   );
 });
+PasswordInput.displayName = 'PasswordInput';
 
 export default function PageRegister() {
-  const router = useRouter();
-  const register = useSimpleRegister();
+  const {
+    emailForm,
+    registerForm,
+    step,
+    code,
+    setCode,
+    inn,
+    setInn,
+    passport,
+    setPassport,
+    fileErrors,
+    error,
+    timer,
+    handleGetCode,
+    handleVerifyEmail,
+    handleResendCode,
+    handleRegister,
+    offerAccepted,
+    setOfferAccepted,
+    auctionObligationAccepted,
+    setAuctionObligationAccepted,
+    isGetCodePending,
+    isVerifyPending,
+    isResendPending,
+    isRegisterPending,
+  } = useBrokerRegistration();
+  const emailErrors = emailForm.formState.errors;
+  const regErrors = registerForm.formState.errors;
 
-  const form = useForm<FormValues>({
-    defaultValues: {
-      firstName: '',
-      phoneNumber: PHONE_INPUT_DEFAULT,
-      password: '',
-      passwordConfirm: '',
-      role: 'broker',
-      offerAccepted: false,
-      obligationAccepted: false,
-    },
-    mode: 'onBlur',
-  });
-
-  const watched = form.watch();
-  const errors = form.formState.errors;
-  const allFilled =
+  const watched = registerForm.watch();
+  const allRequiredFilled =
     !!watched.firstName?.trim() &&
-    !!watched.phoneNumber &&
-    watched.phoneNumber !== PHONE_INPUT_DEFAULT &&
+    !!watched.lastName?.trim() &&
+    !!watched.innNumber?.trim() &&
+    !!watched.phoneNumber?.trim() &&
+    watched.phoneNumber.trim() !== PHONE_INPUT_DEFAULT &&
     !!watched.password &&
     !!watched.passwordConfirm &&
-    watched.offerAccepted &&
-    watched.obligationAccepted;
-
-  const [submitError, setSubmitError] = React.useState<string | null>(null);
-
-  const onSubmit = form.handleSubmit(async (values) => {
-    setSubmitError(null);
-    if (values.password !== values.passwordConfirm) {
-      form.setError('passwordConfirm', { message: 'Пароли не совпадают' });
-      return;
-    }
-    if (values.password.length < 8) {
-      form.setError('password', { message: 'Минимум 8 символов' });
-      return;
-    }
-    try {
-      await register.mutateAsync({
-        first_name: values.firstName.trim(),
-        phone_number: values.phoneNumber,
-        password: values.password,
-        password_confirm: values.passwordConfirm,
-        role: values.role,
-        offer_accepted: values.offerAccepted,
-        obligation_accepted: values.obligationAccepted,
-      });
-      router.push('/cabinet');
-    } catch (e) {
-      const err = e as {
-        response?: { data?: Record<string, unknown> | { error?: string } };
-      };
-      const data = err.response?.data;
-      // Поле-специфичные ошибки от бэка → проставляем в нужное поле формы.
-      if (data && typeof data === 'object') {
-        if ((data as Record<string, unknown>).phone_number) {
-          form.setError('phoneNumber', {
-            message: String((data as Record<string, unknown>).phone_number),
-          });
-        }
-        if ((data as Record<string, unknown>).password) {
-          const v = (data as Record<string, unknown>).password;
-          form.setError('password', {
-            message: Array.isArray(v) ? v.join(', ') : String(v),
-          });
-        }
-        if ((data as Record<string, unknown>).error) {
-          setSubmitError(String((data as Record<string, unknown>).error));
-          return;
-        }
-      }
-      setSubmitError(
-        'Не удалось зарегистрироваться. Проверьте поля или попробуйте позже.',
-      );
-    }
-  });
+    !!inn &&
+    !!passport;
 
   return (
-    <div className='flex min-h-svh items-center justify-center bg-gray-50 px-4 py-10'>
-      <div className='w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-sm'>
-        <div className='mb-6 flex items-center gap-3'>
-          <div className='flex size-10 items-center justify-center rounded-full bg-blue-50 text-blue-600'>
-            <RiUserAddFill className='size-5' />
+    <div className='w-full max-w-[472px] px-4'>
+      <div className='mt-8 flex w-full flex-col gap-6 rounded-20 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
+        <div className='flex flex-col items-center gap-2'>
+          <div
+            className={cn(
+              'relative flex size-[68px] shrink-0 items-center justify-center rounded-full backdrop-blur-xl lg:size-24',
+              'before:absolute before:inset-0 before:rounded-full',
+              'before:bg-gradient-to-b before:from-neutral-500 before:to-transparent before:opacity-10',
+            )}
+          >
+            <div className='relative z-10 flex size-12 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 lg:size-16'>
+              <RiUserAddFill className='size-6 text-text-sub-600 lg:size-8' />
+            </div>
           </div>
-          <div>
-            <h1 className='text-2xl font-bold tracking-tight text-gray-900'>
-              Регистрация
-            </h1>
-            <p className='mt-0.5 text-[13px] text-gray-500'>
-              Заполните минимальные данные — остальное в личном кабинете
-            </p>
+
+          <div className='space-y-1 text-center'>
+            <div className='text-title-h6 lg:text-title-h5'>
+              {step === 1 && 'Регистрация'}
+              {step === 2 && 'Подтверждение email'}
+              {step === 3 && 'Данные аккаунта'}
+            </div>
+            <div className='text-paragraph-sm text-text-sub-600 lg:text-paragraph-md'>
+              {step === 1 && 'Введите ваш email для начала регистрации'}
+              {step === 2 && (
+                <>Введите код, отправленный на <span className='font-medium text-text-strong-950'>{emailForm.getValues('email')}</span></>
+              )}
+              {step === 3 && 'Заполните данные для завершения регистрации'}
+            </div>
           </div>
         </div>
 
-        <form onSubmit={onSubmit} noValidate className='flex flex-col gap-4'>
-          {/* Имя */}
-          <div>
-            <Label.Root htmlFor='firstName'>Имя</Label.Root>
-            <Input.Root hasError={!!errors.firstName}>
-              <Input.Wrapper>
-                <Input.Icon as={RiUserLine} />
-                <Input.Input
-                  id='firstName'
-                  placeholder='Иван'
-                  {...form.register('firstName', { required: 'Введите имя' })}
-                />
-              </Input.Wrapper>
-            </Input.Root>
-            {errors.firstName && (
-              <p className='mt-1 text-xs text-red-600'>{errors.firstName.message}</p>
-            )}
-          </div>
+        <Divider.Root />
 
-          {/* Телефон */}
-          <div>
-            <Label.Root htmlFor='phoneNumber'>Номер телефона</Label.Root>
-            <Input.Root hasError={!!errors.phoneNumber}>
-              <Input.Wrapper>
-                <Input.Icon as={RiPhoneLine} />
-                <Input.Input
-                  id='phoneNumber'
-                  inputMode='tel'
-                  placeholder='+7 (999) 123-45-67'
-                  value={watched.phoneNumber}
-                  onChange={(e) =>
-                    form.setValue(
-                      'phoneNumber',
-                      formatPhoneInputLocked(e.target.value),
-                      { shouldValidate: true },
-                    )
-                  }
-                />
-              </Input.Wrapper>
-            </Input.Root>
-            {errors.phoneNumber && (
-              <p className='mt-1 text-xs text-red-600'>{errors.phoneNumber.message}</p>
-            )}
-          </div>
+        {error && (
+          <Alert.Root variant='lighter' status='error' size='small'>
+            {error}
+          </Alert.Root>
+        )}
 
-          {/* Пароль */}
-          <div>
-            <Label.Root htmlFor='password'>Пароль</Label.Root>
-            <PasswordInput
-              id='password'
-              hasError={!!errors.password}
-              {...form.register('password', {
-                required: 'Введите пароль',
-                minLength: { value: 8, message: 'Минимум 8 символов' },
-              })}
-            />
-            {errors.password && (
-              <p className='mt-1 text-xs text-red-600'>{errors.password.message}</p>
-            )}
-          </div>
+        {/* Step 1: Email */}
+        {step === 1 && (
+          <form onSubmit={handleGetCode} className='flex flex-col gap-6'>
+            <div className='flex flex-col gap-1'>
+              <Label.Root htmlFor='email'>
+                Email <Label.Asterisk />
+              </Label.Root>
+              <Input.Root hasError={!!emailErrors.email}>
+                <Input.Wrapper>
+                  <Input.Icon as={RiMailLine} />
+                  <Input.Input
+                    id='email'
+                    type='email'
+                    placeholder='example@mail.com'
+                    {...emailForm.register('email')}
+                  />
+                </Input.Wrapper>
+              </Input.Root>
+              {emailErrors.email && (
+                <p className='text-paragraph-xs text-error-base'>{emailErrors.email.message}</p>
+              )}
+            </div>
 
-          {/* Подтверждение */}
-          <div>
-            <Label.Root htmlFor='passwordConfirm'>Повторите пароль</Label.Root>
-            <PasswordInput
-              id='passwordConfirm'
-              hasError={!!errors.passwordConfirm}
-              {...form.register('passwordConfirm', {
-                required: 'Повторите пароль',
-              })}
-            />
-            {errors.passwordConfirm && (
-              <p className='mt-1 text-xs text-red-600'>
-                {errors.passwordConfirm.message}
-              </p>
-            )}
-          </div>
+            <FancyButton.Root
+              type='submit'
+              variant='primary'
+              size='medium'
+              className='w-full'
+              disabled={isGetCodePending || timer > 0}
+            >
+              {isGetCodePending ? 'Отправка...' : timer > 0 ? `Подождите ${timer} сек` : 'Продолжить'}
+            </FancyButton.Root>
+          </form>
+        )}
 
-          {/* Роль */}
-          <div>
-            <Label.Root htmlFor='role'>
-              Я регистрируюсь как
-              <span
-                title={ROLE_TOOLTIP}
-                className='ml-1 inline-flex items-center text-text-soft-400'
+        {/* Step 2: OTP */}
+        {step === 2 && (
+          <form onSubmit={handleVerifyEmail} className='flex flex-col gap-6'>
+            <div className='flex flex-col gap-1'>
+              <Label.Root>
+                Код подтверждения <Label.Asterisk />
+              </Label.Root>
+              <DigitInput.Root
+                value={code}
+                onChange={setCode}
+                numInputs={6}
+                inputType='number'
+                shouldAutoFocus
+              />
+            </div>
+
+            <div className='flex flex-col gap-3'>
+              <FancyButton.Root
+                type='submit'
+                variant='primary'
+                size='medium'
+                className='w-full'
+                disabled={code.length < 6 || isVerifyPending}
               >
-                <RiInformationLine className='size-4' />
-              </span>
-            </Label.Root>
-            <Select.Root
-              value={watched.role}
-              onValueChange={(v) =>
-                form.setValue('role', (v as 'broker' | 'developer') ?? 'broker')
+                {isVerifyPending ? 'Проверка...' : 'Подтвердить'}
+              </FancyButton.Root>
+
+              <div className='flex items-center justify-center gap-1.5'>
+                <span className='text-paragraph-sm text-text-sub-600'>
+                  Не получили код?
+                </span>
+                {timer > 0 ? (
+                  <span className='text-paragraph-sm text-text-soft-400'>
+                    Повторно через {timer} сек
+                  </span>
+                ) : (
+                  <LinkButton.Root
+                    variant='primary'
+                    size='medium'
+                    underline
+                    type='button'
+                    onClick={handleResendCode}
+                    disabled={isResendPending}
+                  >
+                    Отправить повторно
+                  </LinkButton.Root>
+                )}
+              </div>
+            </div>
+          </form>
+        )}
+
+        {/* Step 3: Broker data */}
+        {step === 3 && (
+          <form onSubmit={handleRegister} className='flex flex-col gap-6'>
+            <div className='flex flex-col gap-3'>
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='firstName'>
+                  Имя <Label.Asterisk />
+                </Label.Root>
+                <Input.Root hasError={!!regErrors.firstName}>
+                  <Input.Wrapper>
+                    <Input.Icon as={RiUserLine} />
+                    <Input.Input
+                      id='firstName'
+                      type='text'
+                      placeholder='Введите имя'
+                      {...registerForm.register('firstName', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const filtered = e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, '');
+                          registerForm.setValue('firstName', filtered, { shouldValidate: true });
+                        },
+                      })}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {regErrors.firstName && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.firstName.message}</p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='lastName'>
+                  Фамилия <Label.Asterisk />
+                </Label.Root>
+                <Input.Root hasError={!!regErrors.lastName}>
+                  <Input.Wrapper>
+                    <Input.Icon as={RiUserLine} />
+                    <Input.Input
+                      id='lastName'
+                      type='text'
+                      placeholder='Введите фамилию'
+                      {...registerForm.register('lastName', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const filtered = e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, '');
+                          registerForm.setValue('lastName', filtered, { shouldValidate: true });
+                        },
+                      })}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {regErrors.lastName && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.lastName.message}</p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='innNumber'>
+                  ИНН номер <Label.Asterisk />
+                </Label.Root>
+                <Input.Root hasError={!!regErrors.innNumber}>
+                  <Input.Wrapper>
+                    <Input.Icon as={RiFileTextLine} />
+                    <Input.Input
+                      id='innNumber'
+                      type='text'
+                      inputMode='numeric'
+                      maxLength={12}
+                      placeholder='Введите ИНН номер'
+                      {...registerForm.register('innNumber', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const filtered = e.target.value.replace(/\D/g, '').slice(0, 12);
+                          registerForm.setValue('innNumber', filtered, { shouldValidate: true });
+                        },
+                      })}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {regErrors.innNumber && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.innNumber.message}</p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='phoneNumber'>
+                  Номер телефона <Label.Asterisk />
+                </Label.Root>
+                <Input.Root hasError={!!regErrors.phoneNumber}>
+                  <Input.Wrapper>
+                    <Input.Icon as={RiPhoneLine} />
+                    <Input.Input
+                      id='phoneNumber'
+                      type='tel'
+                      inputMode='tel'
+                      placeholder='+7 (999) 000-00-00'
+                      {...registerForm.register('phoneNumber', {
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                          const formatted = formatPhoneInputLocked(e.target.value);
+                          registerForm.setValue('phoneNumber', formatted);
+                        },
+                      })}
+                      onFocus={(e) => {
+                        if (!e.target.value) {
+                          registerForm.setValue('phoneNumber', '+7 (');
+                        }
+                      }}
+                      maxLength={18}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+                {regErrors.phoneNumber && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.phoneNumber.message}</p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root>
+                  Документ ИНН <Label.Asterisk />
+                </Label.Root>
+                <label
+                  className={cn(
+                    'flex cursor-pointer items-center gap-2 rounded-10 border px-3 py-2.5 transition-colors hover:bg-bg-weak-50',
+                    fileErrors.inn ? 'border-error-base' : 'border-stroke-soft-200',
+                  )}
+                >
+                  <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
+                  <span className='truncate text-paragraph-sm text-text-soft-400'>
+                    {inn ? inn.name : 'Выберите файл'}
+                  </span>
+                  <input
+                    type='file'
+                    className='hidden'
+                    accept='image/*,.pdf'
+                    onChange={(e) => setInn(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+                {fileErrors.inn && (
+                  <p className='text-paragraph-xs text-error-base'>{fileErrors.inn}</p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root>
+                  Паспорт <Label.Asterisk />
+                </Label.Root>
+                <label
+                  className={cn(
+                    'flex cursor-pointer items-center gap-2 rounded-10 border px-3 py-2.5 transition-colors hover:bg-bg-weak-50',
+                    fileErrors.passport ? 'border-error-base' : 'border-stroke-soft-200',
+                  )}
+                >
+                  <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
+                  <span className='truncate text-paragraph-sm text-text-soft-400'>
+                    {passport ? passport.name : 'Выберите файл'}
+                  </span>
+                  <input
+                    type='file'
+                    className='hidden'
+                    accept='image/*,.pdf'
+                    onChange={(e) => setPassport(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+                {fileErrors.passport && (
+                  <p className='text-paragraph-xs text-error-base'>{fileErrors.passport}</p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='password'>
+                  Пароль <Label.Asterisk />
+                </Label.Root>
+                <PasswordInput
+                  id='password'
+                  hasError={!!regErrors.password}
+                  {...registerForm.register('password')}
+                />
+                {regErrors.password ? (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.password.message}</p>
+                ) : (
+                  <p className='text-paragraph-xs text-text-sub-600'>
+                    Минимум 8 символов. Не должен состоять только из цифр и не должен быть слишком распространённым.
+                  </p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-1'>
+                <Label.Root htmlFor='passwordConfirm'>
+                  Подтверждение пароля <Label.Asterisk />
+                </Label.Root>
+                <PasswordInput
+                  id='passwordConfirm'
+                  hasError={!!regErrors.passwordConfirm}
+                  {...registerForm.register('passwordConfirm')}
+                />
+                {regErrors.passwordConfirm && (
+                  <p className='text-paragraph-xs text-error-base'>{regErrors.passwordConfirm.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className='flex flex-col gap-2'>
+              <label className='flex cursor-pointer items-start gap-3 rounded-xl bg-bg-weak-50 p-4'>
+                <div className='flex-1'>
+                  <span className='text-paragraph-sm font-medium text-text-strong-950'>
+                    Соглашаюсь с условиями{' '}
+                    <a
+                      href='/offer.pdf'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='text-primary-base underline'
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      оферты
+                    </a>
+                  </span>
+                  <p className='mt-0.5 text-paragraph-xs text-text-sub-600'>
+                    Это нужно для обработки и хранения документов. Одно согласие — для всех типов.
+                  </p>
+                </div>
+                <Checkbox.Root
+                  checked={offerAccepted}
+                  onCheckedChange={(v) => setOfferAccepted(v === true)}
+                />
+              </label>
+
+              <label className='flex cursor-pointer items-start gap-3 rounded-xl bg-bg-weak-50 p-4'>
+                <div className='flex-1'>
+                  <span className='text-paragraph-sm font-medium text-text-strong-950'>
+                    Принимаю обязательство при участии в аукционе
+                  </span>
+                  <p className='mt-0.5 text-paragraph-xs text-text-sub-600'>
+                    Каждая ставка — обязательство приобрести объект на указанных условиях.
+                    При победе обязуюсь завершить сделку: загрузить ДДУ и подтверждение оплаты в установленный срок.
+                  </p>
+                </div>
+                <Checkbox.Root
+                  checked={auctionObligationAccepted}
+                  onCheckedChange={(v) => setAuctionObligationAccepted(v === true)}
+                />
+              </label>
+            </div>
+
+            <FancyButton.Root
+              type='submit'
+              variant='primary'
+              size='medium'
+              className='w-full'
+              disabled={
+                isRegisterPending ||
+                !offerAccepted ||
+                !auctionObligationAccepted ||
+                !allRequiredFilled
               }
             >
-              <Select.Trigger>
-                <Select.Value />
-              </Select.Trigger>
-              <Select.Content>
-                <Select.Item value='broker'>Брокер</Select.Item>
-                <Select.Item value='developer'>Девелопер</Select.Item>
-              </Select.Content>
-            </Select.Root>
-            <p className='mt-1 whitespace-pre-line text-[11px] text-gray-500'>
-              {ROLE_TOOLTIP}
-            </p>
-          </div>
+              {isRegisterPending ? 'Регистрация...' : 'Зарегистрироваться'}
+            </FancyButton.Root>
+          </form>
+        )}
+      </div>
 
-          {/* Чекбоксы согласий */}
-          <div className='flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3'>
-            <label className='flex items-start gap-2 text-[13px]'>
-              <Checkbox.Root
-                checked={watched.offerAccepted}
-                onCheckedChange={(v) =>
-                  form.setValue('offerAccepted', v === true, { shouldValidate: true })
-                }
-              />
-              <span>
-                Соглашаюсь с условиями{' '}
-                <a
-                  href='/legal/offer'
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='text-blue-600 underline-offset-2 hover:underline'
-                >
-                  оферты
-                </a>
-              </span>
-            </label>
-            <label className='flex items-start gap-2 text-[13px]'>
-              <Checkbox.Root
-                checked={watched.obligationAccepted}
-                onCheckedChange={(v) =>
-                  form.setValue('obligationAccepted', v === true, {
-                    shouldValidate: true,
-                  })
-                }
-              />
-              <span>Принимаю обязательство при участии в аукционе</span>
-            </label>
-          </div>
-
-          {submitError && (
-            <Alert.Root status='error'>
-              <Alert.Icon as={RiInformationLine} />
-              <p>{submitError}</p>
-            </Alert.Root>
-          )}
-
-          <FancyButton.Root
-            type='submit'
-            variant='primary'
-            disabled={!allFilled || register.isPending}
-          >
-            {register.isPending ? 'Регистрация…' : 'Зарегистрироваться'}
-          </FancyButton.Root>
-
-          <div className='mt-2 text-center text-[13px] text-gray-500'>
-            Уже есть аккаунт?{' '}
-            <LinkButton.Root asChild>
-              <Link href='/login'>Войти</Link>
-            </LinkButton.Root>
-          </div>
-        </form>
+      <div className='mb-8 mt-6 flex items-center justify-center gap-1.5'>
+        <span className='text-sm text-gray-500'>Уже есть аккаунт?</span>
+        <LinkButton.Root variant='primary' size='medium' underline asChild>
+          <Link href='/login'>Войти</Link>
+        </LinkButton.Root>
       </div>
     </div>
   );
