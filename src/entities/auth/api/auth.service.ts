@@ -11,6 +11,7 @@ import type {
   ResendCodeRequest,
   RegisterBrokerRequest,
   RegisterResponse,
+  SimpleRegisterRequest,
   BrokerVerificationRequest,
   MeResponse,
   MeApiResponse,
@@ -46,6 +47,18 @@ export const authService = {
   refresh: (data: RefreshRequest) =>
     apiInstance.post<RefreshResponse>("/auth/refresh/", data),
 
+  // ТЗ от 2026-05-14 — упрощённая регистрация. JSON, без файлов.
+  // На бэке генерится placeholder email из телефона; роль выбирается
+  // в форме (broker | developer).
+  simpleRegister: (data: SimpleRegisterRequest) =>
+    apiInstance.post<RegisterResponse>("/auth/register/", data),
+
+  // POST /auth/submit-for-review/ — broker/developer кликает «Отправить
+  // на проверку» в ЛК. Бэк проверяет полноту профиля и переводит в
+  // IN_REVIEW. На 400 в .response.data.missing_fields список незаполненного.
+  submitForReview: () =>
+    apiInstance.post<MeApiResponse>("/auth/submit-for-review/"),
+
   registerBroker: (data: RegisterBrokerRequest) => {
     const formData = new FormData();
     formData.append("email", data.email);
@@ -76,6 +89,17 @@ export const authService = {
 
   getMe: () =>
     apiInstance.get<MeApiResponse>("/auth/me/"),
+
+  // PATCH /auth/me/ — обновление профиля. Принимает любой subset:
+  // first_name, last_name, email, inn_number, phone_number, company_name.
+  updateMe: (data: Partial<{
+    first_name: string;
+    last_name: string;
+    email: string;
+    inn_number: string;
+    phone_number: string;
+    company_name: string;
+  }>) => apiInstance.patch<MeApiResponse>("/auth/me/", data),
 
   uploadDocument: (data: UploadDocumentRequest) => {
     const formData = new FormData();

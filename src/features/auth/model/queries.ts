@@ -8,6 +8,7 @@ import type {
   VerifyEmailRequest,
   ResendCodeRequest,
   RegisterBrokerRequest,
+  SimpleRegisterRequest,
   BrokerVerificationRequest,
   UploadDocumentRequest,
   UpdateDocumentNameRequest,
@@ -98,6 +99,61 @@ export function useRegisterBroker() {
     onSuccess: (data) => {
       setTokens(data.access, data.refresh);
       setUser(data.user);
+    },
+  });
+}
+
+// ТЗ от 2026-05-14 — упрощённая регистрация (broker или developer).
+export function useSimpleRegister() {
+  const { setTokens, setUser } = useSessionStore();
+
+  return useMutation({
+    mutationFn: (data: SimpleRegisterRequest) =>
+      authService.simpleRegister(data).then((res) => res.data),
+    onSuccess: (data) => {
+      setTokens(data.access, data.refresh);
+      setUser(data.user);
+    },
+  });
+}
+
+// POST /auth/submit-for-review/ — broker/developer переводит профиль
+// в IN_REVIEW. На 400 в response.data.missing_fields список незаполненного.
+export function useSubmitForReview() {
+  const { setUser } = useSessionStore();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => authService.submitForReview().then((res) => res.data),
+    onSuccess: (data) => {
+      // Backend возвращает свежий MeApiResponse — обновляем session store
+      // (verification_status подтянется в ЛК автоматически).
+      setUser(data as unknown as Parameters<typeof setUser>[0]);
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
+  });
+}
+
+// PATCH /auth/me/ — обновление полей профиля (имя, фамилия, ИНН,
+// телефон, company_name для девелопера). Используется в ЛК.
+export function useUpdateMe() {
+  const { setUser } = useSessionStore();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (
+      data: Partial<{
+        first_name: string;
+        last_name: string;
+        email: string;
+        inn_number: string;
+        phone_number: string;
+        company_name: string;
+      }>,
+    ) => authService.updateMe(data).then((res) => res.data),
+    onSuccess: (data) => {
+      setUser(data as unknown as Parameters<typeof setUser>[0]);
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }

@@ -62,35 +62,14 @@ export type Auction = {
   owner_decided_at: string | null;
   // Populated by backend after /decline-result/ — IDs of bids that the owner already rejected as winner.
   declined_bids?: number[];
-  // Шортлист тай-кандидатов на multi-winner closed-аукционе. Если
-  // winner_bid пуст и shortlisted_bid_ids.length > 0 — нужна модалка
-  // распределения (POST /distribute-lot/). Для одиночного winner-а
-  // содержит [winner_bid_id], для FAILED/CANCELLED обычно [].
-  shortlisted_bid_ids: number[];
-  // Список всех победителей с их сделками (owner/admin only). Для
-  // single-winner — [{один победитель}], для multi-winner после
-  // distribute-lot — несколько записей (по числу уникальных брокеров,
-  // получивших объекты). Брокерам приходит [].
-  winners: Array<{
-    broker_id: number;
-    fullname: string;
-    amount: string;
-    deal_id: number;
-  }>;
   // Сделка текущего пользователя по этому аукциону (если он победил).
   // Используется на winner-banner для брокера: my_deal != null →
-  // «Вы выиграли — N ₽». Покрывает и single-winner (id один) и
-  // multi-winner (брокер из списка тай-победителей) кейсы.
+  // «Вы выиграли — N ₽». Также покрывает gap между finish_auction и
+  // confirm-result — bкр-победитель видит «Вы выиграли» сразу.
   my_deal: {
     id: number;
     amount: string;
   } | null;
-  // True если CLOSED-аукцион в финале имел тай (>=2 ставок на максимум) на
-  // multi-property лоте — и владелец вручную выбирал победителя через
-  // select-winner или distribute-lot. Используется в winner-banner чтобы
-  // не врать «определён автоматически» когда это был ручной выбор.
-  // Single-property тай auto-picks earliest, считается как auto.
-  winner_selected_manually: boolean;
   created_at: string;
   updated_at: string;
 };

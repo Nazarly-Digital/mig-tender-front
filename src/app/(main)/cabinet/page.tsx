@@ -20,6 +20,8 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import { useSessionStore, isUserDeveloper } from '@/entities/auth/model/store';
 import { useMe, useUploadDeveloperDDUTemplate } from '@/features/auth';
 import { ChangePasswordModal } from './change-password-modal';
+import { ProfileEditCard } from './profile-card';
+import { VerificationStatusCard } from './verification-card';
 
 // Resolves the real outcome of a finished auction from the current broker's point of view
 // (win / loss / waiting for owner decision / rejected / failed / cancelled), not just `status`.
@@ -187,6 +189,13 @@ function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => vo
   const fullName = user
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
     : '';
+  const dev = user?.developer ?? null;
+  const isComplete = Boolean(
+    user?.first_name?.trim() &&
+      user?.last_name?.trim() &&
+      dev?.company_name?.trim() &&
+      dev?.phone_number?.trim(),
+  );
 
   return (
     <div className='w-full px-8 py-8'>
@@ -194,10 +203,16 @@ function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => vo
         <div>
           <h1 className='text-2xl font-bold text-gray-900 tracking-tight'>Личный кабинет</h1>
           <p className='mt-1 text-sm text-gray-500'>
-            {fullName} · {user?.developer?.company_name ?? 'Девелопер'}
+            {fullName} · {dev?.company_name ?? 'Девелопер'}
           </p>
         </div>
       </div>
+
+      {/* Верификационный статус: ТЗ от 2026-05-14 — то же поведение что у broker */}
+      <VerificationStatusCard profile={dev} isProfileComplete={isComplete} />
+
+      {/* Редактирование данных профиля */}
+      <ProfileEditCard role='developer' />
 
       <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 flex items-center justify-between'>
         <div className='flex items-center gap-3'>
@@ -241,6 +256,21 @@ export default function CabinetPage() {
     );
   }
 
+  // Полнота профиля broker'а — проверяется как на бэке, нужно для
+  // активации кнопки «Отправить на проверку» в VerificationStatusCard.
+  const broker = user?.broker ?? null;
+  const innDoc = user?.documents?.some((d) => d.doc_type === 'inn') ?? false;
+  const passportDoc =
+    user?.documents?.some((d) => d.doc_type === 'passport') ?? false;
+  const isBrokerComplete = Boolean(
+    user?.first_name?.trim() &&
+      user?.last_name?.trim() &&
+      broker?.inn_number?.trim() &&
+      broker?.phone_number?.trim() &&
+      innDoc &&
+      passportDoc,
+  );
+
   return (
     <div className='w-full px-8 py-8'>
       {/* Header */}
@@ -253,6 +283,15 @@ export default function CabinetPage() {
           <p className='mt-1 text-sm text-gray-500'>Ваши аукционы</p>
         </div>
       </div>
+
+      {/* Верификация: статус + submit button (ТЗ 2.3) */}
+      <VerificationStatusCard
+        profile={broker}
+        isProfileComplete={isBrokerComplete}
+      />
+
+      {/* Редактирование данных аккаунта (ТЗ 2.3) */}
+      <ProfileEditCard role='broker' />
 
       {/* Security */}
       <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 flex items-center justify-between'>

@@ -310,27 +310,9 @@ export function useRejectResult() {
   });
 }
 
-// Multi-winner closed lot — owner вручную сопоставляет каждый объект
-// одной из тай-ставок шортлиста. Бэк создаёт по сделке на брокера
-// (validation: 1:1 покрытие лота, bid_id из shortlist'а).
-export function useDistributeLot() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      auctionId,
-      data,
-    }: {
-      auctionId: number;
-      data: DistributeLotRequest;
-    }) => auctionsService.distributeLot(auctionId, data).then((res) => res.data),
-    onSuccess: (_data, { auctionId }) => {
-      queryClient.invalidateQueries({ queryKey: auctionKeys.detail(auctionId) });
-      queryClient.invalidateQueries({ queryKey: auctionKeys.all });
-      // Создаются новые сделки — обновим списки deals везде.
-      queryClient.invalidateQueries({ queryKey: dealKeys.all });
-    },
-  });
-}
+// distribute-lot убран в ТЗ от 2026-05-14 — лот целиком получает
+// один победитель, ручное распределение между несколькими брокерами
+// больше не применяется.
 
 // TZ 8.5 — decline current winner; backend auto-picks next candidate or fails the auction if queue is empty.
 // The Deal (if it existed) transitions to 'declined'; a new Deal is NOT auto-created — owner must

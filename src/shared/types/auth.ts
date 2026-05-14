@@ -49,6 +49,14 @@ export type TokenUser = {
     inn_number?: string;
     ddu_template_url?: string | null;
     has_ddu_template?: boolean;
+    // ТЗ от 2026-05-14 — developer теперь тоже проходит верификацию.
+    // Возвращается бэком только если поля присутствуют (для legacy
+    // developer'ов до миграции 0013 — отсутствуют).
+    is_verified?: boolean;
+    verification_status?: string;
+    verified_at?: string | null;
+    rejected_at?: string | null;
+    rejection_reason?: string | null;
   } | null;
   documents: UserDocument[];
 };
@@ -174,7 +182,7 @@ export type ResendCodeRequest = {
   email: string;
 };
 
-// Register Broker
+// Register Broker (legacy multi-step с email-кодом)
 export type RegisterBrokerRequest = {
   email: string;
   password: string;
@@ -186,6 +194,18 @@ export type RegisterBrokerRequest = {
   inn: File;
   passport: File;
   auction_obligation_accepted: boolean;
+};
+
+// Simple register (ТЗ от 2026-05-14): одна форма для broker и
+// developer, без email-кода. Бэк генерит placeholder email из телефона.
+export type SimpleRegisterRequest = {
+  first_name: string;
+  phone_number: string;
+  password: string;
+  password_confirm: string;
+  role: "broker" | "developer";
+  offer_accepted: boolean;
+  obligation_accepted: boolean;
 };
 
 export type RegisterResponse = {
