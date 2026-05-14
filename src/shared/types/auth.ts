@@ -196,14 +196,17 @@ export type RegisterBrokerRequest = {
   auction_obligation_accepted: boolean;
 };
 
-// Simple register (ТЗ от 2026-05-14): одна форма для broker и
-// developer, без email-кода. Бэк генерит placeholder email из телефона.
+// Simple register (ТЗ от 2026-05-14, переработан 2026-05-15):
+// 3-шаговый флоу — email + OTP + данные. На шаге 3 шлём всё включая
+// email (он уже подтверждён через /verify-email/). role опционален,
+// дефолт broker (developer создаётся через админку).
 export type SimpleRegisterRequest = {
+  email: string;
   first_name: string;
   phone_number: string;
   password: string;
   password_confirm: string;
-  role: "broker" | "developer";
+  role?: "broker" | "developer";
   offer_accepted: boolean;
   obligation_accepted: boolean;
 };
