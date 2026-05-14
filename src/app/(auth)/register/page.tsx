@@ -205,7 +205,7 @@ export default function PageRegister() {
         offer_accepted: values.offerAccepted,
         obligation_accepted: values.obligationAccepted,
       });
-      router.push('/cabinet');
+      router.push('/');
     } catch (err) {
       const data = (err as AxiosError<Record<string, unknown>>)?.response?.data;
       if (data) {
