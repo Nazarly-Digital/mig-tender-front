@@ -213,7 +213,7 @@ export function DeveloperPaymentsView() {
   return (
     <div className='w-full px-8 py-8'>
       <div>
-        <h1 className='text-lg font-semibold text-gray-900'>Мои платежи</h1>
+        <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Мои платежи</h1>
         <p className='text-sm text-gray-500 mt-0.5'>
           Одной транзакцией (комиссия брокера + 0.4% платформе) на счёт платформы. Срок — до 6 месяцев с даты подтверждения сделки.
         </p>

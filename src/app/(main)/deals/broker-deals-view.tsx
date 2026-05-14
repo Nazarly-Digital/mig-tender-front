@@ -527,7 +527,7 @@ export function BrokerDealsView() {
       <div>
         <div className='flex items-start justify-between mb-1'>
           <div>
-            <h1 className='text-lg font-semibold text-gray-900'>Мои сделки</h1>
+            <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Мои сделки</h1>
             <p className='text-sm text-gray-500 mt-0.5'>Обязательства и документы по выигранным аукционам</p>
           </div>
         </div>

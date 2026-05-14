@@ -494,7 +494,7 @@ export function AdminDealsView() {
     <div className='w-full px-8 py-8'>
       <div>
         <div>
-          <h1 className='text-lg font-semibold text-gray-900'>Админ-панель · Сделки</h1>
+          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Админ-панель · Сделки</h1>
           <p className='text-sm text-gray-500 mt-0.5'>Проверка документов, подтверждение сделок, контроль обязательств</p>
         </div>
 

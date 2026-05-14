@@ -28,7 +28,7 @@ export function PageHeader({
           </Link>
         )}
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             {title}
           </h1>
           <p className="mt-0.5 text-[13px] text-gray-500">

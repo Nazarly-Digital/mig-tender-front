@@ -149,7 +149,7 @@ export function BrokerPaymentsView() {
   return (
     <div className='w-full px-8 py-8'>
       <div>
-        <h1 className='text-lg font-semibold text-gray-900'>Мои выплаты</h1>
+        <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Мои выплаты</h1>
         <p className='text-sm text-gray-500 mt-0.5'>Платформа выплачивает вам комиссию в течение 3 дней после подтверждения сделки</p>
       </div>
 

@@ -810,7 +810,7 @@ export default function PropertyDetailPage() {
             <HugeiconsIcon icon={ArrowLeft01Icon} size={18} color='currentColor' strokeWidth={1.5} />
           </Link>
           <div>
-            <h1 className='text-xl font-bold tracking-tight text-gray-900'>Объект #{property.id}</h1>
+            <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Объект #{property.id}</h1>
             <span className='text-[13px] text-gray-400'>{property.address}</span>
           </div>
         </div>

@@ -262,7 +262,7 @@ export default function DashboardPage() {
     <div className='w-full px-8 py-8'>
       <div className='flex flex-col gap-8'>
         <div>
-          <h1 className='text-xl font-semibold tracking-tight text-gray-900'>{greeting}</h1>
+          <h1 className='text-2xl font-bold tracking-tight text-gray-900'>{greeting}</h1>
           <p className='mt-1 text-[13px] text-gray-500'>
             Вот последние данные вашей панели управления.
           </p>

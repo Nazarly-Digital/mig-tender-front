@@ -465,7 +465,7 @@ export function AdminPaymentsView() {
   return (
     <div className='w-full px-8 py-8'>
       <div>
-        <h1 className='text-lg font-semibold text-gray-900'>Выплаты (админ)</h1>
+        <h1 className='text-2xl font-bold tracking-tight text-gray-900'>Выплаты (админ)</h1>
         <p className='text-sm text-gray-500 mt-0.5'>
           Транзитная модель: платформа выплачивает брокеру за 3 дня, затем получает от девелопера до 6 месяцев.
         </p>

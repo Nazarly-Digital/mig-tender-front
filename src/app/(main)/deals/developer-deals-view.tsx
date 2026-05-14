@@ -411,7 +411,7 @@ export function DeveloperDealsView() {
     <div className="w-full px-8 py-8">
       <div className="">
         <div>
-          <h1 className="text-lg font-semibold text-gray-900">Сделки по моим объектам</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Сделки по моим объектам</h1>
           <p className="text-sm text-gray-500 mt-0.5">Результаты аукционов, подтверждение сделок, статусы</p>
         </div>
 
