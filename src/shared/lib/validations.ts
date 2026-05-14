@@ -131,14 +131,39 @@ const strictEmail = () =>
 
 // === Auth ===
 
+// ТЗ от 2026-05-14: упрощённая регистрация без email — broker
+// логинится по номеру телефона. Logic:
+//   - если ввели email → шлём как email
+//   - если ввели телефон (содержит цифры, не похож на email) → бэк
+//     генерил placeholder `<digits>@noemail.local` при регистрации,
+//     фронт нормализует ввод в этот формат перед отправкой.
+// Поэтому field называется `email` для совместимости с бэком (поле
+// JWT TokenObtainPairSerializer), но принимает и phone.
 export const loginSchema = z.object({
-  email: strictEmail(),
+  email: z
+    .string()
+    .min(1, 'Введите email или телефон'),
   password: z
     .string()
     .min(1, 'Введите пароль'),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
+
+// Преобразуем "ввели телефон" → placeholder email который бэк ждёт
+// после simple-register. Email-вход остаётся как есть.
+export function normalizeLoginIdentifier(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.includes('@')) {
+    return trimmed.toLowerCase();
+  }
+  // Телефон — оставляем только цифры; +7XXX… → 7XXX…; 8XXX… → 7XXX…
+  let digits = trimmed.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('8')) {
+    digits = '7' + digits.slice(1);
+  }
+  return `${digits}@noemail.local`;
+}
 
 export const changePasswordSchema = z
   .object({

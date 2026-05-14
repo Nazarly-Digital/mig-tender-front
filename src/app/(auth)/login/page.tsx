@@ -14,7 +14,11 @@ import { AxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { loginSchema, type LoginFormData } from '@/shared/lib/validations';
+import {
+  loginSchema,
+  type LoginFormData,
+  normalizeLoginIdentifier,
+} from '@/shared/lib/validations';
 import * as Alert from '@/shared/ui/alert';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -76,7 +80,14 @@ export default function PageLogin() {
   const onSubmit = (data: LoginFormData) => {
     if (timer > 0) return;
     setError('');
-    login.mutate(data, {
+    // Бэк ждёт email, фронт принимает email ИЛИ телефон. Нормализуем
+    // телефон в placeholder email (`<digits>@noemail.local`) — это
+    // тот формат, который simple-register сохраняет в User.email.
+    const payload = {
+      email: normalizeLoginIdentifier(data.email),
+      password: data.password,
+    };
+    login.mutate(payload, {
       onSuccess: () => {
         router.replace('/dashboard');
       },
@@ -84,7 +95,7 @@ export default function PageLogin() {
         if (err instanceof AxiosError) {
           const status = err.response?.status;
           if (status === 401) {
-            setError('Неверный email или пароль');
+            setError('Неверный email/телефон или пароль');
           } else if (status === 429) {
             const data = err.response?.data as { remaining_time?: number; detail?: string } | undefined;
             const retryAfterHeader = err.response?.headers?.['retry-after'];
@@ -133,7 +144,7 @@ export default function PageLogin() {
             {/* Email */}
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='email'>
-                Email <Label.Asterisk />
+                Email или телефон <Label.Asterisk />
               </Label.Root>
               <Input.Root hasError={!!errors.email}>
                 <Input.Wrapper>
@@ -141,7 +152,8 @@ export default function PageLogin() {
                   <Input.Input
                     id='email'
                     type='text'
-                    placeholder='example@mail.com'
+                    placeholder='example@mail.com или +7 999 123 45 67'
+                    autoComplete='username'
                     {...register('email')}
                   />
                 </Input.Wrapper>
