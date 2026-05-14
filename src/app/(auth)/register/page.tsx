@@ -22,6 +22,7 @@ import { AxiosError } from 'axios';
 import {
   RiEyeLine,
   RiEyeOffLine,
+  RiInformationLine,
   RiLock2Line,
   RiMailLine,
   RiPhoneLine,
@@ -44,6 +45,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as LinkButton from '@/shared/ui/link-button';
+import * as Select from '@/shared/ui/select';
 
 const PasswordInput = React.forwardRef<
   HTMLInputElement,
@@ -79,9 +81,13 @@ type DataForm = {
   phoneNumber: string;
   password: string;
   passwordConfirm: string;
+  role: 'broker' | 'developer';
   offerAccepted: boolean;
   obligationAccepted: boolean;
 };
+
+const ROLE_TOOLTIP =
+  'Брокер — участвую в аукционах и приобретаю объекты.\nДевелопер — размещаю объекты для аукциона.';
 
 function getApiError(error: unknown): string | null {
   const err = error as AxiosError<{
@@ -119,6 +125,7 @@ export default function PageRegister() {
       phoneNumber: PHONE_INPUT_DEFAULT,
       password: '',
       passwordConfirm: '',
+      role: 'broker',
       offerAccepted: false,
       obligationAccepted: false,
     },
@@ -194,7 +201,7 @@ export default function PageRegister() {
         phone_number: values.phoneNumber,
         password: values.password,
         password_confirm: values.passwordConfirm,
-        role: 'broker',
+        role: values.role,
         offer_accepted: values.offerAccepted,
         obligation_accepted: values.obligationAccepted,
       });
@@ -432,6 +439,35 @@ export default function PageRegister() {
                   {dataForm.formState.errors.passwordConfirm.message}
                 </p>
               )}
+            </div>
+
+            <div>
+              <Label.Root htmlFor='reg-role'>
+                Я регистрируюсь как
+                <span
+                  title={ROLE_TOOLTIP}
+                  className='ml-1 inline-flex items-center text-gray-400'
+                >
+                  <RiInformationLine className='size-4' />
+                </span>
+              </Label.Root>
+              <Select.Root
+                value={watched.role}
+                onValueChange={(v) =>
+                  dataForm.setValue('role', (v as 'broker' | 'developer') ?? 'broker')
+                }
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  <Select.Item value='broker'>Брокер</Select.Item>
+                  <Select.Item value='developer'>Девелопер</Select.Item>
+                </Select.Content>
+              </Select.Root>
+              <p className='mt-1 whitespace-pre-line text-[11px] text-gray-500'>
+                {ROLE_TOOLTIP}
+              </p>
             </div>
 
             <div className='flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-3'>
