@@ -1,38 +1,59 @@
 'use client';
 
+/**
+ * Регистрация (3-шаговая, ТЗ от 2026-05-15):
+ *   Шаг 1: Email → отправка OTP-кода
+ *   Шаг 2: Ввод 6-значного кода (verify-email)
+ *   Шаг 3: Имя + телефон + пароль ×2 + роль (дропдаун) + 2 чекбокса
+ *
+ * Дизайн — оригинальный AlignUI (gradient карточка, кольцо вокруг
+ * логотипа, Label.Asterisk, Alert variant=lighter и т.д.) — чтобы
+ * не выпадать из остального UI.
+ *
+ * После успеха: токены в session store, редирект на главную (/).
+ * Дозаполнение профиля (фамилия, ИНН, документы) — в /cabinet.
+ */
+
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { AxiosError } from 'axios';
 import {
   RiEyeLine,
   RiEyeOffLine,
-  RiFileTextLine,
+  RiInformationLine,
   RiLock2Line,
   RiMailLine,
   RiPhoneLine,
-  RiUploadCloud2Line,
-  RiUserLine,
   RiUserAddFill,
+  RiUserLine,
 } from '@remixicon/react';
 
+import {
+  useGetCode,
+  useResendCode,
+  useSimpleRegister,
+  useVerifyEmail,
+} from '@/features/auth';
 import { cn } from '@/shared/lib/cn';
 import { formatPhoneInputLocked, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
 import * as Alert from '@/shared/ui/alert';
+import * as Checkbox from '@/shared/ui/checkbox';
 import * as DigitInput from '@/shared/ui/digit-input';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
-import * as Checkbox from '@/shared/ui/checkbox';
 import * as LinkButton from '@/shared/ui/link-button';
-import { useBrokerRegistration } from '@/features/auth';
+import * as Select from '@/shared/ui/select';
 
 const PasswordInput = React.forwardRef<
   HTMLInputElement,
   React.ComponentPropsWithoutRef<typeof Input.Input> & { hasError?: boolean }
->((props, ref) => {
+>(function PasswordInput(props, ref) {
   const [showPassword, setShowPassword] = React.useState(false);
   const { hasError, ...inputProps } = props;
-
   return (
     <Input.Root hasError={hasError}>
       <Input.Wrapper>
@@ -54,49 +75,155 @@ const PasswordInput = React.forwardRef<
     </Input.Root>
   );
 });
-PasswordInput.displayName = 'PasswordInput';
+
+type EmailForm = { email: string };
+type DataForm = {
+  firstName: string;
+  phoneNumber: string;
+  password: string;
+  passwordConfirm: string;
+  role: 'broker' | 'developer';
+  offerAccepted: boolean;
+  obligationAccepted: boolean;
+};
+
+const ROLE_TOOLTIP =
+  'Брокер — участвую в аукционах и приобретаю объекты.\nДевелопер — размещаю объекты для аукциона.';
+
+function getApiError(error: unknown): string | null {
+  const err = error as AxiosError<{
+    error?: string;
+    detail?: string;
+    email?: string | string[];
+  }>;
+  const data = err.response?.data;
+  if (!data) return null;
+  if (data.error) return data.error;
+  if (data.detail) return data.detail;
+  if (data.email) {
+    return Array.isArray(data.email) ? data.email.join(', ') : data.email;
+  }
+  return null;
+}
 
 export default function PageRegister() {
-  const {
-    emailForm,
-    registerForm,
-    step,
-    code,
-    setCode,
-    inn,
-    setInn,
-    passport,
-    setPassport,
-    fileErrors,
-    error,
-    timer,
-    handleGetCode,
-    handleVerifyEmail,
-    handleResendCode,
-    handleRegister,
-    offerAccepted,
-    setOfferAccepted,
-    auctionObligationAccepted,
-    setAuctionObligationAccepted,
-    isGetCodePending,
-    isVerifyPending,
-    isResendPending,
-    isRegisterPending,
-  } = useBrokerRegistration();
-  const emailErrors = emailForm.formState.errors;
-  const regErrors = registerForm.formState.errors;
+  const router = useRouter();
+  const [step, setStep] = React.useState<1 | 2 | 3>(1);
+  const [email, setEmail] = React.useState('');
+  const [code, setCode] = React.useState('');
+  const [error, setError] = React.useState<string | null>(null);
+  const [timer, setTimer] = React.useState(0);
 
-  const watched = registerForm.watch();
-  const allRequiredFilled =
+  const getCode = useGetCode();
+  const resendCode = useResendCode();
+  const verifyEmail = useVerifyEmail();
+  const register = useSimpleRegister();
+
+  const emailForm = useForm<EmailForm>({ defaultValues: { email: '' } });
+  const dataForm = useForm<DataForm>({
+    defaultValues: {
+      firstName: '',
+      phoneNumber: PHONE_INPUT_DEFAULT,
+      password: '',
+      passwordConfirm: '',
+      role: 'broker',
+      offerAccepted: false,
+      obligationAccepted: false,
+    },
+  });
+  const watched = dataForm.watch();
+  const dataReady =
     !!watched.firstName?.trim() &&
-    !!watched.lastName?.trim() &&
-    !!watched.innNumber?.trim() &&
-    !!watched.phoneNumber?.trim() &&
-    watched.phoneNumber.trim() !== PHONE_INPUT_DEFAULT &&
+    !!watched.phoneNumber &&
+    watched.phoneNumber !== PHONE_INPUT_DEFAULT &&
     !!watched.password &&
     !!watched.passwordConfirm &&
-    !!inn &&
-    !!passport;
+    watched.offerAccepted &&
+    watched.obligationAccepted;
+
+  React.useEffect(() => {
+    if (timer <= 0) return;
+    const id = setInterval(() => setTimer((t) => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [timer]);
+
+  // ---- Шаг 1: email → отправка кода ----
+  const onSendCode = emailForm.handleSubmit(async ({ email: e }) => {
+    setError(null);
+    const normalized = e.trim().toLowerCase();
+    try {
+      await getCode.mutateAsync({ email: normalized });
+      setEmail(normalized);
+      setTimer(60);
+      setStep(2);
+    } catch (err) {
+      setError(getApiError(err) ?? 'Не удалось отправить код. Попробуйте позже.');
+    }
+  });
+
+  const onResend = async () => {
+    setError(null);
+    try {
+      await resendCode.mutateAsync({ email });
+      setTimer(60);
+    } catch (err) {
+      setError(getApiError(err) ?? 'Не удалось отправить код повторно.');
+    }
+  };
+
+  // ---- Шаг 2: код → подтверждение → шаг 3 ----
+  const onVerify = async () => {
+    if (code.length < 6) return;
+    setError(null);
+    try {
+      await verifyEmail.mutateAsync({ email, code });
+      setStep(3);
+    } catch (err) {
+      setError(getApiError(err) ?? 'Неверный код.');
+    }
+  };
+
+  // ---- Шаг 3: финальная регистрация ----
+  const onRegister = dataForm.handleSubmit(async (values) => {
+    setError(null);
+    if (values.password !== values.passwordConfirm) {
+      dataForm.setError('passwordConfirm', { message: 'Пароли не совпадают' });
+      return;
+    }
+    if (values.password.length < 8) {
+      dataForm.setError('password', { message: 'Минимум 8 символов' });
+      return;
+    }
+    try {
+      await register.mutateAsync({
+        email,
+        first_name: values.firstName.trim(),
+        phone_number: values.phoneNumber,
+        password: values.password,
+        password_confirm: values.passwordConfirm,
+        role: values.role,
+        offer_accepted: values.offerAccepted,
+        obligation_accepted: values.obligationAccepted,
+      });
+      router.push('/');
+    } catch (err) {
+      const data = (err as AxiosError<Record<string, unknown>>)?.response?.data;
+      if (data) {
+        if (data.phone_number) {
+          dataForm.setError('phoneNumber', {
+            message: String(data.phone_number),
+          });
+        }
+        if (data.password) {
+          const v = data.password;
+          dataForm.setError('password', {
+            message: Array.isArray(v) ? v.join(', ') : String(v),
+          });
+        }
+      }
+      setError(getApiError(err) ?? 'Не удалось зарегистрироваться.');
+    }
+  });
 
   return (
     <div className='w-full max-w-[472px] px-4'>
@@ -123,7 +250,10 @@ export default function PageRegister() {
             <div className='text-paragraph-sm text-text-sub-600 lg:text-paragraph-md'>
               {step === 1 && 'Введите ваш email для начала регистрации'}
               {step === 2 && (
-                <>Введите код, отправленный на <span className='font-medium text-text-strong-950'>{emailForm.getValues('email')}</span></>
+                <>
+                  Введите код, отправленный на{' '}
+                  <span className='font-medium text-text-strong-950'>{email}</span>
+                </>
               )}
               {step === 3 && 'Заполните данные для завершения регистрации'}
             </div>
@@ -140,24 +270,32 @@ export default function PageRegister() {
 
         {/* Step 1: Email */}
         {step === 1 && (
-          <form onSubmit={handleGetCode} className='flex flex-col gap-6'>
+          <form onSubmit={onSendCode} className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='email'>
                 Email <Label.Asterisk />
               </Label.Root>
-              <Input.Root hasError={!!emailErrors.email}>
+              <Input.Root hasError={!!emailForm.formState.errors.email}>
                 <Input.Wrapper>
                   <Input.Icon as={RiMailLine} />
                   <Input.Input
                     id='email'
                     type='email'
                     placeholder='example@mail.com'
-                    {...emailForm.register('email')}
+                    {...emailForm.register('email', {
+                      required: 'Введите email',
+                      pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: 'Некорректный email',
+                      },
+                    })}
                   />
                 </Input.Wrapper>
               </Input.Root>
-              {emailErrors.email && (
-                <p className='text-paragraph-xs text-error-base'>{emailErrors.email.message}</p>
+              {emailForm.formState.errors.email && (
+                <p className='text-paragraph-xs text-error-base'>
+                  {emailForm.formState.errors.email.message}
+                </p>
               )}
             </div>
 
@@ -166,16 +304,33 @@ export default function PageRegister() {
               variant='primary'
               size='medium'
               className='w-full'
-              disabled={isGetCodePending || timer > 0}
+              disabled={getCode.isPending || timer > 0}
             >
-              {isGetCodePending ? 'Отправка...' : timer > 0 ? `Подождите ${timer} сек` : 'Продолжить'}
+              {getCode.isPending
+                ? 'Отправка...'
+                : timer > 0
+                  ? `Подождите ${timer} сек`
+                  : 'Продолжить'}
             </FancyButton.Root>
+
+            <div className='text-center text-paragraph-sm text-text-sub-600'>
+              Уже есть аккаунт?{' '}
+              <LinkButton.Root variant='primary' size='medium' underline asChild>
+                <Link href='/login'>Войти</Link>
+              </LinkButton.Root>
+            </div>
           </form>
         )}
 
         {/* Step 2: OTP */}
         {step === 2 && (
-          <form onSubmit={handleVerifyEmail} className='flex flex-col gap-6'>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              onVerify();
+            }}
+            className='flex flex-col gap-6'
+          >
             <div className='flex flex-col gap-1'>
               <Label.Root>
                 Код подтверждения <Label.Asterisk />
@@ -195,9 +350,9 @@ export default function PageRegister() {
                 variant='primary'
                 size='medium'
                 className='w-full'
-                disabled={code.length < 6 || isVerifyPending}
+                disabled={code.length < 6 || verifyEmail.isPending}
               >
-                {isVerifyPending ? 'Проверка...' : 'Подтвердить'}
+                {verifyEmail.isPending ? 'Проверка...' : 'Подтвердить'}
               </FancyButton.Root>
 
               <div className='flex items-center justify-center gap-1.5'>
@@ -213,281 +368,206 @@ export default function PageRegister() {
                     variant='primary'
                     size='medium'
                     underline
-                    type='button'
-                    onClick={handleResendCode}
-                    disabled={isResendPending}
+                    onClick={onResend}
+                    disabled={resendCode.isPending}
                   >
-                    Отправить повторно
+                    Отправить снова
                   </LinkButton.Root>
                 )}
               </div>
+
+              <button
+                type='button'
+                onClick={() => {
+                  setStep(1);
+                  setCode('');
+                  setError(null);
+                }}
+                className='text-paragraph-sm text-text-sub-600 hover:text-text-strong-950'
+              >
+                ← Изменить email
+              </button>
             </div>
           </form>
         )}
 
-        {/* Step 3: Broker data */}
+        {/* Step 3: Data */}
         {step === 3 && (
-          <form onSubmit={handleRegister} className='flex flex-col gap-6'>
+          <form onSubmit={onRegister} className='flex flex-col gap-6'>
+            <div className='flex flex-col gap-1'>
+              <Label.Root htmlFor='firstName'>
+                Имя <Label.Asterisk />
+              </Label.Root>
+              <Input.Root hasError={!!dataForm.formState.errors.firstName}>
+                <Input.Wrapper>
+                  <Input.Icon as={RiUserLine} />
+                  <Input.Input
+                    id='firstName'
+                    placeholder='Иван'
+                    {...dataForm.register('firstName', {
+                      required: 'Введите имя',
+                    })}
+                  />
+                </Input.Wrapper>
+              </Input.Root>
+              {dataForm.formState.errors.firstName && (
+                <p className='text-paragraph-xs text-error-base'>
+                  {dataForm.formState.errors.firstName.message}
+                </p>
+              )}
+            </div>
+
+            <div className='flex flex-col gap-1'>
+              <Label.Root htmlFor='phoneNumber'>
+                Номер телефона <Label.Asterisk />
+              </Label.Root>
+              <Input.Root hasError={!!dataForm.formState.errors.phoneNumber}>
+                <Input.Wrapper>
+                  <Input.Icon as={RiPhoneLine} />
+                  <Input.Input
+                    id='phoneNumber'
+                    inputMode='tel'
+                    placeholder='+7 (999) 123-45-67'
+                    value={watched.phoneNumber}
+                    onChange={(e) =>
+                      dataForm.setValue(
+                        'phoneNumber',
+                        formatPhoneInputLocked(e.target.value),
+                        { shouldValidate: true },
+                      )
+                    }
+                  />
+                </Input.Wrapper>
+              </Input.Root>
+              {dataForm.formState.errors.phoneNumber && (
+                <p className='text-paragraph-xs text-error-base'>
+                  {dataForm.formState.errors.phoneNumber.message}
+                </p>
+              )}
+            </div>
+
+            <div className='flex flex-col gap-1'>
+              <Label.Root htmlFor='password'>
+                Пароль <Label.Asterisk />
+              </Label.Root>
+              <PasswordInput
+                id='password'
+                hasError={!!dataForm.formState.errors.password}
+                {...dataForm.register('password', {
+                  required: 'Введите пароль',
+                  minLength: { value: 8, message: 'Минимум 8 символов' },
+                })}
+              />
+              {dataForm.formState.errors.password && (
+                <p className='text-paragraph-xs text-error-base'>
+                  {dataForm.formState.errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <div className='flex flex-col gap-1'>
+              <Label.Root htmlFor='passwordConfirm'>
+                Повторите пароль <Label.Asterisk />
+              </Label.Root>
+              <PasswordInput
+                id='passwordConfirm'
+                hasError={!!dataForm.formState.errors.passwordConfirm}
+                {...dataForm.register('passwordConfirm', {
+                  required: 'Повторите пароль',
+                })}
+              />
+              {dataForm.formState.errors.passwordConfirm && (
+                <p className='text-paragraph-xs text-error-base'>
+                  {dataForm.formState.errors.passwordConfirm.message}
+                </p>
+              )}
+            </div>
+
+            <div className='flex flex-col gap-1'>
+              <Label.Root htmlFor='role'>
+                Я регистрируюсь как <Label.Asterisk />
+                <span
+                  title={ROLE_TOOLTIP}
+                  className='ml-1 inline-flex items-center text-text-soft-400'
+                >
+                  <RiInformationLine className='size-4' />
+                </span>
+              </Label.Root>
+              <Select.Root
+                value={watched.role}
+                onValueChange={(v) =>
+                  dataForm.setValue('role', (v as 'broker' | 'developer') ?? 'broker')
+                }
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  <Select.Item value='broker'>Брокер</Select.Item>
+                  <Select.Item value='developer'>Девелопер</Select.Item>
+                </Select.Content>
+              </Select.Root>
+              <p className='whitespace-pre-line text-paragraph-xs text-text-sub-600'>
+                {ROLE_TOOLTIP}
+              </p>
+            </div>
+
+            <div className='flex flex-col gap-2 rounded-12 bg-bg-weak-50 px-3 py-3'>
+              <label className='flex items-start gap-2 text-paragraph-sm'>
+                <Checkbox.Root
+                  checked={watched.offerAccepted}
+                  onCheckedChange={(v) =>
+                    dataForm.setValue('offerAccepted', v === true, {
+                      shouldValidate: true,
+                    })
+                  }
+                />
+                <span>
+                  Соглашаюсь с условиями{' '}
+                  <a
+                    href='/legal/offer'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-primary-base underline-offset-2 hover:underline'
+                  >
+                    оферты
+                  </a>
+                </span>
+              </label>
+              <label className='flex items-start gap-2 text-paragraph-sm'>
+                <Checkbox.Root
+                  checked={watched.obligationAccepted}
+                  onCheckedChange={(v) =>
+                    dataForm.setValue('obligationAccepted', v === true, {
+                      shouldValidate: true,
+                    })
+                  }
+                />
+                <span>Принимаю обязательство при участии в аукционе</span>
+              </label>
+            </div>
+
             <div className='flex flex-col gap-3'>
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='firstName'>
-                  Имя <Label.Asterisk />
-                </Label.Root>
-                <Input.Root hasError={!!regErrors.firstName}>
-                  <Input.Wrapper>
-                    <Input.Icon as={RiUserLine} />
-                    <Input.Input
-                      id='firstName'
-                      type='text'
-                      placeholder='Введите имя'
-                      {...registerForm.register('firstName', {
-                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                          const filtered = e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, '');
-                          registerForm.setValue('firstName', filtered, { shouldValidate: true });
-                        },
-                      })}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {regErrors.firstName && (
-                  <p className='text-paragraph-xs text-error-base'>{regErrors.firstName.message}</p>
-                )}
-              </div>
+              <FancyButton.Root
+                type='submit'
+                variant='primary'
+                size='medium'
+                className='w-full'
+                disabled={!dataReady || register.isPending}
+              >
+                {register.isPending ? 'Регистрация...' : 'Зарегистрироваться'}
+              </FancyButton.Root>
 
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='lastName'>
-                  Фамилия <Label.Asterisk />
-                </Label.Root>
-                <Input.Root hasError={!!regErrors.lastName}>
-                  <Input.Wrapper>
-                    <Input.Icon as={RiUserLine} />
-                    <Input.Input
-                      id='lastName'
-                      type='text'
-                      placeholder='Введите фамилию'
-                      {...registerForm.register('lastName', {
-                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                          const filtered = e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, '');
-                          registerForm.setValue('lastName', filtered, { shouldValidate: true });
-                        },
-                      })}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {regErrors.lastName && (
-                  <p className='text-paragraph-xs text-error-base'>{regErrors.lastName.message}</p>
-                )}
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='innNumber'>
-                  ИНН номер <Label.Asterisk />
-                </Label.Root>
-                <Input.Root hasError={!!regErrors.innNumber}>
-                  <Input.Wrapper>
-                    <Input.Icon as={RiFileTextLine} />
-                    <Input.Input
-                      id='innNumber'
-                      type='text'
-                      inputMode='numeric'
-                      maxLength={12}
-                      placeholder='Введите ИНН номер'
-                      {...registerForm.register('innNumber', {
-                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                          const filtered = e.target.value.replace(/\D/g, '').slice(0, 12);
-                          registerForm.setValue('innNumber', filtered, { shouldValidate: true });
-                        },
-                      })}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {regErrors.innNumber && (
-                  <p className='text-paragraph-xs text-error-base'>{regErrors.innNumber.message}</p>
-                )}
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='phoneNumber'>
-                  Номер телефона <Label.Asterisk />
-                </Label.Root>
-                <Input.Root hasError={!!regErrors.phoneNumber}>
-                  <Input.Wrapper>
-                    <Input.Icon as={RiPhoneLine} />
-                    <Input.Input
-                      id='phoneNumber'
-                      type='tel'
-                      inputMode='tel'
-                      placeholder='+7 (999) 000-00-00'
-                      {...registerForm.register('phoneNumber', {
-                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                          const formatted = formatPhoneInputLocked(e.target.value);
-                          registerForm.setValue('phoneNumber', formatted);
-                        },
-                      })}
-                      onFocus={(e) => {
-                        if (!e.target.value) {
-                          registerForm.setValue('phoneNumber', '+7 (');
-                        }
-                      }}
-                      maxLength={18}
-                    />
-                  </Input.Wrapper>
-                </Input.Root>
-                {regErrors.phoneNumber && (
-                  <p className='text-paragraph-xs text-error-base'>{regErrors.phoneNumber.message}</p>
-                )}
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root>
-                  Документ ИНН <Label.Asterisk />
-                </Label.Root>
-                <label
-                  className={cn(
-                    'flex cursor-pointer items-center gap-2 rounded-10 border px-3 py-2.5 transition-colors hover:bg-bg-weak-50',
-                    fileErrors.inn ? 'border-error-base' : 'border-stroke-soft-200',
-                  )}
-                >
-                  <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
-                  <span className='truncate text-paragraph-sm text-text-soft-400'>
-                    {inn ? inn.name : 'Выберите файл'}
-                  </span>
-                  <input
-                    type='file'
-                    className='hidden'
-                    accept='image/*,.pdf'
-                    onChange={(e) => setInn(e.target.files?.[0] ?? null)}
-                  />
-                </label>
-                {fileErrors.inn && (
-                  <p className='text-paragraph-xs text-error-base'>{fileErrors.inn}</p>
-                )}
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root>
-                  Паспорт <Label.Asterisk />
-                </Label.Root>
-                <label
-                  className={cn(
-                    'flex cursor-pointer items-center gap-2 rounded-10 border px-3 py-2.5 transition-colors hover:bg-bg-weak-50',
-                    fileErrors.passport ? 'border-error-base' : 'border-stroke-soft-200',
-                  )}
-                >
-                  <RiUploadCloud2Line className='size-5 shrink-0 text-text-soft-400' />
-                  <span className='truncate text-paragraph-sm text-text-soft-400'>
-                    {passport ? passport.name : 'Выберите файл'}
-                  </span>
-                  <input
-                    type='file'
-                    className='hidden'
-                    accept='image/*,.pdf'
-                    onChange={(e) => setPassport(e.target.files?.[0] ?? null)}
-                  />
-                </label>
-                {fileErrors.passport && (
-                  <p className='text-paragraph-xs text-error-base'>{fileErrors.passport}</p>
-                )}
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='password'>
-                  Пароль <Label.Asterisk />
-                </Label.Root>
-                <PasswordInput
-                  id='password'
-                  hasError={!!regErrors.password}
-                  {...registerForm.register('password')}
-                />
-                {regErrors.password ? (
-                  <p className='text-paragraph-xs text-error-base'>{regErrors.password.message}</p>
-                ) : (
-                  <p className='text-paragraph-xs text-text-sub-600'>
-                    Минимум 8 символов. Не должен состоять только из цифр и не должен быть слишком распространённым.
-                  </p>
-                )}
-              </div>
-
-              <div className='flex flex-col gap-1'>
-                <Label.Root htmlFor='passwordConfirm'>
-                  Подтверждение пароля <Label.Asterisk />
-                </Label.Root>
-                <PasswordInput
-                  id='passwordConfirm'
-                  hasError={!!regErrors.passwordConfirm}
-                  {...registerForm.register('passwordConfirm')}
-                />
-                {regErrors.passwordConfirm && (
-                  <p className='text-paragraph-xs text-error-base'>{regErrors.passwordConfirm.message}</p>
-                )}
-              </div>
+              <button
+                type='button'
+                onClick={() => setStep(2)}
+                className='text-paragraph-sm text-text-sub-600 hover:text-text-strong-950'
+              >
+                ← К коду подтверждения
+              </button>
             </div>
-
-            <div className='flex flex-col gap-2'>
-              <label className='flex cursor-pointer items-start gap-3 rounded-xl bg-bg-weak-50 p-4'>
-                <div className='flex-1'>
-                  <span className='text-paragraph-sm font-medium text-text-strong-950'>
-                    Соглашаюсь с условиями{' '}
-                    <a
-                      href='/offer.pdf'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-primary-base underline'
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      оферты
-                    </a>
-                  </span>
-                  <p className='mt-0.5 text-paragraph-xs text-text-sub-600'>
-                    Это нужно для обработки и хранения документов. Одно согласие — для всех типов.
-                  </p>
-                </div>
-                <Checkbox.Root
-                  checked={offerAccepted}
-                  onCheckedChange={(v) => setOfferAccepted(v === true)}
-                />
-              </label>
-
-              <label className='flex cursor-pointer items-start gap-3 rounded-xl bg-bg-weak-50 p-4'>
-                <div className='flex-1'>
-                  <span className='text-paragraph-sm font-medium text-text-strong-950'>
-                    Принимаю обязательство при участии в аукционе
-                  </span>
-                  <p className='mt-0.5 text-paragraph-xs text-text-sub-600'>
-                    Каждая ставка — обязательство приобрести объект на указанных условиях.
-                    При победе обязуюсь завершить сделку: загрузить ДДУ и подтверждение оплаты в установленный срок.
-                  </p>
-                </div>
-                <Checkbox.Root
-                  checked={auctionObligationAccepted}
-                  onCheckedChange={(v) => setAuctionObligationAccepted(v === true)}
-                />
-              </label>
-            </div>
-
-            <FancyButton.Root
-              type='submit'
-              variant='primary'
-              size='medium'
-              className='w-full'
-              disabled={
-                isRegisterPending ||
-                !offerAccepted ||
-                !auctionObligationAccepted ||
-                !allRequiredFilled
-              }
-            >
-              {isRegisterPending ? 'Регистрация...' : 'Зарегистрироваться'}
-            </FancyButton.Root>
           </form>
         )}
-      </div>
-
-      <div className='mb-8 mt-6 flex items-center justify-center gap-1.5'>
-        <span className='text-sm text-gray-500'>Уже есть аккаунт?</span>
-        <LinkButton.Root variant='primary' size='medium' underline asChild>
-          <Link href='/login'>Войти</Link>
-        </LinkButton.Root>
       </div>
     </div>
   );
