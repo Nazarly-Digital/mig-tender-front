@@ -29,7 +29,7 @@ import {
   useUploadDocument,
   useMe,
 } from '@/features/auth';
-import { formatPhoneInputLocked } from '@/shared/lib/phone';
+import { formatPhoneInput, formatPhoneInputLocked } from '@/shared/lib/phone';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
@@ -74,13 +74,16 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
     if (!user) return;
     if (lastUserIdRef.current === user.id) return;
     lastUserIdRef.current = user.id;
+    const rawPhone =
+      (user.broker?.phone_number ?? user.developer?.phone_number ?? '') || '';
     setValues({
       first_name: user.first_name ?? '',
       last_name: user.last_name ?? '',
       inn_number:
         (user.broker?.inn_number ?? user.developer?.inn_number ?? '') || '',
-      phone_number:
-        (user.broker?.phone_number ?? user.developer?.phone_number ?? '') || '',
+      // ТЗ от 2026-05-15 — отображаем телефон в маске «+7 (999) 999-99-99»
+      // вместо «70000000000». На сохранении бэк нормализует обратно.
+      phone_number: rawPhone ? formatPhoneInput(rawPhone) : '',
       company_name: user.developer?.company_name ?? '',
     });
   }, [user]);
@@ -135,6 +138,7 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
               <Input.Input
                 id='first_name'
                 disabled={readOnly}
+                placeholder='Иван'
                 value={values.first_name}
                 onChange={(e) =>
                   setValues((v) => ({
@@ -156,6 +160,7 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
               <Input.Input
                 id='last_name'
                 disabled={readOnly}
+                placeholder='Иванов'
                 value={values.last_name}
                 onChange={(e) =>
                   setValues((v) => ({
@@ -344,14 +349,16 @@ function DocSlot({
       <div className='text-[12px] font-semibold text-gray-700'>{label}</div>
       {existingDoc ? (
         <div className='mt-2 flex items-center justify-between gap-2'>
-          <a
-            href={existingDoc.url}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='truncate text-[13px] text-blue-600 hover:underline'
+          {/* button-like вместо <a href> — иначе браузер показывает
+              длинную подписанную URL'у с токеном в status-bar при hover.
+              По фидбеку 2026-05-15 это убрали из UX. */}
+          <button
+            type='button'
+            onClick={() => window.open(existingDoc.url, '_blank', 'noopener,noreferrer')}
+            className='truncate text-left text-[13px] text-blue-600 hover:underline cursor-pointer'
           >
             {existingDoc.document_name || 'Документ'}
-          </a>
+          </button>
           {!disabled && (
             <FancyButton.Root
               variant='basic'

@@ -139,10 +139,12 @@ const strictEmail = () =>
 //     фронт нормализует ввод в этот формат перед отправкой.
 // Поэтому field называется `email` для совместимости с бэком (поле
 // JWT TokenObtainPairSerializer), но принимает и phone.
+// ТЗ от 2026-05-15 — логин только по email (раньше принимал и телефон).
 export const loginSchema = z.object({
   email: z
     .string()
-    .min(1, 'Введите email или телефон'),
+    .min(1, 'Введите email')
+    .email('Введите корректный email'),
   password: z
     .string()
     .min(1, 'Введите пароль'),

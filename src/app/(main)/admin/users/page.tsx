@@ -648,15 +648,14 @@ function EditDeveloperModal({
               <div className='flex flex-col gap-1'>
                 <Label.Root htmlFor='ed-dduTemplate'>Шаблон ДДУ (PDF)</Label.Root>
                 {user.developer?.ddu_template_url && (
-                  <a
-                    href={user.developer.ddu_template_url}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='inline-flex w-fit items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50'
+                  <button
+                    type='button'
+                    onClick={() => window.open(user.developer!.ddu_template_url!, '_blank', 'noopener,noreferrer')}
+                    className='inline-flex w-fit items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 cursor-pointer'
                   >
                     <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
                     Текущий шаблон
-                  </a>
+                  </button>
                 )}
                 <input
                   id='ed-dduTemplate'

@@ -14,11 +14,7 @@ import { AxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import {
-  loginSchema,
-  type LoginFormData,
-  normalizeLoginIdentifier,
-} from '@/shared/lib/validations';
+import { loginSchema, type LoginFormData } from '@/shared/lib/validations';
 import * as Alert from '@/shared/ui/alert';
 import * as Divider from '@/shared/ui/divider';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -84,11 +80,12 @@ export default function PageLogin() {
   const onSubmit = (data: LoginFormData) => {
     if (timer > 0) return;
     setError('');
-    // Бэк ждёт email, фронт принимает email ИЛИ телефон. Нормализуем
-    // телефон в placeholder email (`<digits>@noemail.local`) — это
-    // тот формат, который simple-register сохраняет в User.email.
+    // ТЗ от 2026-05-15 — логин только по email. Раньше также можно
+    // было по телефону (нормализовали в `<digits>@noemail.local`),
+    // но реальные пользователи всегда регались с email — поле
+    // вводило в заблуждение.
     const payload = {
-      email: normalizeLoginIdentifier(data.email),
+      email: data.email.trim().toLowerCase(),
       password: data.password,
       role,
     };
@@ -105,7 +102,7 @@ export default function PageLogin() {
             if (data?.code === 'role_mismatch' || data?.detail?.includes('не зарегистрирован как')) {
               setError(data.detail || 'Этот аккаунт зарегистрирован под другой ролью');
             } else {
-              setError('Неверный email/телефон или пароль');
+              setError('Неверный email или пароль');
             }
           } else if (status === 429) {
             const data = err.response?.data as { remaining_time?: number; detail?: string } | undefined;
@@ -155,15 +152,15 @@ export default function PageLogin() {
             {/* Email */}
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='email'>
-                Email или телефон <Label.Asterisk />
+                Email <Label.Asterisk />
               </Label.Root>
               <Input.Root hasError={!!errors.email}>
                 <Input.Wrapper>
                   <Input.Icon as={RiMailLine} />
                   <Input.Input
                     id='email'
-                    type='text'
-                    placeholder='example@mail.com или +7 999 123 45 67'
+                    type='email'
+                    placeholder='example@mail.com'
                     autoComplete='username'
                     {...register('email')}
                   />

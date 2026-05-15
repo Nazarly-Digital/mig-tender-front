@@ -402,16 +402,14 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
                     Скачайте, подпишите, отсканируйте — затем загрузите как ДДУ ниже.
                   </div>
                 </div>
-                <a
-                  href={deal.developer_ddu_template_url}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  download
-                  className='inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-[13px] font-medium text-blue-700 hover:bg-blue-50 transition-colors'
+                <button
+                  type='button'
+                  onClick={() => window.open(deal.developer_ddu_template_url!, '_blank', 'noopener,noreferrer')}
+                  className='inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-[13px] font-medium text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer'
                 >
                   <HugeiconsIcon icon={Upload04Icon} size={14} color='currentColor' strokeWidth={1.5} className='rotate-180' />
                   Скачать шаблон
-                </a>
+                </button>
               </div>
             )}
             <div className='flex flex-wrap gap-2'>

@@ -168,15 +168,16 @@ function DeveloperDDUTemplateCard() {
 
       <div className='mt-4 border-t border-blue-50 pt-3'>
         {currentUrl ? (
-          <a
-            href={currentUrl}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='inline-flex items-center gap-1.5 text-[13px] font-medium text-blue-600 hover:text-blue-700'
+          // button-like вместо <a href> чтобы подписанная URL'а с
+          // токеном не светилась в браузерной status-bar.
+          <button
+            type='button'
+            onClick={() => window.open(currentUrl, '_blank', 'noopener,noreferrer')}
+            className='inline-flex items-center gap-1.5 text-[13px] font-medium text-blue-600 hover:text-blue-700 cursor-pointer'
           >
             <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
             Скачать текущий шаблон
-          </a>
+          </button>
         ) : (
           <span className='text-[13px] text-gray-400'>
             Шаблон ещё не загружен. Без него брокер не сможет оформить ДДУ по сделке.

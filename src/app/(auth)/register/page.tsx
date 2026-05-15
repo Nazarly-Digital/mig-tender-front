@@ -578,14 +578,8 @@ export default function PageRegister() {
               >
                 {register.isPending ? 'Регистрация...' : 'Зарегистрироваться'}
               </FancyButton.Root>
-
-              <button
-                type='button'
-                onClick={() => setStep(2)}
-                className='text-paragraph-sm text-text-sub-600 hover:text-text-strong-950'
-              >
-                ← К коду подтверждения
-              </button>
+              {/* «← К коду подтверждения» убран по фидбеку 2026-05-15 —
+                  email уже подтверждён, возвращаться к шагу OTP некуда. */}
             </div>
           </form>
         )}

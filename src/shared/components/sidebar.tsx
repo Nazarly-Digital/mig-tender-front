@@ -105,19 +105,31 @@ export default function Sidebar() {
       ? (user?.developer?.company_name || 'Застройщик')
       : 'Брокер';
 
-  const verificationStatus = user?.broker?.verification_status;
-  const statusLabel = verificationStatus === 'accepted'
-    ? 'Верифицирован'
-    : verificationStatus === 'rejected'
-      ? 'Отклонён'
-      : verificationStatus === 'pending'
-        ? 'На проверке'
-        : null;
+  // ТЗ от 2026-05-15 — статус показываем И для broker И для developer.
+  // Учитываем все возможные значения verification_status:
+  //   accepted               → «Верифицирован» (зелёный)
+  //   in_review / pending    → «На проверке» (амбер)
+  //   not_submitted / null   → «Не верифицирован» (амбер)
+  //   rejected (legacy)      → «Отклонён» (красный)
+  // Для админа ничего не показываем.
+  const profile = isDeveloper ? user?.developer : user?.broker;
+  const verificationStatus = profile?.verification_status;
+  const statusLabel = isAdmin
+    ? null
+    : verificationStatus === 'accepted'
+      ? 'Верифицирован'
+      : verificationStatus === 'rejected'
+        ? 'Отклонён'
+        : verificationStatus === 'in_review' || verificationStatus === 'pending'
+          ? 'На проверке'
+          : 'Не верифицирован';
   const statusColor = verificationStatus === 'accepted'
     ? 'text-emerald-600'
     : verificationStatus === 'rejected'
       ? 'text-red-600'
-      : 'text-amber-600';
+      : verificationStatus === 'in_review' || verificationStatus === 'pending'
+        ? 'text-amber-600'
+        : 'text-gray-500';
   const [logoutOpen, setLogoutOpen] = React.useState(false);
 
   const handleLogout = () => {
