@@ -580,10 +580,23 @@ export default function PageRegister() {
               </FancyButton.Root>
               {/* «← К коду подтверждения» убран по фидбеку 2026-05-15 —
                   email уже подтверждён, возвращаться к шагу OTP некуда. */}
+
+              {/* «Уже есть аккаунт? Войти» — по фидбеку 2026-05-15:
+                  на шаге 3 не было ссылки на login, юзер мог зависнуть. */}
+              <div className='text-center text-paragraph-sm text-text-sub-600'>
+                Уже есть аккаунт?{' '}
+                <LinkButton.Root variant='primary' size='medium' underline asChild>
+                  <Link href='/login'>Войти</Link>
+                </LinkButton.Root>
+              </div>
             </div>
           </form>
         )}
       </div>
+
+      {/* Нижний отступ под карточкой формы — иначе при коротких
+          вьюпортах форма прилипает к футеру. */}
+      <div className='h-8' />
     </div>
   );
 }
