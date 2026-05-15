@@ -249,11 +249,14 @@ export default function Sidebar() {
                 {fullName}
               </span>
               <div className="flex items-center gap-1.5 min-w-0">
-                <span className="truncate text-[11px] text-gray-500 min-w-0">
+                {/* Приоритет — показать роль целиком («Девелопер»),
+                    а длинный статус («Не верифицирован») при нехватке
+                    места уводить в эллипсис. По фидбеку 2026-05-15. */}
+                <span className="shrink-0 text-[11px] text-gray-500">
                   {roleLabel}
                 </span>
                 {statusLabel && (
-                  <span className={`shrink-0 text-[10px] font-medium ${statusColor}`}>
+                  <span className={`truncate text-[10px] font-medium min-w-0 ${statusColor}`}>
                     · {statusLabel}
                   </span>
                 )}
