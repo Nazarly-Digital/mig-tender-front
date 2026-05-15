@@ -6,9 +6,15 @@ export function getNotificationRoute(
 ): string | null {
   switch (n.category) {
     case 'auction':
+      // ТЗ от 2026-05-15 — если по аукциону уже создана сделка
+      // (deal_id), прыгаем сразу в неё с якорем (#deal-N) на
+      // конкретную карточку. Это про уведомления «Вы победили…
+      // загрузите документы…» — раньше они вели в аукцион,
+      // откуда юзер вручную лез в /deals.
+      if (n.deal_id) return `/deals#deal-${n.deal_id}`;
       return n.auction_id ? `/auctions/${n.auction_id}` : '/auctions';
     case 'deal':
-      return '/deals';
+      return n.deal_id ? `/deals#deal-${n.deal_id}` : '/deals';
     case 'payment':
       return '/payments';
     case 'property':

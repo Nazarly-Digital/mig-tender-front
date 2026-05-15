@@ -221,7 +221,8 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
   };
 
   return (
-    <div className='bg-white rounded-xl border border-gray-200 overflow-hidden'>
+    // id для якорного перехода с /auctions/[id] (кнопка «Перейти к сделке»).
+    <div id={`deal-${deal.id}`} className='bg-white rounded-xl border border-gray-200 overflow-hidden scroll-mt-24'>
       <div className='p-5'>
         {/* Header */}
         <div className='flex items-start justify-between gap-4'>
@@ -519,6 +520,20 @@ export function BrokerDealsView() {
 
   const { data: allData } = useDeals();
   const allDeals = allData?.results ?? [];
+
+  // ТЗ от 2026-05-15 — после клика «Перейти к сделке» с /auctions/[id]
+  // ?# деал-ID. Браузер не скроллит сам, потому что элемент рендерится
+  // позже (после загрузки списка). Делаем это в effect'е.
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hash = window.location.hash;
+    if (!hash.startsWith('#deal-')) return;
+    if (deals.length === 0) return;
+    const el = document.getElementById(hash.slice(1));
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [deals]);
 
   return (
     <div className='w-full px-8 py-8'>

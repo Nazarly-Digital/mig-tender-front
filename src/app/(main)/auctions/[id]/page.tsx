@@ -1339,6 +1339,13 @@ export default function AuctionDetailPage() {
                 const myAmount = auction.my_deal?.amount
                   ?? auction.winner_bid.amount
                   ?? '0';
+                // ТЗ от 2026-05-15 (фикс) — два суб-состояния:
+                //   A) my_deal != null (девелопер подтвердил) → можно
+                //      загружать ДДУ и оплату;
+                //   B) my_deal == null (ждём подтверждения) → раньше
+                //      писали «Загрузите ДДУ...» что вводило в
+                //      заблуждение, потому что сделки ещё нет.
+                const dealCreated = auction.my_deal != null;
                 return (
                   <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
                     <HugeiconsIcon icon={ChampionIcon} size={20} color='currentColor' strokeWidth={1.5} className='text-emerald-500' />
@@ -1347,7 +1354,9 @@ export default function AuctionDetailPage() {
                         Вы выиграли аукцион — {formatPrice(myAmount)} ₽
                       </div>
                       <div className='text-xs text-gray-500'>
-                        Загрузите ДДУ и подтверждение оплаты в установленный срок.
+                        {dealCreated
+                          ? 'Загрузите ДДУ и подтверждение оплаты в установленный срок.'
+                          : 'Ждём подтверждения от девелопера. После — сможете загрузить ДДУ и оплату.'}
                       </div>
                     </div>
                   </div>
@@ -1443,14 +1452,28 @@ export default function AuctionDetailPage() {
 
             {/* Decision: confirmed */}
             {auction.owner_decision === 'confirmed' && (
-              <div className='mt-4 flex items-center gap-3 rounded-lg bg-emerald-50 p-4'>
-                <div className='size-2 rounded-full bg-emerald-500' />
-                <div>
-                  <p className='text-sm font-medium text-emerald-700'>Результат подтверждён</p>
-                  {auction.owner_decided_at && (
-                    <p className='text-xs text-gray-500'>{formatDateTime(auction.owner_decided_at)}</p>
-                  )}
+              <div className='mt-4 flex items-center justify-between gap-3 rounded-lg bg-emerald-50 p-4'>
+                <div className='flex items-center gap-3'>
+                  <div className='size-2 rounded-full bg-emerald-500' />
+                  <div>
+                    <p className='text-sm font-medium text-emerald-700'>Результат подтверждён</p>
+                    {auction.owner_decided_at && (
+                      <p className='text-xs text-gray-500'>{formatDateTime(auction.owner_decided_at)}</p>
+                    )}
+                  </div>
                 </div>
+                {/* «Перейти к сделке» — для брокера-победителя
+                    (по фидбеку 2026-05-15: после подтверждения
+                    нужен прямой переход на страницу сделок). */}
+                {isBroker && auction.my_deal?.id && (
+                  <FancyButton.Root
+                    variant='primary'
+                    size='small'
+                    onClick={() => router.push(`/deals#deal-${auction.my_deal!.id}`)}
+                  >
+                    Перейти к сделке
+                  </FancyButton.Root>
+                )}
               </div>
             )}
 
