@@ -139,7 +139,9 @@ export default function PageRegister() {
     !!watched.password &&
     !!watched.passwordConfirm &&
     watched.offerAccepted &&
-    watched.obligationAccepted;
+    // ТЗ от 2026-05-15 — чекбокс обязательства только для broker'а;
+    // developer без него тоже может зарегистрироваться.
+    (watched.role === 'developer' || watched.obligationAccepted);
 
   React.useEffect(() => {
     if (timer <= 0) return;
@@ -203,9 +205,15 @@ export default function PageRegister() {
         password_confirm: values.passwordConfirm,
         role: values.role,
         offer_accepted: values.offerAccepted,
-        obligation_accepted: values.obligationAccepted,
+        // ТЗ от 2026-05-15 — чекбокс «обязательство в аукционе»
+        // только для broker'а; developer не участвует в торгах,
+        // поэтому шлём false (бэк допускает).
+        obligation_accepted:
+          values.role === 'broker' ? values.obligationAccepted : false,
       });
-      router.push('/');
+      // ТЗ от 2026-05-15 — после регистрации редиректим на /cabinet,
+      // чтобы юзер сразу увидел свою верификацию и заполнил данные.
+      router.push('/cabinet');
     } catch (err) {
       const data = (err as AxiosError<Record<string, unknown>>)?.response?.data;
       if (data) {
@@ -542,17 +550,22 @@ export default function PageRegister() {
                   </a>
                 </span>
               </label>
-              <label className='flex items-start gap-2 text-paragraph-sm'>
-                <Checkbox.Root
-                  checked={watched.obligationAccepted}
-                  onCheckedChange={(v) =>
-                    dataForm.setValue('obligationAccepted', v === true, {
-                      shouldValidate: true,
-                    })
-                  }
-                />
-                <span>Принимаю обязательство при участии в аукционе</span>
-              </label>
+              {/* ТЗ от 2026-05-15 — чекбокс «обязательство в аукционе»
+                  только для broker'а: developer не торгует, ему этот
+                  пункт не относится. */}
+              {watched.role === 'broker' && (
+                <label className='flex items-start gap-2 text-paragraph-sm'>
+                  <Checkbox.Root
+                    checked={watched.obligationAccepted}
+                    onCheckedChange={(v) =>
+                      dataForm.setValue('obligationAccepted', v === true, {
+                        shouldValidate: true,
+                      })
+                    }
+                  />
+                  <span>Принимаю обязательство при участии в аукционе</span>
+                </label>
+              )}
             </div>
 
             <div className='flex flex-col gap-3'>

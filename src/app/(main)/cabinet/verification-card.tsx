@@ -1,23 +1,20 @@
 'use client';
 
 /**
- * ВерификационныЙ статус-кaрточка по ТЗ от 2026-05-14 (раздел 2.3 + тексты).
+ * Верификационные UI-блоки в ЛК (ТЗ от 2026-05-14, обновлено 2026-05-15).
  *
- * Показывает один из четырёх состояний:
- *   - «Не верифицирован» (NOT_SUBMITTED) — пользователь не отправлял профиль.
- *     Если заполнены ВСЕ обязательные поля → активная кнопка
- *     «Отправить на проверку», которая открывает confirmation-модалку.
- *   - «Не верифицирован» с rejection_reason — то же самое, плюс
- *     красная плашка с причиной отказа от админа.
- *   - «На проверке» (IN_REVIEW / legacy PENDING) — кнопки нет, статус-плашка
- *     амбер-цвета с пояснением.
- *   - «Верифицирован» (ACCEPTED) — зелёная плашка, кнопки нет.
+ * - VerificationStatusBanner — плашка-объяснение наверху ЛК. Скрывается
+ *   когда verification_status = ACCEPTED (по фидбеку 2026-05-15: статус
+ *   и так виден в сайдбаре, дублировать не нужно).
+ * - SubmitForReviewButton — отдельная кнопка «Отправить на проверку»
+ *   которая ставится ПОСЛЕ блока документов, а не внутри плашки.
+ *   Disabled-подсказка убрана: кнопка просто кликабельная, и при
+ *   нехватке полей бэк ответит missing_fields.
  */
 
 import * as React from 'react';
 import toast from 'react-hot-toast';
 import {
-  RiCheckboxCircleLine,
   RiErrorWarningLine,
   RiTimeLine,
 } from '@remixicon/react';
@@ -65,36 +62,22 @@ function normalize(status: string | undefined): VerificationStatus {
   return s;
 }
 
-export function VerificationStatusCard({
+/**
+ * Плашка-баннер с цветом-статусом + текстом-подсказкой. Кнопки нет.
+ * Скрывается для ACCEPTED (по фидбеку 2026-05-15).
+ */
+export function VerificationStatusBanner({
   profile,
-  isProfileComplete,
-  onSubmitted,
 }: {
   profile: VerificationProfile | null | undefined;
-  isProfileComplete: boolean;
-  onSubmitted?: () => void;
 }) {
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
-  const submit = useSubmitForReview();
-
   const status = normalize(profile?.verification_status);
   const rejectionReason = profile?.rejection_reason || null;
 
-  const handleSubmit = async () => {
-    try {
-      await submit.mutateAsync();
-      // Тост по ТЗ (раздел «Тексты» п. 6).
-      toast.success(
-        'Данные отправлены. Мы пришлём уведомление, когда администратор завершит проверку.',
-      );
-      setConfirmOpen(false);
-      onSubmitted?.();
-    } catch (e) {
-      toast.error(getApiError(e));
-    }
-  };
+  // Для подтверждённого профиля баннер не показываем — статус виден
+  // в сайдбаре и в ProfileCard, дополнительная плашка избыточна.
+  if (status === 'accepted') return null;
 
-  // Иконка + цвет зависят от статуса.
   let icon = RiErrorWarningLine;
   let color = 'amber';
   let badgeText = 'Не верифицирован';
@@ -107,100 +90,106 @@ export function VerificationStatusCard({
     badgeText = 'На проверке';
     hint =
       'Ваши данные проверяет администратор. Обычно это занимает до 24 часов — мы пришлём уведомление, как только статус изменится.';
-  } else if (status === 'accepted') {
-    icon = RiCheckboxCircleLine;
-    color = 'emerald';
-    badgeText = 'Верифицирован';
-    hint = 'Профиль подтверждён. Вам доступно участие в аукционах.';
   }
 
   const cardCls =
-    color === 'emerald'
-      ? 'border-emerald-100 bg-emerald-50/40'
-      : color === 'blue'
-        ? 'border-blue-100 bg-blue-50/40'
-        : 'border-amber-100 bg-amber-50/40';
+    color === 'blue'
+      ? 'border-blue-100 bg-blue-50/40'
+      : 'border-amber-100 bg-amber-50/40';
 
   const badgeCls =
-    color === 'emerald'
-      ? 'bg-emerald-100 text-emerald-700'
-      : color === 'blue'
-        ? 'bg-blue-100 text-blue-700'
-        : 'bg-amber-100 text-amber-700';
+    color === 'blue'
+      ? 'bg-blue-100 text-blue-700'
+      : 'bg-amber-100 text-amber-700';
 
-  const iconCls =
-    color === 'emerald'
-      ? 'text-emerald-600'
-      : color === 'blue'
-        ? 'text-blue-600'
-        : 'text-amber-600';
+  const iconCls = color === 'blue' ? 'text-blue-600' : 'text-amber-600';
 
   const Icon = icon;
-  const showSubmit = status === 'not_submitted';
+
+  return (
+    <div className={cn('mt-6 rounded-xl border p-5', cardCls)}>
+      <div className='flex items-start gap-3'>
+        <div className='flex size-10 shrink-0 items-center justify-center rounded-lg bg-white'>
+          <Icon className={cn('size-5', iconCls)} />
+        </div>
+        <div className='flex-1 min-w-0'>
+          <div className='flex items-center gap-2'>
+            <span
+              className={cn(
+                'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+                badgeCls,
+              )}
+            >
+              {badgeText}
+            </span>
+          </div>
+          <p className='mt-2 text-[13px] text-gray-700'>{hint}</p>
+
+          {rejectionReason && status === 'not_submitted' && (
+            <div className='mt-3 rounded-lg border border-red-100 bg-red-50/60 p-3'>
+              <div className='text-[12px] font-semibold text-red-700'>
+                Администратор отклонил заявку
+              </div>
+              <p className='mt-1 text-[12px] text-red-600'>
+                Причина: {rejectionReason}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Кнопка «Отправить на проверку» — отдельный блок, стоит после доков.
+ * Показывается только в not_submitted (и legacy rejected). В in_review /
+ * accepted — null.
+ */
+export function SubmitForReviewButton({
+  profile,
+  isProfileComplete,
+  onSubmitted,
+}: {
+  profile: VerificationProfile | null | undefined;
+  isProfileComplete: boolean;
+  onSubmitted?: () => void;
+}) {
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const submit = useSubmitForReview();
+  const status = normalize(profile?.verification_status);
+
+  const handleSubmit = async () => {
+    try {
+      await submit.mutateAsync();
+      toast.success(
+        'Данные отправлены. Мы пришлём уведомление, когда администратор завершит проверку.',
+      );
+      setConfirmOpen(false);
+      onSubmitted?.();
+    } catch (e) {
+      toast.error(getApiError(e));
+    }
+  };
+
+  if (status !== 'not_submitted') return null;
 
   return (
     <>
-      <div
-        className={cn(
-          'mt-6 rounded-xl border p-5',
-          cardCls,
-        )}
-      >
-        <div className='flex items-start gap-3'>
-          <div
-            className={cn(
-              'flex size-10 shrink-0 items-center justify-center rounded-lg bg-white',
-            )}
-          >
-            <Icon className={cn('size-5', iconCls)} />
-          </div>
-          <div className='flex-1 min-w-0'>
-            <div className='flex items-center gap-2'>
-              <span
-                className={cn(
-                  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                  badgeCls,
-                )}
-              >
-                {badgeText}
-              </span>
-            </div>
-            <p className='mt-2 text-[13px] text-gray-700'>{hint}</p>
-
-            {rejectionReason && status === 'not_submitted' && (
-              <div className='mt-3 rounded-lg border border-red-100 bg-red-50/60 p-3'>
-                <div className='text-[12px] font-semibold text-red-700'>
-                  Администратор отклонил заявку
-                </div>
-                <p className='mt-1 text-[12px] text-red-600'>
-                  Причина: {rejectionReason}
-                </p>
-              </div>
-            )}
-
-            {showSubmit && (
-              <div className='mt-3'>
-                <FancyButton.Root
-                  variant='primary'
-                  size='small'
-                  disabled={!isProfileComplete}
-                  onClick={() => setConfirmOpen(true)}
-                >
-                  Отправить на проверку
-                </FancyButton.Root>
-                {!isProfileComplete && (
-                  <p className='mt-1.5 text-[11px] text-gray-500'>
-                    Кнопка станет активной после заполнения всех обязательных
-                    полей профиля.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+      <div className='mt-4 flex justify-end'>
+        <FancyButton.Root
+          variant='primary'
+          size='small'
+          // По фидбеку 2026-05-15 — кнопка просто кликабельная, без
+          // disabled-объяснения. Если не хватает полей — бэк ответит
+          // toast'ом с missing_fields.
+          disabled={!isProfileComplete}
+          onClick={() => setConfirmOpen(true)}
+        >
+          Отправить на проверку
+        </FancyButton.Root>
       </div>
 
-      {/* Модалка подтверждения отправки. Тексты по ТЗ п. 5. */}
       <Modal.Root open={confirmOpen} onOpenChange={setConfirmOpen}>
         <Modal.Content className='max-w-[440px]'>
           <Modal.Header
@@ -224,6 +213,24 @@ export function VerificationStatusCard({
           </Modal.Footer>
         </Modal.Content>
       </Modal.Root>
+    </>
+  );
+}
+
+/**
+ * Backward-compat обёртка: некоторые места ещё импортируют
+ * `VerificationStatusCard`. Рендерит и баннер, и кнопку в одном месте,
+ * но с новой раскладкой (баннер скрыт для ACCEPTED).
+ */
+export function VerificationStatusCard(props: {
+  profile: VerificationProfile | null | undefined;
+  isProfileComplete: boolean;
+  onSubmitted?: () => void;
+}) {
+  return (
+    <>
+      <VerificationStatusBanner profile={props.profile} />
+      <SubmitForReviewButton {...props} />
     </>
   );
 }

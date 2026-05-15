@@ -21,7 +21,10 @@ import { useSessionStore, isUserDeveloper } from '@/entities/auth/model/store';
 import { useMe, useUploadDeveloperDDUTemplate } from '@/features/auth';
 import { ChangePasswordModal } from './change-password-modal';
 import { ProfileEditCard } from './profile-card';
-import { VerificationStatusCard } from './verification-card';
+import {
+  SubmitForReviewButton,
+  VerificationStatusBanner,
+} from './verification-card';
 
 // Resolves the real outcome of a finished auction from the current broker's point of view
 // (win / loss / waiting for owner decision / rejected / failed / cancelled), not just `status`.
@@ -216,11 +219,15 @@ function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => vo
         </div>
       </div>
 
-      {/* Верификационный статус: ТЗ от 2026-05-14 — то же поведение что у broker */}
-      <VerificationStatusCard profile={dev} isProfileComplete={isComplete} />
+      {/* Верификационный баннер: скрывается когда статус = ACCEPTED
+          (по фидбеку 2026-05-15 — статус уже виден в сайдбаре, дубль не нужен). */}
+      <VerificationStatusBanner profile={dev} />
 
-      {/* Редактирование данных профиля */}
+      {/* Редактирование данных профиля + документы */}
       <ProfileEditCard role='developer' />
+
+      {/* Кнопка «Отправить на проверку» — после доков, не в баннере. */}
+      <SubmitForReviewButton profile={dev} isProfileComplete={isComplete} />
 
       <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 flex items-center justify-between'>
         <div className='flex items-center gap-3'>
@@ -292,14 +299,17 @@ export default function CabinetPage() {
         </div>
       </div>
 
-      {/* Верификация: статус + submit button (ТЗ 2.3) */}
-      <VerificationStatusCard
+      {/* Верификационный баннер: скрывается когда ACCEPTED. */}
+      <VerificationStatusBanner profile={broker} />
+
+      {/* Редактирование данных аккаунта + документы */}
+      <ProfileEditCard role='broker' />
+
+      {/* Кнопка «Отправить на проверку» — после блока с документами. */}
+      <SubmitForReviewButton
         profile={broker}
         isProfileComplete={isBrokerComplete}
       />
-
-      {/* Редактирование данных аккаунта (ТЗ 2.3) */}
-      <ProfileEditCard role='broker' />
 
       {/* Security */}
       <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 flex items-center justify-between'>

@@ -1791,36 +1791,48 @@ export default function AuctionDetailPage() {
           распределение лота между несколькими брокерами больше не
           применяется — один победитель забирает весь лот целиком. */}
 
-      {/* «Завершите регистрацию» — ТЗ от 2026-05-14 раздел 2.2 + текст 1.
-          Открывается у неверифицированного broker'а при попытке ставки. */}
-      <Modal.Root
-        open={completeRegistrationModalOpen}
-        onOpenChange={setCompleteRegistrationModalOpen}
-      >
-        <Modal.Content className='max-w-[440px]'>
-          <Modal.Header
-            title='Завершите регистрацию'
-            description='Чтобы участвовать в аукционе, заполните данные профиля в личном кабинете и отправьте их на верификацию. Это займёт пару минут.'
-          />
-          <Modal.Footer>
-            <Modal.Close asChild>
-              <FancyButton.Root variant='basic' size='small'>
-                Не сейчас
-              </FancyButton.Root>
-            </Modal.Close>
-            <FancyButton.Root
-              variant='primary'
-              size='small'
-              onClick={() => {
-                setCompleteRegistrationModalOpen(false);
-                router.push('/cabinet');
-              }}
-            >
-              Заполнить данные
-            </FancyButton.Root>
-          </Modal.Footer>
-        </Modal.Content>
-      </Modal.Root>
+      {/* «Завершите регистрацию» / «Профиль на проверке» — ТЗ от
+          2026-05-15: разные тексты в зависимости от статуса. */}
+      {(() => {
+        const status = user?.broker?.verification_status ?? 'not_submitted';
+        const isInReview = status === 'in_review' || status === 'pending';
+        return (
+          <Modal.Root
+            open={completeRegistrationModalOpen}
+            onOpenChange={setCompleteRegistrationModalOpen}
+          >
+            <Modal.Content className='max-w-[440px]'>
+              <Modal.Header
+                title={isInReview ? 'Профиль на проверке' : 'Завершите регистрацию'}
+                description={
+                  isInReview
+                    ? 'Ваши данные сейчас проверяет администратор. Как только верификация завершится — мы пришлём уведомление, и вы сможете участвовать в аукционах.'
+                    : 'Чтобы участвовать в аукционе, заполните данные профиля в личном кабинете и отправьте их на верификацию. Это займёт пару минут.'
+                }
+              />
+              <Modal.Footer>
+                <Modal.Close asChild>
+                  <FancyButton.Root variant='basic' size='small'>
+                    {isInReview ? 'Понятно' : 'Не сейчас'}
+                  </FancyButton.Root>
+                </Modal.Close>
+                {!isInReview && (
+                  <FancyButton.Root
+                    variant='primary'
+                    size='small'
+                    onClick={() => {
+                      setCompleteRegistrationModalOpen(false);
+                      router.push('/cabinet');
+                    }}
+                  >
+                    Заполнить данные
+                  </FancyButton.Root>
+                )}
+              </Modal.Footer>
+            </Modal.Content>
+          </Modal.Root>
+        );
+      })()}
 
       {/* Cancel confirmation */}
       <Modal.Root open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
