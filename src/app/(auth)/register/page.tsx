@@ -404,9 +404,17 @@ export default function PageRegister() {
                   <Input.Input
                     id='firstName'
                     placeholder='Иван'
-                    {...dataForm.register('firstName', {
-                      required: 'Введите имя',
-                    })}
+                    value={watched.firstName}
+                    onChange={(e) => {
+                      // Только буквы (RU/EN), пробел и дефис.
+                      const cleaned = e.target.value.replace(
+                        /[^a-zA-Zа-яА-ЯёЁ\s-]/g,
+                        '',
+                      );
+                      dataForm.setValue('firstName', cleaned, {
+                        shouldValidate: true,
+                      });
+                    }}
                   />
                 </Input.Wrapper>
               </Input.Root>

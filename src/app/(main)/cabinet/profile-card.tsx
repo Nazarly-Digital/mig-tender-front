@@ -63,17 +63,25 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
     company_name: '',
   });
 
-  // Подкачиваем актуал из session при изменениях user'а.
+  // Подкачиваем актуал из session ТОЛЬКО при первом маунте/смене пользователя.
+  // Раньше зависимость [user] триггерила ре-инициализацию каждый раз когда
+  // обновлялся snapshot user'а (например после useUploadDocument → invalidate
+  // me-query) — в результате локально набранные Имя/Фамилия/ИНН сбрасывались
+  // прямо во время заполнения. Теперь синкаем только если поменялся
+  // user.id (новая сессия) или мы ещё не инициализировались.
+  const lastUserIdRef = React.useRef<number | null>(null);
   React.useEffect(() => {
+    if (!user) return;
+    if (lastUserIdRef.current === user.id) return;
+    lastUserIdRef.current = user.id;
     setValues({
-      first_name: user?.first_name ?? '',
-      last_name: user?.last_name ?? '',
+      first_name: user.first_name ?? '',
+      last_name: user.last_name ?? '',
       inn_number:
-        (user?.broker?.inn_number ?? user?.developer?.inn_number ?? '') || '',
+        (user.broker?.inn_number ?? user.developer?.inn_number ?? '') || '',
       phone_number:
-        (user?.broker?.phone_number ?? user?.developer?.phone_number ?? '') ||
-        '',
-      company_name: user?.developer?.company_name ?? '',
+        (user.broker?.phone_number ?? user.developer?.phone_number ?? '') || '',
+      company_name: user.developer?.company_name ?? '',
     });
   }, [user]);
 
@@ -129,7 +137,11 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
                 disabled={readOnly}
                 value={values.first_name}
                 onChange={(e) =>
-                  setValues((v) => ({ ...v, first_name: e.target.value }))
+                  setValues((v) => ({
+                    ...v,
+                    // Только буквы (RU/EN), пробел и дефис.
+                    first_name: e.target.value.replace(/[^a-zA-Zа-яА-ЯёЁ\s-]/g, ''),
+                  }))
                 }
               />
             </Input.Wrapper>
@@ -146,7 +158,10 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
                 disabled={readOnly}
                 value={values.last_name}
                 onChange={(e) =>
-                  setValues((v) => ({ ...v, last_name: e.target.value }))
+                  setValues((v) => ({
+                    ...v,
+                    last_name: e.target.value.replace(/[^a-zA-Zа-яА-ЯёЁ\s-]/g, ''),
+                  }))
                 }
               />
             </Input.Wrapper>
