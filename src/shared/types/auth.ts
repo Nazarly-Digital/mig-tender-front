@@ -81,6 +81,9 @@ export type MeApiResponse = {
 export type LoginRequest = {
   email: string;
   password: string;
+  // ТЗ от 2026-05-15 — селект на форме «Я вхожу как: Брокер / Девелопер».
+  // Бэк проверяет совпадение с user.role и кидает 401 если роль не та.
+  role?: "broker" | "developer";
 };
 
 export type LoginResponse = {

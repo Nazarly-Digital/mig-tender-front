@@ -18,6 +18,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Hint from '@/shared/ui/hint';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
+import * as Modal from '@/shared/ui/modal';
 import * as Select from '@/shared/ui/select';
 import { AreaField, PriceField } from '@/shared/components/property-fields';
 import { AddressInput } from '@/shared/components/address-input';
@@ -44,6 +45,15 @@ export default function CreatePropertyPage() {
   const router = useRouter();
   const createMutation = useCreateProperty();
   const companyName = useSessionStore((s) => s.user?.developer?.company_name ?? '');
+  // ТЗ от 2026-05-15 (фикс): неверифицированный девелопер не может
+  // ПУБЛИКОВАТЬ объект (бэк теперь это тоже проверяет). На фронте
+  // вместо disabled-кнопки — кликабельная кнопка которая показывает
+  // модалку с пояснением, чтобы UX был понятный.
+  const verificationStatus = useSessionStore(
+    (s) => s.user?.developer?.verification_status ?? 'not_submitted',
+  );
+  const isDeveloperVerified = verificationStatus === 'accepted';
+  const [verifyBlockOpen, setVerifyBlockOpen] = React.useState(false);
 
   const {
     register,
@@ -582,14 +592,60 @@ export default function CreatePropertyPage() {
           <FancyButton.Root
             variant='primary'
             size='small'
-            type='submit'
+            // Не делаем disabled — иначе пользователь не понимает почему
+            // кнопка серая. Делаем кликабельной и при non-accepted
+            // показываем модалку.
+            type={isDeveloperVerified ? 'submit' : 'button'}
             disabled={submitting}
-            onClick={() => { submitStatusRef.current = 'published'; }}
+            onClick={(e) => {
+              if (!isDeveloperVerified) {
+                e.preventDefault();
+                setVerifyBlockOpen(true);
+                return;
+              }
+              submitStatusRef.current = 'published';
+            }}
           >
             {submitting && submitStatusRef.current === 'published' ? 'Публикация...' : 'Опубликовать'}
           </FancyButton.Root>
         </div>
       </form>
+
+      {/* Модалка-объяснение для неверифицированного девелопера. */}
+      <Modal.Root open={verifyBlockOpen} onOpenChange={setVerifyBlockOpen}>
+        <Modal.Content className='max-w-[440px]'>
+          <Modal.Header
+            title='Объект пока нельзя опубликовать'
+            description={
+              verificationStatus === 'in_review'
+                ? 'Ваш профиль на проверке у администратора. Опубликовать объект можно сразу после верификации — мы пришлём уведомление.'
+                : 'Чтобы публиковать объекты, заполните профиль и отправьте его на проверку администратору в Личном кабинете.'
+            }
+          />
+          <Modal.Body>
+            <p className='text-[13px] text-gray-500'>
+              Сейчас вы можете сохранить объект как черновик — после верификации его получится опубликовать одним кликом.
+            </p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>
+                Закрыть
+              </FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='primary'
+              size='small'
+              onClick={() => {
+                setVerifyBlockOpen(false);
+                router.push('/cabinet');
+              }}
+            >
+              Перейти в кабинет
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
     </div>
   );
 }
