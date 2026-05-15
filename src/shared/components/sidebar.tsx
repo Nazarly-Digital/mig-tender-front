@@ -99,10 +99,15 @@ export default function Sidebar() {
     ? [user.first_name?.[0], user.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'
     : '?';
 
+  // ТЗ от 2026-05-15 (фикс) — для developer'а раньше показывали
+  // company_name прямо в sidebar. Длинные названия типа «ООО Полибур»
+  // обрезались эллипсисом, и статус «Верифицирован» уезжал на новую
+  // строку. Теперь рендерим короткий role-keyword («Девелопер»),
+  // компания виднa в шапке /cabinet — этого достаточно для контекста.
   const roleLabel = isAdmin
     ? 'Администратор'
     : isDeveloper
-      ? (user?.developer?.company_name || 'Застройщик')
+      ? 'Девелопер'
       : 'Брокер';
 
   // ТЗ от 2026-05-15 — статус показываем И для broker И для developer.
@@ -243,12 +248,12 @@ export default function Sidebar() {
               <span className="truncate text-[13px] font-medium text-gray-900">
                 {fullName}
               </span>
-              <div className="flex items-center gap-1.5">
-                <span className="truncate text-[11px] text-gray-500">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="truncate text-[11px] text-gray-500 min-w-0">
                   {roleLabel}
                 </span>
                 {statusLabel && (
-                  <span className={`text-[10px] font-medium ${statusColor}`}>
+                  <span className={`shrink-0 text-[10px] font-medium ${statusColor}`}>
                     · {statusLabel}
                   </span>
                 )}
