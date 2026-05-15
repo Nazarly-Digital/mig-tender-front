@@ -405,7 +405,19 @@ function BrokerDealCard({ deal }: { deal: Deal }) {
                 </div>
                 <button
                   type='button'
-                  onClick={() => window.open(deal.developer_ddu_template_url!, '_blank', 'noopener,noreferrer')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const url = deal.developer_ddu_template_url;
+                    if (!url) return;
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                  }}
                   className='inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-[13px] font-medium text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer'
                 >
                   <HugeiconsIcon icon={Upload04Icon} size={14} color='currentColor' strokeWidth={1.5} className='rotate-180' />

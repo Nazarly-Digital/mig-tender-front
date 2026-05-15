@@ -650,7 +650,19 @@ function EditDeveloperModal({
                 {user.developer?.ddu_template_url && (
                   <button
                     type='button'
-                    onClick={() => window.open(user.developer!.ddu_template_url!, '_blank', 'noopener,noreferrer')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const url = user.developer?.ddu_template_url;
+                      if (!url) return;
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.target = '_blank';
+                      a.rel = 'noopener noreferrer';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    }}
                     className='inline-flex w-fit items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50 cursor-pointer'
                   >
                     <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />

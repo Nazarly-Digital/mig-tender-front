@@ -403,12 +403,30 @@ function DocSlot({
       <div className='text-[12px] font-semibold text-gray-700'>{label}</div>
       {existingDoc ? (
         <div className='mt-2 flex items-center justify-between gap-2'>
-          {/* button-like вместо <a href> — иначе браузер показывает
-              длинную подписанную URL'у с токеном в status-bar при hover.
-              По фидбеку 2026-05-15 это убрали из UX. */}
+          {/* Скачивание через временный `<a>` — `window.open` ловил
+              блокировщики попапов, и в каких-то комбинациях
+              (Chrome + auth-redirect на 401) это превращалось в
+              навигацию по текущей вкладке на /register. Программный
+              клик по динамическому anchor стабильнее и не светит
+              URL в status-bar (button — visible element, anchor
+              живёт долю миллисекунды и сразу удаляется). */}
           <button
             type='button'
-            onClick={() => window.open(existingDoc.url, '_blank', 'noopener,noreferrer')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!existingDoc.url) {
+                toast.error('Документ недоступен');
+                return;
+              }
+              const a = document.createElement('a');
+              a.href = existingDoc.url;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }}
             className='truncate text-left text-[13px] text-blue-600 hover:underline cursor-pointer'
           >
             {existingDoc.document_name || 'Документ'}

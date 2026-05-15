@@ -168,11 +168,21 @@ function DeveloperDDUTemplateCard() {
 
       <div className='mt-4 border-t border-blue-50 pt-3'>
         {currentUrl ? (
-          // button-like вместо <a href> чтобы подписанная URL'а с
-          // токеном не светилась в браузерной status-bar.
+          // Скачивание через временный <a> — `window.open` ловил
+          // блокировщики, превращая клик в навигацию по текущей вкладке.
           <button
             type='button'
-            onClick={() => window.open(currentUrl, '_blank', 'noopener,noreferrer')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const a = document.createElement('a');
+              a.href = currentUrl;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }}
             className='inline-flex items-center gap-1.5 text-[13px] font-medium text-blue-600 hover:text-blue-700 cursor-pointer'
           >
             <HugeiconsIcon icon={Download01Icon} size={14} color='currentColor' strokeWidth={1.5} />
