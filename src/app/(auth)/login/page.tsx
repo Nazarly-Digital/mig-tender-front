@@ -147,7 +147,14 @@ export default function PageLogin() {
           </Alert.Root>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6'>
+        {/* noValidate — отключаем браузерную HTML5-валидацию (типа
+            «Please enter a part following '@'» на английском), чтобы
+            ошибки шли через zod-схему на русском. */}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          className='flex flex-col gap-6'
+        >
           <div className='flex flex-col gap-3'>
             {/* Email */}
             <div className='flex flex-col gap-1'>

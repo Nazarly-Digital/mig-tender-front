@@ -278,7 +278,7 @@ export default function PageRegister() {
 
         {/* Step 1: Email */}
         {step === 1 && (
-          <form onSubmit={onSendCode} className='flex flex-col gap-6'>
+          <form onSubmit={onSendCode} noValidate className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='email'>
                 Email <Label.Asterisk />
@@ -337,6 +337,7 @@ export default function PageRegister() {
               e.preventDefault();
               onVerify();
             }}
+            noValidate
             className='flex flex-col gap-6'
           >
             <div className='flex flex-col gap-1'>
@@ -401,7 +402,7 @@ export default function PageRegister() {
 
         {/* Step 3: Data */}
         {step === 3 && (
-          <form onSubmit={onRegister} className='flex flex-col gap-6'>
+          <form onSubmit={onRegister} noValidate className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='firstName'>
                 Имя <Label.Asterisk />

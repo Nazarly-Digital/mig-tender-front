@@ -108,7 +108,7 @@ export default function PageForgotPassword() {
 
         {/* Step 1: Email */}
         {step === 1 && (
-          <form onSubmit={handleRequestCode} className='flex flex-col gap-6'>
+          <form onSubmit={handleRequestCode} noValidate className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='email'>
                 Email <Label.Asterisk />
@@ -147,7 +147,7 @@ export default function PageForgotPassword() {
 
         {/* Step 2: OTP */}
         {step === 2 && (
-          <form onSubmit={handleVerifyCode} className='flex flex-col gap-6'>
+          <form onSubmit={handleVerifyCode} noValidate className='flex flex-col gap-6'>
             <div className='flex flex-col gap-1'>
               <Label.Root>
                 Код подтверждения <Label.Asterisk />
@@ -197,7 +197,7 @@ export default function PageForgotPassword() {
 
         {/* Step 3: New password */}
         {step === 3 && (
-          <form onSubmit={handleConfirmReset} className='flex flex-col gap-6'>
+          <form onSubmit={handleConfirmReset} noValidate className='flex flex-col gap-6'>
             <div className='flex flex-col gap-3'>
               <div className='flex flex-col gap-1'>
                 <Label.Root htmlFor='new_password'>
