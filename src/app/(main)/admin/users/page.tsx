@@ -1195,10 +1195,12 @@ export default function AdminUsersPage() {
                         // И к developer (бэк сам разводит логику по user.role).
                         // Для verification_status поддерживаем legacy 'pending'
                         // (старые брокеры до миграции 0013) и новый 'in_review'.
-                        // Reject (с причиной) разрешён для любого не-ACCEPTED:
-                        // админ может проактивно отклонить, и broker увидит
-                        // причину в ЛК (статус всё равно вернётся в
-                        // not_submitted с rejection_reason).
+                        // Verify — для любого не-ACCEPTED.
+                        // Reject — ТОЛЬКО для тех кто реально что-то отправил
+                        // на проверку (in_review / pending). По фидбеку
+                        // 2026-05-15: для not_submitted отклонять нечего —
+                        // юзер ничего не присылал, и кнопка вводит админа
+                        // в заблуждение.
                         const profile =
                           user.role === 'broker'
                             ? user.broker
@@ -1208,7 +1210,8 @@ export default function AdminUsersPage() {
                         if (!profile) return null;
                         const status = profile.verification_status;
                         const canVerify = status !== 'accepted';
-                        const canReject = status !== 'accepted';
+                        const canReject =
+                          status === 'in_review' || status === 'pending';
                         return (
                           <>
                             {canVerify && (
