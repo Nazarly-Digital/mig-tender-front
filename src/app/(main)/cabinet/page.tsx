@@ -198,6 +198,14 @@ function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => vo
   // могла сначала сохранить введённые поля, а потом сабмитить
   // (по фидбеку 2026-05-15 — отдельной «Сохранить» для not_submitted нет).
   const profileRef = React.useRef<ProfileEditCardHandle>(null);
+  // Полнота локальных полей формы — приходит callback'ом из
+  // ProfileEditCard (фидбек 2026-05-15 — кнопка disabled пока
+  // что-то не заполнено).
+  const [formComplete, setFormComplete] = React.useState(false);
+  const innDoc = user?.documents?.some((d) => d.doc_type === 'inn') ?? false;
+  const passportDoc =
+    user?.documents?.some((d) => d.doc_type === 'passport') ?? false;
+  const isComplete = formComplete && innDoc && passportDoc;
 
   return (
     <div className='w-full px-8 py-8'>
@@ -215,12 +223,17 @@ function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => vo
       <VerificationStatusBanner profile={dev} />
 
       {/* Редактирование данных профиля + документы */}
-      <ProfileEditCard ref={profileRef} role='developer' />
+      <ProfileEditCard
+        ref={profileRef}
+        role='developer'
+        onLocalCompleteChange={setFormComplete}
+      />
 
       {/* Единая кнопка «Отправить на проверку» — save + submit одним кликом. */}
       <SubmitForReviewButton
         profile={dev}
         beforeSubmit={() => profileRef.current?.save() ?? Promise.resolve()}
+        isProfileComplete={isComplete}
       />
 
       <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 flex items-center justify-between'>
@@ -250,6 +263,8 @@ export default function CabinetPage() {
   // Ref на ProfileEditCard — единая кнопка save+submit (фидбек 2026-05-15).
   // Объявлен на верхнем уровне до early-return, иначе react-hooks/rules-of-hooks.
   const profileRef = React.useRef<ProfileEditCardHandle>(null);
+  // Полнота локальных полей формы — для disable «Отправить на проверку».
+  const [formComplete, setFormComplete] = React.useState(false);
 
   const { data: activeData } = useParticipatedAuctions({ status: 'active', page_size: 5 });
   const { data: finishedData } = useParticipatedAuctions({ status: 'finished', page_size: 5 });
@@ -269,6 +284,10 @@ export default function CabinetPage() {
   }
 
   const broker = user?.broker ?? null;
+  const innDoc = user?.documents?.some((d) => d.doc_type === 'inn') ?? false;
+  const passportDoc =
+    user?.documents?.some((d) => d.doc_type === 'passport') ?? false;
+  const isBrokerComplete = formComplete && innDoc && passportDoc;
 
   return (
     <div className='w-full px-8 py-8'>
@@ -287,12 +306,17 @@ export default function CabinetPage() {
       <VerificationStatusBanner profile={broker} />
 
       {/* Редактирование данных аккаунта + документы */}
-      <ProfileEditCard ref={profileRef} role='broker' />
+      <ProfileEditCard
+        ref={profileRef}
+        role='broker'
+        onLocalCompleteChange={setFormComplete}
+      />
 
       {/* Единая кнопка «Отправить на проверку» — save + submit одним кликом. */}
       <SubmitForReviewButton
         profile={broker}
         beforeSubmit={() => profileRef.current?.save() ?? Promise.resolve()}
+        isProfileComplete={isBrokerComplete}
       />
 
       {/* Security */}

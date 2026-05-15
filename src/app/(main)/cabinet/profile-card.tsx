@@ -54,8 +54,15 @@ export type ProfileEditCardHandle = {
 
 export const ProfileEditCard = React.forwardRef<
   ProfileEditCardHandle,
-  { role: 'broker' | 'developer' }
->(function ProfileEditCard({ role }, ref) {
+  {
+    role: 'broker' | 'developer';
+    // ТЗ от 2026-05-15 — родитель (cabinet/page.tsx) дизейблит
+    // «Отправить на проверку» пока не заполнены ВСЕ поля. Поля живут
+    // в локальном стейте этой карточки, поэтому пробрасываем
+    // наружу boolean: «у меня всё нужное заполнено».
+    onLocalCompleteChange?: (complete: boolean) => void;
+  }
+>(function ProfileEditCard({ role, onLocalCompleteChange }, ref) {
   useMe(); // чтобы данные были свежие
   const user = useSessionStore((s) => s.user);
   const updateMe = useUpdateMe();
@@ -144,6 +151,25 @@ export const ProfileEditCard = React.forwardRef<
     () => ({ save: saveProfile }),
     [saveProfile],
   );
+
+  // Полнота локальных полей — родитель использует чтобы дизейблить
+  // «Отправить на проверку» пока что-то не заполнено.
+  const isLocallyComplete = React.useMemo(() => {
+    const required =
+      !!values.first_name.trim() &&
+      !!values.last_name.trim() &&
+      !!values.inn_number.trim() &&
+      // Phone: с маской «+7 (» считается пустым.
+      !!values.phone_number.trim() &&
+      values.phone_number.replace(/\D/g, '').length >= 11;
+    if (role === 'developer') {
+      return required && !!values.company_name.trim();
+    }
+    return required;
+  }, [values, role]);
+  React.useEffect(() => {
+    onLocalCompleteChange?.(isLocallyComplete);
+  }, [isLocallyComplete, onLocalCompleteChange]);
 
   return (
     <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>

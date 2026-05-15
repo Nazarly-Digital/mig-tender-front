@@ -150,14 +150,20 @@ export function VerificationStatusBanner({
  * которую родитель передаёт чтобы сохранить ProfileEditCard'овые
  * значения перед сабмитом (фидбек 2026-05-15: отдельной «Сохранить»
  * для not_submitted больше нет).
+ *
+ * `isProfileComplete` — фича-гейт: пока хоть одно поле или документ
+ * пустые, кнопка disabled (фидбек 2026-05-15, обновлённый: вернули
+ * disable-state, который я было снял ранее).
  */
 export function SubmitForReviewButton({
   profile,
   beforeSubmit,
+  isProfileComplete = true,
   onSubmitted,
 }: {
   profile: VerificationProfile | null | undefined;
   beforeSubmit?: () => Promise<void>;
+  isProfileComplete?: boolean;
   onSubmitted?: () => void;
 }) {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
@@ -205,10 +211,10 @@ export function SubmitForReviewButton({
         <FancyButton.Root
           variant='primary'
           size='small'
-          // По фидбеку 2026-05-15 — кнопка ВСЕГДА кликабельная.
-          // Раньше была disabled до тех пор пока не заполнены все
-          // поля + загружены доки; теперь юзер сразу видит причину
-          // (бэк возвращает missing_fields toast'ом).
+          // По фидбеку 2026-05-15 (обновлено) — disabled пока не
+          // заполнены все обязательные поля и не загружены
+          // ИНН + паспорт. Родитель считает isProfileComplete.
+          disabled={!isProfileComplete}
           onClick={() => setConfirmOpen(true)}
         >
           Отправить на проверку
