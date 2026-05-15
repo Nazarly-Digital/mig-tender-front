@@ -540,22 +540,25 @@ export default function PageRegister() {
                   dataForm.setValue('role', (v as 'broker' | 'developer') ?? 'broker')
                 }
               >
-                <Select.Trigger>
+                {/* h-auto + py чтобы trigger вместил два-line контент
+                    (по фидбеку 2026-05-15 — отступы между названием
+                    и описанием увеличены). */}
+                <Select.Trigger className='h-auto !min-h-[56px] py-2'>
                   <Select.Value />
                 </Select.Trigger>
                 <Select.Content>
                   {/* Описания вынесены в опции дропдауна по фидбеку
                       2026-05-15 — раньше висели отдельной плашкой ниже. */}
-                  <Select.Item value='broker'>
-                    <div className='flex flex-col'>
+                  <Select.Item value='broker' className='py-2.5'>
+                    <div className='flex flex-col gap-1'>
                       <span>Брокер</span>
                       <span className='text-paragraph-xs text-text-sub-600'>
                         Участвую в аукционах и приобретаю объекты
                       </span>
                     </div>
                   </Select.Item>
-                  <Select.Item value='developer'>
-                    <div className='flex flex-col'>
+                  <Select.Item value='developer' className='py-2.5'>
+                    <div className='flex flex-col gap-1'>
                       <span>Девелопер</span>
                       <span className='text-paragraph-xs text-text-sub-600'>
                         Размещаю объекты для аукциона
