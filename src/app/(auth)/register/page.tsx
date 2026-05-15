@@ -22,7 +22,6 @@ import { AxiosError } from 'axios';
 import {
   RiEyeLine,
   RiEyeOffLine,
-  RiInformationLine,
   RiLock2Line,
   RiMailLine,
   RiPhoneLine,
@@ -36,7 +35,6 @@ import {
   useSimpleRegister,
   useVerifyEmail,
 } from '@/features/auth';
-import { cn } from '@/shared/lib/cn';
 import { formatPhoneInputLocked, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
 import * as Alert from '@/shared/ui/alert';
 import * as Checkbox from '@/shared/ui/checkbox';
@@ -46,6 +44,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as LinkButton from '@/shared/ui/link-button';
+import * as Modal from '@/shared/ui/modal';
 import * as Select from '@/shared/ui/select';
 
 const PasswordInput = React.forwardRef<
@@ -87,9 +86,6 @@ type DataForm = {
   obligationAccepted: boolean;
 };
 
-const ROLE_TOOLTIP =
-  'Брокер — участвую в аукционах и приобретаю объекты.\nДевелопер — размещаю объекты для аукциона.';
-
 function getApiError(error: unknown): string | null {
   const err = error as AxiosError<{
     error?: string;
@@ -113,6 +109,7 @@ export default function PageRegister() {
   const [code, setCode] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
   const [timer, setTimer] = React.useState(0);
+  const [obligationOpen, setObligationOpen] = React.useState(false);
 
   const getCode = useGetCode();
   const resendCode = useResendCode();
@@ -199,6 +196,24 @@ export default function PageRegister() {
   // ---- Шаг 3: финальная регистрация ----
   const onRegister = dataForm.handleSubmit(async (values) => {
     setError(null);
+    // ТЗ от 2026-05-15 — кнопка теперь всегда активна (disabled только
+    // во время mutation), поэтому валидируем required-поля здесь.
+    if (!values.firstName?.trim()) {
+      setError('Введите имя.');
+      return;
+    }
+    if (!values.phoneNumber || values.phoneNumber === PHONE_INPUT_DEFAULT) {
+      setError('Введите номер телефона.');
+      return;
+    }
+    if (!values.offerAccepted) {
+      setError('Согласитесь с условиями оферты.');
+      return;
+    }
+    if (values.role === 'broker' && !values.obligationAccepted) {
+      setError('Подтвердите обязательство при участии в аукционе.');
+      return;
+    }
     if (values.password !== values.passwordConfirm) {
       dataForm.setError('passwordConfirm', { message: 'Пароли не совпадают' });
       return;
@@ -248,16 +263,11 @@ export default function PageRegister() {
     <div className='w-full max-w-[472px] px-4'>
       <div className='mt-8 flex w-full flex-col gap-6 rounded-20 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 md:p-8'>
         <div className='flex flex-col items-center gap-2'>
-          <div
-            className={cn(
-              'relative flex size-[68px] shrink-0 items-center justify-center rounded-full backdrop-blur-xl lg:size-24',
-              'before:absolute before:inset-0 before:rounded-full',
-              'before:bg-gradient-to-b before:from-neutral-500 before:to-transparent before:opacity-10',
-            )}
-          >
-            <div className='relative z-10 flex size-12 items-center justify-center rounded-full bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 lg:size-16'>
-              <RiUserAddFill className='size-6 text-text-sub-600 lg:size-8' />
-            </div>
+          {/* Иконка в стиле /login: простой кружок с серой обводкой
+              (по фидбеку 2026-05-15 — старый «градиентный» стиль
+              выпадал из дизайна). */}
+          <div className='flex size-16 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50'>
+            <RiUserAddFill className='size-6 text-gray-500 lg:size-8' />
           </div>
 
           <div className='space-y-1 text-center'>
@@ -274,7 +284,8 @@ export default function PageRegister() {
                   <span className='font-medium text-text-strong-950'>{email}</span>
                 </>
               )}
-              {step === 3 && 'Заполните данные для завершения регистрации'}
+              {/* Subtitle на шаге 3 убран по фидбеку 2026-05-15 —
+                  заголовка «Данные аккаунта» достаточно. */}
             </div>
           </div>
         </div>
@@ -519,12 +530,9 @@ export default function PageRegister() {
             <div className='flex flex-col gap-1'>
               <Label.Root htmlFor='role'>
                 Я регистрируюсь как <Label.Asterisk />
-                <span
-                  title={ROLE_TOOLTIP}
-                  className='ml-1 inline-flex items-center text-text-soft-400'
-                >
-                  <RiInformationLine className='size-4' />
-                </span>
+                {/* (i)-тултип убран по фидбеку 2026-05-15 — он
+                    title-атрибутом ничего не открывал, а описание
+                    ролей теперь видно прямо в дропдауне. */}
               </Label.Root>
               <Select.Root
                 value={watched.role}
@@ -536,13 +544,26 @@ export default function PageRegister() {
                   <Select.Value />
                 </Select.Trigger>
                 <Select.Content>
-                  <Select.Item value='broker'>Брокер</Select.Item>
-                  <Select.Item value='developer'>Девелопер</Select.Item>
+                  {/* Описания вынесены в опции дропдауна по фидбеку
+                      2026-05-15 — раньше висели отдельной плашкой ниже. */}
+                  <Select.Item value='broker'>
+                    <div className='flex flex-col'>
+                      <span>Брокер</span>
+                      <span className='text-paragraph-xs text-text-sub-600'>
+                        Участвую в аукционах и приобретаю объекты
+                      </span>
+                    </div>
+                  </Select.Item>
+                  <Select.Item value='developer'>
+                    <div className='flex flex-col'>
+                      <span>Девелопер</span>
+                      <span className='text-paragraph-xs text-text-sub-600'>
+                        Размещаю объекты для аукциона
+                      </span>
+                    </div>
+                  </Select.Item>
                 </Select.Content>
               </Select.Root>
-              <p className='whitespace-pre-line text-paragraph-xs text-text-sub-600'>
-                {ROLE_TOOLTIP}
-              </p>
             </div>
 
             <div className='flex flex-col gap-2 rounded-12 bg-bg-weak-50 px-3 py-3'>
@@ -580,7 +601,17 @@ export default function PageRegister() {
                       })
                     }
                   />
-                  <span>Принимаю обязательство при участии в аукционе</span>
+                  <span>
+                    Принимаю{' '}
+                    <button
+                      type='button'
+                      onClick={() => setObligationOpen(true)}
+                      className='text-primary-base underline-offset-2 hover:underline cursor-pointer'
+                    >
+                      обязательство
+                    </button>
+                    {' '}при участии в аукционе
+                  </span>
                 </label>
               )}
             </div>
@@ -590,8 +621,12 @@ export default function PageRegister() {
                 type='submit'
                 variant='primary'
                 size='medium'
-                className='w-full'
-                disabled={!dataReady || register.isPending}
+                // По фидбеку 2026-05-15 — кнопка ВСЕГДА синяя
+                // (visual primary), а dataReady чек переехал в onRegister.
+                // Раньше disabled-стиль превращал её в серую плашку,
+                // что выпадало из дизайна.
+                className='w-full disabled:!bg-primary-base disabled:!text-white disabled:!opacity-60 disabled:!shadow-none'
+                disabled={register.isPending}
               >
                 {register.isPending ? 'Регистрация...' : 'Зарегистрироваться'}
               </FancyButton.Root>
@@ -614,6 +649,44 @@ export default function PageRegister() {
       {/* Нижний отступ под карточкой формы — иначе при коротких
           вьюпортах форма прилипает к футеру. */}
       <div className='h-8' />
+
+      {/* Модалка-объяснение «обязательство при участии в аукционе»
+          (по фидбеку 2026-05-15 — раньше тоже была в форме брокер-
+          регистрации). Открывается кликом по слову «обязательство». */}
+      <Modal.Root open={obligationOpen} onOpenChange={setObligationOpen}>
+        <Modal.Content className='max-w-[480px]'>
+          <Modal.Header
+            title='Обязательство при участии в аукционе'
+            description='Перед регистрацией важно понимать, что вы соглашаетесь сделать.'
+          />
+          <Modal.Body>
+            <div className='flex flex-col gap-3 text-paragraph-sm text-text-sub-600'>
+              <p>
+                Брокер, ставка которого выбрана победителем закрытого
+                аукциона, обязан в установленный срок предоставить
+                документы и оплатить сделку. Срок указан в условиях
+                аукциона.
+              </p>
+              <p>
+                Если документы не загружены или оплата не подтверждена в
+                срок — сделка автоматически переходит в статус
+                «Несостоявшаяся», а право победителя теряется.
+              </p>
+              <p>
+                Принимая обязательство, вы подтверждаете готовность
+                выполнить условия аукциона при победе.
+              </p>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='primary' size='small'>
+                Понятно
+              </FancyButton.Root>
+            </Modal.Close>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
     </div>
   );
 }
