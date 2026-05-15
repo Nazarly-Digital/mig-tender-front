@@ -190,11 +190,19 @@ function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => vo
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
     : '';
   const dev = user?.developer ?? null;
+  // ТЗ от 2026-05-15 (фикс) — developer тоже прикладывает ИНН + паспорт.
+  // Условия должны совпадать с _validate_developer_complete на бэке.
+  const innDoc = user?.documents?.some((d) => d.doc_type === 'inn') ?? false;
+  const passportDoc =
+    user?.documents?.some((d) => d.doc_type === 'passport') ?? false;
   const isComplete = Boolean(
     user?.first_name?.trim() &&
       user?.last_name?.trim() &&
       dev?.company_name?.trim() &&
-      dev?.phone_number?.trim(),
+      dev?.phone_number?.trim() &&
+      dev?.inn_number?.trim() &&
+      innDoc &&
+      passportDoc,
   );
 
   return (

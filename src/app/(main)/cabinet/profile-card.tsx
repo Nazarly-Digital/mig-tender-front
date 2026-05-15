@@ -236,12 +236,14 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
         </p>
       )}
 
-      {role === 'broker' && <BrokerDocsBlock readOnly={readOnly} />}
+      {/* ТЗ от 2026-05-14 — developer проходит верификацию по тем же
+          доками (ИНН + паспорт), что и broker. Блок одинаковый. */}
+      <UserDocsBlock readOnly={readOnly} />
     </div>
   );
 }
 
-function BrokerDocsBlock({ readOnly }: { readOnly: boolean }) {
+function UserDocsBlock({ readOnly }: { readOnly: boolean }) {
   const user = useSessionStore((s) => s.user);
   const upload = useUploadDocument();
   const deleteDoc = useDeleteDocument();

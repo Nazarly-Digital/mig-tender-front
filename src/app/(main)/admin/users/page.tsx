@@ -155,10 +155,19 @@ function VerifyBrokerModal({
 
   if (!user) return null;
 
+  // ТЗ от 2026-05-14 — verify работает И для broker И для developer.
+  // Бэкенд (`POST /admin/broker/verify/`) сам определяет тип профиля
+  // по user.role; имя ручки оставлено для обратной совместимости.
+  const isDeveloper = user.role === 'developer';
+  const roleLabelNominative = isDeveloper ? 'Девелопер' : 'Брокер';
+  const roleLabelAccusative = isDeveloper ? 'девелопера' : 'брокера';
+
   const handleConfirm = () => {
     verifyBroker.mutate(user.id, {
       onSuccess: () => {
-        toast.success(`Брокер ${user.first_name} ${user.last_name} верифицирован`);
+        toast.success(
+          `${roleLabelNominative} ${user.first_name} ${user.last_name} верифицирован`,
+        );
         onOpenChange(false);
       },
       onError: (error) => {
@@ -171,12 +180,14 @@ function VerifyBrokerModal({
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content>
         <Modal.Header
-          title='Верифицировать брокера?'
+          title={`Верифицировать ${roleLabelAccusative}?`}
           description={`${user.first_name} ${user.last_name} (${user.email})`}
         />
         <Modal.Body>
           <p className='text-[13px] text-gray-500'>
-            Брокер получит статус верифицированного и сможет участвовать в аукционах.
+            {isDeveloper
+              ? 'Девелопер получит статус верифицированного и сможет публиковать лоты.'
+              : 'Брокер получит статус верифицированного и сможет участвовать в аукционах.'}
           </p>
         </Modal.Body>
         <Modal.Footer>
@@ -267,7 +278,7 @@ function RejectBrokerModal({
               className='w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors resize-none'
             />
             <div className='flex items-center justify-between'>
-              <span className='text-[11px] text-gray-400'>Брокер увидит причину в уведомлении</span>
+              <span className='text-[11px] text-gray-400'>Пользователь увидит причину в уведомлении</span>
               <span className={`text-[11px] ${tooLong ? 'text-red-600' : 'text-gray-400'}`}>{trimmed.length}/1000</span>
             </div>
           </div>
@@ -1104,14 +1115,18 @@ export default function AdminUsersPage() {
                           Активен
                         </span>
                       )}
-                      {user.role === 'broker' && (() => {
-                        // Three real verification states — spec covers
-                        // accepted / pending / rejected. Earlier we only
-                        // looked at `is_verified` so a rejected broker
-                        // shared the «Не верифицирован» badge with one
-                        // who hadn't been reviewed yet, hiding admin
-                        // rejection from the list view.
-                        const vs = user.broker?.verification_status;
+                      {(user.role === 'broker' || user.role === 'developer') && (() => {
+                        // ТЗ от 2026-05-14 — developer тоже проходит
+                        // верификацию, поэтому статус-бейдж рендерим
+                        // для обеих ролей. Состояния:
+                        //   accepted     → «Верифицирован»
+                        //   in_review    → «На проверке»
+                        //   pending      → «На проверке» (legacy брокеры)
+                        //   rejected     → «Отклонён» (legacy)
+                        //   not_submitted → «Не отправлен»
+                        const profile =
+                          user.role === 'broker' ? user.broker : user.developer;
+                        const vs = profile?.verification_status;
                         if (vs === 'accepted') {
                           return (
                             <span className='rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700 whitespace-nowrap'>
@@ -1123,9 +1138,16 @@ export default function AdminUsersPage() {
                           return (
                             <span
                               className='rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700 whitespace-nowrap'
-                              title={user.broker?.rejection_reason ?? undefined}
+                              title={profile?.rejection_reason ?? undefined}
                             >
                               Отклонён
+                            </span>
+                          );
+                        }
+                        if (vs === 'not_submitted') {
+                          return (
+                            <span className='rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-medium text-gray-600 whitespace-nowrap'>
+                              Не отправлен
                             </span>
                           );
                         }
@@ -1168,18 +1190,47 @@ export default function AdminUsersPage() {
                   </td>
                   <td className='px-5 py-3.5'>
                     <div className='flex items-center justify-end gap-1.5'>
-                      {user.role === 'broker' && user.broker?.verification_status !== 'accepted' && (
-                        <FancyButton.Root variant='primary' size='xsmall' onClick={() => setVerifyTarget(user)}>
-                          <HugeiconsIcon icon={SecurityCheckIcon} size={16} color='currentColor' strokeWidth={1.5} />
-                          Верифицировать
-                        </FancyButton.Root>
-                      )}
-                      {user.role === 'broker' && user.broker?.verification_status === 'pending' && (
-                        <FancyButton.Root variant='destructive' size='xsmall' onClick={() => setRejectTarget(user)}>
-                          <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
-                          Отклонить
-                        </FancyButton.Root>
-                      )}
+                      {(() => {
+                        // ТЗ от 2026-05-14 — verify/reject применимо И к broker
+                        // И к developer (бэк сам разводит логику по user.role).
+                        // Для verification_status поддерживаем legacy 'pending'
+                        // (старые брокеры до миграции 0013) и новый 'in_review'.
+                        const profile =
+                          user.role === 'broker'
+                            ? user.broker
+                            : user.role === 'developer'
+                              ? user.developer
+                              : null;
+                        if (!profile) return null;
+                        const status = profile.verification_status;
+                        const canVerify = status !== 'accepted';
+                        const canReject =
+                          status === 'in_review' || status === 'pending';
+                        return (
+                          <>
+                            {canVerify && (
+                              <FancyButton.Root
+                                variant='primary'
+                                size='xsmall'
+                                onClick={() => setVerifyTarget(user)}
+                              >
+                                <HugeiconsIcon icon={SecurityCheckIcon} size={16} color='currentColor' strokeWidth={1.5} />
+                                Верифицировать
+                              </FancyButton.Root>
+                            )}
+                            {canReject && (
+                              <FancyButton.Root
+                                variant='destructive'
+                                size='xsmall'
+                                onClick={() => setRejectTarget(user)}
+                              >
+                                <HugeiconsIcon icon={Cancel01Icon} size={16} color='currentColor' strokeWidth={1.5} />
+                                Отклонить
+                              </FancyButton.Root>
+                            )}
+                          </>
+                        );
+                      })()}
                       {user.role === 'developer' && (
                         <FancyButton.Root variant='basic' size='xsmall' onClick={() => setEditTarget(user)}>
                           <HugeiconsIcon icon={Edit02Icon} size={16} color='currentColor' strokeWidth={1.5} />

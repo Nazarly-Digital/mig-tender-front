@@ -22,6 +22,12 @@ export type AdminUser = {
     inn_number?: string;
     ddu_template_url?: string | null;
     has_ddu_template?: boolean;
+    // ТЗ от 2026-05-14 — developer тоже проходит верификацию.
+    is_verified?: boolean;
+    verification_status?: string;
+    verified_at?: string | null;
+    rejected_at?: string | null;
+    rejection_reason?: string | null;
   } | null;
   documents: UserDocument[];
   is_active?: boolean;
