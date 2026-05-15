@@ -120,6 +120,17 @@ export default function PageRegister() {
   const register = useSimpleRegister();
 
   const emailForm = useForm<EmailForm>({ defaultValues: { email: '' } });
+  // Регистрируем email-поле с правилами валидации; ввод контролируем
+  // через setValue в onChange ниже (фильтр символов по фидбеку 2026-05-15).
+  React.useEffect(() => {
+    emailForm.register('email', {
+      required: 'Введите email',
+      pattern: {
+        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        message: 'Некорректный email',
+      },
+    });
+  }, [emailForm]);
   const dataForm = useForm<DataForm>({
     defaultValues: {
       firstName: '',
@@ -290,13 +301,18 @@ export default function PageRegister() {
                     id='email'
                     type='email'
                     placeholder='example@mail.com'
-                    {...emailForm.register('email', {
-                      required: 'Введите email',
-                      pattern: {
-                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                        message: 'Некорректный email',
-                      },
-                    })}
+                    value={emailForm.watch('email') ?? ''}
+                    onChange={(e) => {
+                      // Фильтруем мусор по фидбеку 2026-05-15 — оставляем
+                      // только символы, валидные в email-адресе.
+                      const cleaned = e.target.value.replace(
+                        /[^a-zA-Z0-9@._\-+]/g,
+                        '',
+                      );
+                      emailForm.setValue('email', cleaned, {
+                        shouldValidate: true,
+                      });
+                    }}
                   />
                 </Input.Wrapper>
               </Input.Root>

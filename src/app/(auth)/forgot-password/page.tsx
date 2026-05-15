@@ -120,7 +120,17 @@ export default function PageForgotPassword() {
                     id='email'
                     type='email'
                     placeholder='example@mail.com'
-                    {...emailForm.register('email')}
+                    value={emailForm.watch('email') ?? ''}
+                    onChange={(e) => {
+                      // Фильтруем мусор по фидбеку 2026-05-15.
+                      const cleaned = e.target.value.replace(
+                        /[^a-zA-Z0-9@._\-+]/g,
+                        '',
+                      );
+                      emailForm.setValue('email', cleaned, {
+                        shouldValidate: true,
+                      });
+                    }}
                   />
                 </Input.Wrapper>
               </Input.Root>

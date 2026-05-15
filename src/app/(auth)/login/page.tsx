@@ -60,10 +60,13 @@ export default function PageLogin() {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
+  const watchedEmail = watch('email');
 
   const [error, setError] = React.useState('');
   const [timer, setTimer] = React.useState(0);
@@ -169,7 +172,18 @@ export default function PageLogin() {
                     type='email'
                     placeholder='example@mail.com'
                     autoComplete='username'
-                    {...register('email')}
+                    value={watchedEmail ?? ''}
+                    onChange={(e) => {
+                      // По фидбеку 2026-05-15 — фильтруем мусор сразу,
+                      // чтобы юзер не мог ввести `%;."№(.:;[(%`. Email
+                      // ограничиваем безопасным набором: a-z A-Z 0-9
+                      // плюс @ . _ - +
+                      const cleaned = e.target.value.replace(
+                        /[^a-zA-Z0-9@._\-+]/g,
+                        '',
+                      );
+                      setValue('email', cleaned, { shouldValidate: true });
+                    }}
                   />
                 </Input.Wrapper>
               </Input.Root>
