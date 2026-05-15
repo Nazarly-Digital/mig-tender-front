@@ -145,14 +145,19 @@ export function VerificationStatusBanner({
  * Кнопка «Отправить на проверку» — отдельный блок, стоит после доков.
  * Показывается только в not_submitted (и legacy rejected). В in_review /
  * accepted — null.
+ *
+ * Один клик делает save + submit. Опциональный `beforeSubmit` — функция
+ * которую родитель передаёт чтобы сохранить ProfileEditCard'овые
+ * значения перед сабмитом (фидбек 2026-05-15: отдельной «Сохранить»
+ * для not_submitted больше нет).
  */
 export function SubmitForReviewButton({
   profile,
-  isProfileComplete,
+  beforeSubmit,
   onSubmitted,
 }: {
   profile: VerificationProfile | null | undefined;
-  isProfileComplete: boolean;
+  beforeSubmit?: () => Promise<void>;
   onSubmitted?: () => void;
 }) {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
@@ -161,6 +166,26 @@ export function SubmitForReviewButton({
 
   const handleSubmit = async () => {
     try {
+      // Сначала сохраняем поля профиля (если родитель пробросил
+      // ref-функцию). Если save упал — toast и не сабмитим, чтобы
+      // юзер увидел реальную причину (например невалидный ИНН).
+      if (beforeSubmit) {
+        try {
+          await beforeSubmit();
+        } catch (e) {
+          const err = e as { response?: { data?: Record<string, unknown> } };
+          const data = err.response?.data;
+          const firstField = data ? Object.keys(data)[0] : undefined;
+          const firstMsg =
+            firstField && data
+              ? Array.isArray(data[firstField])
+                ? (data[firstField] as string[]).join(', ')
+                : String(data[firstField])
+              : 'Не удалось сохранить профиль';
+          toast.error(firstMsg);
+          return;
+        }
+      }
       await submit.mutateAsync();
       toast.success(
         'Данные отправлены. Мы пришлём уведомление, когда администратор завершит проверку.',
@@ -180,10 +205,10 @@ export function SubmitForReviewButton({
         <FancyButton.Root
           variant='primary'
           size='small'
-          // По фидбеку 2026-05-15 — кнопка просто кликабельная, без
-          // disabled-объяснения. Если не хватает полей — бэк ответит
-          // toast'ом с missing_fields.
-          disabled={!isProfileComplete}
+          // По фидбеку 2026-05-15 — кнопка ВСЕГДА кликабельная.
+          // Раньше была disabled до тех пор пока не заполнены все
+          // поля + загружены доки; теперь юзер сразу видит причину
+          // (бэк возвращает missing_fields toast'ом).
           onClick={() => setConfirmOpen(true)}
         >
           Отправить на проверку
@@ -221,6 +246,10 @@ export function SubmitForReviewButton({
  * Backward-compat обёртка: некоторые места ещё импортируют
  * `VerificationStatusCard`. Рендерит и баннер, и кнопку в одном месте,
  * но с новой раскладкой (баннер скрыт для ACCEPTED).
+ *
+ * NB: после фидбека 2026-05-15 isProfileComplete больше не управляет
+ * disabled-состоянием кнопки, оставлен в сигнатуре только ради
+ * совместимости со старыми вызовами.
  */
 export function VerificationStatusCard(props: {
   profile: VerificationProfile | null | undefined;
@@ -230,7 +259,10 @@ export function VerificationStatusCard(props: {
   return (
     <>
       <VerificationStatusBanner profile={props.profile} />
-      <SubmitForReviewButton {...props} />
+      <SubmitForReviewButton
+        profile={props.profile}
+        onSubmitted={props.onSubmitted}
+      />
     </>
   );
 }

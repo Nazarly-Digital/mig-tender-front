@@ -44,7 +44,18 @@ type ProfileFields = {
 
 const READONLY_STATUSES = new Set(['in_review', 'pending']);
 
-export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
+// Ref-handle через который родитель (cabinet/page.tsx) может попросить
+// карточку сохранить текущие значения. Используется в SubmitForReviewButton:
+// один клик «Отправить на проверку» сначала сохраняет профиль, потом
+// сабмитит — отдельная кнопка «Сохранить» для not_submitted больше не нужна.
+export type ProfileEditCardHandle = {
+  save: () => Promise<void>;
+};
+
+export const ProfileEditCard = React.forwardRef<
+  ProfileEditCardHandle,
+  { role: 'broker' | 'developer' }
+>(function ProfileEditCard({ role }, ref) {
   useMe(); // чтобы данные были свежие
   const user = useSessionStore((s) => s.user);
   const updateMe = useUpdateMe();
@@ -88,7 +99,11 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
     });
   }, [user]);
 
-  const handleSave = async () => {
+  // Внутренний save: отправляет PATCH /me/, возвращает Promise.
+  // Используется и кнопкой «Сохранить» (для accepted), и
+  // SubmitForReviewButton (через ref) — чтобы один клик «Отправить
+  // на проверку» сохранял профиль перед сабмитом.
+  const saveProfile = React.useCallback(async () => {
     const payload: Partial<ProfileFields> = {
       first_name: values.first_name.trim(),
       last_name: values.last_name.trim(),
@@ -98,14 +113,15 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
     if (role === 'developer') {
       payload.company_name = values.company_name.trim();
     } else {
-      // broker: не шлём company_name — оно для developer'а.
       delete payload.company_name;
     }
-    // Не шлём пустой inn_number — бэк не разрешает blank.
     if (!payload.inn_number) delete payload.inn_number;
+    await updateMe.mutateAsync(payload);
+  }, [values, role, updateMe]);
 
+  const handleSave = async () => {
     try {
-      await updateMe.mutateAsync(payload);
+      await saveProfile();
       toast.success('Профиль обновлён');
     } catch (e) {
       const err = e as { response?: { data?: Record<string, unknown> } };
@@ -120,6 +136,14 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
       toast.error(firstMsg);
     }
   };
+
+  // Экспонируем save() наружу — родитель сможет дёрнуть его
+  // программно (один клик «Отправить на проверку» = save + submit).
+  React.useImperativeHandle(
+    ref,
+    () => ({ save: saveProfile }),
+    [saveProfile],
+  );
 
   return (
     <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5'>
@@ -237,7 +261,11 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
         )}
       </div>
 
-      {!readOnly && (
+      {/* «Сохранить» нужен только тем кто УЖЕ верифицирован — могут
+          обновить ФИО/телефон без повторной проверки. У not_submitted
+          единая кнопка «Отправить на проверку» внизу страницы делает
+          и save, и submit (по фидбеку 2026-05-15). */}
+      {!readOnly && verificationStatus === 'accepted' && (
         <div className='mt-4 flex justify-end'>
           <FancyButton.Root
             variant='primary'
@@ -261,7 +289,7 @@ export function ProfileEditCard({ role }: { role: 'broker' | 'developer' }) {
       <UserDocsBlock readOnly={readOnly} />
     </div>
   );
-}
+});
 
 function UserDocsBlock({ readOnly }: { readOnly: boolean }) {
   const user = useSessionStore((s) => s.user);

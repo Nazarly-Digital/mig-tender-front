@@ -20,7 +20,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import { useSessionStore, isUserDeveloper } from '@/entities/auth/model/store';
 import { useMe, useUploadDeveloperDDUTemplate } from '@/features/auth';
 import { ChangePasswordModal } from './change-password-modal';
-import { ProfileEditCard } from './profile-card';
+import { ProfileEditCard, type ProfileEditCardHandle } from './profile-card';
 import {
   SubmitForReviewButton,
   VerificationStatusBanner,
@@ -194,20 +194,10 @@ function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => vo
     ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.email
     : '';
   const dev = user?.developer ?? null;
-  // ТЗ от 2026-05-15 (фикс) — developer тоже прикладывает ИНН + паспорт.
-  // Условия должны совпадать с _validate_developer_complete на бэке.
-  const innDoc = user?.documents?.some((d) => d.doc_type === 'inn') ?? false;
-  const passportDoc =
-    user?.documents?.some((d) => d.doc_type === 'passport') ?? false;
-  const isComplete = Boolean(
-    user?.first_name?.trim() &&
-      user?.last_name?.trim() &&
-      dev?.company_name?.trim() &&
-      dev?.phone_number?.trim() &&
-      dev?.inn_number?.trim() &&
-      innDoc &&
-      passportDoc,
-  );
+  // Ref на ProfileEditCard, чтобы единая кнопка «Отправить на проверку»
+  // могла сначала сохранить введённые поля, а потом сабмитить
+  // (по фидбеку 2026-05-15 — отдельной «Сохранить» для not_submitted нет).
+  const profileRef = React.useRef<ProfileEditCardHandle>(null);
 
   return (
     <div className='w-full px-8 py-8'>
@@ -225,10 +215,13 @@ function DeveloperCabinetView({ onChangePassword }: { onChangePassword: () => vo
       <VerificationStatusBanner profile={dev} />
 
       {/* Редактирование данных профиля + документы */}
-      <ProfileEditCard role='developer' />
+      <ProfileEditCard ref={profileRef} role='developer' />
 
-      {/* Кнопка «Отправить на проверку» — после доков, не в баннере. */}
-      <SubmitForReviewButton profile={dev} isProfileComplete={isComplete} />
+      {/* Единая кнопка «Отправить на проверку» — save + submit одним кликом. */}
+      <SubmitForReviewButton
+        profile={dev}
+        beforeSubmit={() => profileRef.current?.save() ?? Promise.resolve()}
+      />
 
       <div className='mt-6 rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 flex items-center justify-between'>
         <div className='flex items-center gap-3'>
@@ -254,6 +247,9 @@ export default function CabinetPage() {
   const [pwdOpen, setPwdOpen] = React.useState(false);
   const user = useSessionStore((s) => s.user);
   const isDeveloper = isUserDeveloper(user);
+  // Ref на ProfileEditCard — единая кнопка save+submit (фидбек 2026-05-15).
+  // Объявлен на верхнем уровне до early-return, иначе react-hooks/rules-of-hooks.
+  const profileRef = React.useRef<ProfileEditCardHandle>(null);
 
   const { data: activeData } = useParticipatedAuctions({ status: 'active', page_size: 5 });
   const { data: finishedData } = useParticipatedAuctions({ status: 'finished', page_size: 5 });
@@ -272,20 +268,7 @@ export default function CabinetPage() {
     );
   }
 
-  // Полнота профиля broker'а — проверяется как на бэке, нужно для
-  // активации кнопки «Отправить на проверку» в VerificationStatusCard.
   const broker = user?.broker ?? null;
-  const innDoc = user?.documents?.some((d) => d.doc_type === 'inn') ?? false;
-  const passportDoc =
-    user?.documents?.some((d) => d.doc_type === 'passport') ?? false;
-  const isBrokerComplete = Boolean(
-    user?.first_name?.trim() &&
-      user?.last_name?.trim() &&
-      broker?.inn_number?.trim() &&
-      broker?.phone_number?.trim() &&
-      innDoc &&
-      passportDoc,
-  );
 
   return (
     <div className='w-full px-8 py-8'>
@@ -304,12 +287,12 @@ export default function CabinetPage() {
       <VerificationStatusBanner profile={broker} />
 
       {/* Редактирование данных аккаунта + документы */}
-      <ProfileEditCard role='broker' />
+      <ProfileEditCard ref={profileRef} role='broker' />
 
-      {/* Кнопка «Отправить на проверку» — после блока с документами. */}
+      {/* Единая кнопка «Отправить на проверку» — save + submit одним кликом. */}
       <SubmitForReviewButton
         profile={broker}
-        isProfileComplete={isBrokerComplete}
+        beforeSubmit={() => profileRef.current?.save() ?? Promise.resolve()}
       />
 
       {/* Security */}
