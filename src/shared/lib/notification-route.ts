@@ -25,7 +25,17 @@ export function getNotificationRoute(
       if (recipientRole === 'admin') return '/admin/properties';
       return n.real_property_id ? `/properties/${n.real_property_id}` : '/properties';
     case 'user':
-      return recipientRole === 'admin' ? '/admin/users' : '/cabinet';
+      if (recipientRole === 'admin') return '/admin/users';
+      // ТЗ от 2026-05-16 — уведомление «профиль верифицирован» ведёт
+      // сразу на /auctions: юзер теперь может торговать, логично
+      // открыть список аукционов, а не ЛК.
+      if (
+        n.event_type === 'verification_accepted' ||
+        n.event_type === 'broker_verification_accepted'
+      ) {
+        return '/auctions';
+      }
+      return '/cabinet';
     default:
       return null;
   }

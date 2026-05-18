@@ -188,6 +188,10 @@ export function SubmitForReviewButton({
                 ? (data[firstField] as string[]).join(', ')
                 : String(data[firstField])
               : 'Не удалось сохранить профиль';
+          // Закрываем модалку — иначе toast вылезает поверх неё
+          // (фидбек 2026-05-16). Юзер увидит ошибку чисто и пойдёт
+          // править поле.
+          setConfirmOpen(false);
           toast.error(firstMsg);
           return;
         }

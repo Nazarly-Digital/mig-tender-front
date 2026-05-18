@@ -239,7 +239,9 @@ export default function PageRegister() {
       });
       // ТЗ от 2026-05-15 — после регистрации редиректим на /cabinet,
       // чтобы юзер сразу увидел свою верификацию и заполнил данные.
-      router.push('/cabinet');
+      // `replace` (а не `push`) — чтобы /register не оставался в
+      // истории и кнопка «назад» не возвращала на форму.
+      router.replace('/cabinet');
     } catch (err) {
       const data = (err as AxiosError<Record<string, unknown>>)?.response?.data;
       if (data) {
@@ -620,16 +622,15 @@ export default function PageRegister() {
             </div>
 
             <div className='flex flex-col gap-3'>
+              {/* По фидбеку 2026-05-16 — кнопка снова disabled пока
+                  не заполнены все поля и не отмечены чекбоксы
+                  (dataReady). */}
               <FancyButton.Root
                 type='submit'
                 variant='primary'
                 size='medium'
-                // По фидбеку 2026-05-15 — кнопка ВСЕГДА синяя
-                // (visual primary), а dataReady чек переехал в onRegister.
-                // Раньше disabled-стиль превращал её в серую плашку,
-                // что выпадало из дизайна.
-                className='w-full disabled:!bg-primary-base disabled:!text-white disabled:!opacity-60 disabled:!shadow-none'
-                disabled={register.isPending}
+                className='w-full'
+                disabled={!dataReady || register.isPending}
               >
                 {register.isPending ? 'Регистрация...' : 'Зарегистрироваться'}
               </FancyButton.Root>

@@ -10,6 +10,13 @@ export type NotificationEventType =
   // User / Property
   | 'new_broker_registered'
   | 'new_property_pending'
+  // Verification (ТЗ от 2026-05-14)
+  | 'verification_submitted'
+  | 'verification_accepted'
+  | 'verification_rejected'
+  | 'new_user_for_verification'
+  | 'broker_verification_accepted'
+  | 'broker_verification_rejected'
   // Auction
   | 'auction_won'
   | 'auction_not_selected'
