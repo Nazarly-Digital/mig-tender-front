@@ -26,14 +26,18 @@ import {
 import { useSessionStore } from '@/entities/auth/model/store';
 import {
   useDeleteDocument,
+  useGetCode,
   useUpdateMe,
   useUploadDocument,
+  useVerifyEmail,
   useMe,
 } from '@/features/auth';
 import { formatPhoneInput, formatPhoneInputLocked } from '@/shared/lib/phone';
+import * as DigitInput from '@/shared/ui/digit-input';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
+import * as Modal from '@/shared/ui/modal';
 
 type ProfileFields = {
   first_name: string;
@@ -72,6 +76,11 @@ export const ProfileEditCard = React.forwardRef<
   useMe(); // чтобы данные были свежие
   const user = useSessionStore((s) => s.user);
   const updateMe = useUpdateMe();
+  // ТЗ от 2026-05-16 — смена email требует подтверждения кодом
+  // (как при регистрации). getCode шлёт код на НОВЫЙ адрес,
+  // verifyEmail подтверждает.
+  const getCode = useGetCode();
+  const verifyEmail = useVerifyEmail();
 
   const verificationStatus =
     role === 'broker'
@@ -87,6 +96,13 @@ export const ProfileEditCard = React.forwardRef<
     phone_number: '',
     company_name: '',
   });
+  // Исходный email (для детекта смены). Обновляется после
+  // успешного сохранения. State (не ref) — читается в render
+  // для вычисления emailChanged.
+  const [originalEmail, setOriginalEmail] = React.useState('');
+  // Стейт модалки подтверждения нового email.
+  const [emailVerifyOpen, setEmailVerifyOpen] = React.useState(false);
+  const [emailCode, setEmailCode] = React.useState('');
 
   // Подкачиваем актуал из session ТОЛЬКО при первом маунте/смене пользователя.
   // Раньше зависимость [user] триггерила ре-инициализацию каждый раз когда
@@ -99,6 +115,7 @@ export const ProfileEditCard = React.forwardRef<
     if (!user) return;
     if (lastUserIdRef.current === user.id) return;
     lastUserIdRef.current = user.id;
+    setOriginalEmail((user.email ?? '').toLowerCase());
     const rawPhone =
       (user.broker?.phone_number ?? user.developer?.phone_number ?? '') || '';
     setValues({
@@ -137,21 +154,67 @@ export const ProfileEditCard = React.forwardRef<
     await updateMe.mutateAsync(payload);
   }, [values, role, updateMe]);
 
-  const handleSave = async () => {
+  // Достаёт человекочитаемую ошибку из ответа бэка.
+  const apiError = (e: unknown): string => {
+    const err = e as {
+      response?: { data?: Record<string, unknown> | { detail?: string } };
+    };
+    const data = err.response?.data;
+    if (!data) return 'Не удалось сохранить профиль';
+    if (typeof (data as { detail?: string }).detail === 'string') {
+      return (data as { detail: string }).detail;
+    }
+    const firstField = Object.keys(data)[0];
+    if (!firstField) return 'Не удалось сохранить профиль';
+    const v = (data as Record<string, unknown>)[firstField];
+    return Array.isArray(v) ? (v as string[]).join(', ') : String(v);
+  };
+
+  // Прямое сохранение профиля (email уже подтверждён либо не менялся).
+  const doSave = async () => {
     try {
       await saveProfile();
+      setOriginalEmail(values.email.trim().toLowerCase());
       toast.success('Профиль обновлён');
     } catch (e) {
-      const err = e as { response?: { data?: Record<string, unknown> } };
-      const data = err.response?.data;
-      const firstField = data ? Object.keys(data)[0] : undefined;
-      const firstMsg =
-        firstField && data
-          ? Array.isArray(data[firstField])
-            ? (data[firstField] as string[]).join(', ')
-            : String(data[firstField])
-          : 'Не удалось сохранить профиль';
-      toast.error(firstMsg);
+      toast.error(apiError(e));
+    }
+  };
+
+  const emailChanged =
+    values.email.trim().toLowerCase() !== originalEmail;
+
+  const handleSave = async () => {
+    // ТЗ от 2026-05-16 — если email изменился, перед сохранением
+    // подтверждаем его кодом (код уходит на новый адрес).
+    if (emailChanged) {
+      const newEmail = values.email.trim().toLowerCase();
+      if (!EMAIL_RE.test(newEmail)) {
+        toast.error('Введите корректный email');
+        return;
+      }
+      try {
+        await getCode.mutateAsync({ email: newEmail });
+        setEmailCode('');
+        setEmailVerifyOpen(true);
+      } catch (e) {
+        toast.error(apiError(e));
+      }
+      return;
+    }
+    await doSave();
+  };
+
+  // Подтверждение кода из модалки → verify-email → сохранение.
+  const handleEmailVerify = async () => {
+    const newEmail = values.email.trim().toLowerCase();
+    try {
+      await verifyEmail.mutateAsync({ email: newEmail, code: emailCode });
+      setEmailVerifyOpen(false);
+      setEmailCode('');
+      await doSave();
+    } catch (e) {
+      toast.error(apiError(e));
     }
   };
 
@@ -191,6 +254,9 @@ export const ProfileEditCard = React.forwardRef<
         </span>
       </div>
 
+      {/* Сетка 2-в-ряд (фидбек 2026-05-16). Порядок полей:
+          Имя | Фамилия / ИНН | Название компании / Email | Телефон.
+          У broker'а нет company_name → Email | Телефон во 2-м ряду. */}
       <div className='mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2'>
         <div>
           <Label.Root htmlFor='first_name'>Имя</Label.Root>
@@ -235,25 +301,6 @@ export const ProfileEditCard = React.forwardRef<
           </Input.Root>
         </div>
 
-        <div className='sm:col-span-2'>
-          <Label.Root htmlFor='email'>Email</Label.Root>
-          <Input.Root>
-            <Input.Wrapper>
-              <Input.Icon as={RiMailLine} />
-              <Input.Input
-                id='email'
-                type='email'
-                disabled={readOnly}
-                placeholder='example@mail.com'
-                value={values.email}
-                onChange={(e) =>
-                  setValues((v) => ({ ...v, email: e.target.value }))
-                }
-              />
-            </Input.Wrapper>
-          </Input.Root>
-        </div>
-
         <div>
           <Label.Root htmlFor='inn_number'>ИНН</Label.Root>
           <Input.Root>
@@ -277,6 +324,50 @@ export const ProfileEditCard = React.forwardRef<
           </Input.Root>
         </div>
 
+        {role === 'developer' && (
+          <div>
+            <Label.Root htmlFor='company_name'>Название компании</Label.Root>
+            <Input.Root>
+              <Input.Wrapper>
+                <Input.Icon as={RiBuildingLine} />
+                <Input.Input
+                  id='company_name'
+                  disabled={readOnly}
+                  placeholder='ООО «Пример»'
+                  value={values.company_name}
+                  onChange={(e) =>
+                    setValues((v) => ({ ...v, company_name: e.target.value }))
+                  }
+                />
+              </Input.Wrapper>
+            </Input.Root>
+          </div>
+        )}
+
+        <div>
+          <Label.Root htmlFor='email'>Email</Label.Root>
+          <Input.Root hasError={!!values.email.trim() && !EMAIL_RE.test(values.email.trim())}>
+            <Input.Wrapper>
+              <Input.Icon as={RiMailLine} />
+              <Input.Input
+                id='email'
+                type='email'
+                disabled={readOnly}
+                placeholder='example@mail.com'
+                value={values.email}
+                onChange={(e) =>
+                  setValues((v) => ({ ...v, email: e.target.value }))
+                }
+              />
+            </Input.Wrapper>
+          </Input.Root>
+          {!!values.email.trim() && !EMAIL_RE.test(values.email.trim()) && (
+            <p className='mt-1 text-[12px] text-red-600'>
+              Введите корректный email
+            </p>
+          )}
+        </div>
+
         <div>
           <Label.Root htmlFor='phone_number'>Номер телефона</Label.Root>
           <Input.Root>
@@ -297,26 +388,6 @@ export const ProfileEditCard = React.forwardRef<
             </Input.Wrapper>
           </Input.Root>
         </div>
-
-        {role === 'developer' && (
-          <div className='sm:col-span-2'>
-            <Label.Root htmlFor='company_name'>Название компании</Label.Root>
-            <Input.Root>
-              <Input.Wrapper>
-                <Input.Icon as={RiBuildingLine} />
-                <Input.Input
-                  id='company_name'
-                  disabled={readOnly}
-                  placeholder='ООО «Пример»'
-                  value={values.company_name}
-                  onChange={(e) =>
-                    setValues((v) => ({ ...v, company_name: e.target.value }))
-                  }
-                />
-              </Input.Wrapper>
-            </Input.Root>
-          </div>
-        )}
       </div>
 
       {/* «Сохранить» нужен только тем кто УЖЕ верифицирован — могут
@@ -328,13 +399,53 @@ export const ProfileEditCard = React.forwardRef<
           <FancyButton.Root
             variant='primary'
             size='small'
-            disabled={updateMe.isPending}
+            disabled={updateMe.isPending || getCode.isPending}
             onClick={handleSave}
           >
-            {updateMe.isPending ? 'Сохранение…' : 'Сохранить'}
+            {updateMe.isPending || getCode.isPending
+              ? 'Сохранение…'
+              : 'Сохранить'}
           </FancyButton.Root>
         </div>
       )}
+
+      {/* Модалка подтверждения нового email кодом (ТЗ 2026-05-16).
+          Код приходит на новый адрес — как при регистрации. */}
+      <Modal.Root open={emailVerifyOpen} onOpenChange={setEmailVerifyOpen}>
+        <Modal.Content className='max-w-[440px]'>
+          <Modal.Header
+            title='Подтвердите новый email'
+            description={`Мы отправили код на ${values.email.trim().toLowerCase()}. Введите его, чтобы сменить email.`}
+          />
+          <Modal.Body>
+            <div className='flex flex-col gap-1.5'>
+              <Label.Root>Код из письма</Label.Root>
+              <DigitInput.Root
+                value={emailCode}
+                onChange={setEmailCode}
+                numInputs={6}
+                inputType='number'
+                shouldAutoFocus
+              />
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>
+                Отмена
+              </FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='primary'
+              size='small'
+              disabled={emailCode.length < 6 || verifyEmail.isPending}
+              onClick={handleEmailVerify}
+            >
+              {verifyEmail.isPending ? 'Проверка…' : 'Подтвердить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
 
       {readOnly && (
         <p className='mt-3 text-[12px] text-gray-500'>
