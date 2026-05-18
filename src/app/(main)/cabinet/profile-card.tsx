@@ -17,6 +17,7 @@ import toast from 'react-hot-toast';
 import {
   RiBuildingLine,
   RiFileTextLine,
+  RiMailLine,
   RiPhoneLine,
   RiUploadCloud2Line,
   RiUserLine,
@@ -37,10 +38,15 @@ import * as Label from '@/shared/ui/label';
 type ProfileFields = {
   first_name: string;
   last_name: string;
+  email: string;
   inn_number: string;
   phone_number: string;
   company_name: string;
 };
+
+// Базовая проверка формата email (для гейта «профиль заполнен» и
+// клиентской подсветки; полную валидацию делает бэк).
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const READONLY_STATUSES = new Set(['in_review', 'pending']);
 
@@ -76,6 +82,7 @@ export const ProfileEditCard = React.forwardRef<
   const [values, setValues] = React.useState<ProfileFields>({
     first_name: '',
     last_name: '',
+    email: '',
     inn_number: '',
     phone_number: '',
     company_name: '',
@@ -97,6 +104,7 @@ export const ProfileEditCard = React.forwardRef<
     setValues({
       first_name: user.first_name ?? '',
       last_name: user.last_name ?? '',
+      email: user.email ?? '',
       inn_number:
         (user.broker?.inn_number ?? user.developer?.inn_number ?? '') || '',
       // ТЗ от 2026-05-15 — отображаем телефон в маске «+7 (999) 999-99-99»
@@ -114,6 +122,8 @@ export const ProfileEditCard = React.forwardRef<
     const payload: Partial<ProfileFields> = {
       first_name: values.first_name.trim(),
       last_name: values.last_name.trim(),
+      // email — бэк нормализует в lowercase сам, но шлём уже trimmed.
+      email: values.email.trim(),
       inn_number: values.inn_number.trim(),
       phone_number: values.phone_number.trim(),
     };
@@ -123,6 +133,7 @@ export const ProfileEditCard = React.forwardRef<
       delete payload.company_name;
     }
     if (!payload.inn_number) delete payload.inn_number;
+    if (!payload.email) delete payload.email;
     await updateMe.mutateAsync(payload);
   }, [values, role, updateMe]);
 
@@ -158,6 +169,7 @@ export const ProfileEditCard = React.forwardRef<
     const required =
       !!values.first_name.trim() &&
       !!values.last_name.trim() &&
+      EMAIL_RE.test(values.email.trim()) &&
       !!values.inn_number.trim() &&
       // Phone: с маской «+7 (» считается пустым.
       !!values.phone_number.trim() &&
@@ -217,6 +229,25 @@ export const ProfileEditCard = React.forwardRef<
                     ...v,
                     last_name: e.target.value.replace(/[^a-zA-Zа-яА-ЯёЁ\s-]/g, ''),
                   }))
+                }
+              />
+            </Input.Wrapper>
+          </Input.Root>
+        </div>
+
+        <div className='sm:col-span-2'>
+          <Label.Root htmlFor='email'>Email</Label.Root>
+          <Input.Root>
+            <Input.Wrapper>
+              <Input.Icon as={RiMailLine} />
+              <Input.Input
+                id='email'
+                type='email'
+                disabled={readOnly}
+                placeholder='example@mail.com'
+                value={values.email}
+                onChange={(e) =>
+                  setValues((v) => ({ ...v, email: e.target.value }))
                 }
               />
             </Input.Wrapper>
