@@ -508,10 +508,9 @@ export function AdminDealsView() {
           ))}
         </div>
 
-        {/* Filters — сетка на всю ширину (фидбек 2026-05-16: раньше
-            был flex-wrap, и DatePicker'ы (w-full из Input.Root)
-            расползались на всю строку при переносе). */}
-        <div className='mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+        {/* Filters — сетка с max-width (фидбек 2026-05-16: раньше
+            расползалась на всю ширину экрана). */}
+        <div className='mt-5 grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
           <div className='flex flex-col gap-1'>
             <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
               Брокер

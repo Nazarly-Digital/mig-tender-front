@@ -22,6 +22,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Modal from '@/shared/ui/modal';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
+import * as Select from '@/shared/ui/select';
 import { DatePicker } from '@/shared/ui/date-picker';
 import { PageHeader } from '@/shared/components/page-header';
 import { PropertiesTablePagination } from '@/shared/components/properties-table';
@@ -1011,10 +1012,9 @@ export default function AdminUsersPage() {
         ))}
       </div>
 
-      {/* Secondary filters — сетка на всю ширину (фидбек 2026-05-16:
-          раньше flex-wrap расползался — DatePicker'ы прыгали на всю
-          строку). */}
-      <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+      {/* Secondary filters — сетка с max-width (фидбек 2026-05-16:
+          раньше расползалась на всю ширину экрана). */}
+      <div className='mt-4 grid max-w-5xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
         <div className='flex flex-col gap-1'>
           <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
             Поиск
@@ -1031,15 +1031,21 @@ export default function AdminUsersPage() {
           <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
             Статус
           </label>
-          <select
+          {/* AlignUI Select вместо нативного <select> (фидбек 2026-05-16). */}
+          <Select.Root
+            size='small'
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'blocked')}
-            className='h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+            onValueChange={(v) => setStatusFilter(v as 'all' | 'active' | 'blocked')}
           >
-            <option value='all'>Любой статус</option>
-            <option value='active'>Активные</option>
-            <option value='blocked'>Заблокированные</option>
-          </select>
+            <Select.Trigger>
+              <Select.Value />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value='all'>Любой статус</Select.Item>
+              <Select.Item value='active'>Активные</Select.Item>
+              <Select.Item value='blocked'>Заблокированные</Select.Item>
+            </Select.Content>
+          </Select.Root>
         </div>
         <div className='flex flex-col gap-1'>
           <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
@@ -1060,16 +1066,23 @@ export default function AdminUsersPage() {
             <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
               Верификация
             </label>
-            <select
+            <Select.Root
+              size='small'
               value={verificationFilter}
-              onChange={(e) => setVerificationFilter(e.target.value as 'all' | 'pending' | 'accepted' | 'rejected')}
-              className='h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+              onValueChange={(v) =>
+                setVerificationFilter(v as 'all' | 'pending' | 'accepted' | 'rejected')
+              }
             >
-              <option value='all'>Любая верификация</option>
-              <option value='pending'>На проверке</option>
-              <option value='accepted'>Верифицирован</option>
-              <option value='rejected'>Отклонён</option>
-            </select>
+              <Select.Trigger>
+                <Select.Value />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value='all'>Любая верификация</Select.Item>
+                <Select.Item value='pending'>На проверке</Select.Item>
+                <Select.Item value='accepted'>Верифицирован</Select.Item>
+                <Select.Item value='rejected'>Отклонён</Select.Item>
+              </Select.Content>
+            </Select.Root>
           </div>
         )}
       </div>

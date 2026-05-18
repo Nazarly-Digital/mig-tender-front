@@ -175,6 +175,19 @@ export default function PageRegister() {
       setTimer(60);
       setStep(2);
     } catch (err) {
+      // 429 rate-limit: бэк отдаёт remaining_time. Запускаем
+      // живой обратный отсчёт (раньше показывали статичный текст
+      // «Подождите 25 секунд» — фидбек 2026-05-16).
+      const ax = err as AxiosError<{ remaining_time?: number }>;
+      const remaining =
+        ax.response?.status === 429
+          ? ax.response.data?.remaining_time
+          : undefined;
+      if (typeof remaining === 'number' && remaining > 0) {
+        setTimer(remaining);
+        setError(null);
+        return;
+      }
       setError(getApiError(err) ?? 'Не удалось отправить код. Попробуйте позже.');
     }
   });
@@ -301,11 +314,17 @@ export default function PageRegister() {
 
         <Divider.Root />
 
-        {error && (
+        {/* На шаге 1 timer > 0 = rate-limit от бэка → показываем
+            живой обратный отсчёт. На остальных шагах — обычная ошибка. */}
+        {step === 1 && timer > 0 ? (
+          <Alert.Root variant='lighter' status='error' size='small'>
+            Подождите {timer} секунд перед повторной отправкой кода.
+          </Alert.Root>
+        ) : error ? (
           <Alert.Root variant='lighter' status='error' size='small'>
             {error}
           </Alert.Root>
-        )}
+        ) : null}
 
         {/* Step 1: Email */}
         {step === 1 && (
@@ -590,8 +609,11 @@ export default function PageRegister() {
                 />
                 <span>
                   Соглашаюсь с условиями{' '}
+                  {/* Файл оферты лежит в public/offer.pdf. Раньше
+                      href вёл на несуществующий роут /legal/offer →
+                      404 → выкидывало на /register (фидбек 2026-05-16). */}
                   <a
-                    href='/legal/offer'
+                    href='/offer.pdf'
                     target='_blank'
                     rel='noopener noreferrer'
                     className='text-primary-base underline-offset-2 hover:underline'
