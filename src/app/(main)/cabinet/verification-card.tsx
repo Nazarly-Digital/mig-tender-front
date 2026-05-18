@@ -167,35 +167,43 @@ export function SubmitForReviewButton({
   onSubmitted?: () => void;
 }) {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
   const submit = useSubmitForReview();
   const status = normalize(profile?.verification_status);
 
+  // Клик по кнопке: СНАЧАЛА сохраняем профиль (если родитель пробросил
+  // beforeSubmit). Если save упал — toast и НЕ открываем модалку.
+  // По фидбеку 2026-05-16: все ошибки-тосты должны выходить ДО
+  // модалки, а не поверх неё. Модалка открывается только когда
+  // профиль успешно сохранён.
+  const handleOpenConfirm = async () => {
+    if (beforeSubmit) {
+      setSaving(true);
+      try {
+        await beforeSubmit();
+      } catch (e) {
+        const err = e as { response?: { data?: Record<string, unknown> } };
+        const data = err.response?.data;
+        const firstField = data ? Object.keys(data)[0] : undefined;
+        const firstMsg =
+          firstField && data
+            ? Array.isArray(data[firstField])
+              ? (data[firstField] as string[]).join(', ')
+              : String(data[firstField])
+            : 'Не удалось сохранить профиль';
+        toast.error(firstMsg);
+        return;
+      } finally {
+        setSaving(false);
+      }
+    }
+    setConfirmOpen(true);
+  };
+
+  // Подтверждение в модалке — профиль уже сохранён, остаётся
+  // только сам submit-for-review.
   const handleSubmit = async () => {
     try {
-      // Сначала сохраняем поля профиля (если родитель пробросил
-      // ref-функцию). Если save упал — toast и не сабмитим, чтобы
-      // юзер увидел реальную причину (например невалидный ИНН).
-      if (beforeSubmit) {
-        try {
-          await beforeSubmit();
-        } catch (e) {
-          const err = e as { response?: { data?: Record<string, unknown> } };
-          const data = err.response?.data;
-          const firstField = data ? Object.keys(data)[0] : undefined;
-          const firstMsg =
-            firstField && data
-              ? Array.isArray(data[firstField])
-                ? (data[firstField] as string[]).join(', ')
-                : String(data[firstField])
-              : 'Не удалось сохранить профиль';
-          // Закрываем модалку — иначе toast вылезает поверх неё
-          // (фидбек 2026-05-16). Юзер увидит ошибку чисто и пойдёт
-          // править поле.
-          setConfirmOpen(false);
-          toast.error(firstMsg);
-          return;
-        }
-      }
       await submit.mutateAsync();
       toast.success(
         'Данные отправлены. Мы пришлём уведомление, когда администратор завершит проверку.',
@@ -203,6 +211,7 @@ export function SubmitForReviewButton({
       setConfirmOpen(false);
       onSubmitted?.();
     } catch (e) {
+      setConfirmOpen(false);
       toast.error(getApiError(e));
     }
   };
@@ -218,10 +227,10 @@ export function SubmitForReviewButton({
           // По фидбеку 2026-05-15 (обновлено) — disabled пока не
           // заполнены все обязательные поля и не загружены
           // ИНН + паспорт. Родитель считает isProfileComplete.
-          disabled={!isProfileComplete}
-          onClick={() => setConfirmOpen(true)}
+          disabled={!isProfileComplete || saving}
+          onClick={handleOpenConfirm}
         >
-          Отправить на проверку
+          {saving ? 'Сохранение…' : 'Отправить на проверку'}
         </FancyButton.Root>
       </div>
 

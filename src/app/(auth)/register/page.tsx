@@ -245,11 +245,10 @@ export default function PageRegister() {
         obligation_accepted:
           values.role === 'broker' ? values.obligationAccepted : false,
       });
-      // ТЗ от 2026-05-15 — после регистрации редиректим на /cabinet,
-      // чтобы юзер сразу увидел свою верификацию и заполнил данные.
-      // `replace` (а не `push`) — чтобы /register не оставался в
-      // истории и кнопка «назад» не возвращала на форму.
-      router.replace('/cabinet');
+      // ТЗ от 2026-05-16 — после регистрации редиректим на главную
+      // (/dashboard). `replace` (а не `push`) — чтобы /register не
+      // оставался в истории и кнопка «назад» не возвращала на форму.
+      router.replace('/dashboard');
     } catch (err) {
       const data = (err as AxiosError<Record<string, unknown>>)?.response?.data;
       if (data) {
