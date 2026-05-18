@@ -59,8 +59,6 @@ import type {
 const STATUS_BADGE: Record<PropertyStatus, string> = {
   published: 'bg-emerald-50 text-emerald-700',
   draft: 'bg-gray-100 text-gray-600',
-  archived: 'bg-amber-50 text-amber-700',
-  sold: 'bg-blue-50 text-blue-700',
 };
 
 const MODERATION_LABELS: Record<ModerationStatus, string> = {
@@ -665,7 +663,9 @@ function PropertyEditForm({
               <Select.Root size='small' value={field.value} onValueChange={field.onChange}>
                 <Select.Trigger id='p-status'><Select.Value /></Select.Trigger>
                 <Select.Content>
-                  {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).filter(([v]) => v !== 'draft').map(([v, l]) => (
+                  {/* Оба статуса — Черновик и Опубликован (фидбек
+                      2026-05-16: фильтр draft убран). */}
+                  {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).map(([v, l]) => (
                     <Select.Item key={v} value={v}>{l}</Select.Item>
                   ))}
                 </Select.Content>
@@ -751,7 +751,16 @@ export default function PropertyDetailPage() {
       },
       {
         onSuccess: () => toast.success(isDeveloper ? 'Объект изменён и отправлен на модерацию' : 'Объект сохранён'),
-        onError: () => toast.error('Ошибка при сохранении'),
+        onError: (err) => {
+          // Достаём реальную причину из ответа бэка — например
+          // 403 «Опубликовать объект можно только после прохождения
+          // верификации…». Раньше всегда был дженерик
+          // «Ошибка при сохранении» (фидбек 2026-05-16).
+          const data = (err as { response?: { data?: { detail?: string | string[] } } })
+            ?.response?.data?.detail;
+          const text = Array.isArray(data) ? data[0] : data;
+          toast.error(text || 'Ошибка при сохранении');
+        },
       },
     );
   };
@@ -815,7 +824,9 @@ export default function PropertyDetailPage() {
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {property.moderation_status && (
+          {/* Модерация не показывается для черновика — он ещё не
+              отправлен (фидбек 2026-05-16). */}
+          {property.status !== 'draft' && property.moderation_status && (
             <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${MODERATION_STYLES[property.moderation_status]}`}>
               {MODERATION_LABELS[property.moderation_status]}
             </span>

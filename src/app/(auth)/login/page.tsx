@@ -41,7 +41,16 @@ const PasswordInput = React.forwardRef<
           ref={ref}
           {...inputProps}
         />
-        <button type='button' onClick={() => setShowPassword((s) => !s)}>
+        {/* onMouseDown preventDefault — Input.Wrapper это <label>,
+            и без этого клик по кнопке «съедался» лейблом (фокус
+            уходил на input между mousedown и click). */}
+        <button
+          type='button'
+          tabIndex={-1}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => setShowPassword((s) => !s)}
+          className='relative z-10 shrink-0 cursor-pointer'
+        >
           {showPassword ? (
             <RiEyeOffLine className='size-5 text-gray-400' />
           ) : (

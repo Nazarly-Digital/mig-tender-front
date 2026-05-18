@@ -276,6 +276,7 @@ export const ProfileEditCard = React.forwardRef<
                 <Input.Input
                   id='company_name'
                   disabled={readOnly}
+                  placeholder='ООО «Пример»'
                   value={values.company_name}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, company_name: e.target.value }))

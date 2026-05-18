@@ -196,7 +196,9 @@ function PropertyCard({
             <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', badgeStyle)}>
               {STATUS_LABELS[property.status]}
             </span>
-            {property.moderation_status && (
+            {/* Бейдж модерации не показываем для черновика — он ещё
+                не отправлен на модерацию (фидбек 2026-05-16). */}
+            {property.status !== 'draft' && property.moderation_status && (
               <span className={cn('text-xs font-medium px-2.5 py-0.5 rounded-full', MODERATION_STYLES[property.moderation_status])}>
                 {MODERATION_LABELS[property.moderation_status]}
               </span>
@@ -361,7 +363,9 @@ export default function PropertiesPage() {
             </Select.Trigger>
             <Select.Content>
               <Select.Item value='all'>Все статусы</Select.Item>
-              {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).filter(([value]) => value !== 'draft').map(([value, label]) => (
+              {/* Оба статуса — на «Мои объекты» девелопер видит и свои
+                  черновики (фидбек 2026-05-16). */}
+              {(Object.entries(STATUS_LABELS) as [PropertyStatus, string][]).map(([value, label]) => (
                 <Select.Item key={value} value={value}>{label}</Select.Item>
               ))}
             </Select.Content>

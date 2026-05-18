@@ -18,7 +18,10 @@ export type PropertyClass =
 
 export type CommercialSubtype = "office" | "retail";
 
-export type PropertyStatus = "draft" | "published" | "archived" | "sold";
+// ТЗ от 2026-05-16 — на платформе только 2 статуса объекта.
+// Бэк (Property.PropertyStatuses) тоже знает только draft/published;
+// archived/sold были легаси-мусором на фронте.
+export type PropertyStatus = "draft" | "published";
 
 // Property Image
 export type PropertyImage = {
