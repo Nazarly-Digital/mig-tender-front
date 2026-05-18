@@ -447,13 +447,15 @@ export function AdminPaymentsView() {
       label: 'К выплате брокерам',
       value: toPayBrokers,
       secondary: { label: 'Выплачено', value: paidToBrokers },
-      valueColor: 'text-red-500',
+      // Фидбек 2026-05-16 — чёрный (нейтральная цифра, не алёрт).
+      valueColor: 'text-gray-900',
     },
     {
       label: 'Ожидаем от девелоперов',
       value: awaitingFromDevelopers,
       secondary: { label: 'Получено', value: receivedFromDevelopers },
-      valueColor: 'text-amber-500',
+      // Фидбек 2026-05-16 — красный (это «висящая» дебиторка).
+      valueColor: 'text-red-500',
     },
     {
       label: 'Доход платформы',

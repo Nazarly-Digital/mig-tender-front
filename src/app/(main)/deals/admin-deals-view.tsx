@@ -508,38 +508,58 @@ export function AdminDealsView() {
           ))}
         </div>
 
-        {/* Filters */}
-        <div className='mt-5 flex flex-wrap items-center gap-3'>
-          <input
-            type='text'
-            value={brokerSearch}
-            onChange={(e) => setBrokerSearch(e.target.value)}
-            placeholder='Брокер'
-            className='h-9 w-48 rounded-lg border border-gray-300 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
-          />
-          <input
-            type='text'
-            value={developerSearch}
-            onChange={(e) => setDeveloperSearch(e.target.value)}
-            placeholder='Девелопер'
-            className='h-9 w-48 rounded-lg border border-gray-300 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
-          />
-          <span className='text-[12px] font-medium text-gray-500'>Период:</span>
-          {/* DatePicker из shared/ui — рисует «дд.мм.гггг» и
-              русский календарь, нативный <input type='date'>
-              брал placeholder из локали браузера. */}
-          <DatePicker size='small' value={dateFrom} onChange={setDateFrom} />
-          <DatePicker size='small' value={dateTo} onChange={setDateTo} min={dateFrom || undefined} />
-          {(brokerSearch || developerSearch || dateFrom || dateTo) && (
+        {/* Filters — сетка на всю ширину (фидбек 2026-05-16: раньше
+            был flex-wrap, и DatePicker'ы (w-full из Input.Root)
+            расползались на всю строку при переносе). */}
+        <div className='mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='flex flex-col gap-1'>
+            <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+              Брокер
+            </label>
+            <input
+              type='text'
+              value={brokerSearch}
+              onChange={(e) => setBrokerSearch(e.target.value)}
+              placeholder='Поиск по имени брокера'
+              className='h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+            />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+              Девелопер
+            </label>
+            <input
+              type='text'
+              value={developerSearch}
+              onChange={(e) => setDeveloperSearch(e.target.value)}
+              placeholder='Поиск по имени девелопера'
+              className='h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-[13px] placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+            />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+              Период с
+            </label>
+            <DatePicker size='small' value={dateFrom} onChange={setDateFrom} />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+              Период по
+            </label>
+            <DatePicker size='small' value={dateTo} onChange={setDateTo} min={dateFrom || undefined} />
+          </div>
+        </div>
+        {(brokerSearch || developerSearch || dateFrom || dateTo) && (
+          <div className='mt-2 flex justify-end'>
             <button
               type='button'
               onClick={() => { setBrokerSearch(''); setDeveloperSearch(''); setDateFrom(''); setDateTo(''); }}
               className='h-9 rounded-lg px-3 text-[13px] font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors'
             >
-              Сбросить
+              Сбросить фильтры
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className='flex items-center gap-0 border-b border-gray-200 mt-5'>

@@ -1011,43 +1011,67 @@ export default function AdminUsersPage() {
         ))}
       </div>
 
-      {/* Secondary filters */}
-      <div className='mt-4 flex flex-wrap items-center gap-3'>
-        <input
-          type='text'
-          placeholder='Поиск по email или имени…'
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          className='h-9 w-72 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'blocked')}
-          className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
-        >
-          <option value='all'>Любой статус</option>
-          <option value='active'>Активные</option>
-          <option value='blocked'>Заблокированные</option>
-        </select>
-        {roleFilter === 'broker' && (
+      {/* Secondary filters — сетка на всю ширину (фидбек 2026-05-16:
+          раньше flex-wrap расползался — DatePicker'ы прыгали на всю
+          строку). */}
+      <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+        <div className='flex flex-col gap-1'>
+          <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+            Поиск
+          </label>
+          <input
+            type='text'
+            placeholder='Email или имя пользователя'
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className='h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+            Статус
+          </label>
           <select
-            value={verificationFilter}
-            onChange={(e) => setVerificationFilter(e.target.value as 'all' | 'pending' | 'accepted' | 'rejected')}
-            className='h-9 rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'blocked')}
+            className='h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
           >
-            <option value='all'>Любая верификация</option>
-            <option value='pending'>На проверке</option>
-            <option value='accepted'>Верифицирован</option>
-            <option value='rejected'>Отклонён</option>
+            <option value='all'>Любой статус</option>
+            <option value='active'>Активные</option>
+            <option value='blocked'>Заблокированные</option>
           </select>
+        </div>
+        <div className='flex flex-col gap-1'>
+          <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+            Период с
+          </label>
+          {/* DatePicker из shared/ui всегда рисует «дд.мм.гггг» и
+              календарь на русском (react-day-picker locale=ru). */}
+          <DatePicker size='small' value={dateFrom} onChange={setDateFrom} />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+            Период по
+          </label>
+          <DatePicker size='small' value={dateTo} onChange={setDateTo} min={dateFrom || undefined} />
+        </div>
+        {roleFilter === 'broker' && (
+          <div className='flex flex-col gap-1'>
+            <label className='text-[11px] font-semibold uppercase tracking-wide text-gray-400'>
+              Верификация
+            </label>
+            <select
+              value={verificationFilter}
+              onChange={(e) => setVerificationFilter(e.target.value as 'all' | 'pending' | 'accepted' | 'rejected')}
+              className='h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-[13px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+            >
+              <option value='all'>Любая верификация</option>
+              <option value='pending'>На проверке</option>
+              <option value='accepted'>Верифицирован</option>
+              <option value='rejected'>Отклонён</option>
+            </select>
+          </div>
         )}
-        <span className='text-[12px] font-medium text-gray-500'>Период:</span>
-        {/* Нативный <input type='date'> ставит placeholder из локали
-            браузера (dd.mm.yyyy на английских системах). DatePicker
-            из shared/ui всегда рисует «дд.мм.гггг» и календарь на
-            русском (react-day-picker locale=ru). */}
-        <DatePicker size='small' value={dateFrom} onChange={setDateFrom} />
-        <DatePicker size='small' value={dateTo} onChange={setDateTo} min={dateFrom || undefined} />
       </div>
 
       {/* Content */}
