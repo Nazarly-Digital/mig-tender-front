@@ -189,12 +189,14 @@ export default function PageRegister() {
         setError(null);
         return;
       }
-      // 409 — email уже зарегистрирован. По фидбеку 2026-05-19: вместо
-      // ошибки «Пользователь уже существует» сразу ведём на страницу
-      // входа — для существующего аккаунта дальше путь только /login.
+      // 409 — email уже зарегистрирован. По фидбеку 2026-05-19 ведём
+      // на /login с подставленным email и пометкой exists=1, чтобы
+      // страница входа показала подсказку «email уже зарегистрирован».
       // `replace` — чтобы /register не остался в истории браузера.
       if (ax.response?.status === 409) {
-        router.replace('/login');
+        router.replace(
+          `/login?email=${encodeURIComponent(normalized)}&exists=1`,
+        );
         return;
       }
       setError(getApiError(err) ?? 'Не удалось отправить код. Попробуйте позже.');

@@ -100,11 +100,15 @@ const CLASS_COLORS: Record<PropertyClass, 'gray' | 'blue' | 'purple' | 'orange'>
 const STATUS_LABELS: Record<PropertyStatus, string> = {
   draft: 'Черновик',
   published: 'Опубликован',
+  sold: 'Продан',
+  archived: 'В архиве',
 };
 
 const STATUS_MAP: Record<PropertyStatus, 'pending' | 'completed' | 'disabled'> = {
   draft: 'pending',
   published: 'completed',
+  sold: 'completed',
+  archived: 'disabled',
 };
 
 function formatPrice(price: string | null | undefined, _currency?: string) {

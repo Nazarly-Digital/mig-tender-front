@@ -162,6 +162,8 @@ function RecentPropertyItem({ property }: { property: Property }) {
   const statusStyles: Record<string, string> = {
     published: 'bg-emerald-50 text-emerald-700',
     draft: 'bg-amber-50 text-amber-700',
+    sold: 'bg-blue-50 text-blue-700',
+    archived: 'bg-amber-50 text-amber-700',
   };
 
   return (

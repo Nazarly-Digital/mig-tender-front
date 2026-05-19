@@ -35,6 +35,8 @@ const STATUS_BADGE_STYLES: Record<string, string> = {
   completed: 'bg-emerald-50 text-emerald-700',
   active: 'bg-blue-50 text-blue-700',
   draft: 'bg-gray-100 text-gray-600',
+  published: 'bg-emerald-50 text-emerald-700',
+  sold: 'bg-blue-50 text-blue-700',
   archived: 'bg-amber-50 text-amber-700',
   cancelled: 'bg-red-50 text-red-700',
 };

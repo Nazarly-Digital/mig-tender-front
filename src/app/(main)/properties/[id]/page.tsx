@@ -59,6 +59,8 @@ import type {
 const STATUS_BADGE: Record<PropertyStatus, string> = {
   published: 'bg-emerald-50 text-emerald-700',
   draft: 'bg-gray-100 text-gray-600',
+  sold: 'bg-blue-50 text-blue-700',
+  archived: 'bg-amber-50 text-amber-700',
 };
 
 const MODERATION_LABELS: Record<ModerationStatus, string> = {
@@ -172,7 +174,13 @@ function ImagesGallery({ images }: { images: PropertyImage[] }) {
 
 // --- Image Upload Section ---
 
-function ImageUploadSection({ propertyId }: { propertyId: number }) {
+function ImageUploadSection({
+  propertyId,
+  readOnly = false,
+}: {
+  propertyId: number;
+  readOnly?: boolean;
+}) {
   const { data: images = [] } = usePropertyImages(propertyId);
   const addImage = useAddPropertyImage();
   const updateImage = useUpdatePropertyImage();
@@ -306,6 +314,7 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
                   </span>
                 )}
               </div>
+              {!readOnly && (
               <div className='flex items-center gap-0.5'>
                 <button
                   type='button'
@@ -347,6 +356,7 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
                   <RiCloseLine className='size-3.5' />
                 </button>
               </div>
+              )}
             </div>
           ))}
         </div>
@@ -363,6 +373,11 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
         </button>
       )}
 
+      {readOnly ? (
+        <p className='text-sm text-gray-400'>
+          Объект продан — добавление фото недоступно.
+        </p>
+      ) : (
       <button
         type='button'
         disabled={uploading}
@@ -384,6 +399,7 @@ function ImageUploadSection({ propertyId }: { propertyId: number }) {
           onChange={(e) => handleFiles(e.target.files)}
         />
       </button>
+      )}
     </div>
   );
 }
@@ -882,7 +898,9 @@ export default function PropertyDetailPage() {
             <HugeiconsIcon icon={Building03Icon} size={18} color='currentColor' strokeWidth={1.5} className='text-gray-400' />
             Редактировать объект
           </h3>
-          {property.is_editable === false ? (
+          {property.status === 'sold' ? (
+            <p className='text-sm text-amber-600 font-medium'>Объект продан на аукционе.</p>
+          ) : property.is_editable === false ? (
             <p className='text-sm text-amber-600 font-medium'>Редактирование этого объекта недоступно. Объект привязан к аукциону.</p>
           ) : (
             <PropertyEditForm
@@ -900,7 +918,7 @@ export default function PropertyDetailPage() {
           {/* Image Upload */}
           <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Фотографии</h3>
-            <ImageUploadSection propertyId={property.id} />
+            <ImageUploadSection propertyId={property.id} readOnly={property.status === 'sold'} />
           </div>
 
           {/* Metadata — shown here below photos on < 2xl; hidden on 2xl+ where it moves to right column */}

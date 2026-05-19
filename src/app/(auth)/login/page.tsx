@@ -80,6 +80,9 @@ export default function PageLogin() {
   const watchedEmail = watch('email');
 
   const [error, setError] = React.useState('');
+  // Подсказка «email уже зарегистрирован» — когда пришли с /register
+  // (фидбек 2026-05-19).
+  const [info, setInfo] = React.useState('');
   const [timer, setTimer] = React.useState(0);
 
   React.useEffect(() => {
@@ -87,6 +90,19 @@ export default function PageLogin() {
     const id = setInterval(() => setTimer((p) => p - 1), 1000);
     return () => clearInterval(id);
   }, [timer]);
+
+  React.useEffect(() => {
+    // Пришли с шага 1 регистрации, где email оказался занят: подставляем
+    // его в форму и показываем подсказку (фидбек 2026-05-19).
+    const params = new URLSearchParams(window.location.search);
+    const prefillEmail = params.get('email');
+    if (prefillEmail) {
+      setValue('email', prefillEmail);
+    }
+    if (params.get('exists') === '1') {
+      setInfo('Этот email уже зарегистрирован — войдите.');
+    }
+  }, [setValue]);
 
   const onSubmit = (data: LoginFormData) => {
     if (timer > 0) return;
@@ -144,6 +160,12 @@ export default function PageLogin() {
         </div>
 
         <Divider.Root />
+
+        {info && !error && (
+          <Alert.Root variant='lighter' status='information' size='small'>
+            {info}
+          </Alert.Root>
+        )}
 
         {error && (
           <Alert.Root variant='lighter' status='error' size='small'>
