@@ -286,9 +286,12 @@ export default function CreateAuctionPage() {
       {
         propertyIds: data.propertyIds.map(Number),
         mode: data.mode as AuctionMode,
-        // «Один лот — одна комиссия» — единая ставка, обязательна
-        // и для open, и для closed.
-        commission_rate: data.commission_rate,
+        // Комиссия лота шлётся только для лота из 2+ объектов
+        // (фидбек 2026-05-19). Для одного объекта бэк её игнорирует —
+        // комиссия берётся со ставки самого объекта.
+        ...(data.propertyIds.length > 1 && data.commission_rate
+          ? { commission_rate: data.commission_rate }
+          : {}),
         // CLOSED-аукциону min_price не показывается в форме (sealed-bid
         // против собственной оценки брокера), бэк требует число — шлём 0.
         // schema сделал поле optional, поэтому coalesce на пустую строку
@@ -491,9 +494,11 @@ export default function CreateAuctionPage() {
               {errors.propertyIds && <p className='text-xs text-red-500'>{errors.propertyIds.message}</p>}
             </div>
 
-            {/* Комиссия брокера — единая ставка на весь лот («один лот —
-                одна комиссия», фидбек 2026-05-19). Применяется и к
-                открытым, и к закрытым аукционам. */}
+            {/* Комиссия лота — поле ТОЛЬКО для лота из 2+ объектов
+                (фидбек 2026-05-19). Для одного объекта (открытый
+                аукцион или закрытый с 1 объектом) комиссия берётся со
+                ставки самого объекта — поле не показываем. */}
+            {selectedPropertyIds.length > 1 && (
             <div className='space-y-1.5'>
               <Label.Root htmlFor='auction-commission'>Комиссия брокера, % <Label.Asterisk /></Label.Root>
               <Controller control={control} name='commission_rate' render={({ field }) => (
@@ -526,6 +531,7 @@ export default function CreateAuctionPage() {
                 <p className='text-xs text-gray-400'>Единая ставка комиссии на весь лот</p>
               )}
             </div>
+            )}
 
             {selectedMode === 'open' && (
               <div className='space-y-1.5'>

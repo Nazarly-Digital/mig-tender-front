@@ -524,16 +524,9 @@ export const auctionDraftSchema = z.object({
     .array(z.string())
     .min(1, 'Выберите хотя бы один объект'),
   mode: z.string().min(1, 'Выберите тип аукциона'),
-  // «Один лот — одна комиссия» — единая ставка на весь лот, требуем
-  // её даже для черновика (одно число, девелопер знает его сразу).
-  commission_rate: z
-    .string()
-    .min(1, 'Укажите комиссию брокера')
-    .refine((v) => parseFloat(v) >= 0, 'Комиссия должна быть >= 0')
-    .refine(
-      (v) => isFiniteInRange(v, 0, MAX_COMMISSION_RATE, true),
-      'Комиссия не может превышать 100%',
-    ),
+  // Комиссия лота — только для лота из 2+ объектов; в черновике
+  // не обязательна (фидбек 2026-05-19).
+  commission_rate: z.string().optional(),
   // Стартовая цена — концепция OPEN-аукциона (минимум для первой ставки).
   // В CLOSED брокеры подают запечатанные ставки против собственной оценки,
   // стартовая цена там просто не существует. Поэтому строка может быть
@@ -552,15 +545,9 @@ export const auctionSchema = z.object({
     .array(z.string())
     .min(1, 'Выберите хотя бы один объект'),
   mode: z.string().min(1, 'Выберите тип аукциона'),
-  // «Один лот — одна комиссия» — единая ставка комиссии на весь лот.
-  commission_rate: z
-    .string()
-    .min(1, 'Укажите комиссию брокера')
-    .refine((v) => parseFloat(v) >= 0, 'Комиссия должна быть >= 0')
-    .refine(
-      (v) => isFiniteInRange(v, 0, MAX_COMMISSION_RATE, true),
-      'Комиссия не может превышать 100%',
-    ),
+  // Комиссия лота — обязательна только для лота из 2+ объектов
+  // (refine ниже). Для одного объекта берётся со ставки объекта.
+  commission_rate: z.string().optional(),
   min_price: z.string().optional(),
   min_bid_increment: z.string().optional(),
   show_price_to_brokers: z.boolean().optional(),
@@ -606,6 +593,18 @@ export const auctionSchema = z.object({
   },
   { message: 'Введите стартовую цену',
     path: ['min_price'] },
+).refine(
+  (data) => {
+    // Комиссия лота обязательна только для лота из 2+ объектов
+    // (фидбек 2026-05-19). Для одного объекта — комиссия объекта.
+    if (data.propertyIds.length <= 1) return true;
+    const v = data.commission_rate;
+    if (!v || !v.trim()) return false;
+    const n = parseFloat(v);
+    return Number.isFinite(n) && n >= 0 && n <= MAX_COMMISSION_RATE;
+  },
+  { message: 'Укажите комиссию брокера для лота',
+    path: ['commission_rate'] },
 );
 
 export type AuctionFormData = z.infer<typeof auctionSchema>;

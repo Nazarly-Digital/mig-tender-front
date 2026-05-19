@@ -142,8 +142,9 @@ export type AuctionCreateRequest = {
   propertyIds: number[];
   mode: AuctionMode;
   min_price: string;
-  // «Один лот — одна комиссия» — единая ставка комиссии брокера (%).
-  commission_rate: string;
+  // Комиссия лота — только для лота из 2+ объектов (фидбек 2026-05-19);
+  // для одного объекта комиссия берётся со ставки самого объекта.
+  commission_rate?: string;
   min_bid_increment?: string;
   show_price_to_brokers?: boolean;
   start_date?: string;
