@@ -35,7 +35,11 @@ import {
   useSimpleRegister,
   useVerifyEmail,
 } from '@/features/auth';
-import { formatPhoneInputLocked, PHONE_INPUT_DEFAULT } from '@/shared/lib/phone';
+import {
+  formatPhoneInputLocked,
+  PHONE_INPUT_DEFAULT,
+  validatePhoneNumber,
+} from '@/shared/lib/phone';
 import * as Alert from '@/shared/ui/alert';
 import * as Checkbox from '@/shared/ui/checkbox';
 import * as DigitInput from '@/shared/ui/digit-input';
@@ -238,23 +242,12 @@ export default function PageRegister() {
       setError('Введите номер телефона.');
       return;
     }
-    // Валидация телефона — повторяет бэк (SimpleRegisterSerializer.
-    // validate_phone_number): 10–15 цифр + национальная часть не из
-    // одинаковых цифр. По фидбеку 2026-05-19 — раньше телефон на
-    // регистрации не проверялся вовсе (проверял только бэк на сабмите).
-    const phoneDigits = values.phoneNumber.replace(/\D/g, '');
-    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-      dataForm.setError('phoneNumber', {
-        message: 'Введите корректный номер телефона.',
-      });
-      return;
-    }
-    const phoneNational =
-      phoneDigits.length >= 11 ? phoneDigits.slice(1) : phoneDigits;
-    if (new Set(phoneNational).size < 2) {
-      dataForm.setError('phoneNumber', {
-        message: 'Введите корректный номер телефона.',
-      });
+    // Валидация телефона — единое правило с ЛК и бэком
+    // (validatePhoneNumber): 10–15 цифр + минимум 3 разные цифры,
+    // отсекает «+7 (700) 000-00-00» (фидбек 2026-05-19).
+    const phoneError = validatePhoneNumber(values.phoneNumber);
+    if (phoneError) {
+      dataForm.setError('phoneNumber', { message: phoneError });
       return;
     }
     if (!values.offerAccepted) {

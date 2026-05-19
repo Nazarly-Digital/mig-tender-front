@@ -56,3 +56,25 @@ export function toE164(value: string): string {
   const digits = value.replace(/\D/g, '');
   return digits ? '+' + digits : '';
 }
+
+/**
+ * Единое правило валидации телефона — для регистрации И личного
+ * кабинета (порт с бэка apps/users/validators.py, фидбек 2026-05-19
+ * «распространить правила валидации»). Возвращает текст ошибки или
+ * null если номер корректен:
+ *  - 10–15 цифр (8XXXXXXXXXX → 7XXXXXXXXXX);
+ *  - минимум 3 разные цифры — отсекает «+7 (700) 000-00-00» и т.п.
+ */
+export function validatePhoneNumber(value: string): string | null {
+  let digits = (value ?? '').replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('8')) {
+    digits = '7' + digits.slice(1);
+  }
+  if (digits.length < 10 || digits.length > 15) {
+    return 'Введите корректный номер телефона.';
+  }
+  if (new Set(digits).size < 3) {
+    return 'Введите корректный номер телефона.';
+  }
+  return null;
+}

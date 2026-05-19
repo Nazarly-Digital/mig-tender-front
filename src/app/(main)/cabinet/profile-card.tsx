@@ -33,7 +33,11 @@ import {
   useMe,
 } from '@/features/auth';
 import { validateInn } from '@/shared/lib/inn';
-import { formatPhoneInput, formatPhoneInputLocked } from '@/shared/lib/phone';
+import {
+  formatPhoneInput,
+  formatPhoneInputLocked,
+  validatePhoneNumber,
+} from '@/shared/lib/phone';
 import * as DigitInput from '@/shared/ui/digit-input';
 import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
@@ -237,6 +241,13 @@ export const ProfileEditCard = React.forwardRef<
     return validateInn(v, innExpectedLen);
   }, [values.inn_number, innExpectedLen]);
 
+  // Inline-ошибка телефона — единое правило с регистрацией и бэком
+  // (validatePhoneNumber). Показываем когда введено ≥ 11 цифр.
+  const phoneError = React.useMemo(() => {
+    if (values.phone_number.replace(/\D/g, '').length < 11) return null;
+    return validatePhoneNumber(values.phone_number);
+  }, [values.phone_number]);
+
   // Полнота локальных полей — родитель использует чтобы дизейблить
   // «Отправить на проверку» пока что-то не заполнено.
   const isLocallyComplete = React.useMemo(() => {
@@ -247,9 +258,10 @@ export const ProfileEditCard = React.forwardRef<
       // ИНН — ровно нужная длина И валидная контрольная цифра.
       values.inn_number.trim().length === innExpectedLen &&
       validateInn(values.inn_number.trim(), innExpectedLen) === null &&
-      // Phone: с маской «+7 (» считается пустым.
+      // Phone: с маской «+7 (» считается пустым; формат — validatePhoneNumber.
       !!values.phone_number.trim() &&
-      values.phone_number.replace(/\D/g, '').length >= 11;
+      values.phone_number.replace(/\D/g, '').length >= 11 &&
+      validatePhoneNumber(values.phone_number) === null;
     if (role === 'developer') {
       return required && !!values.company_name.trim();
     }
@@ -391,7 +403,7 @@ export const ProfileEditCard = React.forwardRef<
 
         <div>
           <Label.Root htmlFor='phone_number'>Номер телефона</Label.Root>
-          <Input.Root>
+          <Input.Root hasError={!!phoneError}>
             <Input.Wrapper>
               <Input.Icon as={RiPhoneLine} />
               <Input.Input
@@ -408,6 +420,9 @@ export const ProfileEditCard = React.forwardRef<
               />
             </Input.Wrapper>
           </Input.Root>
+          {phoneError && (
+            <p className='mt-1 text-[12px] text-red-600'>{phoneError}</p>
+          )}
         </div>
       </div>
 
