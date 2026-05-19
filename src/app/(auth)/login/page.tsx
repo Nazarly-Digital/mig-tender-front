@@ -103,7 +103,7 @@ export default function PageLogin() {
       setValue('email', prefillEmail);
     }
     if (params.get('exists') === '1') {
-      setInfo('Этот email уже зарегистрирован — войдите.');
+      setInfo('Этот email уже зарегистрирован — войдите в аккаунт.');
     }
   }, [setValue]);
 
