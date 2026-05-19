@@ -136,7 +136,7 @@ export default function NewDeveloperPage() {
       phoneNumber: PHONE_INPUT_DEFAULT,
       innDocument: undefined,
       passportDocument: undefined,
-      dduTemplate: undefined as unknown as File,
+      dduTemplate: undefined,
       password: '',
       passwordConfirm: '',
     },
@@ -155,7 +155,7 @@ export default function NewDeveloperPage() {
         phone_number: toE164(data.phoneNumber),
         inn: data.innDocument as File | undefined,
         passport: data.passportDocument as File | undefined,
-        ddu_template: data.dduTemplate as unknown as File,
+        ddu_template: data.dduTemplate as File | undefined,
       },
       {
         onSuccess: () => {
@@ -377,7 +377,7 @@ export default function NewDeveloperPage() {
 
             <div className='space-y-1.5'>
               <Label.Root htmlFor='nd-dduTemplate'>
-                Шаблон ДДУ (PDF) <Label.Asterisk />
+                Шаблон ДДУ (PDF)
               </Label.Root>
               <Controller
                 name='dduTemplate'

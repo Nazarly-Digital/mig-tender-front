@@ -70,7 +70,7 @@ export type AdminCreateDeveloperRequest = {
   phone_number: string;
   inn?: File;
   passport?: File;
-  ddu_template: File;
+  ddu_template?: File;
 };
 
 export type AdminUpdateDeveloperRequest = {

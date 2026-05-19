@@ -334,7 +334,10 @@ export const adminCreateDeveloperSchema = z
       }),
     innDocument: optionalFile,
     passportDocument: optionalFile,
-    dduTemplate: requiredPdf,
+    // ДДУ-шаблон необязателен при создании девелопера админом
+    // (фидбек Софьи Филипповой, 2026-05-19, #12) — девелопер
+    // загружает его сам из ЛК по желанию.
+    dduTemplate: optionalPdf,
     password: z
       .string()
       .min(8, 'Минимум 8 символов')

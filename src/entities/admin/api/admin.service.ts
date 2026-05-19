@@ -44,7 +44,11 @@ export const adminService = {
     formData.append("phone_number", data.phone_number);
     if (data.inn) formData.append("inn", data.inn, data.inn.name);
     if (data.passport) formData.append("passport", data.passport, data.passport.name);
-    formData.append("ddu_template", data.ddu_template, data.ddu_template.name);
+    // ДДУ-шаблон необязателен (#12) — добавляем только если файл выбран,
+    // иначе FormData.append падает с TypeError на data.ddu_template.name.
+    if (data.ddu_template) {
+      formData.append("ddu_template", data.ddu_template, data.ddu_template.name);
+    }
     return apiInstance.post<AdminDeveloperResponse>(
       "/admin/developers/",
       formData,
