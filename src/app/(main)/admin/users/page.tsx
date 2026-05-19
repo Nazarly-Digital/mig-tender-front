@@ -487,6 +487,10 @@ function EditDeveloperModal({
     );
   });
 
+  // Файл шаблона ДДУ для кастомного пикера (нативная кнопка input
+  // рендерит англ. «Choose file» — прячем input, см. ниже).
+  const dduTemplateFile = form.watch('dduTemplate');
+
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
       <Modal.Content className='max-w-[480px]'>
@@ -670,11 +674,15 @@ function EditDeveloperModal({
                     Текущий шаблон
                   </button>
                 )}
+                {/* Нативная кнопка <input type=file> рендерит англ.
+                    «Choose file» силами браузера — текст не меняется.
+                    Прячем input, открываем кликом по <label> со своей
+                    рус. подписью (фидбек 2026-05-19). */}
                 <input
                   id='ed-dduTemplate'
                   type='file'
                   accept='application/pdf'
-                  className='block w-full text-[12px] text-gray-600 file:mr-3 file:rounded-md file:border file:border-gray-300 file:bg-white file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-gray-700 hover:file:bg-gray-50'
+                  className='hidden'
                   onChange={(e) =>
                     form.setValue(
                       'dduTemplate',
@@ -683,6 +691,19 @@ function EditDeveloperModal({
                     )
                   }
                 />
+                <div className='flex items-center gap-2'>
+                  <label
+                    htmlFor='ed-dduTemplate'
+                    className='shrink-0 cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-[12px] font-medium text-gray-700 transition-colors hover:bg-gray-50'
+                  >
+                    Выбрать файл
+                  </label>
+                  <span className='truncate text-[12px] text-gray-500'>
+                    {dduTemplateFile instanceof File
+                      ? dduTemplateFile.name
+                      : 'Файл не выбран'}
+                  </span>
+                </div>
                 <span className='text-[11px] text-gray-400'>
                   Загрузите PDF, чтобы заменить текущий шаблон. Оставьте пустым, чтобы не менять.
                 </span>
