@@ -476,7 +476,19 @@ export function AdminDealsView() {
   const totalPages = data?.count ? Math.max(1, Math.ceil(data.count / ADMIN_DEALS_PAGE_SIZE)) : 1;
 
   // High page_size so the tab counters reflect totals across all pages.
-  const { data: allData } = useDeals({ page_size: 1000 });
+  // Те же фильтры поиска/дат, что и у списка, но БЕЗ статуса — табам
+  // нужны счётчики по каждому статусу ВНУТРИ текущего поиска. Иначе
+  // при поиске список фильтруется, а «Все N» и KPI остаются по всем
+  // сделкам — поиск выглядит сломанным (фидбек 2026-05-19).
+  const { data: allData } = useDeals({
+    page_size: 1000,
+    ...(debouncedBrokerSearch && { broker_search: debouncedBrokerSearch }),
+    ...(debouncedDeveloperSearch && {
+      developer_search: debouncedDeveloperSearch,
+    }),
+    ...(dateFrom && { date_from: dateFrom }),
+    ...(dateTo && { date_to: dateTo }),
+  });
   const allDeals = allData?.results ?? [];
 
   // KPI counts
