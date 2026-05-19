@@ -501,13 +501,20 @@ export default function PageRegister() {
                     inputMode='tel'
                     placeholder='+7 (999) 123-45-67'
                     value={watched.phoneNumber}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       dataForm.setValue(
                         'phoneNumber',
                         formatPhoneInputLocked(e.target.value),
                         { shouldValidate: true },
-                      )
-                    }
+                      );
+                      // Ошибка телефона ставится вручную (setError из
+                      // ответа бэка) — у поля нет RHF-правил, поэтому
+                      // shouldValidate её не снимает. Чистим явно при
+                      // любом изменении (фидбек 2026-05-16).
+                      if (dataForm.formState.errors.phoneNumber) {
+                        dataForm.clearErrors('phoneNumber');
+                      }
+                    }}
                   />
                 </Input.Wrapper>
               </Input.Root>

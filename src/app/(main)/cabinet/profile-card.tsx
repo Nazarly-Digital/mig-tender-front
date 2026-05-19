@@ -32,6 +32,7 @@ import {
   useVerifyEmail,
   useMe,
 } from '@/features/auth';
+import { validateInn } from '@/shared/lib/inn';
 import { formatPhoneInput, formatPhoneInputLocked } from '@/shared/lib/phone';
 import * as DigitInput from '@/shared/ui/digit-input';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -226,6 +227,16 @@ export const ProfileEditCard = React.forwardRef<
     [saveProfile],
   );
 
+  // ИНН: developer (юр.лицо) — 10 цифр, broker (физлицо) — 12.
+  const innExpectedLen: 10 | 12 = role === 'developer' ? 10 : 12;
+  // Inline-ошибка ИНН — показываем только когда введено нужное
+  // кол-во цифр (чтобы не нагружать пока юзер ещё печатает).
+  const innError = React.useMemo(() => {
+    const v = values.inn_number.trim();
+    if (v.length !== innExpectedLen) return null;
+    return validateInn(v, innExpectedLen);
+  }, [values.inn_number, innExpectedLen]);
+
   // Полнота локальных полей — родитель использует чтобы дизейблить
   // «Отправить на проверку» пока что-то не заполнено.
   const isLocallyComplete = React.useMemo(() => {
@@ -233,7 +244,9 @@ export const ProfileEditCard = React.forwardRef<
       !!values.first_name.trim() &&
       !!values.last_name.trim() &&
       EMAIL_RE.test(values.email.trim()) &&
-      !!values.inn_number.trim() &&
+      // ИНН — ровно нужная длина И валидная контрольная цифра.
+      values.inn_number.trim().length === innExpectedLen &&
+      validateInn(values.inn_number.trim(), innExpectedLen) === null &&
       // Phone: с маской «+7 (» считается пустым.
       !!values.phone_number.trim() &&
       values.phone_number.replace(/\D/g, '').length >= 11;
@@ -241,7 +254,7 @@ export const ProfileEditCard = React.forwardRef<
       return required && !!values.company_name.trim();
     }
     return required;
-  }, [values, role]);
+  }, [values, role, innExpectedLen]);
   React.useEffect(() => {
     onLocalCompleteChange?.(isLocallyComplete);
   }, [isLocallyComplete, onLocalCompleteChange]);
@@ -303,25 +316,33 @@ export const ProfileEditCard = React.forwardRef<
 
         <div>
           <Label.Root htmlFor='inn_number'>ИНН</Label.Root>
-          <Input.Root>
+          <Input.Root hasError={!!innError}>
             <Input.Wrapper>
               <Input.Icon as={RiFileTextLine} />
               <Input.Input
                 id='inn_number'
                 disabled={readOnly}
-                placeholder='12 цифр'
+                // developer (юр.лицо) — 10 цифр, broker (физлицо) — 12.
+                placeholder={`${innExpectedLen} цифр`}
                 inputMode='numeric'
-                maxLength={12}
+                maxLength={innExpectedLen}
                 value={values.inn_number}
                 onChange={(e) =>
                   setValues((v) => ({
                     ...v,
-                    inn_number: e.target.value.replace(/\D/g, ''),
+                    inn_number: e.target.value
+                      .replace(/\D/g, '')
+                      .slice(0, innExpectedLen),
                   }))
                 }
               />
             </Input.Wrapper>
           </Input.Root>
+          {/* Inline-ошибка ИНН — checksum/формат проверяется сразу
+              после ввода нужного кол-ва цифр (фидбек 2026-05-16). */}
+          {innError && (
+            <p className='mt-1 text-[12px] text-red-600'>{innError}</p>
+          )}
         </div>
 
         {role === 'developer' && (

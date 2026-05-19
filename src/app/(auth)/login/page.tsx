@@ -21,7 +21,6 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as LinkButton from '@/shared/ui/link-button';
-import * as Select from '@/shared/ui/select';
 import { useLogin } from '@/features/auth';
 
 const PasswordInput = React.forwardRef<
@@ -74,14 +73,14 @@ export default function PageLogin() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    // defaultValues — иначе zod видит undefined и ругается
+    // «Invalid input: expected string, received undefined» (фидбек 2026-05-16).
+    defaultValues: { email: '', password: '' },
   });
   const watchedEmail = watch('email');
 
   const [error, setError] = React.useState('');
   const [timer, setTimer] = React.useState(0);
-  // ТЗ от 2026-05-15 — селект «Я вхожу как: Брокер / Девелопер».
-  // Шлём бэку, бэк проверяет совпадение с user.role.
-  const [role, setRole] = React.useState<'broker' | 'developer'>('broker');
 
   React.useEffect(() => {
     if (timer <= 0) return;
@@ -99,7 +98,6 @@ export default function PageLogin() {
     const payload = {
       email: data.email.trim().toLowerCase(),
       password: data.password,
-      role,
     };
     login.mutate(payload, {
       onSuccess: () => {
@@ -109,13 +107,7 @@ export default function PageLogin() {
         if (err instanceof AxiosError) {
           const status = err.response?.status;
           if (status === 401) {
-            const data = err.response?.data as { detail?: string; code?: string } | undefined;
-            // Особый случай — роль не совпала с user.role на бэке.
-            if (data?.code === 'role_mismatch' || data?.detail?.includes('не зарегистрирован как')) {
-              setError(data.detail || 'Этот аккаунт зарегистрирован под другой ролью');
-            } else {
-              setError('Неверный email или пароль');
-            }
+            setError('Неверный email или пароль');
           } else if (status === 429) {
             const data = err.response?.data as { remaining_time?: number; detail?: string } | undefined;
             const retryAfterHeader = err.response?.headers?.['retry-after'];
@@ -223,26 +215,6 @@ export default function PageLogin() {
               >
                 <Link href='/forgot-password'>Забыли пароль?</Link>
               </LinkButton.Root>
-            </div>
-
-            {/* Role select (ТЗ от 2026-05-15 — фикс UX). Бэк проверяет
-                что user.role совпадает с выбранной — иначе 401. */}
-            <div className='flex flex-col gap-1'>
-              <Label.Root htmlFor='role'>
-                Я вхожу в аккаунт как
-              </Label.Root>
-              <Select.Root
-                value={role}
-                onValueChange={(v) => setRole((v as 'broker' | 'developer') ?? 'broker')}
-              >
-                <Select.Trigger id='role'>
-                  <Select.Value />
-                </Select.Trigger>
-                <Select.Content>
-                  <Select.Item value='broker'>Брокер</Select.Item>
-                  <Select.Item value='developer'>Девелопер</Select.Item>
-                </Select.Content>
-              </Select.Root>
             </div>
           </div>
 
