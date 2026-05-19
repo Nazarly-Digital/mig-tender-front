@@ -136,26 +136,45 @@ function AdminSettlementCard({ s }: { s: Settlement }) {
           <h3 className='text-sm font-semibold text-gray-900'>
             Аукцион #{s.auction_id} · Сделка #{s.deal_id}
           </h3>
-          {s.properties && s.properties.length > 0 ? (
-            <div className='mt-0.5 space-y-0.5'>
-              {s.properties.map((p) => {
-                const discriminator = formatPropertyDiscriminator(p);
-                return (
-                  <div key={p.id} className='flex items-baseline gap-2 min-w-0'>
-                    <p className='text-xs text-gray-500 truncate'>{p.address}</p>
-                    {discriminator && (
-                      <span className='shrink-0 text-[11px] text-gray-400'>{discriminator}</span>
-                    )}
-                  </div>
-                );
-              })}
-              {s.properties.length > 1 && (
-                <p className='text-[11px] text-gray-400'>
-                  Сделка по {s.properties.length} объектам
+          {/* Лейаут как у карточек сделок (фидбек 2026-05-19): адрес
+              объекта — на отдельной строке (был обрезан вместе с
+              «Квартира·этаж·м²»). */}
+          {s.properties && s.properties.length > 0 ? (() => {
+            const primary = s.properties[0];
+            const primaryDescr = formatPropertyDiscriminator(primary);
+            const rest = s.properties.slice(1);
+            return (
+              <div className='mt-0.5'>
+                <p className='truncate text-xs text-gray-500'>
+                  {primary.address}
                 </p>
-              )}
-            </div>
-          ) : (
+                {primaryDescr && (
+                  <p className='text-[11px] text-gray-400'>{primaryDescr}</p>
+                )}
+                {rest.length > 0 && (
+                  <ul className='mt-0.5 space-y-0.5'>
+                    {rest.map((p) => {
+                      const descr = formatPropertyDiscriminator(p);
+                      return (
+                        <li
+                          key={p.id}
+                          className='truncate text-[11px] text-gray-400'
+                        >
+                          + {p.address}
+                          {descr && <span> · {descr}</span>}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {s.properties.length > 1 && (
+                  <p className='pt-0.5 text-[11px] text-gray-400'>
+                    Сделка по {s.properties.length} объектам
+                  </p>
+                )}
+              </div>
+            );
+          })() : (
             <p className='text-xs text-gray-500 mt-0.5 truncate'>{s.property_name}</p>
           )}
           <p className='text-[11px] text-gray-400 mt-0.5 truncate'>

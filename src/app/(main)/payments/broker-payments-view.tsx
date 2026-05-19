@@ -39,26 +39,47 @@ function BrokerSettlementCard({ s }: { s: Settlement }) {
             // Фолбэк на legacy property_name — если по какой-то причине
             // properties пуст (старый бэк, не задеплоился ещё).
             <h3 className='text-sm font-semibold text-gray-900 mt-0.5 truncate'>{s.property_name}</h3>
-          ) : (
-            <div className='mt-0.5 space-y-0.5'>
-              {properties.map((p) => {
-                const discriminator = formatPropertyDiscriminator(p);
-                return (
-                  <div key={p.id} className='flex items-baseline gap-2 min-w-0'>
-                    <h3 className='text-sm font-semibold text-gray-900 truncate'>{p.address}</h3>
-                    {discriminator && (
-                      <span className='shrink-0 text-xs text-gray-500'>{discriminator}</span>
-                    )}
-                  </div>
-                );
-              })}
-              {hasMulti && (
-                <p className='text-[11px] text-gray-400 pt-0.5'>
-                  Сделка по {properties.length} объектам
-                </p>
-              )}
-            </div>
-          )}
+          ) : (() => {
+            // Лейаут как у карточек сделок (фидбек 2026-05-19): адрес
+            // объекта — на отдельной строке (был обрезан в одну строку
+            // с «Квартира·этаж·м²»).
+            const primary = properties[0];
+            const primaryDescr = formatPropertyDiscriminator(primary);
+            const rest = properties.slice(1);
+            return (
+              <>
+                <h3 className='mt-0.5 truncate text-sm font-semibold text-gray-900'>
+                  {primary.address}
+                </h3>
+                {primaryDescr && (
+                  <p className='mt-0.5 text-xs text-gray-500'>{primaryDescr}</p>
+                )}
+                {rest.length > 0 && (
+                  <ul className='mt-1 space-y-0.5'>
+                    {rest.map((p) => {
+                      const descr = formatPropertyDiscriminator(p);
+                      return (
+                        <li
+                          key={p.id}
+                          className='truncate text-xs text-gray-500'
+                        >
+                          + {p.address}
+                          {descr && (
+                            <span className='text-gray-400'> · {descr}</span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {hasMulti && (
+                  <p className='pt-0.5 text-[11px] text-gray-400'>
+                    Сделка по {properties.length} объектам
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </div>
         {isPaid ? (
           <span className='shrink-0 whitespace-nowrap inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700'>

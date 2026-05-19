@@ -59,26 +59,48 @@ function DeveloperSettlementCard({ s }: { s: Settlement }) {
           <p className='text-xs text-gray-500'>
             Аукцион #{s.auction_id} · Сделка #{s.deal_id}
           </p>
-          {s.properties && s.properties.length > 0 ? (
-            <div className='mt-1 space-y-0.5'>
-              {s.properties.map((p) => {
-                const discriminator = formatPropertyDiscriminator(p);
-                return (
-                  <div key={p.id} className='flex items-baseline gap-2 min-w-0'>
-                    <h3 className='text-sm font-semibold text-gray-900 truncate'>{p.address}</h3>
-                    {discriminator && (
-                      <span className='shrink-0 text-xs text-gray-500'>{discriminator}</span>
-                    )}
-                  </div>
-                );
-              })}
-              {s.properties.length > 1 && (
-                <p className='text-[11px] text-gray-400 pt-0.5'>
-                  Сделка по {s.properties.length} объектам
-                </p>
-              )}
-            </div>
-          ) : (
+          {/* Лейаут как у карточек сделок (фидбек 2026-05-19): адрес
+              объекта — на отдельной строке. Раньше адрес и
+              «Квартира·этаж·м²» делили одну flex-строку (дискриминатор
+              shrink-0), адрес обрезался до «Ч», «Волгог…». */}
+          {s.properties && s.properties.length > 0 ? (() => {
+            const primary = s.properties[0];
+            const primaryDescr = formatPropertyDiscriminator(primary);
+            const rest = s.properties.slice(1);
+            return (
+              <>
+                <h3 className='mt-1 truncate text-sm font-semibold text-gray-900'>
+                  {primary.address}
+                </h3>
+                {primaryDescr && (
+                  <p className='mt-0.5 text-xs text-gray-500'>{primaryDescr}</p>
+                )}
+                {rest.length > 0 && (
+                  <ul className='mt-1 space-y-0.5'>
+                    {rest.map((p) => {
+                      const descr = formatPropertyDiscriminator(p);
+                      return (
+                        <li
+                          key={p.id}
+                          className='truncate text-xs text-gray-500'
+                        >
+                          + {p.address}
+                          {descr && (
+                            <span className='text-gray-400'> · {descr}</span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {s.properties.length > 1 && (
+                  <p className='pt-0.5 text-[11px] text-gray-400'>
+                    Сделка по {s.properties.length} объектам
+                  </p>
+                )}
+              </>
+            );
+          })() : (
             <h3 className='text-sm font-semibold text-gray-900 mt-1 truncate'>
               {s.property_name}
             </h3>
