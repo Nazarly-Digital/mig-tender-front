@@ -69,7 +69,6 @@ export default function PageLogin() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -77,7 +76,11 @@ export default function PageLogin() {
     // «Invalid input: expected string, received undefined» (фидбек 2026-05-16).
     defaultValues: { email: '', password: '' },
   });
-  const watchedEmail = watch('email');
+  // Email — uncontrolled через register. Раньше поле было controlled
+  // (value={watch('email')} + setValue) и при этом не зарегистрировано
+  // через register — после первого неудачного сабмита ввод
+  // «замораживался»: value переставал обновляться (фидбек 2026-05-19).
+  const emailReg = register('email');
 
   const [error, setError] = React.useState('');
   // Подсказка «email уже зарегистрирован» — когда пришли с /register
@@ -195,17 +198,19 @@ export default function PageLogin() {
                     type='email'
                     placeholder='example@mail.com'
                     autoComplete='username'
-                    value={watchedEmail ?? ''}
+                    {...emailReg}
                     onChange={(e) => {
-                      // По фидбеку 2026-05-15 — фильтруем мусор сразу,
-                      // чтобы юзер не мог ввести `%;."№(.:;[(%`. Email
-                      // ограничиваем безопасным набором: a-z A-Z 0-9
-                      // плюс @ . _ - +
+                      // Фильтруем мусор сразу (фидбек 2026-05-15):
+                      // только a-z A-Z 0-9 @ . _ - +. Санитайзим
+                      // DOM-значение и отдаём событие в RHF.
                       const cleaned = e.target.value.replace(
                         /[^a-zA-Z0-9@._\-+]/g,
                         '',
                       );
-                      setValue('email', cleaned, { shouldValidate: true });
+                      if (cleaned !== e.target.value) {
+                        e.target.value = cleaned;
+                      }
+                      void emailReg.onChange(e);
                     }}
                   />
                 </Input.Wrapper>
