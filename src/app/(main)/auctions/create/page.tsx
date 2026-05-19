@@ -282,16 +282,20 @@ export default function CreateAuctionPage() {
   const onSubmit = (data: AuctionFormData) => {
     const isOpen = data.mode === 'open';
     const isDraft = submitIntentRef.current === 'draft';
+    // Комиссия: для лота 2+ объектов — из поля «Комиссия лота». Для
+    // одного объекта поле скрыто — берём комиссию самого объекта
+    // (Property.commission_rate). Корректно для обеих версий бэка:
+    // новый берёт ставку объекта сам, старый — требует commission_rate
+    // для любого аукциона, и ставка объекта — верное значение.
+    const commissionRate =
+      data.propertyIds.length > 1
+        ? data.commission_rate
+        : (selectedProps[0]?.commission_rate ?? undefined);
     createMutation.mutate(
       {
         propertyIds: data.propertyIds.map(Number),
         mode: data.mode as AuctionMode,
-        // Комиссия лота шлётся только для лота из 2+ объектов
-        // (фидбек 2026-05-19). Для одного объекта бэк её игнорирует —
-        // комиссия берётся со ставки самого объекта.
-        ...(data.propertyIds.length > 1 && data.commission_rate
-          ? { commission_rate: data.commission_rate }
-          : {}),
+        ...(commissionRate ? { commission_rate: commissionRate } : {}),
         // CLOSED-аукциону min_price не показывается в форме (sealed-bid
         // против собственной оценки брокера), бэк требует число — шлём 0.
         // schema сделал поле optional, поэтому coalesce на пустую строку
