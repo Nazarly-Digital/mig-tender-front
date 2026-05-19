@@ -38,6 +38,9 @@ export type Auction = {
   show_price_to_brokers: boolean;
   min_price: string | null;
   min_bid_increment: string | null;
+  // Единая ставка комиссии брокера на весь лот (%). null — для
+  // легаси-аукционов, не прошедших бэкфилл миграцией 0018.
+  commission_rate: string | null;
   start_date: string;
   end_date: string;
   status: AuctionStatus;
@@ -139,6 +142,8 @@ export type AuctionCreateRequest = {
   propertyIds: number[];
   mode: AuctionMode;
   min_price: string;
+  // «Один лот — одна комиссия» — единая ставка комиссии брокера (%).
+  commission_rate: string;
   min_bid_increment?: string;
   show_price_to_brokers?: boolean;
   start_date?: string;

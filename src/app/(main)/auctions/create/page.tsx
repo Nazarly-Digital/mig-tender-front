@@ -210,6 +210,7 @@ export default function CreateAuctionPage() {
     defaultValues: {
       propertyIds: [],
       mode: 'closed',
+      commission_rate: '',
       min_price: '',
       min_bid_increment: '',
       show_price_to_brokers: true,
@@ -285,6 +286,9 @@ export default function CreateAuctionPage() {
       {
         propertyIds: data.propertyIds.map(Number),
         mode: data.mode as AuctionMode,
+        // «Один лот — одна комиссия» — единая ставка, обязательна
+        // и для open, и для closed.
+        commission_rate: data.commission_rate,
         // CLOSED-аукциону min_price не показывается в форме (sealed-bid
         // против собственной оценки брокера), бэк требует число — шлём 0.
         // schema сделал поле optional, поэтому coalesce на пустую строку
@@ -485,6 +489,42 @@ export default function CreateAuctionPage() {
                 </div>
               )}
               {errors.propertyIds && <p className='text-xs text-red-500'>{errors.propertyIds.message}</p>}
+            </div>
+
+            {/* Комиссия брокера — единая ставка на весь лот («один лот —
+                одна комиссия», фидбек 2026-05-19). Применяется и к
+                открытым, и к закрытым аукционам. */}
+            <div className='space-y-1.5'>
+              <Label.Root htmlFor='auction-commission'>Комиссия брокера, % <Label.Asterisk /></Label.Root>
+              <Controller control={control} name='commission_rate' render={({ field }) => (
+                <Input.Root hasError={!!errors.commission_rate}>
+                  <Input.Wrapper>
+                    <Input.Input
+                      id='auction-commission'
+                      type='text'
+                      inputMode='decimal'
+                      placeholder='10'
+                      value={field.value ?? ''}
+                      onChange={(e) => {
+                        // Только цифры и одна точка, максимум 2 знака после.
+                        let v = e.target.value.replace(/[^\d.]/g, '');
+                        const dot = v.indexOf('.');
+                        if (dot !== -1) {
+                          v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+                        }
+                        v = v.replace(/^(\d*\.?\d{0,2}).*$/, '$1');
+                        field.onChange(v);
+                      }}
+                      onBlur={field.onBlur}
+                    />
+                  </Input.Wrapper>
+                </Input.Root>
+              )} />
+              {errors.commission_rate ? (
+                <p className='text-xs text-red-500'>{errors.commission_rate.message}</p>
+              ) : (
+                <p className='text-xs text-gray-400'>Единая ставка комиссии на весь лот</p>
+              )}
             </div>
 
             {selectedMode === 'open' && (

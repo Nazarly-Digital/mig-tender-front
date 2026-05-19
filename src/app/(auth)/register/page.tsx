@@ -150,8 +150,9 @@ export default function PageRegister() {
   const watched = dataForm.watch();
   const dataReady =
     !!watched.firstName?.trim() &&
-    !!watched.phoneNumber &&
-    watched.phoneNumber !== PHONE_INPUT_DEFAULT &&
+    // Телефон считаем заполненным только когда введено ≥ 11 цифр
+    // (полный РФ-номер) — раньше хватало любого символа после «+7 (».
+    (watched.phoneNumber ?? '').replace(/\D/g, '').length >= 11 &&
     !!watched.password &&
     !!watched.passwordConfirm &&
     watched.offerAccepted &&
@@ -186,6 +187,14 @@ export default function PageRegister() {
       if (typeof remaining === 'number' && remaining > 0) {
         setTimer(remaining);
         setError(null);
+        return;
+      }
+      // 409 — email уже зарегистрирован. По фидбеку 2026-05-19: вместо
+      // ошибки «Пользователь уже существует» сразу ведём на страницу
+      // входа — для существующего аккаунта дальше путь только /login.
+      // `replace` — чтобы /register не остался в истории браузера.
+      if (ax.response?.status === 409) {
+        router.replace('/login');
         return;
       }
       setError(getApiError(err) ?? 'Не удалось отправить код. Попробуйте позже.');
@@ -225,6 +234,25 @@ export default function PageRegister() {
     }
     if (!values.phoneNumber || values.phoneNumber === PHONE_INPUT_DEFAULT) {
       setError('Введите номер телефона.');
+      return;
+    }
+    // Валидация телефона — повторяет бэк (SimpleRegisterSerializer.
+    // validate_phone_number): 10–15 цифр + национальная часть не из
+    // одинаковых цифр. По фидбеку 2026-05-19 — раньше телефон на
+    // регистрации не проверялся вовсе (проверял только бэк на сабмите).
+    const phoneDigits = values.phoneNumber.replace(/\D/g, '');
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      dataForm.setError('phoneNumber', {
+        message: 'Введите корректный номер телефона.',
+      });
+      return;
+    }
+    const phoneNational =
+      phoneDigits.length >= 11 ? phoneDigits.slice(1) : phoneDigits;
+    if (new Set(phoneNational).size < 2) {
+      dataForm.setError('phoneNumber', {
+        message: 'Введите корректный номер телефона.',
+      });
       return;
     }
     if (!values.offerAccepted) {

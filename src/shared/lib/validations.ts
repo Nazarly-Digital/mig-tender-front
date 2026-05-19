@@ -521,6 +521,16 @@ export const auctionDraftSchema = z.object({
     .array(z.string())
     .min(1, 'Выберите хотя бы один объект'),
   mode: z.string().min(1, 'Выберите тип аукциона'),
+  // «Один лот — одна комиссия» — единая ставка на весь лот, требуем
+  // её даже для черновика (одно число, девелопер знает его сразу).
+  commission_rate: z
+    .string()
+    .min(1, 'Укажите комиссию брокера')
+    .refine((v) => parseFloat(v) >= 0, 'Комиссия должна быть >= 0')
+    .refine(
+      (v) => isFiniteInRange(v, 0, MAX_COMMISSION_RATE, true),
+      'Комиссия не может превышать 100%',
+    ),
   // Стартовая цена — концепция OPEN-аукциона (минимум для первой ставки).
   // В CLOSED брокеры подают запечатанные ставки против собственной оценки,
   // стартовая цена там просто не существует. Поэтому строка может быть
@@ -539,6 +549,15 @@ export const auctionSchema = z.object({
     .array(z.string())
     .min(1, 'Выберите хотя бы один объект'),
   mode: z.string().min(1, 'Выберите тип аукциона'),
+  // «Один лот — одна комиссия» — единая ставка комиссии на весь лот.
+  commission_rate: z
+    .string()
+    .min(1, 'Укажите комиссию брокера')
+    .refine((v) => parseFloat(v) >= 0, 'Комиссия должна быть >= 0')
+    .refine(
+      (v) => isFiniteInRange(v, 0, MAX_COMMISSION_RATE, true),
+      'Комиссия не может превышать 100%',
+    ),
   min_price: z.string().optional(),
   min_bid_increment: z.string().optional(),
   show_price_to_brokers: z.boolean().optional(),
