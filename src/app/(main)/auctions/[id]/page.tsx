@@ -987,8 +987,21 @@ export default function AuctionDetailPage() {
     ? Array.from(new Set([...restParticipantIds, ...ws.participants]))
     : restParticipantIds;
   const participantDetails: { id: number; name: string }[] = participants?.participants_detail ?? [];
+  // Брокеру список participants не приходит вовсе (фидбек 2026-05-19, #13:
+  // участники друг друга не видят) — participantsEnabled=false для broker.
+  // Значит для broker'а единственный сигнал «я тут участвую»:
+  //   1) auction.myBid — бэк отдаёт ТОЛЬКО для CLOSED (см. AuctionDetailSerializer.get_myBid);
+  //   2) ws.participants — только пока OPEN активен;
+  //   3) собственная ставка в публичном auction.bids[] — работает для
+  //      завершённого OPEN, где WS уже не активен и myBid=null.
+  // Без (3) брокер на завершённом OPEN-аукционе ВСЕГДА видел «Не участвуете»,
+  // даже если у него есть ставка в карточке ниже (фидбек 2026-05-20).
+  const hasBidInAuctionBids = Array.isArray(auction.bids)
+    && !!user?.id
+    && auction.bids.some((b) => b.broker_id === user.id);
   const isParticipant = participantIds.includes(user?.id ?? 0)
-    || !!auction.myBid;
+    || !!auction.myBid
+    || hasBidInAuctionBids;
   // For closed auctions, prefer WS sealed bids over REST when available
   const restBidsList = Array.isArray(sealedBids) ? sealedBids : [];
   const wsSealedBidsList: typeof restBidsList = sealedWs.bids.map((b) => ({
