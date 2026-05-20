@@ -278,28 +278,67 @@ export default function CreateAuctionPage() {
     .filter(Boolean) as Property[];
 
   // Для лота из 1 объекта тянем полную карточку — нужен
-  // commission_rate, чтобы автоматически подставить его при отправке
-  // (MyAvailablePropertySerializer commission_rate не отдаёт, только
-  // /properties/{id}/ детальная). Фидбек 2026-05-20.
+  // commission_rate, чтобы автоматически подставить его при отправке.
+  // Два источника на случай гонки/устаревшего бэка:
+  //   1) selectedProps[0].commission_rate — синхронно из списка
+  //      /properties/my/available/ (поле появилось в бэке 96d1f82,
+  //      MyAvailablePropertySerializer);
+  //   2) singlePropertyDetail.commission_rate — асинхронно из
+  //      /properties/{id}/ (PropertyListSerializer возвращает поле
+  //      давно, до 96d1f82 — это был единственный источник).
+  // Если бэк 96d1f82 ещё не доехал, синхронный источник вернёт
+  // undefined, и мы дождёмся детальной. Это закрывает гонку, когда
+  // пользователь жмёт «Создать» раньше, чем useProperty успел
+  // отыграть запрос. Фидбек 2026-05-20.
   const singlePropertyId =
     selectedPropertyIds.length === 1 ? Number(selectedPropertyIds[0]) : 0;
-  const { data: singlePropertyDetail } = useProperty(singlePropertyId);
+  const { data: singlePropertyDetail, isFetching: singleDetailLoading } =
+    useProperty(singlePropertyId);
 
   const totalPrice = selectedProps.reduce((sum, p) => sum + (p.price ? Number(p.price) : 0), 0);
+
+  // Эффективная комиссия для лота из 1 объекта — собираем из всех
+  // доступных источников. Если null/undefined в обоих — бэк отобьёт
+  // 400 «Укажите комиссию», поэтому это значение мы дополнительно
+  // используем для блокировки сабмита (см. onSubmit ниже).
+  const singleObjectCommission =
+    selectedPropertyIds.length === 1
+      ? (selectedProps[0]?.commission_rate ??
+         singlePropertyDetail?.commission_rate ??
+         null)
+      : null;
 
   const onSubmit = (data: AuctionFormData) => {
     const isOpen = data.mode === 'open';
     const isDraft = submitIntentRef.current === 'draft';
     // Комиссия: для лота 2+ объектов — из поля «Комиссия лота». Для
-    // одного объекта поле скрыто — берём commission_rate самого
-    // объекта (через useProperty, т.к. список MyAvailablePropertySerializer
-    // это поле не отдаёт). Корректно для обеих версий бэка: новый
-    // берёт ставку объекта сам, старый — требует commission_rate
-    // для любого аукциона, и ставка объекта — верное значение.
+    // одного объекта поле скрыто — используем уже разрешённую
+    // singleObjectCommission (см. определение выше — оно покрывает
+    // и список, и детальную, и race condition).
     const commissionRate =
       data.propertyIds.length > 1
         ? data.commission_rate
-        : (singlePropertyDetail?.commission_rate ?? undefined);
+        : (singleObjectCommission ?? undefined);
+
+    // Защита от гонки: пользователь мог нажать «Создать» раньше,
+    // чем useProperty успел отдать данные, а в списке поля ещё нет
+    // (старый бэк до 96d1f82). В этом случае мы НЕ можем отправить
+    // commission_rate — бэк отобьёт 400 — поэтому показываем
+    // понятный тост и просим повторить, вместо молчаливого сабмита.
+    // Черновик пропускаем без проверки — бэк его примет без комиссии.
+    if (
+      !isDraft &&
+      data.propertyIds.length === 1 &&
+      !commissionRate
+    ) {
+      toast.error(
+        singleDetailLoading
+          ? 'Загружаем данные объекта, попробуйте ещё раз через секунду.'
+          : 'У объекта не указана комиссия брокера. Откройте объект и заполните поле «Комиссия».',
+      );
+      return;
+    }
+
     createMutation.mutate(
       {
         propertyIds: data.propertyIds.map(Number),
