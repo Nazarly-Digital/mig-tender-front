@@ -570,6 +570,20 @@ export default function CreateAuctionPage() {
                           v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
                         }
                         v = v.replace(/^(\d*\.?\d{0,2}).*$/, '$1');
+                        // Клиппинг к [0, 100] прямо в onChange: бэк
+                        // валидирует MaxValueValidator(100), но zod
+                        // refine срабатывает только на submit, поэтому
+                        // без клиппинга поле молча принимает «5000000»
+                        // и пользователь не понимает, что не так
+                        // (фидбек 2026-05-20). Клипаем к 100, если
+                        // значение явно превышает — частичные дробные
+                        // правки («10.5», «99.99») продолжают работать.
+                        if (v) {
+                          const n = parseFloat(v);
+                          if (Number.isFinite(n) && n > 100) {
+                            v = '100';
+                          }
+                        }
                         field.onChange(v);
                       }}
                       onBlur={field.onBlur}
@@ -580,7 +594,7 @@ export default function CreateAuctionPage() {
               {errors.commission_rate ? (
                 <p className='text-xs text-red-500'>{errors.commission_rate.message}</p>
               ) : (
-                <p className='text-xs text-gray-400'>Единая ставка комиссии на весь лот</p>
+                <p className='text-xs text-gray-400'>Единая ставка комиссии на весь лот, от 0 до 100%</p>
               )}
             </div>
             )}
