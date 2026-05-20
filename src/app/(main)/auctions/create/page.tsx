@@ -15,7 +15,7 @@ import * as FancyButton from '@/shared/ui/fancy-button';
 import * as Input from '@/shared/ui/input';
 import * as Label from '@/shared/ui/label';
 import * as Select from '@/shared/ui/select';
-import { useMyAvailableProperties } from '@/features/properties';
+import { useMyAvailableProperties, useProperty } from '@/features/properties';
 import { useCreateAuction, useCompatibleProperties } from '@/features/auctions';
 import type { AuctionMode } from '@/shared/types/auctions';
 import type { Property } from '@/shared/types/properties';
@@ -277,20 +277,29 @@ export default function CreateAuctionPage() {
     .map((id) => properties.find((p) => String(p.id) === id))
     .filter(Boolean) as Property[];
 
+  // Для лота из 1 объекта тянем полную карточку — нужен
+  // commission_rate, чтобы автоматически подставить его при отправке
+  // (MyAvailablePropertySerializer commission_rate не отдаёт, только
+  // /properties/{id}/ детальная). Фидбек 2026-05-20.
+  const singlePropertyId =
+    selectedPropertyIds.length === 1 ? Number(selectedPropertyIds[0]) : 0;
+  const { data: singlePropertyDetail } = useProperty(singlePropertyId);
+
   const totalPrice = selectedProps.reduce((sum, p) => sum + (p.price ? Number(p.price) : 0), 0);
 
   const onSubmit = (data: AuctionFormData) => {
     const isOpen = data.mode === 'open';
     const isDraft = submitIntentRef.current === 'draft';
     // Комиссия: для лота 2+ объектов — из поля «Комиссия лота». Для
-    // одного объекта поле скрыто — берём комиссию самого объекта
-    // (Property.commission_rate). Корректно для обеих версий бэка:
-    // новый берёт ставку объекта сам, старый — требует commission_rate
+    // одного объекта поле скрыто — берём commission_rate самого
+    // объекта (через useProperty, т.к. список MyAvailablePropertySerializer
+    // это поле не отдаёт). Корректно для обеих версий бэка: новый
+    // берёт ставку объекта сам, старый — требует commission_rate
     // для любого аукциона, и ставка объекта — верное значение.
     const commissionRate =
       data.propertyIds.length > 1
         ? data.commission_rate
-        : (selectedProps[0]?.commission_rate ?? undefined);
+        : (singlePropertyDetail?.commission_rate ?? undefined);
     createMutation.mutate(
       {
         propertyIds: data.propertyIds.map(Number),
