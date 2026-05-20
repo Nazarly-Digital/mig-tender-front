@@ -223,11 +223,34 @@ export function DeveloperPaymentsView() {
   const { data, isLoading } = useSettlements();
   const settlements = data ?? [];
 
-  const totalOwed = settlements.reduce((a, s) => a + parseFloat(s.total_from_developer || '0'), 0);
-  const paid = settlements
-    .filter((s) => s.received_from_developer)
-    .reduce((a, s) => a + parseFloat(s.total_from_developer || '0'), 0);
-  const pending = totalOwed - paid;
+  // Три состояния расчётов с т.з. ДЕЙСТВИЯ девелопера (фидбек 2026-05-20):
+  //
+  //   awaitingUpload — чека ещё нет, девелопер должен загрузить. Только
+  //                    эти суммы попадают в «К перечислению» — счётчик
+  //                    «что мне ещё нужно перевести».
+  //   inReview       — чек загружен (developer_receipt), но админ
+  //                    ещё не подтвердил (received_from_developer=false).
+  //                    Девелопер свою часть сделал, ждёт админа.
+  //   paid           — админ подтвердил, расчёт финансово закрыт со
+  //                    стороны девелопера.
+  //
+  // Раньше «К перечислению» вычиталось только при received_from_developer,
+  // поэтому после загрузки чека счётчик не менялся — пользователь видел
+  // «Сделала выплату, но счётчик не изменился». Семантика теперь
+  // отражает действие, а не финансовое подтверждение: загрузил чек →
+  // «К перечислению» сразу уменьшилось, сумма переехала в «На проверке».
+  const sumOf = (xs: typeof settlements) =>
+    xs.reduce((a, s) => a + parseFloat(s.total_from_developer || '0'), 0);
+
+  const awaitingUploadList = settlements.filter(
+    (s) => !s.received_from_developer && !s.developer_receipt,
+  );
+  const inReviewList = settlements.filter(
+    (s) => !s.received_from_developer && !!s.developer_receipt,
+  );
+
+  const pending = sumOf(awaitingUploadList);
+  const inReview = sumOf(inReviewList);
 
   const totalPages = Math.max(1, Math.ceil(settlements.length / DEVELOPER_PAYMENTS_PAGE_SIZE));
   const pageItems = settlements.slice((page - 1) * DEVELOPER_PAYMENTS_PAGE_SIZE, page * DEVELOPER_PAYMENTS_PAGE_SIZE);
@@ -245,6 +268,20 @@ export function DeveloperPaymentsView() {
         <div className='bg-white rounded-xl border border-gray-200 p-5 overflow-hidden w-full max-w-full lg:min-w-[225px] lg:max-w-[300px]'>
           <p className='text-xs text-gray-500'>К перечислению</p>
           <p className='text-2xl font-bold text-gray-900 tracking-tight mt-1'>{formatPrice(String(pending))}</p>
+          <p className='text-[11px] text-gray-400 mt-1'>
+            {awaitingUploadList.length === 0
+              ? 'Все чеки загружены'
+              : `${awaitingUploadList.length} ${awaitingUploadList.length === 1 ? 'сделка ждёт' : 'сделок ждут'} загрузки чека`}
+          </p>
+        </div>
+        <div className='bg-white rounded-xl border border-gray-200 p-5 overflow-hidden w-full max-w-full lg:min-w-[225px] lg:max-w-[300px]'>
+          <p className='text-xs text-gray-500'>На проверке</p>
+          <p className='text-2xl font-bold text-gray-900 tracking-tight mt-1'>{formatPrice(String(inReview))}</p>
+          <p className='text-[11px] text-gray-400 mt-1'>
+            {inReviewList.length === 0
+              ? 'Нет чеков на проверке'
+              : `${inReviewList.length} ${inReviewList.length === 1 ? 'чек ждёт' : 'чеков ждут'} подтверждения админа`}
+          </p>
         </div>
         <div className='bg-white rounded-xl border border-gray-200 p-5 overflow-hidden w-full max-w-full lg:min-w-[225px] lg:max-w-[300px]'>
           <p className='text-xs text-gray-500'>Кол-во сделок</p>
