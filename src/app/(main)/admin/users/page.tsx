@@ -574,7 +574,8 @@ function EditDeveloperModal({
                 <div className='flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-3'>
                   <span className='text-paragraph-xs text-amber-700'>
                     Смена email требует подтверждения. Отправьте код на новый
-                    адрес и введите его — код сообщит девелопер.
+                    адрес, введите его (код сообщит девелопер) и нажмите
+                    «Сохранить» — код проверяется при сохранении.
                   </span>
                   <div className='flex items-end gap-2'>
                     <div className='flex flex-1 flex-col gap-1'>
@@ -605,6 +606,11 @@ function EditDeveloperModal({
                           : 'Отправить код'}
                     </FancyButton.Root>
                   </div>
+                  {codeSent && !form.formState.errors.emailCode && (
+                    <span className='text-paragraph-xs text-amber-700'>
+                      Код отправлен. Введите его выше и нажмите «Сохранить».
+                    </span>
+                  )}
                   {form.formState.errors.emailCode && (
                     <span className='text-paragraph-xs text-error-base'>
                       {form.formState.errors.emailCode.message}
