@@ -92,6 +92,14 @@ export const ProfileEditCard = React.forwardRef<
       ? user?.broker?.verification_status ?? 'not_submitted'
       : user?.developer?.verification_status ?? 'not_submitted';
   const readOnly = READONLY_STATUSES.has(verificationStatus);
+  // Email редактируется ТОЛЬКО у верифицированного аккаунта (фидбек
+  // 2026-05-22). До верификации (not_submitted / rejected / in_review)
+  // поле заблокировано: «Отправить на проверку» = проверка документов,
+  // а не почты, и саморегистрация/создание админом уже дали валидный
+  // адрес. Раньше поле было редактируемым → при смене перед отправкой
+  // бэк отбивал «Новый email не подтверждён» (saveProfile минует
+  // модалку кода). После верификации смена email — через код (ниже).
+  const emailLocked = verificationStatus !== 'accepted';
 
   const [values, setValues] = React.useState<ProfileFields>({
     first_name: '',
@@ -385,7 +393,7 @@ export const ProfileEditCard = React.forwardRef<
               <Input.Input
                 id='email'
                 type='email'
-                disabled={readOnly}
+                disabled={readOnly || emailLocked}
                 placeholder='example@mail.com'
                 value={values.email}
                 onChange={(e) =>
@@ -397,6 +405,14 @@ export const ProfileEditCard = React.forwardRef<
           {!!values.email.trim() && !EMAIL_RE.test(values.email.trim()) && (
             <p className='mt-1 text-[12px] text-red-600'>
               Введите корректный email
+            </p>
+          )}
+          {/* Подсказка только для незаблокированного-по-«на проверке»
+              состояния (not_submitted / rejected) — у in_review/pending
+              уже есть общий баннер «профиль на проверке». */}
+          {emailLocked && !readOnly && (
+            <p className='mt-1 text-[12px] text-gray-500'>
+              Сменить email можно после верификации профиля.
             </p>
           )}
         </div>
