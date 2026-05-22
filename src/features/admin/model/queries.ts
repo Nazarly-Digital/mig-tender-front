@@ -83,14 +83,6 @@ export function useAdminUpdateDeveloper() {
   });
 }
 
-// Запрос кода подтверждения на новый email девелопера (фидбек 2026-05-22).
-export function useAdminRequestDeveloperEmailCode() {
-  return useMutation({
-    mutationFn: ({ id, email }: { id: number; email: string }) =>
-      adminService.requestDeveloperEmailCode(id, email).then((res) => res.data),
-  });
-}
-
 // --- Broker management ---
 
 export function useAdminUpdateBroker() {

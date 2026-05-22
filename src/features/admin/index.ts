@@ -6,7 +6,6 @@ export {
   useAdminRejectBroker,
   useAdminCreateDeveloper,
   useAdminUpdateDeveloper,
-  useAdminRequestDeveloperEmailCode,
   useAdminUpdateBroker,
   usePendingProperties,
   useApproveProperty,

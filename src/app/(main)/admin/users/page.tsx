@@ -32,10 +32,11 @@ import {
   useAdminVerifyBroker,
   useAdminRejectBroker,
   useAdminUpdateDeveloper,
-  useAdminRequestDeveloperEmailCode,
   useAdminUpdateBroker,
 } from '@/features/admin';
-import type { AdminUser } from '@/shared/types/admin';
+import { useGetCode, useVerifyEmail } from '@/features/auth';
+import * as DigitInput from '@/shared/ui/digit-input';
+import type { AdminUser, AdminUpdateDeveloperRequest } from '@/shared/types/admin';
 import {
   adminUpdateDeveloperSchema,
   type AdminUpdateDeveloperFormData,
@@ -411,9 +412,14 @@ function EditDeveloperModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const updateDeveloper = useAdminUpdateDeveloper();
-  const requestEmailCode = useAdminRequestDeveloperEmailCode();
-  // Был ли код отправлен на новый адрес в рамках текущего открытия модалки.
-  const [codeSent, setCodeSent] = React.useState(false);
+  // Смена email подтверждается ТЕМ ЖЕ механизмом, что в регистрации и
+  // ЛК (фидбек 2026-05-22): /get-code/ шлёт код на новый адрес,
+  // /verify-email/ подтверждает (ставит verified-флаг, который проверит
+  // бэк при PATCH). Используем общий DigitInput, без кастомных полей.
+  const getCode = useGetCode();
+  const verifyEmail = useVerifyEmail();
+  const [emailVerifyOpen, setEmailVerifyOpen] = React.useState(false);
+  const [emailCode, setEmailCode] = React.useState('');
 
   const form = useForm<AdminUpdateDeveloperFormData>({
     resolver: zodResolver(adminUpdateDeveloperSchema),
@@ -425,7 +431,6 @@ function EditDeveloperModal({
       innNumber: '',
       phoneNumber: '',
       dduTemplate: undefined as unknown as File,
-      emailCode: '',
     },
   });
 
@@ -439,28 +444,36 @@ function EditDeveloperModal({
         innNumber: user.developer?.inn_number ?? '',
         phoneNumber: formatPhoneInput(user.developer?.phone_number || PHONE_INPUT_DEFAULT),
         dduTemplate: undefined as unknown as File,
-        emailCode: '',
       });
-      setCodeSent(false);
+      setEmailVerifyOpen(false);
+      setEmailCode('');
     }
   }, [open, user, form]);
 
   if (!user) return null;
 
-  const onSubmit = form.handleSubmit((data) => {
+  // Сохранение профиля. Email сюда попадает только после подтверждения
+  // (бэк проверяет verified-флаг). Вызывается напрямую (email не менялся)
+  // либо из модалки верификации (handleEmailVerify).
+  const doSave = (payload: AdminUpdateDeveloperRequest) => {
+    updateDeveloper.mutate(
+      { id: user.id, data: payload },
+      {
+        onSuccess: () => {
+          toast.success('Данные девелопера обновлены');
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          toast.error(getApiError(error));
+        },
+      },
+    );
+  };
+
+  const buildPayload = (data: AdminUpdateDeveloperFormData): AdminUpdateDeveloperRequest => {
     // Send only changed fields (PATCH semantics)
-    const payload: {
-      email?: string;
-      first_name?: string;
-      last_name?: string;
-      company_name?: string;
-      inn_number?: string;
-      phone_number?: string;
-      ddu_template?: File;
-      email_code?: string;
-    } = {};
-    const emailChanged = data.email !== user.email;
-    if (emailChanged) payload.email = data.email;
+    const payload: AdminUpdateDeveloperRequest = {};
+    if (data.email !== user.email) payload.email = data.email;
     if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName;
     if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName;
     if (data.companyName !== (user.developer?.company_name ?? '')) {
@@ -476,58 +489,50 @@ function EditDeveloperModal({
     if (data.dduTemplate instanceof File) {
       payload.ddu_template = data.dduTemplate;
     }
+    return payload;
+  };
 
-    // Смена email требует кода подтверждения (фидбек 2026-05-22).
-    // Проверяем здесь — нужен исходный user.email для сравнения.
-    if (emailChanged) {
-      const code = (data.emailCode ?? '').trim();
-      if (!code) {
-        form.setError('emailCode', {
-          type: 'manual',
-          message: 'Отправьте код на новый адрес и введите его',
-        });
-        return;
-      }
-      payload.email_code = code;
-    }
+  const onSubmit = form.handleSubmit((data) => {
+    const payload = buildPayload(data);
 
     if (Object.keys(payload).length === 0) {
       onOpenChange(false);
       return;
     }
 
-    updateDeveloper.mutate(
-      { id: user.id, data: payload },
-      {
-        onSuccess: () => {
-          toast.success('Данные девелопера обновлены');
-          onOpenChange(false);
+    // Смена email — тот же флоу, что в ЛК (ТЗ 2026-05-16): шлём код на
+    // новый адрес через /get-code/, открываем модалку с DigitInput.
+    // Сохранение произойдёт после подтверждения (handleEmailVerify).
+    if (payload.email && payload.email !== user.email) {
+      getCode.mutate(
+        { email: payload.email },
+        {
+          onSuccess: () => {
+            setEmailCode('');
+            setEmailVerifyOpen(true);
+          },
+          onError: (error) => {
+            toast.error(getApiError(error));
+          },
         },
-        onError: (error) => {
-          toast.error(getApiError(error));
-        },
-      },
-    );
+      );
+      return;
+    }
+
+    doSave(payload);
   });
 
-  // Файл шаблона ДДУ для кастомного пикера (нативная кнопка input
-  // рендерит англ. «Choose file» — прячем input, см. ниже).
-  const dduTemplateFile = form.watch('dduTemplate');
-
-  // Email-change detection: код нужен только когда адрес реально меняется.
-  const emailValue = form.watch('email');
-  const emailChanged =
-    (emailValue ?? '').trim().toLowerCase() !== (user.email ?? '').toLowerCase();
-
-  const handleSendEmailCode = () => {
-    const next = (emailValue ?? '').trim();
-    if (!next) return;
-    requestEmailCode.mutate(
-      { id: user.id, email: next },
+  // Подтверждение кода из модалки → /verify-email/ ставит verified-флаг
+  // → сохраняем (бэк увидит флаг и применит смену email).
+  const handleEmailVerify = () => {
+    const newEmail = form.getValues('email');
+    verifyEmail.mutate(
+      { email: newEmail, code: emailCode },
       {
         onSuccess: () => {
-          setCodeSent(true);
-          toast.success('Код отправлен на новый адрес');
+          setEmailVerifyOpen(false);
+          setEmailCode('');
+          doSave(buildPayload(form.getValues()));
         },
         onError: (error) => {
           toast.error(getApiError(error));
@@ -535,6 +540,10 @@ function EditDeveloperModal({
       },
     );
   };
+
+  // Файл шаблона ДДУ для кастомного пикера (нативная кнопка input
+  // рендерит англ. «Choose file» — прячем input, см. ниже).
+  const dduTemplateFile = form.watch('dduTemplate');
 
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
@@ -565,59 +574,9 @@ function EditDeveloperModal({
                     {form.formState.errors.email.message}
                   </span>
                 )}
+                {/* Смена email подтверждается кодом в отдельной модалке
+                    (как в ЛК) — она открывается при «Сохранить». */}
               </div>
-
-              {/* Подтверждение нового email кодом (фидбек 2026-05-22).
-                  Появляется только когда адрес изменён: админ шлёт код
-                  на новый ящик, девелопер сообщает его, админ вводит. */}
-              {emailChanged && (
-                <div className='flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-3'>
-                  <span className='text-paragraph-xs text-amber-700'>
-                    Смена email требует подтверждения. Отправьте код на новый
-                    адрес, введите его (код сообщит девелопер) и нажмите
-                    «Сохранить» — код проверяется при сохранении.
-                  </span>
-                  <div className='flex items-end gap-2'>
-                    <div className='flex flex-1 flex-col gap-1'>
-                      <Label.Root htmlFor='ed-emailCode'>Код из письма</Label.Root>
-                      <Input.Root hasError={!!form.formState.errors.emailCode}>
-                        <Input.Wrapper>
-                          <Input.Input
-                            id='ed-emailCode'
-                            type='text'
-                            inputMode='numeric'
-                            placeholder='6 цифр'
-                            {...form.register('emailCode')}
-                          />
-                        </Input.Wrapper>
-                      </Input.Root>
-                    </div>
-                    <FancyButton.Root
-                      type='button'
-                      variant='basic'
-                      size='small'
-                      disabled={requestEmailCode.isPending || !(emailValue ?? '').trim()}
-                      onClick={handleSendEmailCode}
-                    >
-                      {requestEmailCode.isPending
-                        ? 'Отправка...'
-                        : codeSent
-                          ? 'Отправить снова'
-                          : 'Отправить код'}
-                    </FancyButton.Root>
-                  </div>
-                  {codeSent && !form.formState.errors.emailCode && (
-                    <span className='text-paragraph-xs text-amber-700'>
-                      Код отправлен. Введите его выше и нажмите «Сохранить».
-                    </span>
-                  )}
-                  {form.formState.errors.emailCode && (
-                    <span className='text-paragraph-xs text-error-base'>
-                      {form.formState.errors.emailCode.message}
-                    </span>
-                  )}
-                </div>
-              )}
 
               <div className='grid grid-cols-2 gap-3'>
                 <div className='flex flex-col gap-1'>
@@ -825,13 +784,57 @@ function EditDeveloperModal({
               type='submit'
               variant='primary'
               size='small'
-              disabled={updateDeveloper.isPending}
+              disabled={updateDeveloper.isPending || getCode.isPending}
             >
-              {updateDeveloper.isPending ? 'Сохранение...' : 'Сохранить'}
+              {getCode.isPending
+                ? 'Отправка кода…'
+                : updateDeveloper.isPending
+                  ? 'Сохранение...'
+                  : 'Сохранить'}
             </FancyButton.Root>
           </Modal.Footer>
         </form>
       </Modal.Content>
+
+      {/* Подтверждение нового email кодом — тот же паттерн, что в ЛК
+          (cabinet/profile-card). Код приходит на новый адрес. */}
+      <Modal.Root open={emailVerifyOpen} onOpenChange={setEmailVerifyOpen}>
+        <Modal.Content className='max-w-[440px]'>
+          <Modal.Header
+            title='Подтвердите новый email'
+            description={`Мы отправили код на ${form.getValues('email').trim().toLowerCase()}. Код сообщит девелопер — введите его, чтобы сменить email.`}
+          />
+          <Modal.Body>
+            <div className='flex flex-col gap-1.5'>
+              <Label.Root>Код из письма</Label.Root>
+              <DigitInput.Root
+                value={emailCode}
+                onChange={setEmailCode}
+                numInputs={6}
+                inputType='number'
+                shouldAutoFocus
+              />
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Close asChild>
+              <FancyButton.Root variant='basic' size='small'>
+                Отмена
+              </FancyButton.Root>
+            </Modal.Close>
+            <FancyButton.Root
+              variant='primary'
+              size='small'
+              disabled={emailCode.length < 6 || verifyEmail.isPending || updateDeveloper.isPending}
+              onClick={handleEmailVerify}
+            >
+              {verifyEmail.isPending || updateDeveloper.isPending
+                ? 'Проверка…'
+                : 'Подтвердить'}
+            </FancyButton.Root>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal.Root>
     </Modal.Root>
   );
 }

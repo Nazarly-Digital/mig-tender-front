@@ -81,9 +81,6 @@ export type AdminUpdateDeveloperRequest = {
   inn_number?: string;
   phone_number?: string;
   ddu_template?: File;
-  // Код подтверждения нового email (фидбек 2026-05-22). Обязателен
-  // на бэке только когда email реально меняется.
-  email_code?: string;
 };
 
 export type AdminDeveloperResponse = {
