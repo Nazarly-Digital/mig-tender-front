@@ -32,6 +32,7 @@ import {
   useAdminVerifyBroker,
   useAdminRejectBroker,
   useAdminUpdateDeveloper,
+  useAdminRequestDeveloperEmailCode,
   useAdminUpdateBroker,
 } from '@/features/admin';
 import type { AdminUser } from '@/shared/types/admin';
@@ -410,6 +411,9 @@ function EditDeveloperModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const updateDeveloper = useAdminUpdateDeveloper();
+  const requestEmailCode = useAdminRequestDeveloperEmailCode();
+  // Был ли код отправлен на новый адрес в рамках текущего открытия модалки.
+  const [codeSent, setCodeSent] = React.useState(false);
 
   const form = useForm<AdminUpdateDeveloperFormData>({
     resolver: zodResolver(adminUpdateDeveloperSchema),
@@ -421,6 +425,7 @@ function EditDeveloperModal({
       innNumber: '',
       phoneNumber: '',
       dduTemplate: undefined as unknown as File,
+      emailCode: '',
     },
   });
 
@@ -434,7 +439,9 @@ function EditDeveloperModal({
         innNumber: user.developer?.inn_number ?? '',
         phoneNumber: formatPhoneInput(user.developer?.phone_number || PHONE_INPUT_DEFAULT),
         dduTemplate: undefined as unknown as File,
+        emailCode: '',
       });
+      setCodeSent(false);
     }
   }, [open, user, form]);
 
@@ -450,8 +457,10 @@ function EditDeveloperModal({
       inn_number?: string;
       phone_number?: string;
       ddu_template?: File;
+      email_code?: string;
     } = {};
-    if (data.email !== user.email) payload.email = data.email;
+    const emailChanged = data.email !== user.email;
+    if (emailChanged) payload.email = data.email;
     if (data.firstName !== (user.first_name ?? '')) payload.first_name = data.firstName;
     if (data.lastName !== (user.last_name ?? '')) payload.last_name = data.lastName;
     if (data.companyName !== (user.developer?.company_name ?? '')) {
@@ -466,6 +475,20 @@ function EditDeveloperModal({
     }
     if (data.dduTemplate instanceof File) {
       payload.ddu_template = data.dduTemplate;
+    }
+
+    // Смена email требует кода подтверждения (фидбек 2026-05-22).
+    // Проверяем здесь — нужен исходный user.email для сравнения.
+    if (emailChanged) {
+      const code = (data.emailCode ?? '').trim();
+      if (!code) {
+        form.setError('emailCode', {
+          type: 'manual',
+          message: 'Отправьте код на новый адрес и введите его',
+        });
+        return;
+      }
+      payload.email_code = code;
     }
 
     if (Object.keys(payload).length === 0) {
@@ -490,6 +513,28 @@ function EditDeveloperModal({
   // Файл шаблона ДДУ для кастомного пикера (нативная кнопка input
   // рендерит англ. «Choose file» — прячем input, см. ниже).
   const dduTemplateFile = form.watch('dduTemplate');
+
+  // Email-change detection: код нужен только когда адрес реально меняется.
+  const emailValue = form.watch('email');
+  const emailChanged =
+    (emailValue ?? '').trim().toLowerCase() !== (user.email ?? '').toLowerCase();
+
+  const handleSendEmailCode = () => {
+    const next = (emailValue ?? '').trim();
+    if (!next) return;
+    requestEmailCode.mutate(
+      { id: user.id, email: next },
+      {
+        onSuccess: () => {
+          setCodeSent(true);
+          toast.success('Код отправлен на новый адрес');
+        },
+        onError: (error) => {
+          toast.error(getApiError(error));
+        },
+      },
+    );
+  };
 
   return (
     <Modal.Root open={open} onOpenChange={onOpenChange}>
@@ -521,6 +566,52 @@ function EditDeveloperModal({
                   </span>
                 )}
               </div>
+
+              {/* Подтверждение нового email кодом (фидбек 2026-05-22).
+                  Появляется только когда адрес изменён: админ шлёт код
+                  на новый ящик, девелопер сообщает его, админ вводит. */}
+              {emailChanged && (
+                <div className='flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-3'>
+                  <span className='text-paragraph-xs text-amber-700'>
+                    Смена email требует подтверждения. Отправьте код на новый
+                    адрес и введите его — код сообщит девелопер.
+                  </span>
+                  <div className='flex items-end gap-2'>
+                    <div className='flex flex-1 flex-col gap-1'>
+                      <Label.Root htmlFor='ed-emailCode'>Код из письма</Label.Root>
+                      <Input.Root hasError={!!form.formState.errors.emailCode}>
+                        <Input.Wrapper>
+                          <Input.Input
+                            id='ed-emailCode'
+                            type='text'
+                            inputMode='numeric'
+                            placeholder='6 цифр'
+                            {...form.register('emailCode')}
+                          />
+                        </Input.Wrapper>
+                      </Input.Root>
+                    </div>
+                    <FancyButton.Root
+                      type='button'
+                      variant='basic'
+                      size='small'
+                      disabled={requestEmailCode.isPending || !(emailValue ?? '').trim()}
+                      onClick={handleSendEmailCode}
+                    >
+                      {requestEmailCode.isPending
+                        ? 'Отправка...'
+                        : codeSent
+                          ? 'Отправить снова'
+                          : 'Отправить код'}
+                    </FancyButton.Root>
+                  </div>
+                  {form.formState.errors.emailCode && (
+                    <span className='text-paragraph-xs text-error-base'>
+                      {form.formState.errors.emailCode.message}
+                    </span>
+                  )}
+                </div>
+              )}
 
               <div className='grid grid-cols-2 gap-3'>
                 <div className='flex flex-col gap-1'>

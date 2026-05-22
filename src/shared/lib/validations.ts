@@ -383,6 +383,10 @@ export const adminUpdateDeveloperSchema = z.object({
     .string()
     .max(20, 'Максимум 20 символов'),
   dduTemplate: optionalPdf,
+  // Код подтверждения нового email (фидбек 2026-05-22). Необязателен в
+  // схеме; «email сменился → код обязателен» проверяется в компоненте
+  // (нужен исходный email для сравнения) и на бэке.
+  emailCode: z.string().optional(),
 });
 
 export type AdminUpdateDeveloperFormData = z.infer<typeof adminUpdateDeveloperSchema>;

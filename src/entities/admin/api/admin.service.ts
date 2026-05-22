@@ -77,6 +77,15 @@ export const adminService = {
     return apiInstance.patch<AdminDeveloperResponse>(`/admin/developers/${id}/`, data);
   },
 
+  // Запрос кода подтверждения на НОВЫЙ email девелопера перед сменой
+  // (фидбек 2026-05-22). Код уходит на новый адрес, админ вводит его
+  // в форме и сохраняет — тогда email применяется.
+  requestDeveloperEmailCode: (id: number, email: string) =>
+    apiInstance.post<{ message: string }>(
+      `/admin/developers/${id}/request-email-code/`,
+      { email },
+    ),
+
   // Broker management (admin edits via shared /admin/users/<id>/ endpoint)
   updateBroker: (id: number, data: AdminUpdateBrokerRequest) =>
     apiInstance.patch<AdminUpdateBrokerResponse>(`/admin/users/${id}/`, data),
