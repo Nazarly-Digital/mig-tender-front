@@ -585,10 +585,13 @@ function EditDeveloperModal({
                       type='text'
                       inputMode='numeric'
                       maxLength={12}
-                      placeholder='12 цифр'
+                      // Девелопер — юрлицо: ИНН обычно 10 цифр. Подсказка
+                      // соответствует роли (фидбек 2026-05-22). Схема
+                      // принимает и 10, и 12.
+                      placeholder='10 цифр'
                       onInvalid={(e) => {
                         e.currentTarget.setCustomValidity(
-                          'Убедитесь, что это значение ИИН содержит не более 12 символов.',
+                          'Убедитесь, что это значение ИНН содержит не более 12 символов.',
                         );
                       }}
                       onInput={(e) => {

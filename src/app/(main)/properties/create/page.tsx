@@ -38,7 +38,7 @@ import type {
   CommercialSubtype,
   PropertyCreateRequest,
 } from '@/shared/types/properties';
-import { propertySchema, type PropertyFormData } from '@/shared/lib/validations';
+import { propertySchema, propertyDraftSchema, type PropertyFormData } from '@/shared/lib/validations';
 import { DatePicker } from '@/shared/ui/date-picker';
 
 export default function CreatePropertyPage() {
@@ -55,6 +55,10 @@ export default function CreatePropertyPage() {
   const isDeveloperVerified = verificationStatus === 'accepted';
   const [verifyBlockOpen, setVerifyBlockOpen] = React.useState(false);
 
+  // Tracks which submit button was clicked: 'published' or 'draft'.
+  // Объявлено до useForm — resolver ниже выбирает схему по этому ref'у.
+  const submitStatusRef = React.useRef<PropertyStatus>('published');
+
   const {
     register,
     control,
@@ -63,7 +67,17 @@ export default function CreatePropertyPage() {
     setValue,
     formState: { errors },
   } = useForm<PropertyFormData>({
-    resolver: zodResolver(propertySchema),
+    // Для черновика — мягкая propertyDraftSchema (не требует
+    // developer_name/project/commission_rate), для публикации —
+    // строгая propertySchema. Тот же приём, что в форме создания
+    // аукциона (auctionDraftSchema / auctionSchema). Фидбек 2026-05-22.
+    resolver: ((values: PropertyFormData, ctx: unknown, opts: unknown) => {
+      const schema =
+        submitStatusRef.current === 'draft' ? propertyDraftSchema : propertySchema;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (zodResolver(schema) as any)(values, ctx, opts);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any,
     defaultValues: {
       type: 'apartment',
       property_class: 'comfort',
@@ -177,8 +191,6 @@ export default function CreatePropertyPage() {
   };
 
   const [submitting, setSubmitting] = React.useState(false);
-  // Tracks which submit button was clicked: 'published' or 'draft'.
-  const submitStatusRef = React.useRef<PropertyStatus>('published');
 
   const onSubmit = async (data: PropertyFormData) => {
     setSubmitting(true);
@@ -333,17 +345,26 @@ export default function CreatePropertyPage() {
               <div className='grid grid-cols-2 gap-3'>
                 <div className='space-y-1.5'>
                   <Label.Root htmlFor='property-developer-name'>Застройщик <Label.Asterisk /></Label.Root>
-                  <Input.Root>
+                  {/* Если company_name есть в профиле — поле заблокировано
+                      и автозаполнено названием компании. Если профиль ещё
+                      без company_name (новый девелопер) — разблокируем,
+                      чтобы пользователь мог ввести застройщика вручную и
+                      не застрять с пустым disabled-полем (фидбек 2026-05-22). */}
+                  <Input.Root hasError={!!errors.developer_name}>
                     <Input.Wrapper>
                       <Input.Input
                         id='property-developer-name'
                         type='text'
-                        disabled
+                        disabled={!!companyName}
+                        placeholder={companyName ? undefined : 'Название застройщика'}
                         className='disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed'
                         {...register('developer_name')}
                       />
                     </Input.Wrapper>
                   </Input.Root>
+                  {errors.developer_name && (
+                    <p className='text-xs text-red-500'>{errors.developer_name.message}</p>
+                  )}
                 </div>
                 <div className='space-y-1.5'>
                   <Label.Root htmlFor='property-project'>Название проекта <Label.Asterisk /></Label.Root>

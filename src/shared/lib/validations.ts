@@ -368,9 +368,17 @@ export const adminUpdateDeveloperSchema = z.object({
     .string()
     .min(1, 'Введите название компании')
     .max(55, 'Максимум 55 символов'),
+  // ИНН: 10 цифр — юрлицо (девелопер), 12 — физлицо/ИП. Раньше схема
+  // требовала РОВНО 12, из-за чего 10-значный ИНН девелопера не
+  // сохранялся: «ИНН должен состоять из 12 цифр» (фидбек 2026-05-22).
+  // Принимаем оба формата — как в adminCreateDeveloperSchema и при
+  // регистрации. Пустая строка валидна (поле необязательно при PATCH).
   innNumber: z
     .string()
-    .refine((v) => v === '' || /^\d{12}$/.test(v), 'ИНН должен состоять из 12 цифр'),
+    .refine(
+      (v) => v === '' || /^\d{10}$/.test(v) || /^\d{12}$/.test(v),
+      'ИНН должен содержать 10 или 12 цифр',
+    ),
   phoneNumber: z
     .string()
     .max(20, 'Максимум 20 символов'),
@@ -389,9 +397,14 @@ export const adminUpdateBrokerSchema = z.object({
     .string()
     .min(1, 'Введите фамилию')
     .max(50, 'Максимум 50 символов'),
+  // Тот же фикс, что и для девелопера — принимаем 10 или 12 цифр
+  // (консистентно с регистрацией), чтобы не блокировать сохранение.
   innNumber: z
     .string()
-    .refine((v) => v === '' || /^\d{12}$/.test(v), 'ИНН должен состоять из 12 цифр'),
+    .refine(
+      (v) => v === '' || /^\d{10}$/.test(v) || /^\d{12}$/.test(v),
+      'ИНН должен содержать 10 или 12 цифр',
+    ),
   phoneNumber: z
     .string()
     .max(20, 'Максимум 20 символов'),
@@ -515,6 +528,80 @@ export const propertySchema = z.object({
 );
 
 export type PropertyFormData = z.infer<typeof propertySchema>;
+
+// Мягкая схема для ЧЕРНОВИКА объекта (фидбек 2026-05-22).
+//
+// Бэк для DRAFT-объекта строго требует только: type, address, area,
+// price + property_class (для non-land) и commercial_subtype (для
+// commercial). Поля developer_name, project, commission_rate, floor и
+// номера участка/дома бэк допускает пустыми (Property.commission_rate
+// null=True; developer_name required=False/allow_blank; floor optional).
+//
+// Главная боль: «Застройщик» (developer_name) на форме создания
+// disabled и автозаполняется из company_name профиля. У нового
+// девелопера company_name может быть пустым → строгая propertySchema
+// (min(1)) молча блокировала «Сохранить как черновик». Здесь это поле
+// необязательно — черновик сохраняется с частичными данными, а
+// дозаполнить можно перед публикацией (там работает строгая схема).
+export const propertyDraftSchema = z.object({
+  type: z.string().min(1, 'Выберите тип'),
+  address: z
+    .string()
+    .trim()
+    .min(1, 'Введите адрес')
+    .max(500, 'Слишком длинно'),
+  area: z
+    .string()
+    .min(1, 'Введите площадь')
+    .refine((v) => parseFloat(v) > 0, 'Площадь должна быть больше 0')
+    .refine((v) => isFiniteInRange(v, 0, MAX_AREA), 'Некорректное значение'),
+  property_class: z.string().optional(),
+  price: z
+    .string()
+    .min(1, 'Введите цену')
+    .refine((v) => parseFloat(v) > 0, 'Цена должна быть больше 0')
+    .refine((v) => isFiniteInRange(v, 0, MAX_PRICE), 'Некорректное значение'),
+  currency: z.string().min(1),
+  deadline: z
+    .string()
+    .optional()
+    .refine((v) => !v || ISO_DATE_RE.test(v), 'Неверная дата'),
+  // Черновик: комиссия необязательна (бэк допускает null), но если
+  // введена — диапазон 0..100 всё равно проверяем.
+  commission_rate: z
+    .string()
+    .optional()
+    .refine(
+      (v) => !v || isFiniteInRange(v, 0, MAX_COMMISSION_RATE, true),
+      'Комиссия не может превышать 100%',
+    ),
+  status: z.string().min(1, 'Выберите статус'),
+  show_price_to_brokers: z.boolean().optional(),
+  floor: z.string().optional(),
+  // Черновик: застройщик и проект необязательны.
+  developer_name: z.string().max(200, 'Слишком длинно').optional(),
+  project: z.string().max(200, 'Слишком длинно').optional(),
+  project_comment: z
+    .string()
+    .max(2000, 'Слишком длинный комментарий')
+    .optional(),
+  commercial_subtype: z.string().optional(),
+  land_number: z.string().max(32, 'Слишком длинно').optional(),
+  house_number: z.string().max(32, 'Слишком длинно').optional(),
+}).refine(
+  // property_class бэк требует для всех типов кроме land.
+  (data) => data.type === 'land' || (data.property_class && data.property_class.length > 0),
+  { message: 'Выберите класс', path: ['property_class'] },
+).refine(
+  // commercial_subtype бэк требует для коммерции.
+  (data) => {
+    if (data.type !== 'commercial') return true;
+    return !!data.commercial_subtype && data.commercial_subtype.length > 0;
+  },
+  { message: 'Выберите подтип', path: ['commercial_subtype'] },
+);
+
+export type PropertyDraftFormData = z.infer<typeof propertyDraftSchema>;
 
 // === Auctions ===
 
