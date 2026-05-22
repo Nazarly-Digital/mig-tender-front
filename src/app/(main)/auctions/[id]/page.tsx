@@ -223,9 +223,21 @@ function getApiError(error: unknown): string {
   return err.response?.data?.error ?? err.response?.data?.detail ?? 'Произошла ошибка';
 }
 
-function LotPropertyCard({ prop, index, total }: { prop: AuctionLotProperty; index?: number; total?: number }) {
+function LotPropertyCard({ prop, index, total, lotCommissionRate }: { prop: AuctionLotProperty; index?: number; total?: number; lotCommissionRate?: string | null }) {
   const { data: property } = useProperty(prop.id);
   const showIndex = typeof index === 'number' && typeof total === 'number' && total > 1;
+  // «Один пул — одна комиссия» (фидбек 2026-05-22): для лота из 2+
+  // объектов комиссия едина на весь лот (auction.commission_rate),
+  // по-объектные ставки не применяются. Раньше карточка показывала
+  // prop.commission_rate (ставку отдельного объекта, напр. 10%),
+  // хотя реальная комиссия лота — другая (напр. 7%), и бэк её отдаёт.
+  // Для одиночного лота источник истины — сам объект. Это зеркалит
+  // бэкендовую логику Deal.commission_rate.
+  const isMultiLot = typeof total === 'number' && total > 1;
+  const effectiveCommission = isMultiLot
+    ? (lotCommissionRate ?? prop.commission_rate)
+    : prop.commission_rate;
+  const commissionLabel = isMultiLot ? 'Комиссия лота' : 'Комиссия';
 
   return (
     <div className='rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 overflow-hidden'>
@@ -279,8 +291,8 @@ function LotPropertyCard({ prop, index, total }: { prop: AuctionLotProperty; ind
             <span className='font-semibold text-gray-900'>{prop.price != null ? `${formatPrice(prop.price)} ₽` : 'Скрыта'}</span>
           </div>
           <div className='flex items-center justify-between gap-4'>
-            <span className='text-gray-500 shrink-0'>Комиссия:</span>
-            <span className='font-medium text-gray-900'>{prop.commission_rate ? `${prop.commission_rate}%` : '—'}</span>
+            <span className='text-gray-500 shrink-0'>{commissionLabel}:</span>
+            <span className='font-medium text-gray-900'>{effectiveCommission ? `${effectiveCommission}%` : '—'}</span>
           </div>
         </div>
 
@@ -318,8 +330,8 @@ function LotPropertyCard({ prop, index, total }: { prop: AuctionLotProperty; ind
               <span className='mt-1 block text-[13px] font-medium text-gray-900'>{getPropertyClassLabel(prop.property_class)}</span>
             </div>
             <div>
-              <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>Комиссия</span>
-              <span className='mt-1 block text-[13px] font-medium text-gray-900'>{prop.commission_rate ? `${prop.commission_rate}%` : '—'}</span>
+              <span className='text-[11px] font-semibold uppercase tracking-widest text-gray-400'>{commissionLabel}</span>
+              <span className='mt-1 block text-[13px] font-medium text-gray-900'>{effectiveCommission ? `${effectiveCommission}%` : '—'}</span>
             </div>
           </div>
         </div>
@@ -1174,6 +1186,7 @@ export default function AuctionDetailPage() {
               prop={prop}
               index={idx}
               total={auction.properties.length}
+              lotCommissionRate={auction.commission_rate}
             />
           ))}
         </div>
