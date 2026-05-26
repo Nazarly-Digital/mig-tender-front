@@ -229,6 +229,7 @@ function ImageUploadSection({
     setUploading(true);
     const startOrder = localOrder.length > 0 ? Math.max(...localOrder.map((i) => i.sort_order)) + 1 : 0;
     const fileArr = Array.from(files);
+    let uploaded = 0;
     for (let i = 0; i < fileArr.length; i++) {
       const file = fileArr[i];
       if (file.size > 5 * 1024 * 1024) {
@@ -244,12 +245,25 @@ function ImageUploadSection({
             is_primary: localOrder.length === 0 && i === 0,
           },
         });
+        uploaded += 1;
       } catch {
         toast.error(`Ошибка загрузки «${file.name}»`);
       }
     }
     setUploading(false);
     if (inputRef.current) inputRef.current.value = '';
+    // Явный фидбек: иначе кажется, что «ничего не произошло» (фидбек
+    // Эльнуры 2026-05-26). Бэк (d235135) для approved/rejected
+    // объектов автоматически переводит карточку обратно в pending —
+    // упоминаем это явно, чтобы девелопер понял: жать «Сохранить
+    // изменения» не нужно, объект уже на модерации.
+    if (uploaded > 0) {
+      toast.success(
+        uploaded === 1
+          ? 'Фото загружено. Объект отправлен на модерацию.'
+          : `${uploaded} фото загружено. Объект отправлен на модерацию.`,
+      );
+    }
   };
 
   const moveImage = (fromIdx: number, toIdx: number) => {
@@ -348,7 +362,13 @@ function ImageUploadSection({
                   type='button'
                   onClick={() => toast.promise(
                     deleteImage.mutateAsync({ propertyId, imageId: img.id }),
-                    { loading: 'Удаление...', success: 'Фото удалено', error: 'Ошибка при удалении' },
+                    {
+                      loading: 'Удаление...',
+                      // Бэк (d235135) после удаления фото у approved/rejected
+                      // объекта сам поднимает moderation_status → pending.
+                      success: 'Фото удалено. Объект отправлен на модерацию.',
+                      error: 'Ошибка при удалении',
+                    },
                   )}
                   className='flex size-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600'
                   title='Удалить'
@@ -399,6 +419,12 @@ function ImageUploadSection({
           onChange={(e) => handleFiles(e.target.files)}
         />
       </button>
+      )}
+      {!readOnly && (
+        <p className='text-[11px] text-gray-400'>
+          Фото сохраняются сразу при загрузке — отдельно жать «Сохранить
+          изменения» не нужно. Объект автоматически уйдёт на повторную модерацию.
+        </p>
       )}
     </div>
   );
