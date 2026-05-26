@@ -241,12 +241,18 @@ export const ProfileEditCard = React.forwardRef<
 
   // ИНН: developer (юр.лицо) — 10 цифр, broker (физлицо) — 12.
   const innExpectedLen: 10 | 12 = role === 'developer' ? 10 : 12;
-  // Inline-ошибка ИНН — показываем только когда введено нужное
-  // кол-во цифр (чтобы не нагружать пока юзер ещё печатает).
+  // Inline-ошибка ИНН (фидбек 2026-05-26): единое сообщение «Введен
+  // некорректный ИНН» для любого случая — недобор цифр, перебор,
+  // нечисловые символы, неверная контрольная цифра. Раньше показывали
+  // только когда длина ровно 10/12 и валидация падала, из-за чего
+  // «534535» (6 цифр) висел без ошибки.
+  // Пустую строку не подсвечиваем — поле просто ещё не заполнено.
   const innError = React.useMemo(() => {
     const v = values.inn_number.trim();
-    if (v.length !== innExpectedLen) return null;
-    return validateInn(v, innExpectedLen);
+    if (!v) return null;
+    return validateInn(v, innExpectedLen) === null
+      ? null
+      : 'Введен некорректный ИНН';
   }, [values.inn_number, innExpectedLen]);
 
   // Inline-ошибка телефона — единое правило с регистрацией и бэком
