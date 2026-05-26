@@ -177,9 +177,15 @@ function ImagesGallery({ images }: { images: PropertyImage[] }) {
 function ImageUploadSection({
   propertyId,
   readOnly = false,
+  onImagesChanged,
 }: {
   propertyId: number;
   readOnly?: boolean;
+  // Колбэк наверх: «в этой сессии было добавлено/удалено фото».
+  // Используется страницей, чтобы активировать «Сохранить изменения»
+  // на текстовой форме — иначе кнопка висит неактивной, хотя девелопер
+  // что-то поменял (фидбек 2026-05-26).
+  onImagesChanged?: () => void;
 }) {
   const { data: images = [] } = usePropertyImages(propertyId);
   const addImage = useAddPropertyImage();
@@ -252,6 +258,7 @@ function ImageUploadSection({
     }
     setUploading(false);
     if (inputRef.current) inputRef.current.value = '';
+    if (uploaded > 0) onImagesChanged?.();
     // Явный фидбек: иначе кажется, что «ничего не произошло» (фидбек
     // Эльнуры 2026-05-26). Бэк (d235135) для approved/rejected
     // объектов автоматически переводит карточку обратно в pending —
@@ -361,7 +368,9 @@ function ImageUploadSection({
                 <button
                   type='button'
                   onClick={() => toast.promise(
-                    deleteImage.mutateAsync({ propertyId, imageId: img.id }),
+                    deleteImage
+                      .mutateAsync({ propertyId, imageId: img.id })
+                      .then((r) => { onImagesChanged?.(); return r; }),
                     {
                       loading: 'Удаление...',
                       // Бэк (d235135) после удаления фото у approved/rejected
@@ -422,8 +431,8 @@ function ImageUploadSection({
       )}
       {!readOnly && (
         <p className='text-[11px] text-gray-400'>
-          Фото сохраняются сразу при загрузке — отдельно жать «Сохранить
-          изменения» не нужно. Объект автоматически уйдёт на повторную модерацию.
+          Фото загружаются автоматически. Не забудьте нажать «Сохранить
+          изменения», чтобы подтвердить отправку на повторную модерацию.
         </p>
       )}
     </div>
@@ -436,10 +445,16 @@ function PropertyEditForm({
   property,
   onSubmit,
   isSubmitting,
+  imagesDirty = false,
 }: {
   property: Property;
   onSubmit: (data: PropertyFormData) => void;
   isSubmitting: boolean;
+  // Флаг с уровня страницы: «в этой сессии трогали фото». Считается
+  // «изменением» наравне с правкой текстовых полей формы, поэтому
+  // активирует «Сохранить изменения» даже если форма сама не dirty
+  // (фидбек 2026-05-26).
+  imagesDirty?: boolean;
 }) {
   const {
     register,
@@ -742,7 +757,7 @@ function PropertyEditForm({
           variant='primary'
           size='small'
           type='submit'
-          disabled={isSubmitting || !isDirty}
+          disabled={isSubmitting || (!isDirty && !imagesDirty)}
         >
           {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
         </FancyButton.Root>
@@ -767,6 +782,12 @@ export default function PropertyDetailPage() {
   const deleteMutation = useDeleteProperty();
 
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  // «В этой сессии трогали фото» — поднимается из ImageUploadSection
+  // и активирует «Сохранить изменения» в PropertyEditForm (фидбек
+  // 2026-05-26: добавление фото должно считаться изменением).
+  // Сбрасывается после успешного PATCH объекта и при смене propertyId.
+  const [imagesDirty, setImagesDirty] = React.useState(false);
+  React.useEffect(() => { setImagesDirty(false); }, [propertyId]);
 
   const onSubmit = (data: PropertyFormData) => {
     updateMutation.mutate(
@@ -792,7 +813,10 @@ export default function PropertyDetailPage() {
         },
       },
       {
-        onSuccess: () => toast.success(isDeveloper ? 'Объект изменён и отправлен на модерацию' : 'Объект сохранён'),
+        onSuccess: () => {
+          setImagesDirty(false);
+          toast.success(isDeveloper ? 'Объект изменён и отправлен на модерацию' : 'Объект сохранён');
+        },
         onError: (err) => {
           // Достаём реальную причину из ответа бэка — например
           // 403 «Опубликовать объект можно только после прохождения
@@ -933,6 +957,7 @@ export default function PropertyDetailPage() {
               property={property}
               onSubmit={onSubmit}
               isSubmitting={updateMutation.isPending}
+              imagesDirty={imagesDirty}
             />
           )}
         </div>
@@ -944,7 +969,11 @@ export default function PropertyDetailPage() {
           {/* Image Upload */}
           <div className='rounded-xl border border-blue-100/80 bg-linear-to-br from-white via-white to-blue-50/40 p-5'>
             <h3 className='mb-4 text-[14px] font-semibold text-gray-900'>Фотографии</h3>
-            <ImageUploadSection propertyId={property.id} readOnly={property.status === 'sold'} />
+            <ImageUploadSection
+              propertyId={property.id}
+              readOnly={property.status === 'sold'}
+              onImagesChanged={() => setImagesDirty(true)}
+            />
           </div>
 
           {/* Metadata — shown here below photos on < 2xl; hidden on 2xl+ where it moves to right column */}
