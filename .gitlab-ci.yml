@@ -7,9 +7,18 @@
 stages:
   - deploy
 
-deploy:
+deploy:prod:
   stage: deploy
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
   script:
     - migtender-deploy frontend
+
+# push в staging → деплой стейджа (/opt/migtender-staging/frontend,
+# контейнер staging-frontend-1, домен staging.migtender.ru).
+deploy:staging:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "staging"'
+  script:
+    - migtender-deploy-staging frontend
