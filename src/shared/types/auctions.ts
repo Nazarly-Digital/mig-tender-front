@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "./properties";
+import type { PaginatedResponse, PropertyImage } from "./properties";
 
 export type AuctionMode = "open" | "closed";
 
@@ -24,6 +24,10 @@ export type AuctionLotProperty = {
   deadline: string;
   status: string;
   moderation_status: string;
+  // Фото объекта — приходит вместе с лотом, чтобы карточка в /auctions
+  // могла показать карусель (фидбек Софьи 2026-06-08). Может быть
+  // пустым массивом (объект без фото) — UI рисует placeholder.
+  images: PropertyImage[];
 };
 
 export type Auction = {

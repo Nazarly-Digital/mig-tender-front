@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Award01Icon, Clock01Icon, Add01Icon } from '@hugeicons/core-free-icons';
+import { Award01Icon, Clock01Icon, Add01Icon, ArrowLeft01Icon, ArrowRight01Icon, Image01Icon } from '@hugeicons/core-free-icons';
 
 import { AuctionGridSkeleton } from '@/shared/components/skeletons';
 import * as FancyButton from '@/shared/ui/fancy-button';
@@ -96,6 +96,68 @@ function useNow(enabled: boolean, intervalMs = 1000): number {
   return now;
 }
 
+// Мини-карусель на карточке аукциона в /auctions (фидбек Софьи
+// 2026-06-08). Берёт первые 3 фото из первого объекта лота — лимит,
+// чтобы карточка не превращалась в галерею. Безопасна внутри Link:
+// клик по стрелкам/точкам гасит propagation и preventDefault, иначе
+// карусель бы навигировала на детальную.
+function AuctionCardCarousel({ images }: { images: { id: number; url?: string | null; external_url?: string | null }[] }) {
+  const limited = React.useMemo(() => images.slice(0, 3), [images]);
+  const [current, setCurrent] = React.useState(0);
+
+  React.useEffect(() => { if (current >= limited.length) setCurrent(0); }, [limited.length, current]);
+
+  if (limited.length === 0) {
+    return (
+      <div className='-mx-5 -mt-5 mb-3 flex aspect-video items-center justify-center bg-gray-100'>
+        <HugeiconsIcon icon={Image01Icon} size={32} color='currentColor' strokeWidth={1.5} className='text-gray-300' />
+      </div>
+    );
+  }
+
+  const src = limited[current]?.url || limited[current]?.external_url || '';
+  const stop = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); };
+  const prev = (e: React.MouseEvent) => { stop(e); setCurrent((c) => (c - 1 + limited.length) % limited.length); };
+  const next = (e: React.MouseEvent) => { stop(e); setCurrent((c) => (c + 1) % limited.length); };
+
+  return (
+    <div className='group/carousel -mx-5 -mt-5 mb-3 relative aspect-video overflow-hidden bg-gray-100'>
+      <img src={src} alt='' className='h-full w-full object-cover' />
+      {limited.length > 1 && (
+        <>
+          <button
+            type='button'
+            onClick={prev}
+            className='absolute left-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity hover:bg-white group-hover/carousel:opacity-100'
+            aria-label='Предыдущее фото'
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={14} color='currentColor' strokeWidth={1.5} className='text-gray-900' />
+          </button>
+          <button
+            type='button'
+            onClick={next}
+            className='absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 opacity-0 transition-opacity hover:bg-white group-hover/carousel:opacity-100'
+            aria-label='Следующее фото'
+          >
+            <HugeiconsIcon icon={ArrowRight01Icon} size={14} color='currentColor' strokeWidth={1.5} className='text-gray-900' />
+          </button>
+          <div className='absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1'>
+            {limited.map((_, i) => (
+              <button
+                key={i}
+                type='button'
+                onClick={(e) => { stop(e); setCurrent(i); }}
+                aria-label={`Фото ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${i === current ? 'w-4 bg-white' : 'w-1.5 bg-white/60'}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function AuctionCard({ auction }: { auction: Auction }) {
   const statusCfg = STATUS_CONFIG[auction.status];
   const isActive = auction.status === 'active';
@@ -116,8 +178,9 @@ function AuctionCard({ auction }: { auction: Auction }) {
   return (
     <Link
       href={`/auctions/${auction.id}`}
-      className='group flex flex-col rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 hover:border-blue-200 hover:shadow-sm transition-all duration-200'
+      className='group flex flex-col overflow-hidden rounded-xl border border-blue-100/80 bg-gradient-to-br from-white via-white to-blue-50/40 p-5 hover:border-blue-200 hover:shadow-sm transition-all duration-200'
     >
+      <AuctionCardCarousel images={auction.properties?.[0]?.images ?? []} />
       {/* Header: title + price */}
       <div className='flex flex-col gap-1'>
         <h3 className='text-[14px] font-semibold text-gray-900'>Аукцион #{auction.id}</h3>
